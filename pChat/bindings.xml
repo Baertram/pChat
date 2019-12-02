@@ -1,0 +1,78 @@
+<Bindings>
+	<Layer name="SI_KEYBINDINGS_LAYER_GENERAL">
+		<Category name="pChat">
+			<Action name="PCHAT_SWITCH_TAB">
+				<Down>pChat_SwitchToNextTab()</Down>
+			</Action>
+			<Action name="PCHAT_TOGGLE_CHAT_WINDOW">
+				<Down>pChat_ToggleChat()</Down>
+			</Action>
+			<Action name="PCHAT_SHOW_AUTO_MSG">
+				<Down>pChat_ShowAutoMsg()</Down>
+			</Action>
+			<Action name="PCHAT_WHISPER_MY_TARGET">
+				<Down>pChat_WhispMyTarget()</Down>
+			</Action>
+			<Action name="TAB_1">
+				<Down>
+					pChat_ChangeTab(1)
+				</Down>
+			</Action>
+			<Action name="TAB_2">
+				<Down>
+					pChat_ChangeTab(2)
+				</Down>
+			</Action>
+			<Action name="TAB_3">
+				<Down>
+					pChat_ChangeTab(3)
+				</Down>
+			</Action>
+			<Action name="TAB_4">
+				<Down>
+					pChat_ChangeTab(4)
+				</Down>
+			</Action>
+			<Action name="TAB_5">
+				<Down>
+					pChat_ChangeTab(5)
+				</Down>
+			</Action>
+			<Action name="TAB_6">
+				<Down>
+					pChat_ChangeTab(6)
+				</Down>
+			</Action>
+			<Action name="TAB_7">
+				<Down>
+					pChat_ChangeTab(7)
+				</Down>
+			</Action>
+			<Action name="TAB_8">
+				<Down>
+					pChat_ChangeTab(8)
+				</Down>
+			</Action>
+			<Action name="TAB_9">
+				<Down>
+					pChat_ChangeTab(9)
+				</Down>
+			</Action>
+			<Action name="TAB_10">
+				<Down>
+					pChat_ChangeTab(10)
+				</Down>
+			</Action>
+			<Action name="TAB_11">
+				<Down>
+					pChat_ChangeTab(11)
+				</Down>
+			</Action>
+			<Action name="TAB_12">
+				<Down>
+					pChat_ChangeTab(12)
+				</Down>
+			</Action>
+		</Category>
+	</Layer>
+</Bindings>

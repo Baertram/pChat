@@ -1,0 +1,33 @@
+<GuiXml>	
+	<Controls>
+		<TopLevelControl name="pChatCopyDialogTLC" inherits="ZO_DialogBase" hidden="true">
+			<Controls>
+				<Label name="$(parent)Label" inherits="ZO_DialogContentAnchors" horizontalAlignment="CENTER" color="INTERFACE_COLOR_TYPE_TEXT_COLORS:INTERFACE_TEXT_COLOR_NORMAL" font="ZoFontHeader3"/>
+				<Backdrop name="$(parent)Note" inherits="ZO_EditBackdrop">
+					<Anchor point="TOPLEFT" relativeTo="$(parent)Label" relativePoint="BOTTOMLEFT" offsetY="10"/>
+					<Anchor point="TOPRIGHT" relativeTo="$(parent)Label" relativePoint="BOTTOMRIGHT" offsetY="10"/>
+					<Dimensions y="265"/>
+					<Controls>
+						<EditBox name="$(parent)Edit" maxInputCharacters="20000" inherits="ZO_DefaultEditMultiLineForBackdrop ZO_EditDefaultText">
+							<OnEffectivelyShown>
+								self:TakeFocus()
+							</OnEffectivelyShown>
+						</EditBox>
+						<Button name="$(parent)Next" inherits="ZO_DefaultButton">
+							<Anchor point="BOTTOM" offsetY="35" />
+							<OnClicked>
+								pChat_ShowCopyDialogNext()
+							</OnClicked>
+						</Button>
+					</Controls>
+				</Backdrop>
+				<Button name="$(parent)Close" inherits="ZO_CloseButton">
+					<Anchor point="TOPRIGHT" offsetX="-6" offsetY="6" />
+					<OnClicked>
+						self:GetParent():SetHidden(true)
+					</OnClicked>
+				</Button>
+			</Controls>
+		</TopLevelControl>
+	</Controls>
+</GuiXml>
