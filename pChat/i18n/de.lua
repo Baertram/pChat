@@ -220,6 +220,9 @@ SafeAddString(PCHAT_RESTORESYSTEMONLYTT							, "Stellt nur Systemnachrichten wi
 
 SafeAddString(PCHAT_RESTOREWHISPS									, "Flüsternachricht wiederherstellen", 1)
 SafeAddString(PCHAT_RESTOREWHISPSTT									, "Stellt Flüsternachrichten wieder her. Flüsternachrichten sind nach einem /ReloadUI immer wiederhergestellt.", 1)
+SafeAddString(PCHAT_RESTOREWHISPS_NO_NOTIFY                         , "Keine Flüster Hinweise beim Wiederherstellen", 1)
+SafeAddString(PCHAT_RESTOREWHISPS_NO_NOTIFY_TT                      , "Zeige keine Hinweise an, und färbe den Chat Reiter nicht ein, wenn Flüsternachrichten wiederhergestellt werden.\nKann nur aktiviert werden, wenn die Flüster Hinweise/Benachrichtigungen aktiviert wurden.", 1)
+
 
 SafeAddString(PCHAT_RESTORETEXTENTRYHISTORYATLOGOUTQUIT		        , "Text wiederherstellen bei Pfeiltasten Historie", 1)
 SafeAddString(PCHAT_RESTORETEXTENTRYHISTORYATLOGOUTQUITTT	        , "Stellt die Historie wieder her beim verwenden der Tastatur Pfeiltasten. Die Historie ist nach einem /ReloadUI immer wiederhergestellt.", 1)
@@ -439,3 +442,7 @@ SafeAddString(PCHAT_CLEARBUFFER								, "Chatverlauf löschen", 1)
 --Added by Baertram
 SafeAddString(PCHAT_LIB_MISSING                             ,"[pChat] Die folgende Bibliothek fehlt und muss installiert & aktiviert werden: \'%s\'", 1)
 SafeAddString(PCHAT_LUAERROR                                ,"[pChat] hat 10 gepackte Zeilen abgefangen, mit dem folgenden Text=%s -- pChat - Nachricht wurde abgeschnitten", 1)
+
+SafeAddString(PCHAT_RESTORED_PREFIX                         , "[H]", 1)
+SafeAddString(PCHAT_RESTOREPREFIX                           , "Prefix vor wiederherg. Nachrichten anzeigen", 1)
+SafeAddString(PCHAT_RESTOREPREFIXTT                         , "Zeigt den Prefix \'[H]\' vor wiederhergestellten Nachrichten an, damit man diese einfach erkennen kann.\nDies wirkt sich erst nach einem ReloadUI auf den aktuellen Chat aus!\nDie Farbe des Prefix wird mit den ESO Standard Farben der Chat Kanäle angezeigt.", 1)

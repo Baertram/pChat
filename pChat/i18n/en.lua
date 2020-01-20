@@ -205,6 +205,9 @@ local strings = {
 	PCHAT_RESTOREWHISPS = "Restore Whispers",
 	PCHAT_RESTOREWHISPSTT = "Restore whispers sent and received after logoff, disconnect or quit. Whispers are always restored after a ReloadUI()",
 
+	PCHAT_RESTOREWHISPS_NO_NOTIFY = "No whisper notification on restore",
+	PCHAT_RESTOREWHISPS_NO_NOTIFY_TT = "Do not show the whisper notifications, and do not color the chat tab for restored whisper messages.\nCan only be enabled if the whisper notifications are enabled.",
+
 	PCHAT_RESTORETEXTENTRYHISTORYATLOGOUTQUIT  = "Restore Text entry history",
 	PCHAT_RESTORETEXTENTRYHISTORYATLOGOUTQUITTT  = "Restore Text entry history available with arrow keys after logoff, disconnect or quit. History of text entry is always restored after a ReloadUI()",
 
@@ -427,6 +430,10 @@ local strings = {
 	--Added by Baertram
 	PCHAT_LIB_MISSING       = "[pChat] The following library is missing and needs to be installed & enabled: \'%s\'",
 	PCHAT_LUAERROR = "[pChat] has triggered 10 packed lines with text=%s -- pChat - Message truncated",
+
+	PCHAT_RESTORED_PREFIX = "[H]",
+	PCHAT_RESTOREPREFIX = "Add prefix to restored messages",
+	PCHAT_RESTOREPREFIXTT = "Add a prefix \'[H]\' to restored messages in order to easily see they were restored.\nThis will affect the current chat only after a reloadUI!\nThe color of the prefix will be shown with the standard ESO chat channel colors."
 }
 
 for stringId, stringValue in pairs(strings) do
