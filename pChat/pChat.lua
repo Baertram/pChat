@@ -42,6 +42,7 @@ local isAddonInitialized	= false
 
 -- Preventer variables
 local preventWhisperNotificationsFromHistory = false
+local eventPlayerActivatedCheckRunning = false
 
 --Variables
 pChat.tabNames = {}
@@ -195,7 +196,7 @@ local automatedMessagesList = ZO_SortFilterList:Subclass()
 
 -- Backuping AddMessage for internal debug - AVOID DOING A CHAT_SYSTEM:AddMessage() in pChat, it can cause recursive calls
 CHAT_SYSTEM.Zo_AddMessage = CHAT_SYSTEM.AddMessage
-local function debug(debugText)
+function pChat.debug(debugText)
 	if not debugText or debugText == "" then return end
 	if not LibDebugLogger or not pChat.logger then
 		CHAT_SYSTEM.Zo_AddMessage(debugText)
@@ -204,6 +205,7 @@ local function debug(debugText)
 		if logger then logger:Debug(debugText) end
 	end
 end
+local debug = pChat.debug
 
 --[[
 PCHAT_LINK format : ZO_LinkHandler_CreateLink(message, nil, PCHAT_LINK, data)
@@ -1475,7 +1477,7 @@ function CHAT_SYSTEM.textEntry:AddCommandHistory(text)
 	local rewritedText = text
 
 	-- Don't add the switch when chat is restored
-	if db.addChannelAndTargetToHistory and isAddonInitialized then
+	if isAddonInitialized and db.addChannelAndTargetToHistory then
 		--Preset with /say switch
 		local switch = CHAT_SYSTEM.switchLookup[0]
 		-- It's a message
@@ -3430,7 +3432,7 @@ end
 -- Executed when EVENT_CHAT_MESSAGE_CHANNEL triggers
 -- Formats the message
 local function FormatMessage(chanCode, from, text, isCS, fromDisplayName, originalFrom, originalText, DDSBeforeAll, TextBeforeAll, DDSBeforeSender, TextBeforeSender, TextAfterSender, DDSAfterSender, DDSBeforeText, TextBeforeText, TextAfterText, DDSAfterText)
---debug("[pChat]FormatMessage - showGuildNr: " ..tostring(db.showGuildNumbers))
+	debug("[pChat]FormatMessage - showGuildNr: " ..tostring(db.showGuildNumbers))
 	local notHandled = false
 
 	-- Will calculate if this message is a spam
@@ -3492,7 +3494,7 @@ local function FormatMessage(chanCode, from, text, isCS, fromDisplayName, origin
 	if (chanCode >= CHAT_CHANNEL_GUILD_1 and chanCode <= CHAT_CHANNEL_GUILD_5) then
 		local guild_number = chanCode - CHAT_CHANNEL_GUILD_1 + 1
 		local guildId = GetGuildId(guild_number)
-		--local guild_name = GetGuildName(guildId)
+		local guild_name = GetGuildName(guildId)
 		tag = db.guildTags[guildId]
 		if tag and tag ~= "" then
 			tag = tag
@@ -3502,7 +3504,7 @@ local function FormatMessage(chanCode, from, text, isCS, fromDisplayName, origin
 	elseif (chanCode >= CHAT_CHANNEL_OFFICER_1 and chanCode <= CHAT_CHANNEL_OFFICER_5) then
 		local guild_number = chanCode - CHAT_CHANNEL_OFFICER_1 + 1
 		local guildId = GetGuildId(guild_number)
-		--local guild_name = GetGuildName(guildId)
+		local guild_name = GetGuildName(guildId)
 		local officertag = db.officertag[guildId]
 		if officertag and officertag ~= "" then
 			tag = officertag
@@ -3643,9 +3645,9 @@ local function FormatMessage(chanCode, from, text, isCS, fromDisplayName, origin
 
 		-- Guild chat
 	elseif chanCode >= CHAT_CHANNEL_GUILD_1 and chanCode <= CHAT_CHANNEL_GUILD_5 then
-		--debug(">Guild chat channel")
 		local gtag = tag
 		if db.showGuildNumbers then
+debug(">Guild chat channel: " ..tostring(gtag))
 			gtag = (chanCode - CHAT_CHANNEL_GUILD_1 + 1) .. "-" .. tag
 
 			--debug(">>gtag: " .. tostring(gtag).. ", chanCode: " ..tostring(chanCode) .. ", tag: " ..tostring(tag))
@@ -5912,12 +5914,43 @@ end
 -- Registers the formatMessage function.
 -- Unregisters itself from the player activation event with the event manager.
 local function OnPlayerActivated()
-	local delay = 0
-	if CHAT_SYSTEM.primaryContainer == nil then
-		delay = 1000
-	end
-	zo_callLater(function()
+debug("EVENT_PLAYER_ACTIVATED - Start")
+	if isAddonLoaded and not eventPlayerActivatedCheckRunning then
 		pChatData.sceneFirst = false
+
+		--This will only work if LibChatMessage version >= 80 is enabled and the variable LCM.formatRegularChat = true was set (See EVENT_ADD_ON_LOADED)
+		--Adding the formatting to the text, the timestamp, username/accountname etc.
+		local chatHandlerFunctions = pChat.chatHandlers --> See file pChat_chatHandlers.lua
+		local ChatEventFormatters = ZO_ChatSystem_GetEventHandlers()
+		if chatHandlerFunctions and ChatEventFormatters then
+			--Set the local variables in file pChat_chatHandlers.lua to the pChat function names
+			chatHandlerFunctions.SetChatHandlerFunctions()
+
+			--2020-02-23 Baertram
+			--ATTENTION: This will overwrite all other chat addon's formatter etc. functions!
+			--> So pChat is the "one and only". -> Should be changed to use LibChatMessage one day
+			--> e.g. EVENT_CHAT_MESSAGE_CHANNEL will be using pChat's function pChatChatHandlersMessageChannelReceiver (file pChat_chatHandlers.lua)
+			for eventId, eventCallBackFunc in pairs(chatHandlerFunctions) do
+				if eventId and eventCallBackFunc and type(eventCallBackFunc) == "function" then
+					ChatEventFormatters[eventId] = eventCallBackFunc
+				end
+			end
+		end
+	end
+
+	--Test if the chat_system containers are given already or wait until they are.
+	if CHAT_SYSTEM and CHAT_SYSTEM.primaryContainer == nil then
+debug("EVENT_PLAYER_ACTIVATED: CHAT_SYSTEM.primaryContainer is missing!")
+		if not eventPlayerActivatedCheckRunning then
+			EVENT_MANAGER:RegisterForUpdate("pChatDebug", 3000, function()
+				eventPlayerActivatedCheckRunning = true
+				OnPlayerActivated()
+			end)
+		end
+	else
+debug("EVENT_PLAYER_ACTIVATED: Found CHAT_SYSTEM.primaryContainer!")
+		eventPlayerActivatedCheckRunning = false
+		EVENT_MANAGER:UnregisterForUpdate("pChatDebug")
 
 		if isAddonLoaded then
 			--Get a reference to the chat channelData (CHAT_SYSTEM.channelData)
@@ -5925,43 +5958,41 @@ local function OnPlayerActivated()
 
 			pChatData.activeTab = 1
 
-			if CHAT_SYSTEM then
-				if CHAT_SYSTEM.ValidateChatChannel then
-					ZO_PreHook(CHAT_SYSTEM, "ValidateChatChannel", function(self)
-						if (db.enableChatTabChannel  == true) and (self.currentChannel ~= CHAT_CHANNEL_WHISPER) then
-							local tabIndex = self.primaryContainer.currentBuffer:GetParent().tab.index
-							db.chatTabChannel[tabIndex] = db.chatTabChannel[tabIndex] or {}
-							db.chatTabChannel[tabIndex].channel = self.currentChannel
-							db.chatTabChannel[tabIndex].target  = self.currentTarget
-						end
-					end)
-				end
-
-				if CHAT_SYSTEM.primaryContainer and CHAT_SYSTEM.primaryContainer.HandleTabClick then
-					ZO_PreHook(CHAT_SYSTEM.primaryContainer, "HandleTabClick", function(self, tab)
-						pChatData.activeTab = tab.index
-						if (db.enableChatTabChannel == true) then
-							local tabIndex = tab.index
-							if db.chatTabChannel[tabIndex] then
-								CHAT_SYSTEM:SetChannel(db.chatTabChannel[tabIndex].channel, db.chatTabChannel[tabIndex].target)
-							end
-						end
-						--ZO_TabButton_Text_RestoreDefaultColors(tab)
-					end)
-				end
-
-				if CHAT_SYSTEM.Maximize then
-					-- Visual Notification PreHook
-					ZO_PreHook(CHAT_SYSTEM, "Maximize", function(self)
-						CHAT_SYSTEM.IMLabelMin:SetHidden(true)
-					end)
-				end
-
-				--Scroll to bottom in Chat: Secure post hook to hide the Whisper Notifications
-				SecurePostHook("ZO_ChatSystem_ScrollToBottom", function(ctrl)
-					pChat_RemoveIMNotification()
+			if CHAT_SYSTEM.ValidateChatChannel then
+				ZO_PreHook(CHAT_SYSTEM, "ValidateChatChannel", function(self)
+					if (db.enableChatTabChannel  == true) and (self.currentChannel ~= CHAT_CHANNEL_WHISPER) then
+						local tabIndex = self.primaryContainer.currentBuffer:GetParent().tab.index
+						db.chatTabChannel[tabIndex] = db.chatTabChannel[tabIndex] or {}
+						db.chatTabChannel[tabIndex].channel = self.currentChannel
+						db.chatTabChannel[tabIndex].target  = self.currentTarget
+					end
 				end)
 			end
+
+			if CHAT_SYSTEM.primaryContainer.HandleTabClick then
+				ZO_PreHook(CHAT_SYSTEM.primaryContainer, "HandleTabClick", function(self, tab)
+					pChatData.activeTab = tab.index
+					if (db.enableChatTabChannel == true) then
+						local tabIndex = tab.index
+						if db.chatTabChannel[tabIndex] then
+							CHAT_SYSTEM:SetChannel(db.chatTabChannel[tabIndex].channel, db.chatTabChannel[tabIndex].target)
+						end
+					end
+					--ZO_TabButton_Text_RestoreDefaultColors(tab)
+				end)
+			end
+
+			if CHAT_SYSTEM.Maximize then
+				-- Visual Notification PreHook
+				ZO_PreHook(CHAT_SYSTEM, "Maximize", function(self)
+					CHAT_SYSTEM.IMLabelMin:SetHidden(true)
+				end)
+			end
+
+			--Scroll to bottom in Chat: Secure post hook to hide the Whisper Notifications
+			SecurePostHook("ZO_ChatSystem_ScrollToBottom", function(ctrl)
+				pChat_RemoveIMNotification()
+			end)
 
 
 			--local fontPath = ZoFontChat:GetFontInfo()
@@ -6001,47 +6032,45 @@ local function OnPlayerActivated()
 			UpdateCharCorrespondanceTableSwitchs()
 
 			--Update the channel and channel switch lookup tables
-			if CHAT_SYSTEM then
-				-->With API100030 the function CHAT_SYSTEM:CreateChannelData does not exist anymore but the code is used inside SharedChatSystem:Initialize
-				-->Create a Compatibility function and call it then
-				function pChat.ChatSystem_CreateChannelData()
-					debug("pChat.ChatSystem_CreateChannelData-Start")
-					local switchLookup = {}
-					local channelInfo = ChanInfoArray
-					for channelId, data in pairs(channelInfo) do
-						data.id = channelId
+			-->With API100030 the function CHAT_SYSTEM:CreateChannelData does not exist anymore but the code is used inside SharedChatSystem:Initialize
+			-->Create a Compatibility function and call it then
+			function pChat.ChatSystem_CreateChannelData()
+				debug("pChat.ChatSystem_CreateChannelData-Start")
+				local switchLookup = {}
+				local channelInfo = ChanInfoArray
+				for channelId, data in pairs(channelInfo) do
+					data.id = channelId
 
-						if data.switches then
-							debug(">switch: " ..tostring(data.switches))
-							for switchArg in data.switches:gmatch("%S+") do
-								switchArg = switchArg:lower()
-								switchLookup[switchArg] = data
-								if not switchLookup[channelId] then
-									switchLookup[channelId] = switchArg
-								end
-							end
-						end
-
-						if data.targetSwitches then
-							debug(">targetSwitches: " ..tostring(data.targetSwitches))
-							local targetData = ZO_ShallowTableCopy(data)
-							targetData.target = channelId
-							for switchArg in data.targetSwitches:gmatch("%S+") do
-								switchArg = switchArg:lower()
-								switchLookup[switchArg] = targetData
-								if not switchLookup[channelId] then
-									switchLookup[channelId] = switchArg
-								end
+					if data.switches then
+						debug(">switch: " ..tostring(data.switches))
+						for switchArg in data.switches:gmatch("%S+") do
+							switchArg = switchArg:lower()
+							switchLookup[switchArg] = data
+							if not switchLookup[channelId] then
+								switchLookup[channelId] = switchArg
 							end
 						end
 					end
-					--Reassign the change table values to the CHAT_SYSTEM now in order to make the
-					--changed guild switches work (e.g. /guildnameshort)
-					CHAT_SYSTEM.switchLookup = switchLookup
-					debug("pChat.ChatSystem_CreateChannelData-End")
+
+					if data.targetSwitches then
+						debug(">targetSwitches: " ..tostring(data.targetSwitches))
+						local targetData = ZO_ShallowTableCopy(data)
+						targetData.target = channelId
+						for switchArg in data.targetSwitches:gmatch("%S+") do
+							switchArg = switchArg:lower()
+							switchLookup[switchArg] = targetData
+							if not switchLookup[channelId] then
+								switchLookup[channelId] = switchArg
+							end
+						end
+					end
 				end
-				pChat.ChatSystem_CreateChannelData()
+				--Reassign the change table values to the CHAT_SYSTEM now in order to make the
+				--changed guild switches work (e.g. /guildnameshort)
+				CHAT_SYSTEM.switchLookup = switchLookup
+				debug("pChat.ChatSystem_CreateChannelData-End")
 			end
+			pChat.ChatSystem_CreateChannelData()
 
 			-- Set default channel at login
 			SetToDefaultChannel()
@@ -6059,31 +6088,12 @@ local function OnPlayerActivated()
 			-- Change Window apparence
 			ChangeChatWindowDarkness()
 
-
-			--This will only work if LibChatMessage version >= 80 is enabled and the variable LCM.formatRegularChat = true was set (See EVENT_ADD_ON_LOADED)
-			--Adding the formatting to the text, the timestamp, username/accountname etc.
-			local chatHandlerFunctions = pChat.chatHandlers --> See file pChat_chatHandlers.lua
-			local ChatEventFormatters = ZO_ChatSystem_GetEventHandlers()
-			if chatHandlerFunctions and ChatEventFormatters then
-				--Set the local variables in file pChat_chatHandlers.lua to the pChat function names
-				chatHandlerFunctions.SetChatHandlerFunctions()
-
-				--2020-02-23 Baertram
-				--ATTENTION: This will overwrite all other chat addon's formatter etc. functions!
-				--> So pChat is the "one and only". -> Should be changed to use LibChatMessage one day
-				--> e.g. EVENT_CHAT_MESSAGE_CHANNEL will be using pChat's function pChatChatHandlersMessageChannelReceiver (file pChat_chatHandlers.lua)
-				for eventId, eventCallBackFunc in pairs(chatHandlerFunctions) do
-					if eventId and eventCallBackFunc and type(eventCallBackFunc) == "function" then
-						ChatEventFormatters[eventId] = eventCallBackFunc
-					end
-				end
-			end
-
 			isAddonInitialized = true
 
 			EVENT_MANAGER:UnregisterForEvent(ADDON_NAME, EVENT_PLAYER_ACTIVATED)
+			debug("EVENT_PLAYER_ACTIVATED - End: Addon was initialized")
 		end
-	end, delay)
+	end
 end
 
 

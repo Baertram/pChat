@@ -1,8 +1,9 @@
 --  pChat object will receive functions
 pChat = pChat or {}
-
 pChat.chatHandlers = {}
 local chatHandlers = pChat.chatHandlers
+
+local debug
 
 -- local declaration
 local funcFormat
@@ -27,7 +28,7 @@ end
 -- Listens for EVENT_CHAT_MESSAGE_CHANNEL event from ZO_ChatSystem
 --Parameter: (number eventCode, MsgChannelType channelType, string fromName, string text, boolean isCustomerService, string fromDisplayName)
 local function pChatChatHandlersMessageChannelReceiver(channelID, from, text, isCustomerService, fromDisplayName)
---d(string.format("[pChatChatHandlers]MessageChannelReceiver-channelID: %s, from: %s, text: %s, isCustomerService: %s, fromDisplayName: %s", tostring(channelID), tostring(from), tostring(text), tostring(isCustomerService), tostring(fromDisplayName)))
+debug(string.format("[pChatChatHandlers]MessageChannelReceiver-channelID: %s, from: %s, text: %s, isCustomerService: %s, fromDisplayName: %s", tostring(channelID), tostring(from), tostring(text), tostring(isCustomerService), tostring(fromDisplayName)))
 	local message
 	local DDSBeforeAll = ""
 	local TextBeforeAll = ""
@@ -323,4 +324,6 @@ function chatHandlers.SetChatHandlerFunctions()
 	funcIgnoreRemove 		= pChat.OnIgnoreRemoved
 	funcGroupMemberLeft 	= pChat.OnGroupMemberLeft
 	funcGroupTypeChanged 	= pChat.OnGroupTypeChanged
+
+	debug = pChat.debug
 end
