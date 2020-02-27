@@ -1,12 +1,9 @@
 --  pChat object will receive functions
 pChat = pChat or {}
 
---Activate debuggin chat output depending on the APIVersion, see function "debug" below
-local currentDebugAPIVersion = 100030 --DLC Harrowstorm
-
 -- Common
 local ADDON_NAME	= "pChat"
-local ADDON_VERSION	= "9.4.1.2"
+local ADDON_VERSION	= "9.4.1.3"
 local ADDON_AUTHOR	= "Ayantir, DesertDwellers, Baertram (current)"
 local ADDON_WEBSITE	= "http://www.esoui.com/downloads/info93-pChat.html"
 
@@ -176,22 +173,6 @@ local defaults = {
 -- SV
 local db
 local targetToWhisp
-local guild1 = 1
-local guild2 = 2
-local guild3 = 3
-local guild4 = 4
-local guild5 = 5
-local guildName1 = ""
-local guildName2 = ""
-local guildName3 = ""
-local guildName4 = ""
-local guildName5 = ""
-local guildId1 = nil
-local guildId2 = nil
-local guildId3 = nil
-local guildId4 = nil
-local guildId5 = nil
-local guildMaxNum = 0
 
 --Constants
 local gamepadMode = IsInGamepadPreferredMode()
@@ -214,9 +195,13 @@ local automatedMessagesList = ZO_SortFilterList:Subclass()
 
 -- Backuping AddMessage for internal debug - AVOID DOING A CHAT_SYSTEM:AddMessage() in pChat, it can cause recursive calls
 CHAT_SYSTEM.Zo_AddMessage = CHAT_SYSTEM.AddMessage
-local function debug(...)
-	if GetAPIVersion() >= currentDebugAPIVersion then
-		CHAT_SYSTEM.Zo_AddMessage(...)
+local function debug(debugText)
+	if not debugText or debugText == "" then return end
+	if not LibDebugLogger or not pChat.logger then
+		CHAT_SYSTEM.Zo_AddMessage(debugText)
+	else
+		local logger = pChat.logger
+		if logger then logger:Debug(debugText) end
 	end
 end
 
@@ -227,7 +212,7 @@ data : strings separated by ":"
 1st arg is chancode like CHAT_CHANNEL_GUILD_1
 ]]--
 
-local ChanInfoArray = ZO_ChatSystem_GetChannelInfo()
+local ChanInfoArray
 
 pChatData.chatCategories = {
 	CHAT_CATEGORY_SAY,
@@ -809,14 +794,15 @@ local function ConvertName(chanCode, from, isCS, fromDisplayName)
 		-- Guild / Officer chat only
 		if chanCode >= CHAT_CHANNEL_GUILD_1 and chanCode <= CHAT_CHANNEL_OFFICER_5 then
 
-			-- Get guild ID based on channel id
-			local guildId = GetGuildId((chanCode - CHAT_CHANNEL_GUILD_1) % 5 + 1)
-			local guildName = GetGuildName(guildId)
+			-- Get guild index based on channel id, and then get the guildId
+			--local guildId = GetGuildId((chanCode - CHAT_CHANNEL_GUILD_1) % 5 + 1)
+			local guildId = GetGuildId((chanCode - CHAT_CHANNEL_GUILD_1) % MAX_GUILDS + 1)
+			--local guildName = GetGuildName(guildId)
 
 			if pChatData.nicknames[new_from] then -- @UserID Nicknammed
 				db.LineStrings[db.lineNumber].rawFrom = pChatData.nicknames[new_from]
 				new_from = DisplayWithOrWoBrackets(new_from, pChatData.nicknames[new_from], DISPLAY_NAME_LINK_TYPE)
-			elseif db.formatguild[guildName] == 2 then -- Char
+			elseif db.formatguild[guildId] == 2 then -- Char
 				local _, characterName = GetGuildMemberCharacterInfo(guildId, GetGuildMemberIndexFromDisplayName(guildId, new_from))
 				characterName = zo_strformat(SI_UNIT_NAME, characterName)
 				local nickNamedName
@@ -825,7 +811,7 @@ local function ConvertName(chanCode, from, isCS, fromDisplayName)
 				end
 				db.LineStrings[db.lineNumber].rawFrom = nickNamedName or characterName
 				new_from = DisplayWithOrWoBrackets(characterName, nickNamedName or characterName, CHARACTER_LINK_TYPE)
-			elseif db.formatguild[guildName] == 3 then -- Char@UserID
+			elseif db.formatguild[guildId] == 3 then -- Char@UserID
 				local _, characterName = GetGuildMemberCharacterInfo(guildId, GetGuildMemberIndexFromDisplayName(guildId, new_from))
 				characterName = zo_strformat(SI_UNIT_NAME, characterName)
 				if characterName == "" then characterName = new_from end -- Some buggy rosters
@@ -1490,9 +1476,8 @@ function CHAT_SYSTEM.textEntry:AddCommandHistory(text)
 
 	-- Don't add the switch when chat is restored
 	if db.addChannelAndTargetToHistory and isAddonInitialized then
-
+		--Preset with /say switch
 		local switch = CHAT_SYSTEM.switchLookup[0]
-
 		-- It's a message
 		switch = CHAT_SYSTEM.switchLookup[currentChannel]
 		-- Below code suspected issue fix under comment - Bug ticket 2253 6/12/2018
@@ -1518,7 +1503,7 @@ function CHAT_SYSTEM.textEntry:AddCommandHistory(text)
 
 end
 
--- Rewrite of a core function
+-- Rewrite of a core function: Enable custom switches for the guilds and officers
 function CHAT_SYSTEM.textEntry:GetText()
 	local text = self.editControl:GetText()
 
@@ -2103,12 +2088,9 @@ local function SetSwitchToNextBinding()
 
 	-- get SwitchTab Keybind params
 	local layerIndex, categoryIndex, actionIndex = GetActionIndicesFromName("PCHAT_SWITCH_TAB")
-
 	--If exists
 	if layerIndex and categoryIndex and actionIndex then
-
 		local key = GetActionBindingInfo(layerIndex, categoryIndex, actionIndex, 1)
-
 		if key == KEY_INVALID then
 			-- Unbind it
 			if IsProtectedFunction("UnbindAllKeysFromAction") then
@@ -2124,9 +2106,7 @@ local function SetSwitchToNextBinding()
 				BindKeyToAction(layerIndex, categoryIndex, actionIndex, 1, KEY_TAB , 0, 0, KEY_SHIFT, 0)
 			end
 		end
-
 	end
-
 end
 
 -- Can be called by Bindings
@@ -2158,7 +2138,7 @@ function pChat_SwitchToNextTab()
 			end
 
 		end
-		--Select first tab
+
 		if (not hasSwitched) then
 			CHAT_SYSTEM.primaryContainer:HandleTabClick(CHAT_SYSTEM.primaryContainer.windows[1].tab)
 			local tabText = GetControl(constTabNameTemplate .. "1Text")
@@ -2173,7 +2153,7 @@ function pChat_SwitchToNextTab()
 end
 --**** Issue
 local function SetDefaultTab(tabToSet)
-
+	if not CHAT_SYSTEM or not CHAT_SYSTEM.primaryContainer or not CHAT_SYSTEM.primaryContainer.windows then return end
 	-- Search in all tabs the good name
 	for numTab in ipairs(CHAT_SYSTEM.primaryContainer.windows) do
 		-- Not this one, try the next one, if tab is not found (newly added, removed), pChat_SwitchToNextTab() will go back to tab 1
@@ -2443,14 +2423,14 @@ end
 
 -- Change guild channel names in entry box
 local function UpdateCharCorrespondanceTableChannelNames()
-
-	-- Each guild
+debug("[pChat]UpdateCharCorrespondanceTableChannelNames")
+	-- Each guild: Update the table from ZO_ChatSystem_GetChannelInfo()
 	for i = 1, GetNumGuilds() do
-		local guildName = GetGuildName(GetGuildId(i))
+		local guildId = GetGuildId(i)
+		local guildName = GetGuildName(guildId)
 		if db.showTagInEntry then
 			-- Get saved string
-			local tag = db.guildTags[guildName]
-
+			local tag = db.guildTags[guildId]
 			-- No SavedVar
 			if not tag then
 				tag = guildName
@@ -2460,8 +2440,7 @@ local function UpdateCharCorrespondanceTableChannelNames()
 			end
 
 			-- Get saved string
-			local officertag = db.officertag[guildName]
-
+			local officertag = db.officertag[guildId]
 			-- No SavedVar
 			if not officertag then
 				officertag = tag
@@ -2470,25 +2449,23 @@ local function UpdateCharCorrespondanceTableChannelNames()
 				officertag = tag
 			end
 
-			-- /g1 is 12 /g5 is 16, /o1=17, etc
+			--ChanInfoArray = ZO_ChatSystem_GetChannelInfo()
+			-- CHAT_CHANNEL_GUILD_1 /g1 is 12 /g5 is 16, /o1=17, etc
 			ChanInfoArray[CHAT_CHANNEL_GUILD_1 - 1 + i].name = tag
 			ChanInfoArray[CHAT_CHANNEL_OFFICER_1 - 1 + i].name = officertag
-			--Activating
+debug(">Set guild/officer tags to: " ..tostring(tag) .."/" .. tostring(officertag) .." for guild# " .. tostring(i))
+			--Disabling dynamic chat channel names (see function GetDynamicChatChannelName(channelInfo.id))
 			ChanInfoArray[CHAT_CHANNEL_GUILD_1 - 1 + i].dynamicName = false
 			ChanInfoArray[CHAT_CHANNEL_OFFICER_1 - 1 + i].dynamicName = false
 
 		else
-			-- /g1 is 12 /g5 is 16, /o1=17, etc
 			ChanInfoArray[CHAT_CHANNEL_GUILD_1 - 1 + i].name = guildName
 			ChanInfoArray[CHAT_CHANNEL_OFFICER_1 - 1 + i].name = guildName
-			--Deactivating
+			--Enabling dynamic chat channel names (see function GetDynamicChatChannelName(channelInfo.id))
 			ChanInfoArray[CHAT_CHANNEL_GUILD_1 - 1 + i].dynamicName = true
 			ChanInfoArray[CHAT_CHANNEL_OFFICER_1 - 1 + i].dynamicName = true
 		end
 	end
-
-	return
-
 end
 
 -- Split text with blocs of 100 chars (106 is max for LinkHandle) and add LinkHandle to them
@@ -3072,7 +3049,7 @@ local function RestoreChatMessagesFromHistory(wasReloadUI)
 				local tabText = GetControl(constTabNameTemplate .. numTab .. "Text")
 				tabText:SetColor(GetInterfaceColor(INTERFACE_COLOR_TYPE_TEXT_COLORS, INTERFACE_TEXT_COLOR_SELECTED))
 				tabText:GetParent().state = PRESSED
-				local oldTabText = GetControl(constTabNameTemplate .. numTab - 1 .. "Text")
+				local oldTabText = GetControl(constTabNameTemplate .. (numTab - 1) .. "Text")
 				oldTabText:SetColor(GetInterfaceColor(INTERFACE_COLOR_TYPE_TEXT_COLORS, INTERFACE_TEXT_COLOR_CONTRAST))
 				oldTabText:GetParent().state = UNPRESSED
 			end
@@ -3162,7 +3139,7 @@ end
 -- Create an array for the copy functions, spam functions and revert history functions
 -- WARNING : See FormatSysMessage()
 local function StorelineNumber(rawTimestamp, rawFrom, text, chanCode, originalFrom)
-	debug("[pChat]StoreLineNumber")
+	--debug("[pChat]StoreLineNumber")
 	-- Strip DDS tag from Copy text
 	local function StripDDStags(text)
 		return text:gsub("|t(.-)|t", "")
@@ -3453,12 +3430,12 @@ end
 -- Executed when EVENT_CHAT_MESSAGE_CHANNEL triggers
 -- Formats the message
 local function FormatMessage(chanCode, from, text, isCS, fromDisplayName, originalFrom, originalText, DDSBeforeAll, TextBeforeAll, DDSBeforeSender, TextBeforeSender, TextAfterSender, DDSAfterSender, DDSBeforeText, TextBeforeText, TextAfterText, DDSAfterText)
-debug("[pChat]FormatMessage - showGuildNr: " ..tostring(db.showGuildNumbers))
+--debug("[pChat]FormatMessage - showGuildNr: " ..tostring(db.showGuildNumbers))
 	local notHandled = false
 
 	-- Will calculate if this message is a spam
 	local isSpam = SpamFilter(chanCode, from, text, isCS)
-	debug(">isSpam: " ..tostring(isSpam))
+	--debug(">isSpam: " ..tostring(isSpam))
 	-- A spam, drop everything
 	if isSpam then return end
 
@@ -3470,7 +3447,7 @@ debug("[pChat]FormatMessage - showGuildNr: " ..tostring(db.showGuildNumbers))
 	-- Init text with other addons stuff. Note : text can also be modified by other addons. Only originalText is the string the game has receive
 	text = DDSBeforeText .. TextBeforeText .. text .. TextAfterText .. DDSAfterText
 
-	debug(">text: " ..tostring(text))
+	--debug(">text: " ..tostring(text))
 	if text == "" then return end
 
 	if db.disableBrackets then
@@ -3492,12 +3469,12 @@ debug("[pChat]FormatMessage - showGuildNr: " ..tostring(db.showGuildNumbers))
 	end
 
 	--	for CopySystem
-	debug(">db.lineNumber: " ..tostring(db.lineNumber))
+	--debug(">db.lineNumber: " ..tostring(db.lineNumber))
 	db.LineStrings[db.lineNumber] = {}
 	if not db.LineStrings[db.lineNumber].rawFrom then db.LineStrings[db.lineNumber].rawFrom = from end
-	if not db.LineStrings[db.lineNumber].rawValue then db.LineStrings[db.lineNumber].rawValue = text
-		debug(">>added db.LineStrings["..tostring(db.lineNumber).."].rawValue=" ..tostring(text))
-	end
+	--if not db.LineStrings[db.lineNumber].rawValue then db.LineStrings[db.lineNumber].rawValue = text
+		--debug(">>added db.LineStrings["..tostring(db.lineNumber).."].rawValue=" ..tostring(text))
+	--end
 	if not db.LineStrings[db.lineNumber].rawMessage then db.LineStrings[db.lineNumber].rawMessage = text end
 	if not db.LineStrings[db.lineNumber].rawLine then db.LineStrings[db.lineNumber].rawLine = text end
 	if not db.LineStrings[db.lineNumber].rawDisplayed then db.LineStrings[db.lineNumber].rawDisplayed = text end
@@ -3508,14 +3485,15 @@ debug("[pChat]FormatMessage - showGuildNr: " ..tostring(db.showGuildNumbers))
 	-- Add other addons stuff related to sender
 	new_from = DDSBeforeSender .. TextBeforeSender .. new_from .. TextAfterSender .. DDSAfterSender
 
-	debug(">new_from: " ..tostring(new_from))
+	--debug(">new_from: " ..tostring(new_from))
 
 	-- Guild tag
 	local tag
 	if (chanCode >= CHAT_CHANNEL_GUILD_1 and chanCode <= CHAT_CHANNEL_GUILD_5) then
 		local guild_number = chanCode - CHAT_CHANNEL_GUILD_1 + 1
-		local guild_name = GetGuildName(GetGuildId(guild_number))
-		tag = db.guildTags[guild_name]
+		local guildId = GetGuildId(guild_number)
+		--local guild_name = GetGuildName(guildId)
+		tag = db.guildTags[guildId]
 		if tag and tag ~= "" then
 			tag = tag
 		else
@@ -3523,8 +3501,9 @@ debug("[pChat]FormatMessage - showGuildNr: " ..tostring(db.showGuildNumbers))
 		end
 	elseif (chanCode >= CHAT_CHANNEL_OFFICER_1 and chanCode <= CHAT_CHANNEL_OFFICER_5) then
 		local guild_number = chanCode - CHAT_CHANNEL_OFFICER_1 + 1
-		local guild_name = GetGuildName(GetGuildId(guild_number))
-		local officertag = db.officertag[guild_name]
+		local guildId = GetGuildId(guild_number)
+		--local guild_name = GetGuildName(guildId)
+		local officertag = db.officertag[guildId]
 		if officertag and officertag ~= "" then
 			tag = officertag
 		else
@@ -3664,12 +3643,12 @@ debug("[pChat]FormatMessage - showGuildNr: " ..tostring(db.showGuildNumbers))
 
 		-- Guild chat
 	elseif chanCode >= CHAT_CHANNEL_GUILD_1 and chanCode <= CHAT_CHANNEL_GUILD_5 then
-		debug(">Guild chat channel")
+		--debug(">Guild chat channel")
 		local gtag = tag
 		if db.showGuildNumbers then
 			gtag = (chanCode - CHAT_CHANNEL_GUILD_1 + 1) .. "-" .. tag
 
-			debug(">>gtag: " .. tostring(gtag).. ", chanCode: " ..tostring(chanCode) .. ", tag: " ..tostring(tag))
+			--debug(">>gtag: " .. tostring(gtag).. ", chanCode: " ..tostring(chanCode) .. ", tag: " ..tostring(tag))
 
 			-- Used for Copy
 			db.LineStrings[db.lineNumber].rawFrom = string.format(chatStrings.copyguild, gtag, db.LineStrings[db.lineNumber].rawFrom)
@@ -3680,7 +3659,7 @@ debug("[pChat]FormatMessage - showGuildNr: " ..tostring(db.showGuildNumbers))
 			db.LineStrings[db.lineNumber].rawValue = db.LineStrings[db.lineNumber].rawValue .. string.format(chatStrings.guild, lcol, gtag, new_from, carriageReturn, rcol, text)
 
 		else
-			debug(">No guild number")
+			--debug(">No guild number")
 
 			-- Used for Copy
 			db.LineStrings[db.lineNumber].rawFrom = string.format(chatStrings.copyguild, gtag, db.LineStrings[db.lineNumber].rawFrom)
@@ -3771,7 +3750,7 @@ debug("[pChat]FormatMessage - showGuildNr: " ..tostring(db.showGuildNumbers))
 		OnIMReceived(displayedFrom, db.lineNumber - 1)
 	end
 
-	debug("<messageNew: " ..tostring(message))
+	--debug("<messageNew: " ..tostring(message))
 
 	return message
 
@@ -3863,28 +3842,6 @@ function ZO_TabButton_Text_SetTextColor(self, color)
 		label:SetColor(r, g, b, a)
 	end
 
-end
-
--- Rewrite of (local) core function
-local function GetOfficerChannelErrorFunction(guildIndex)
-	return function()
-		if(GetNumGuilds() < guildIndex) then
-			return zo_strformat(SI_CANT_GUILD_CHAT_NOT_IN_GUILD, guildIndex)
-		else
-			return zo_strformat(SI_CANT_OFFICER_CHAT_NO_PERMISSION, GetGuildName(guildIndex))
-		end
-	end
-end
-
--- Rewrite of (local) core function
-local function GetGuildChannelErrorFunction(guildIndex)
-	return function()
-		if(GetNumGuilds() < guildIndex) then
-			return zo_strformat(SI_CANT_GUILD_CHAT_NOT_IN_GUILD, guildIndex)
-		else
-			return zo_strformat(SI_CANT_GUILD_CHAT_NO_PERMISSION, GetGuildName(guildIndex))
-		end
-	end
 end
 
 local FILTERS_PER_ROW = 2
@@ -4032,276 +3989,6 @@ function CHAT_OPTIONS:InitializeFilterButtons(dialogControl)
 		ZO_Anchor_BoxLayout(filterAnchor, filter, count, FILTERS_PER_ROW, FILTER_PAD_X, FILTER_PAD_Y, FILTER_WIDTH, FILTER_HEIGHT, INITIAL_XOFFS, INITIAL_YOFFS)
 		count = count + 1
 	end
-end
-
--- Rewrite of core data
--- Added "id" key with raw values here because of partial overwriting
-local channelInfo =
-{
-	[CHAT_CHANNEL_SAY] = {
-		format = SI_CHAT_MESSAGE_SAY,
-		name = GetString(SI_CHAT_CHANNEL_NAME_SAY),
-		playerLinkable = true,
-		channelLinkable = true,
-		switches = GetString(SI_CHANNEL_SWITCH_SAY),
-		id = CHAT_CHANNEL_SAY
-	},
-	[CHAT_CHANNEL_YELL] =
-	{
-		format = SI_CHAT_MESSAGE_YELL,
-		name = GetString(SI_CHAT_CHANNEL_NAME_YELL),
-		playerLinkable = true,
-		channelLinkable = true, -- Modified
-		switches = GetString(SI_CHANNEL_SWITCH_YELL),
-		id = CHAT_CHANNEL_YELL
-	},
-	[CHAT_CHANNEL_ZONE] =
-	{
-		format = SI_CHAT_MESSAGE_ZONE,
-		name = GetString(SI_CHAT_CHANNEL_NAME_ZONE),
-		playerLinkable = true,
-		channelLinkable = true, -- Modified
-		switches = GetString(SI_CHANNEL_SWITCH_ZONE),
-		id = CHAT_CHANNEL_ZONE
-	},
-	[CHAT_CHANNEL_ZONE_LANGUAGE_1] =
-	{
-		format = SI_CHAT_MESSAGE_ZONE_ENGLISH,
-		name = GetString(SI_CHAT_CHANNEL_NAME_ZONE_ENGLISH),
-		playerLinkable = true,
-		channelLinkable = true, -- Modified
-		switches = GetString(SI_CHANNEL_SWITCH_ZONE_ENGLISH),
-		id = CHAT_CHANNEL_ZONE_LANGUAGE_1
-	},
-	[CHAT_CHANNEL_ZONE_LANGUAGE_2] =
-	{
-		format = SI_CHAT_MESSAGE_ZONE_FRENCH,
-		name = GetString(SI_CHAT_CHANNEL_NAME_ZONE_FRENCH),
-		playerLinkable = true,
-		channelLinkable = true, -- Modified
-		switches = GetString(SI_CHANNEL_SWITCH_ZONE_FRENCH),
-		id = CHAT_CHANNEL_ZONE_LANGUAGE_2
-	},
-	[CHAT_CHANNEL_ZONE_LANGUAGE_3] =
-	{
-		format = SI_CHAT_MESSAGE_ZONE_GERMAN,
-		name = GetString(SI_CHAT_CHANNEL_NAME_ZONE_GERMAN),
-		playerLinkable = true,
-		channelLinkable = true, -- Modified
-		switches = GetString(SI_CHANNEL_SWITCH_ZONE_GERMAN),
-		id = CHAT_CHANNEL_ZONE_LANGUAGE_3
-	},
-	[CHAT_CHANNEL_ZONE_LANGUAGE_4] =
-	{
-		format = SI_CHAT_MESSAGE_ZONE_JAPANESE,
-		name = GetString(SI_CHAT_CHANNEL_NAME_ZONE_JAPANESE),
-		playerLinkable = true,
-		channelLinkable = true, -- Modified
-		switches = GetString(SI_CHANNEL_SWITCH_ZONE_JAPANESE),
-		id = CHAT_CHANNEL_ZONE_LANGUAGE_4
-	},
-	[CHAT_CHANNEL_PARTY] =
-	{
-		format = SI_CHAT_MESSAGE_PARTY,
-		name = GetString(SI_CHAT_CHANNEL_NAME_PARTY),
-		playerLinkable = true,
-		channelLinkable = true,
-		switches = GetString(SI_CHANNEL_SWITCH_PARTY),
-		requires = function()
-			return IsUnitGrouped("player")
-		end,
-		deferRequirement = true,
-		requirementErrorMessage = GetString(SI_GROUP_NOTIFICATION_YOU_ARE_NOT_IN_A_GROUP),
-		id = CHAT_CHANNEL_PARTY
-	},
-	[CHAT_CHANNEL_WHISPER] =
-	{
-		format = SI_CHAT_MESSAGE_WHISPER,
-		name = GetString(SI_CHAT_CHANNEL_NAME_WHISPER),
-		playerLinkable = true,
-		channelLinkable = false,
-		switches = GetString(SI_CHANNEL_SWITCH_WHISPER),
-		target = true,
-		saveTarget = CHAT_CHANNEL_WHISPER,
-		targetSwitches = GetString(SI_CHANNEL_SWITCH_WHISPER_REPLY),
-		id = CHAT_CHANNEL_WHISPER
-	},
-	[CHAT_CHANNEL_WHISPER_SENT] =
-	{
-		format = SI_CHAT_MESSAGE_WHISPER_SENT,
-		playerLinkable = true,
-		channelLinkable = false,
-		id = CHAT_CHANNEL_WHISPER_SENT
-	},
-	[CHAT_CHANNEL_EMOTE] =
-	{
-		format = SI_CHAT_EMOTE,
-		name = GetString(SI_CHAT_CHANNEL_NAME_EMOTE),
-		playerLinkable = true,
-		channelLinkable = false,
-		switches = GetString(SI_CHANNEL_SWITCH_EMOTE),
-		id = CHAT_CHANNEL_EMOTE
-	},
-	[CHAT_CHANNEL_MONSTER_SAY] =
-	{
-		format = SI_CHAT_MONSTER_MESSAGE_SAY,
-		playerLinkable = false,
-		channelLinkable = false,
-		id = CHAT_CHANNEL_MONSTER_SAY
-	},
-	[CHAT_CHANNEL_MONSTER_YELL] =
-	{
-		format = SI_CHAT_MONSTER_MESSAGE_YELL,
-		playerLinkable = false,
-		channelLinkable = false,
-		id = CHAT_CHANNEL_MONSTER_YELL
-	},
-	[CHAT_CHANNEL_MONSTER_WHISPER] =
-	{
-		format = SI_CHAT_MONSTER_MESSAGE_WHISPER,
-		playerLinkable = false,
-		channelLinkable = false,
-		id = CHAT_CHANNEL_MONSTER_WHISPER
-	},
-	[CHAT_CHANNEL_MONSTER_EMOTE] =
-	{
-		format = SI_CHAT_MONSTER_EMOTE,
-		playerLinkable = false,
-		channelLinkable = false,
-		id = CHAT_CHANNEL_MONSTER_EMOTE
-	},
-	[CHAT_CHANNEL_SYSTEM] =
-	{
-		format = SI_CHAT_MESSAGE_SYSTEM,
-		playerLinkable = false,
-		channelLinkable = false,
-		id = CHAT_CHANNEL_SYSTEM
-	},
-	[CHAT_CHANNEL_GUILD_1] =
-	{
-		format = SI_CHAT_MESSAGE_GUILD,
-		dynamicName = true,
-		playerLinkable = true,
-		channelLinkable = true,
-		switches = GetString(SI_CHANNEL_SWITCH_GUILD_1),
-		requires = CanWriteGuildChannel,
-		requirementErrorMessage = GetGuildChannelErrorFunction(1),
-		deferRequirement = true,
-		id = CHAT_CHANNEL_GUILD_1
-	},
-	[CHAT_CHANNEL_GUILD_2] =
-	{
-		format = SI_CHAT_MESSAGE_GUILD,
-		dynamicName = true,
-		playerLinkable = true,
-		channelLinkable = true,
-		switches = GetString(SI_CHANNEL_SWITCH_GUILD_2),
-		requires = CanWriteGuildChannel,
-		requirementErrorMessage = GetGuildChannelErrorFunction(2),
-		deferRequirement = true,
-		id = CHAT_CHANNEL_GUILD_2
-	},
-	[CHAT_CHANNEL_GUILD_3] =
-	{
-		format = SI_CHAT_MESSAGE_GUILD,
-		dynamicName = true,
-		playerLinkable = true,
-		channelLinkable = true,
-		switches = GetString(SI_CHANNEL_SWITCH_GUILD_3),
-		requires = CanWriteGuildChannel,
-		requirementErrorMessage = GetGuildChannelErrorFunction(3),
-		deferRequirement = true,
-		id = CHAT_CHANNEL_GUILD_3
-	},
-	[CHAT_CHANNEL_GUILD_4] =
-	{
-		format = SI_CHAT_MESSAGE_GUILD,
-		dynamicName = true,
-		playerLinkable = true,
-		channelLinkable = true,
-		switches = GetString(SI_CHANNEL_SWITCH_GUILD_4),
-		requires = CanWriteGuildChannel,
-		requirementErrorMessage = GetGuildChannelErrorFunction(4),
-		deferRequirement = true,
-		id = CHAT_CHANNEL_GUILD_4
-	},
-	[CHAT_CHANNEL_GUILD_5] =
-	{
-		format = SI_CHAT_MESSAGE_GUILD,
-		dynamicName = true,
-		playerLinkable = true,
-		channelLinkable = true,
-		switches = GetString(SI_CHANNEL_SWITCH_GUILD_5),
-		requires = CanWriteGuildChannel,
-		requirementErrorMessage = GetGuildChannelErrorFunction(5),
-		deferRequirement = true,
-		id = CHAT_CHANNEL_GUILD_5
-	},
-	[CHAT_CHANNEL_OFFICER_1] =
-	{
-		format = SI_CHAT_MESSAGE_GUILD,
-		dynamicName = true,
-		playerLinkable = true,
-		channelLinkable = true,
-		switches = GetString(SI_CHANNEL_SWITCH_OFFICER_1),
-		requires = CanWriteGuildChannel,
-		requirementErrorMessage = GetOfficerChannelErrorFunction(1),
-		deferRequirement = true,
-		id = CHAT_CHANNEL_OFFICER_1
-	},
-	[CHAT_CHANNEL_OFFICER_2] =
-	{
-		format = SI_CHAT_MESSAGE_GUILD,
-		dynamicName = true,
-		playerLinkable = true,
-		channelLinkable = true,
-		switches = GetString(SI_CHANNEL_SWITCH_OFFICER_2),
-		requires = CanWriteGuildChannel,
-		requirementErrorMessage = GetOfficerChannelErrorFunction(2),
-		deferRequirement = true,
-		id = CHAT_CHANNEL_OFFICER_2
-	},
-	[CHAT_CHANNEL_OFFICER_3] =
-	{
-		format = SI_CHAT_MESSAGE_GUILD,
-		dynamicName = true,
-		playerLinkable = true,
-		channelLinkable = true,
-		switches = GetString(SI_CHANNEL_SWITCH_OFFICER_3),
-		requires = CanWriteGuildChannel,
-		requirementErrorMessage = GetOfficerChannelErrorFunction(3),
-		deferRequirement = true,
-		id = CHAT_CHANNEL_OFFICER_3
-	},
-	[CHAT_CHANNEL_OFFICER_4] =
-	{
-		format = SI_CHAT_MESSAGE_GUILD,
-		dynamicName = true,
-		playerLinkable = true,
-		channelLinkable = true,
-		switches = GetString(SI_CHANNEL_SWITCH_OFFICER_4),
-		requires = CanWriteGuildChannel,
-		requirementErrorMessage = GetOfficerChannelErrorFunction(4),
-		deferRequirement = true,
-		id = CHAT_CHANNEL_OFFICER_4
-	},
-	[CHAT_CHANNEL_OFFICER_5] =
-	{
-		format = SI_CHAT_MESSAGE_GUILD,
-		dynamicName = true,
-		playerLinkable = true,
-		channelLinkable = true,
-		switches = GetString(SI_CHANNEL_SWITCH_OFFICER_5),
-		requires = CanWriteGuildChannel,
-		requirementErrorMessage = GetOfficerChannelErrorFunction(5),
-		deferRequirement = true,
-		id = CHAT_CHANNEL_OFFICER_5
-	},
-}
-
--- Rewrite of core function
-function ZO_ChatSystem_GetChannelInfo()
-	return channelInfo
 end
 
 -- Save chat configuration
@@ -4467,47 +4154,50 @@ end
 local function SyncChatConfig(shouldSync, whichChar)
 
 	if shouldSync then
-		if db.chatConfSync then
-			if db.chatConfSync[whichChar] then
-
+		if db.chatConfSync and db.chatConfSync[whichChar] and CHAT_SYSTEM and CHAT_SYSTEM.primaryContainer then
+			if CHAT_SYSTEM.control then
 				-- Position and width/height
 				CHAT_SYSTEM.control:SetAnchor(db.chatConfSync[whichChar].point, GuiRoot, db.chatConfSync[whichChar].relPoint, db.chatConfSync[whichChar].x, db.chatConfSync[whichChar].y)
 				-- Height / Width
 				CHAT_SYSTEM.control:SetDimensions(db.chatConfSync[whichChar].width, db.chatConfSync[whichChar].height)
+			end
 
-				-- Save settings immediatly (to check, maybe call function which do this)
+			-- Save settings immediatly (to check, maybe call function which do this)
+			if CHAT_SYSTEM.primaryContainer.settings then
 				CHAT_SYSTEM.primaryContainer.settings.height = db.chatConfSync[whichChar].height
 				CHAT_SYSTEM.primaryContainer.settings.point = db.chatConfSync[whichChar].point
 				CHAT_SYSTEM.primaryContainer.settings.relPoint = db.chatConfSync[whichChar].relPoint
 				CHAT_SYSTEM.primaryContainer.settings.width = db.chatConfSync[whichChar].width
 				CHAT_SYSTEM.primaryContainer.settings.x = db.chatConfSync[whichChar].x
 				CHAT_SYSTEM.primaryContainer.settings.y = db.chatConfSync[whichChar].y
+			end
 
-				--[[
-				-- Don't overflow screen, remove 15px.
-				if db.chatConfSync[whichChar].height >= (CHAT_SYSTEM.maxContainerHeight - 15 ) then
-					CHAT_SYSTEM.control:SetHeight((CHAT_SYSTEM.maxContainerHeight - 15 ))
-					debug("Overflow height " .. db.chatConfSync[whichChar].height .. " -+- " .. (CHAT_SYSTEM.maxContainerHeight - 15))
-					debug(CHAT_SYSTEM.control:GetHeight())
-				else
-					-- Don't set good values ?! SetHeight(674) = GetHeight(524) ? same with Width and resizing is buggy
-					--CHAT_SYSTEM.control:SetHeight(db.chatConfSync[whichChar].height)
-					CHAT_SYSTEM.control:SetDimensions(settings.width, settings.height)
-					debug("height " .. db.chatConfSync[whichChar].height .. " -+- " .. CHAT_SYSTEM.control:GetHeight())
-				end
+			--[[
+			-- Don't overflow screen, remove 15px.
+			if db.chatConfSync[whichChar].height >= (CHAT_SYSTEM.maxContainerHeight - 15 ) then
+				CHAT_SYSTEM.control:SetHeight((CHAT_SYSTEM.maxContainerHeight - 15 ))
+				debug("Overflow height " .. db.chatConfSync[whichChar].height .. " -+- " .. (CHAT_SYSTEM.maxContainerHeight - 15))
+				debug(CHAT_SYSTEM.control:GetHeight())
+			else
+				-- Don't set good values ?! SetHeight(674) = GetHeight(524) ? same with Width and resizing is buggy
+				--CHAT_SYSTEM.control:SetHeight(db.chatConfSync[whichChar].height)
+				CHAT_SYSTEM.control:SetDimensions(settings.width, settings.height)
+				debug("height " .. db.chatConfSync[whichChar].height .. " -+- " .. CHAT_SYSTEM.control:GetHeight())
+			end
 
-				-- Same
-				if db.chatConfSync[whichChar].width >= (CHAT_SYSTEM.maxContainerWidth - 15 ) then
-					CHAT_SYSTEM.control:SetWidth((CHAT_SYSTEM.maxContainerWidth - 15 ))
-					debug("Overflow width " .. db.chatConfSync[whichChar].width .. " -+- " .. (CHAT_SYSTEM.maxContainerWidth - 15))
-					debug(CHAT_SYSTEM.control:GetWidth())
-				else
-					CHAT_SYSTEM.control:SetHeight(db.chatConfSync[whichChar].width)
-					debug("width " .. db.chatConfSync[whichChar].width .. " -+- " .. CHAT_SYSTEM.control:GetWidth())
-				end
-				]]--
+			-- Same
+			if db.chatConfSync[whichChar].width >= (CHAT_SYSTEM.maxContainerWidth - 15 ) then
+				CHAT_SYSTEM.control:SetWidth((CHAT_SYSTEM.maxContainerWidth - 15 ))
+				debug("Overflow width " .. db.chatConfSync[whichChar].width .. " -+- " .. (CHAT_SYSTEM.maxContainerWidth - 15))
+				debug(CHAT_SYSTEM.control:GetWidth())
+			else
+				CHAT_SYSTEM.control:SetHeight(db.chatConfSync[whichChar].width)
+				debug("width " .. db.chatConfSync[whichChar].width .. " -+- " .. CHAT_SYSTEM.control:GetWidth())
+			end
+			]]--
 
-				-- Colors
+			-- Colors
+			if GetChatCategoryColor and SetChatCategoryColor then
 				for _, category in ipairs (pChatData.chatCategories) do
 					if not db.chatConfSync[whichChar].colors[category] then
 						local r, g, b = GetChatCategoryColor(category)
@@ -4515,16 +4205,20 @@ local function SyncChatConfig(shouldSync, whichChar)
 					end
 					SetChatCategoryColor(category, db.chatConfSync[whichChar].colors[category].red, db.chatConfSync[whichChar].colors[category].green, db.chatConfSync[whichChar].colors[category].blue)
 				end
+			end
 
-				-- Font Size
-				-- Not in Realtime SetChatFontSize(db.chatConfSync[whichChar].fontSize), need to add CHAT_SYSTEM:SetFontSize for Realtimed
+			-- Font Size
+			-- Not in Realtime SetChatFontSize(db.chatConfSync[whichChar].fontSize), need to add CHAT_SYSTEM:SetFontSize for Realtimed
 
-				-- ?!? Need to go by a local?..
+			-- ?!? Need to go by a local?..
+			if CHAT_SYSTEM.SetFontSize and SetChatFontSize then
 				local fontSize = db.chatConfSync[whichChar].fontSize
 				CHAT_SYSTEM:SetFontSize(fontSize)
 				SetChatFontSize(db.chatConfSync[whichChar].fontSize)
-				local chatSyncNumTab = 1
+			end
 
+			local chatSyncNumTab = 1
+			if db.chatConfSync[whichChar].tabs then
 				for numTab in ipairs(db.chatConfSync[whichChar].tabs) do
 
 					--Create a Tab if nessesary
@@ -4562,19 +4256,18 @@ local function SyncChatConfig(shouldSync, whichChar)
 					chatSyncNumTab = numTab
 
 				end
+			end
 
-				-- If they're was too many tabs before, drop them
-				local removeTabs = true
-				while removeTabs do
-					-- Too many tabs, deleting one
-					if GetNumChatContainerTabs(1) > chatSyncNumTab then
-						-- Not in realtime : RemoveChatContainerTab(1, chatSyncNumTab + 1)
-						CHAT_SYSTEM.primaryContainer:RemoveWindow(chatSyncNumTab + 1, nil)
-					else
-						removeTabs = false
-					end
+			-- If they're was too many tabs before, drop them
+			local removeTabs = true
+			while removeTabs do
+				-- Too many tabs, deleting one
+				if GetNumChatContainerTabs(1) > chatSyncNumTab then
+					-- Not in realtime : RemoveChatContainerTab(1, chatSyncNumTab + 1)
+					CHAT_SYSTEM.primaryContainer:RemoveWindow(chatSyncNumTab + 1, nil)
+				else
+					removeTabs = false
 				end
-
 			end
 		end
 	end
@@ -4599,24 +4292,22 @@ local function SetToDefaultChannel()
 end
 
 local function SaveGuildIndexes()
-
 	pChatData.guildIndexes = {}
-
-	for guild = 1, GetNumGuilds() do
-
+	--For each guild get the unique serverGuildId
+	for guildNum = 1, GetNumGuilds() do
 		-- Guildname
-		local guildId = GetGuildId(guild)
+		local guildId = GetGuildId(guildNum)
 		local guildName = GetGuildName(guildId)
-
 		-- Occurs sometimes
 		if(not guildName or (guildName):len() < 1) then
-			guildName = "Guild " .. guildId
+			guildName = "Guild " .. guildNum
 		end
-
-		pChatData.guildIndexes[guildName] = guild
-
+		pChatData.guildIndexes[guildId] = {
+			num		= guildNum,
+			id 		= guildId,
+			name 	= guildName,
+		}
 	end
-
 end
 
 -- Executed when EVENT_IGNORE_ADDED triggers
@@ -4694,33 +4385,31 @@ local function OnGroupMemberLeft(_, reason, isLocalPlayer, _, _, actionRequiredV
 end
 
 local function UpdateCharCorrespondanceTableSwitchs()
-
-	-- Each guild
+debug("[pChat]UpdateCharCorrespondanceTableSwitchs")
+	-- Each guild:_ Update table from ZO_ChatSystem_GetChannelInfo() to set teh possible switches (chat commands like /guild1 etc.)
 	for i = 1, GetNumGuilds() do
-
+		local guildId = GetGuildId(i)
+		--local guildName = GetGuildName(guildId)
 		-- Get saved string
-		local switch = db.switchFor[GetGuildName(GetGuildId(i))]
-
+		local switch = db.switchFor[guildId]
 		if switch and switch ~= "" then
 			switch = GetString(SI_CHANNEL_SWITCH_GUILD_1 - 1 + i) .. " " .. switch
 		else
 			switch = GetString(SI_CHANNEL_SWITCH_GUILD_1 - 1 + i)
 		end
-
 		ChanInfoArray[CHAT_CHANNEL_GUILD_1 - 1 + i].switches = switch
 
-		-- Get saved string
-		local officerSwitch = db.officerSwitchFor[GetGuildName(GetGuildId(i))]
+debug(">Set switch " ..tostring(switch) .." for guild# " .. tostring(i))
 
+		-- Get saved string
+		local officerSwitch = db.officerSwitchFor[guildId]
 		-- No SavedVar
 		if officerSwitch and officerSwitch ~= "" then
 			officerSwitch = GetString(SI_CHANNEL_SWITCH_OFFICER_1 - 1 + i)  .. " " .. officerSwitch
 		else
 			officerSwitch = GetString(SI_CHANNEL_SWITCH_OFFICER_1 - 1 + i)
 		end
-
 		ChanInfoArray[CHAT_CHANNEL_OFFICER_1 - 1 + i].switches = officerSwitch
-
 	end
 
 end
@@ -4777,10 +4466,11 @@ local function BuildLAMPanel()
 		local r, g, b, a = ConvertHexToRGBA(colourString)
 		return {r = r, g = g, b = b, a = a}
 	end
-		-- Sync Character Select
+	-- Chat conf Sync Character Select
+	--> Using character unique IDs now!
 	pChatData.chatConfSyncChoices = {}
 	if db.chatConfSync then
-		for names, tagada in pairs (db.chatConfSync) do
+		for names, _ in pairs (db.chatConfSync) do
 			if names ~= "lastChar" then
 				table.insert(pChatData.chatConfSyncChoices, names)
 			end
@@ -5959,20 +5649,17 @@ local function BuildLAMPanel()
 --  Guild Stuff
 --
 	for guild = 1, GetNumGuilds() do
-
 		-- Guildname
 		local guildId = GetGuildId(guild)
 		local guildName = GetGuildName(guildId)
-
 		-- Occurs sometimes
 		if(not guildName or (guildName):len() < 1) then
-			guildName = "Guild " .. guildId
+			guildName = "Guild " .. guild
 		end
-
 		-- If recently added to a new guild and never go in menu db.formatguild[guildName] won't exist
-		if not (db.formatguild[guildName]) then
+		if not (db.formatguild[guildId]) then
 			-- 2 is default value
-			db.formatguild[guildName] = 2
+			db.formatguild[guildId] = 2
 		end
 		optionsData[#optionsData + 1] = {
 		type = "submenu",
@@ -5981,11 +5668,12 @@ local function BuildLAMPanel()
 			{
 				type = "editbox",
 				name = GetString(PCHAT_NICKNAMEFOR),
-				tooltip = GetString(PCHAT_NICKNAMEFORTT) .. " " .. guildName,
-				getFunc = function() return db.guildTags[guildName] end,
+				tooltip = GetString(PCHAT_NICKNAMEFORTT) .. " " .. guildName .. " (ID: " ..tostring(guildId) ..")",
+				getFunc = function() return db.guildTags[guildId] end,
 				setFunc = function(newValue)
-					db.guildTags[guildName] = newValue
+					db.guildTags[guildId] = newValue
 					UpdateCharCorrespondanceTableChannelNames()
+					pChat.ChatSystem_CreateChannelData()
 				end,
 				width = "full",
 				default = "",
@@ -5996,21 +5684,22 @@ local function BuildLAMPanel()
 				tooltip = GetString(PCHAT_OFFICERTAGTT),
 				width = "full",
 				default = "",
-				getFunc = function() return db.officertag[guildName] end,
+				getFunc = function() return db.officertag[guildId] end,
 				setFunc = function(newValue)
-					db.officertag[guildName] = newValue
+					db.officertag[guildId] = newValue
 					UpdateCharCorrespondanceTableChannelNames()
+					pChat.ChatSystem_CreateChannelData()
 				end
 			},
 			{
 				type = "editbox",
 				name = GetString(PCHAT_SWITCHFOR),
 				tooltip = GetString(PCHAT_SWITCHFORTT),
-				getFunc = function() return db.switchFor[guildName] end,
+				getFunc = function() return db.switchFor[guildId] end,
 				setFunc = function(newValue)
-					db.switchFor[guildName] = newValue
+					db.switchFor[guildId] = newValue
 					UpdateCharCorrespondanceTableSwitchs()
-					ZO_ChatSystem_CreateChannelData()
+					pChat.ChatSystem_CreateChannelData()
 				end,
 				width = "full",
 				default = "",
@@ -6021,11 +5710,11 @@ local function BuildLAMPanel()
 				tooltip = GetString(PCHAT_OFFICERSWITCHFORTT),
 				width = "full",
 				default = "",
-				getFunc = function() return db.officerSwitchFor[guildName] end,
+				getFunc = function() return db.officerSwitchFor[guildId] end,
 				setFunc = function(newValue)
-					db.officerSwitchFor[guildName] = newValue
+					db.officerSwitchFor[guildId] = newValue
 					UpdateCharCorrespondanceTableSwitchs()
-					ZO_ChatSystem_CreateChannelData()
+					pChat.ChatSystem_CreateChannelData()
 				end
 			},
 		-- Config store 1/2/3 to avoid language switchs
@@ -6037,11 +5726,11 @@ local function BuildLAMPanel()
 				choices = {GetString(PCHAT_FORMATCHOICE1), GetString(PCHAT_FORMATCHOICE2), GetString(PCHAT_FORMATCHOICE3)},
 				getFunc = function()
 					-- Config per guild
-					if db.formatguild[guildName] == 1 then
+					if db.formatguild[guildId] == 1 then
 						return GetString(PCHAT_FORMATCHOICE1)
-					elseif db.formatguild[guildName] == 2 then
+					elseif db.formatguild[guildId] == 2 then
 						return GetString(PCHAT_FORMATCHOICE2)
-					elseif db.formatguild[guildName] == 3 then
+					elseif db.formatguild[guildId] == 3 then
 						return GetString(PCHAT_FORMATCHOICE3)
 					else
 						-- When user click on LAM reinit button
@@ -6050,14 +5739,14 @@ local function BuildLAMPanel()
 				end,
 				setFunc = function(choice)
 					if choice == GetString(PCHAT_FORMATCHOICE1) then
-						db.formatguild[guildName] = 1
+						db.formatguild[guildId] = 1
 					elseif choice == GetString(PCHAT_FORMATCHOICE2) then
-						db.formatguild[guildName] = 2
+						db.formatguild[guildId] = 2
 					elseif choice == GetString(PCHAT_FORMATCHOICE3) then
-						db.formatguild[guildName] = 3
+						db.formatguild[guildId] = 3
 					else
 						-- When user click on LAM reinit button
-						db.formatguild[guildName] = 2
+						db.formatguild[guildId] = 2
 					end
 				end,
 				width = "full",
@@ -6158,15 +5847,15 @@ local function GetDBAndBuildLAM()
 end
 --**Settings End
 -- Triggered by EVENT_GUILD_SELF_JOINED_GUILD
-local function OnSelfJoinedGuild(_, _, guildName)
+local function OnSelfJoinedGuild(_, guildServerId, characterName, guildId)
 
 	-- It will rebuild optionsTable and recreate tables if user didn't went in this section before
 	BuildLAMPanel()
 
 	-- If recently added to a new guild and never go in menu db.formatguild[guildName] won't exist, it won't create the value if joining an known guild
-	if not db.formatguild[guildName] then
+	if not db.formatguild[guildServerId] then
 		-- 2 is default value
-		db.formatguild[guildName] = 2
+		db.formatguild[guildServerId] = 2
 	end
 
 	-- Save Guild indexes for guild reorganization
@@ -6175,10 +5864,10 @@ local function OnSelfJoinedGuild(_, _, guildName)
 end
 
 -- Revert category settings
-local function RevertCategories(guildName)
+local function RevertCategories(guildId)
 
 	-- Old GuildId
-	local oldIndex = pChatData.guildIndexes[guildName]
+	local oldIndex = pChatData.guildIndexes[guildId].num
 	-- old Total Guilds
 	local totGuilds = GetNumGuilds() + 1
 
@@ -6226,6 +5915,8 @@ local function OnPlayerActivated()
 	pChatData.sceneFirst = false
 
 	if isAddonLoaded then
+		--Get a reference to the chat channelData (CHAT_SYSTEM.channelData)
+		ChanInfoArray = ZO_ChatSystem_GetChannelInfo()
 
 		pChatData.activeTab = 1
 
@@ -6263,7 +5954,6 @@ local function OnPlayerActivated()
 
 			--Scroll to bottom in Chat: Secure post hook to hide the Whisper Notifications
 			SecurePostHook("ZO_ChatSystem_ScrollToBottom", function(ctrl)
-				d("[pChat]ZO_ChatSystem_ScrollToBottom")
 				pChat_RemoveIMNotification()
 			end)
 		end
@@ -6299,30 +5989,53 @@ local function OnPlayerActivated()
 		SyncChatConfig(db.chatSyncConfig, "lastChar")
 		SaveChatConfig()
 
-		-- Tags next to entry box
+		-- Tags next to entry box: Add them to the chat channels of table ChanInfoArray
 		UpdateCharCorrespondanceTableChannelNames()
 
-		-- Update Swtches
+		-- Update chat switches: Add them to the chat channels of table ChanInfoArray
 		UpdateCharCorrespondanceTableSwitchs()
 
 		--Update the channel and channel switch lookup tables
-		--Before API100030
 		if CHAT_SYSTEM then
-			if CHAT_SYSTEM.CreateChannelData then
-				function ZO_ChatSystem_CreateChannelData() 
-					CHAT_SYSTEM:CreateChannelData()
+		-->With API100030 the function CHAT_SYSTEM:CreateChannelData does not exist anymore but the code is used inside SharedChatSystem:Initialize
+		-->Create a Compatibility function and call it then
+			function pChat.ChatSystem_CreateChannelData()
+debug("pChat.ChatSystem_CreateChannelData-Start")
+				local switchLookup = {}
+				local channelInfo = ChanInfoArray
+				for channelId, data in pairs(channelInfo) do
+					data.id = channelId
+
+					if data.switches then
+debug(">switch: " ..tostring(data.switches))
+						for switchArg in data.switches:gmatch("%S+") do
+							switchArg = switchArg:lower()
+							switchLookup[switchArg] = data
+							if not switchLookup[channelId] then
+								switchLookup[channelId] = switchArg
+							end
+						end
+					end
+
+					if data.targetSwitches then
+debug(">targetSwitches: " ..tostring(data.targetSwitches))
+						local targetData = ZO_ShallowTableCopy(data)
+						targetData.target = channelId
+						for switchArg in data.targetSwitches:gmatch("%S+") do
+							switchArg = switchArg:lower()
+							switchLookup[switchArg] = targetData
+							if not switchLookup[channelId] then
+								switchLookup[channelId] = switchArg
+							end
+						end
+					end
 				end
-			elseif ZO_ChatSystem_GetChannelInfo and ZO_ChatSystem_GetChannelSwitchLookupTable then
-			-->With API100030 there does not exist anymore the function CreateChannelData but the code is used inside SharedChatSystem:Initialize
-		    -->Create a Compatibility function and call it then
-				function ZO_ChatSystem_CreateChannelData() 
-					CHAT_SYSTEM.channelData = ZO_ChatSystem_GetChannelInfo()
-					CHAT_SYSTEM.switchLookup = ZO_ChatSystem_GetChannelSwitchLookupTable()
-				end
+				--Reassign the change table values to the CHAT_SYSTEM now in order to make the
+				--changed guild switches work (e.g. /guildnameshort)
+				CHAT_SYSTEM.switchLookup = switchLookup
+debug("pChat.ChatSystem_CreateChannelData-End")
 			end
-			if ZO_ChatSystem_CreateChannelData then
-				ZO_ChatSystem_CreateChannelData()
-			end
+			pChat.ChatSystem_CreateChannelData()
 		end
 
 		-- Set default channel at login
@@ -6370,13 +6083,13 @@ end
 
 
 -- Runs whenever "me" left a guild (or get kicked)
-local function OnSelfLeftGuild(_, _, guildName)
+local function OnSelfLeftGuild(_, guildServerId, characterName, guildId)
 
 	-- It will rebuild optionsTable and recreate tables if user didn't went in this section before
 	BuildLAMPanel()
 
 	-- Revert category colors & options
-	RevertCategories(guildName)
+	RevertCategories(guildServerId)
 
 end
 
@@ -6386,7 +6099,7 @@ local function SwitchToParty(characterName)
 		-- If "me" join group
 		if(GetRawUnitName("player") == characterName) then
 
-			-- Switch to party channel when joinin a group
+			-- Switch to party channel when joining a group
 			if db.enablepartyswitch then
 				CHAT_SYSTEM:SetChannel(CHAT_CHANNEL_PARTY)
 			end
@@ -6518,6 +6231,10 @@ local function loadLibraries()
 	--[Optional]
 	LCT = LibCustomTitles
 	if not LCT and LibStub then LCT = LibStub("LibCustomTitles", true) end
+
+	if LibDebugLogger then
+		pChat.logger = LibDebugLogger("pChat")
+	end
 end
 
 -- Please note that some things are delayed in OnPlayerActivated() because Chat isn't ready when this function triggers
@@ -6528,7 +6245,7 @@ local function OnAddonLoaded(_, addonName)
 		loadLibraries()
 
 		--PTS API100030 Harrowstorm: Chat message event handler fix by LibChatMessage @sirinsidiator
-		LCM.formatRegularChat = true
+		if LCM then LCM.formatRegularChat = true end
 
 		-- Resize, must be loaded before CHAT_SYSTEM is set
 		--local width, height = GuiRoot:GetDimensions()
@@ -6633,14 +6350,14 @@ local function OnAddonLoaded(_, addonName)
 		ZO_CreateStringId("SI_BINDING_NAME_TAB_10", GetString(PCHAT_Tab10))
 		ZO_CreateStringId("SI_BINDING_NAME_TAB_11", GetString(PCHAT_Tab11))
 		ZO_CreateStringId("SI_BINDING_NAME_TAB_12", GetString(PCHAT_Tab12))
-		-- Register OnSelfJoinedGuild with EVENT_GUILD_SELF_JOINED_GUILD
-		EVENT_MANAGER:RegisterForEvent(ADDON_NAME, EVENT_GUILD_SELF_JOINED_GUILD, OnSelfJoinedGuild)
-
-		-- Register OnSelfLeftGuild with EVENT_GUILD_SELF_LEFT_GUILD
-		EVENT_MANAGER:RegisterForEvent(ADDON_NAME, EVENT_GUILD_SELF_LEFT_GUILD, OnSelfLeftGuild)
 
 		-- Because ChatSystem is loaded after EVENT_ADDON_LOADED triggers, we use 1st EVENT_PLAYER_ACTIVATED wich is run bit after
 		EVENT_MANAGER:RegisterForEvent(ADDON_NAME, EVENT_PLAYER_ACTIVATED, OnPlayerActivated)
+
+		-- Register OnSelfJoinedGuild with EVENT_GUILD_SELF_JOINED_GUILD
+		EVENT_MANAGER:RegisterForEvent(ADDON_NAME, EVENT_GUILD_SELF_JOINED_GUILD, OnSelfJoinedGuild)
+		-- Register OnSelfLeftGuild with EVENT_GUILD_SELF_LEFT_GUILD
+		EVENT_MANAGER:RegisterForEvent(ADDON_NAME, EVENT_GUILD_SELF_LEFT_GUILD, OnSelfLeftGuild)
 
 		-- Whisp my target
 		EVENT_MANAGER:RegisterForEvent(ADDON_NAME, EVENT_RETICLE_TARGET_CHANGED, OnReticleTargetChanged)

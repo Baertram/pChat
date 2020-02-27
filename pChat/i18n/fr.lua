@@ -275,14 +275,14 @@ SafeAddString(PCHAT_FORMATCHOICE1									, "@UserID", 1)
 SafeAddString(PCHAT_FORMATCHOICE2									, "Nom du personnage", 1)
 SafeAddString(PCHAT_FORMATCHOICE3									, "Nom du personnage@UserID", 1)
 							
-SafeAddString(PCHAT_SETCOLORSFORTT									, "Définir les couleurs pour les membres de ", 1)
-SafeAddString(PCHAT_SETCOLORSFORCHATTT								, "Définir les couleurs pour les messages de ", 1)
+SafeAddString(PCHAT_SETCOLORSFORTT									, "Définir les couleurs pour les membres de <<1>>", 1)
+SafeAddString(PCHAT_SETCOLORSFORCHATTT								, "Définir les couleurs pour les messages de <<1>>", 1)
 
-SafeAddString(PCHAT_SETCOLORSFOROFFICIERSTT						, "Définir les couleurs pour les membres du canal Officier de ", 1)
-SafeAddString(PCHAT_SETCOLORSFOROFFICIERSCHATTT					, "Définir les couleurs pour les messages du canal Officier de ", 1)
+SafeAddString(PCHAT_SETCOLORSFOROFFICIERSTT						, "Définir les couleurs pour les membres du canal Officier de <<1>>", 1)
+SafeAddString(PCHAT_SETCOLORSFOROFFICIERSCHATTT					, "Définir les couleurs pour les messages du canal Officier de <<1>>", 1)
 
-SafeAddString(PCHAT_MEMBERS											, " - Joueurs", 1)
-SafeAddString(PCHAT_CHAT												, " - Messages", 1)
+SafeAddString(PCHAT_MEMBERS											, "<<1>> - Joueurs", 1)
+SafeAddString(PCHAT_CHAT												, "<<1>> - Messages", 1)
 									
 SafeAddString(PCHAT_OFFICERSTT										, " Officiers", 1)
 									

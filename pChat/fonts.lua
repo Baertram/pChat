@@ -1,7 +1,7 @@
 
 local LMP = LibMediaProvider
 if not LMP and LibStub then LMP = LibStub("LibMediaProvider-1.0", true) end
-assert(LMP, d(string.format(GetString(PCHAT_LIB_MISSING), "LibMediaProvider-1.0")))
+assert(LMP, string.format(GetString(PCHAT_LIB_MISSING), "LibMediaProvider-1.0"))
 
 LMP:Register("font", "ESO Standard Font", "EsoUI/Common/Fonts/univers57.otf")
 LMP:Register("font", "ESO Book Font", "EsoUI/Common/Fonts/ProseAntiquePSMT.otf")

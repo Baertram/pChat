@@ -290,14 +290,14 @@ SafeAddString(PCHAT_FORMATCHOICE1									, "@Accountname", 1)
 SafeAddString(PCHAT_FORMATCHOICE2									, "Charaktername", 1)
 SafeAddString(PCHAT_FORMATCHOICE3									, "Charaktername@Accountname", 1)
 
-SafeAddString(PCHAT_SETCOLORSFORTT									, "Farbe für Mitglieder von ", 1)
-SafeAddString(PCHAT_SETCOLORSFORCHATTT								, "Farbe für Nachrichten von ", 1)
+SafeAddString(PCHAT_SETCOLORSFORTT									, "Farbe für Mitglieder von <<1>>", 1)
+SafeAddString(PCHAT_SETCOLORSFORCHATTT								, "Farbe für Nachrichten von <<1>>", 1)
 
-SafeAddString(PCHAT_SETCOLORSFOROFFICIERSTT						, "Farbe für Mitglieder des 'Offiziers-Chats' von ", 1)
-SafeAddString(PCHAT_SETCOLORSFOROFFICIERSCHATTT					, "Farbe für Nachrichten des 'Offiziers-Chats' von ", 1)
+SafeAddString(PCHAT_SETCOLORSFOROFFICIERSTT						, "Farbe für Mitglieder des 'Offiziers-Chats' von <<1>>", 1)
+SafeAddString(PCHAT_SETCOLORSFOROFFICIERSCHATTT					, "Farbe für Nachrichten des 'Offiziers-Chats' von <<1>>", 1)
 
-SafeAddString(PCHAT_MEMBERS											, " - Spieler", 1)
-SafeAddString(PCHAT_CHAT												, " - Nachrichten", 1)
+SafeAddString(PCHAT_MEMBERS											, "<<1>> - Spieler", 1)
+SafeAddString(PCHAT_CHAT												, "<<1>> - Nachrichten", 1)
 
 SafeAddString(PCHAT_OFFICERSTT										, " Offiziere", 1)
 
