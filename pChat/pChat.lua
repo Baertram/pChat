@@ -5330,7 +5330,7 @@ local function BuildLAMPanel()
 				getFunc = function() return ConvertHexToRGBA(db.colours.timestamp) end,
 				setFunc = function(r, g, b) db.colours.timestamp = ConvertRGBToHex(r, g, b) end,
 				default = ConvertHexToRGBAPacked(defaults.colours.timestamp),
-				disabled = function() return not db.showTimestamp end,
+				disabled = function() return not db.showTimestamp or db.timestampcolorislcol end,
 			},
 		},
 	}
