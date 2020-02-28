@@ -127,11 +127,7 @@ SafeAddString(PCHAT_GROUPLEADERCOLOR1TT							, "Couleur des messages du chef de
 SafeAddString(PCHAT_GROUPNAMES										, "Format des noms pour le groupe", 1)
 SafeAddString(PCHAT_GROUPNAMESTT										, "Format des noms des membres de votre groupe sur le canal groupe", 1)
 								
-SafeAddString(PCHAT_GROUPNAMESCHOICE1								, "@UserID", 1)
-SafeAddString(PCHAT_GROUPNAMESCHOICE2								, "Nom du personnage", 1)
-SafeAddString(PCHAT_GROUPNAMESCHOICE3								, "Nom du personnage@UserID", 1)
-								
--- Sync settings			
+-- Sync settings
 			
 SafeAddString(PCHAT_SYNCH												, "Synchronisation des paramètres", 1)
 			
@@ -274,7 +270,8 @@ SafeAddString(PCHAT_NAMEFORMATTT										, "Sélectionnez de quelle manière so
 SafeAddString(PCHAT_FORMATCHOICE1									, "@UserID", 1)
 SafeAddString(PCHAT_FORMATCHOICE2									, "Nom du personnage", 1)
 SafeAddString(PCHAT_FORMATCHOICE3									, "Nom du personnage@UserID", 1)
-							
+SafeAddString(PCHAT_FORMATCHOICE4									, "@UserID/Nom du personnage", 1)
+
 SafeAddString(PCHAT_SETCOLORSFORTT									, "Définir les couleurs pour les membres de <<1>>", 1)
 SafeAddString(PCHAT_SETCOLORSFORCHATTT								, "Définir les couleurs pour les messages de <<1>>", 1)
 

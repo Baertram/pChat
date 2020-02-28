@@ -141,11 +141,6 @@ SafeAddString(PCHAT_GROUPLEADERCOLOR1TT							    , "Farbe der Nachrichten des G
 SafeAddString(PCHAT_GROUPNAMES										, "Namen Darstellung in Gruppen", 1)
 SafeAddString(PCHAT_GROUPNAMESTT									, "Darstellung der Namen in Gruppen.", 1)
 
-SafeAddString(PCHAT_GROUPNAMESCHOICE1								, "@Accountname", 1)
-SafeAddString(PCHAT_GROUPNAMESCHOICE2								, "Charaktername", 1)
-SafeAddString(PCHAT_GROUPNAMESCHOICE3								, "Charaktername@Accountname", 1)
-SafeAddString(PCHAT_GROUPNAMESCHOICE4                               , "@AccountName/Charaktername", 1)
-
 -- Sync settings
 
 SafeAddString(PCHAT_SYNCH												, "Synchronisierungseinstellungen", 1)
@@ -289,6 +284,7 @@ SafeAddString(PCHAT_NAMEFORMATTT										, "Legt die Formatierung für die Name
 SafeAddString(PCHAT_FORMATCHOICE1									, "@Accountname", 1)
 SafeAddString(PCHAT_FORMATCHOICE2									, "Charaktername", 1)
 SafeAddString(PCHAT_FORMATCHOICE3									, "Charaktername@Accountname", 1)
+SafeAddString(PCHAT_FORMATCHOICE4									, "@Accountname/Charaktername", 1)
 
 SafeAddString(PCHAT_SETCOLORSFORTT									, "Farbe für Mitglieder von <<1>>", 1)
 SafeAddString(PCHAT_SETCOLORSFORCHATTT								, "Farbe für Nachrichten von <<1>>", 1)

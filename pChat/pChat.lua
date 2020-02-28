@@ -4656,7 +4656,7 @@ local function BuildLAMPanel()
 				type = "dropdown",
 				name = GetString(PCHAT_GEOCHANNELSFORMAT),
 				tooltip = GetString(PCHAT_GEOCHANNELSFORMATTT),
-				choices = {GetString("PCHAT_GROUPNAMESCHOICE", 1), GetString("PCHAT_GROUPNAMESCHOICE", 2), GetString("PCHAT_GROUPNAMESCHOICE", 3), GetString("PCHAT_GROUPNAMESCHOICE", 4)}, -- Same as group.
+				choices = {GetString(PCHAT_FORMATCHOICE1), GetString(PCHAT_FORMATCHOICE2), GetString(PCHAT_FORMATCHOICE3), GetString(PCHAT_FORMATCHOICE4)},
 				choicesValues = {1, 2, 3, 4},
 				width = "full",
 				getFunc = function() return db.geoChannelsFormat end,
@@ -4863,7 +4863,7 @@ local function BuildLAMPanel()
 				type = "dropdown",
 				name = GetString(PCHAT_GROUPNAMES),
 				tooltip = GetString(PCHAT_GROUPNAMESTT),
-				choices = {GetString("PCHAT_GROUPNAMESCHOICE", 1), GetString("PCHAT_GROUPNAMESCHOICE", 2), GetString("PCHAT_GROUPNAMESCHOICE", 3), GetString("PCHAT_GROUPNAMESCHOICE", 4)}, -- Same as group.
+				choices = {GetString(PCHAT_FORMATCHOICE1), GetString(PCHAT_FORMATCHOICE2), GetString(PCHAT_FORMATCHOICE3), GetString(PCHAT_FORMATCHOICE4)},
 				choicesValues = {1, 2, 3, 4},
 				width = "full",
 				getFunc = function() return db.groupNames end,
