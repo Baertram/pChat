@@ -5812,7 +5812,7 @@ local function BuildLAMPanel()
 			},
 			{
 				type = "colorpicker",
-				name = guildName .. GetString(PCHAT_OFFICERSTT) .. GetString(PCHAT_MEMBERS),
+				name = guildName .. GetString(PCHAT_OFFICERSTT) .. zo_strformat(PCHAT_MEMBERS, ""),
 				tooltip = zo_strformat(PCHAT_SETCOLORSFOROFFICIERSTT, guildName),
 				getFunc = function() return ConvertHexToRGBA(db.colours[2*(CHAT_CHANNEL_OFFICER_1 + guild - 1)]) end,
 				setFunc = function(r, g, b) db.colours[2*(CHAT_CHANNEL_OFFICER_1 + guild - 1)] = ConvertRGBToHex(r, g, b) end,
@@ -5821,7 +5821,7 @@ local function BuildLAMPanel()
 			},
 			{
 				type = "colorpicker",
-				name = guildName .. GetString(PCHAT_OFFICERSTT) .. GetString(PCHAT_CHAT),
+				name = guildName .. GetString(PCHAT_OFFICERSTT) .. zo_strformat(PCHAT_CHAT, ""),
 				tooltip = zo_strformat(PCHAT_SETCOLORSFOROFFICIERSCHATTT, guildName),
 				getFunc = function() return ConvertHexToRGBA(db.colours[2*(CHAT_CHANNEL_OFFICER_1 + guild - 1) + 1]) end,
 				setFunc = function(r, g, b) db.colours[2*(CHAT_CHANNEL_OFFICER_1 + guild - 1) + 1] = ConvertRGBToHex(r, g, b) end,
