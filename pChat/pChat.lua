@@ -207,6 +207,52 @@ function pChat.debug(debugText)
 end
 local debug = pChat.debug
 
+local function getClassIcon(classId)
+    --* GetClassInfo(*luaindex* _index_)
+    -- @return defId integer,lore string,normalIconKeyboard textureName,pressedIconKeyboard textureName,mouseoverIconKeyboard textureName,isSelectable bool,ingameIconKeyboard textureName,ingameIconGamepad textureName,normalIconGamepad textureName,pressedIconGamepad textureName
+    local classLuaIndex = GetClassIndexById(classId)
+    local _, _, textureName, _, _, _, ingameIconKeyboard, _, _, _= GetClassInfo(classLuaIndex)
+    return ingameIconKeyboard or textureName or ""
+end
+
+local function decorateCharName(charName, classId, decorate)
+    if not charName or charName == "" then return "" end
+    if not classId then return charName end
+    decorate = decorate or false
+    if not decorate then return charName end
+    local charNameDecorated
+    --Get the class color
+    local charColorDef = GetClassColor(classId)
+    --Apply the class color to the charname
+    if nil ~= charColorDef then charNameDecorated = charColorDef:Colorize(charName) end
+    --Apply the class textures to the charname
+    charNameDecorated = zo_iconTextFormatNoSpace(getClassIcon(classId), 20, 20, charNameDecorated)
+    return charNameDecorated
+end
+
+--Build the table of all characters of the account
+local function getCharactersOfAccount(keyIsCharName, decorate)
+    decorate = decorate or false
+    keyIsCharName = keyIsCharName or false
+    local charactersOfAccount
+    --Check all the characters of the account
+    for i = 1, GetNumCharacters() do
+        --GetCharacterInfo() -> *string* _name_, *[Gender|#Gender]* _gender_, *integer* _level_, *integer* _classId_, *integer* _raceId_, *[Alliance|#Alliance]* _alliance_, *string* _id_, *integer* _locationId_
+        local name, gender, level, classId, raceId, alliance, characterId, location = GetCharacterInfo(i)
+        local charName = zo_strformat(SI_UNIT_NAME, name)
+        if characterId ~= nil and charName ~= "" then
+            if charactersOfAccount == nil then charactersOfAccount = {} end
+            charName = decorateCharName(charName, classId, decorate)
+            if keyIsCharName then
+                charactersOfAccount[charName]   = characterId
+            else
+                charactersOfAccount[characterId]= charName
+            end
+        end
+    end
+    return charactersOfAccount
+end
+
 --[[
 PCHAT_LINK format : ZO_LinkHandler_CreateLink(message, nil, PCHAT_LINK, data)
 message = message to display, nil (ignored by ZO_LinkHandler_CreateLink), PCHAT_LINK : declaration
@@ -925,18 +971,19 @@ end
 
 local function UndockTextEntry()
 
-	local charName = pChatData.localPlayer or GetUnitName("player")
+	--local charName = pChatData.localPlayer or GetUnitName("player")
+	local charId = GetCurrentCharacterId()
 	-- Unfinshed
-	if not db.chatConfSync[charName].TextEntryPoint then
-		db.chatConfSync[charName].TextEntryPoint = CENTER
-		db.chatConfSync[charName].TextEntryRelPoint = CENTER
-		db.chatConfSync[charName].TextEntryX = 0
-		db.chatConfSync[charName].TextEntryY = -300
-		db.chatConfSync[charName].TextEntryWidth = 200
+	if not db.chatConfSync[charId].TextEntryPoint then
+		db.chatConfSync[charId].TextEntryPoint = CENTER
+		db.chatConfSync[charId].TextEntryRelPoint = CENTER
+		db.chatConfSync[charId].TextEntryX = 0
+		db.chatConfSync[charId].TextEntryY = -300
+		db.chatConfSync[charId].TextEntryWidth = 200
 	end
 
 	ZO_ChatWindowTextEntry:ClearAnchors()
-	ZO_ChatWindowTextEntry:SetAnchor(db.chatConfSync[charName].TextEntryPoint, GuiRoot, db.chatConfSync[charName].TextEntryRelPoint, db.chatConfSync[charName].TextEntryX, 300)
+	ZO_ChatWindowTextEntry:SetAnchor(db.chatConfSync[charId].TextEntryPoint, GuiRoot, db.chatConfSync[charId].TextEntryRelPoint, db.chatConfSync[charId].TextEntryX, 300)
 	ZO_ChatWindowTextEntry:SetDimensions(400, 27)
 	ZO_ChatWindowTextEntry:SetMovable(false)
 
@@ -3010,7 +3057,8 @@ local function RestoreChatMessagesFromHistory(wasReloadUI)
 				else
 
 					local category = categories[EVENT_CHAT_MESSAGE_CHANNEL][channelToRestore]
-					local charName = pChatData.localPlayer or GetUnitName("player")
+					--local charName = pChatData.localPlayer or GetUnitName("player")
+					local charId = GetCurrentCharacterId()
 
 					--Prevent the whisper notifications because of history restored messages
 					if db.notifyIM and db.doNotNotifyOnRestoredWhisperFromHistory == true and (channelToRestore == CHAT_CHANNEL_WHISPER or channelToRestore == CHAT_CHANNEL_WHISPER_SENT) then
@@ -3023,7 +3071,7 @@ local function RestoreChatMessagesFromHistory(wasReloadUI)
 						for containerIndex=1, #CHAT_SYSTEM.containers do
 							for tabIndex=1, #CHAT_SYSTEM.containers[containerIndex].windows do
 								if IsChatContainerTabCategoryEnabled(CHAT_SYSTEM.containers[containerIndex].id, tabIndex, category) then
-									if not db.chatConfSync[charName].tabs[tabIndex].notBefore or db.LineStrings[historyIndex].rawTimestamp > db.chatConfSync[charName].tabs[tabIndex].notBefore then
+									if not db.chatConfSync[charId].tabs[tabIndex].notBefore or db.LineStrings[historyIndex].rawTimestamp > db.chatConfSync[charId].tabs[tabIndex].notBefore then
 										local restoredChatRawText = db.LineStrings[historyIndex].rawValue
 										if restoredChatRawText and restoredChatRawText ~= "" then
 											if db.addHistoryRestoredPrefix == true then
@@ -4022,103 +4070,104 @@ local function SaveChatConfig()
 	end
 
 	if isAddonLoaded and CHAT_SYSTEM and CHAT_SYSTEM.primaryContainer then -- Some addons calls SetCVar before
-		local charName = pChatData.localPlayer or GetUnitName("player")
+		--local charName = pChatData.localPlayer or GetUnitName("player")
+		local charId = GetCurrentCharacterId()
 
 		-- Rewrite the whole char tab
-		db.chatConfSync[charName] = {}
+		db.chatConfSync[charId] = {}
 
 		-- Save Chat positions
-		db.chatConfSync[charName].relPoint = CHAT_SYSTEM.primaryContainer.settings.relPoint
-		db.chatConfSync[charName].x = CHAT_SYSTEM.primaryContainer.settings.x
-		db.chatConfSync[charName].y = CHAT_SYSTEM.primaryContainer.settings.y
-		db.chatConfSync[charName].height = CHAT_SYSTEM.primaryContainer.settings.height
-		db.chatConfSync[charName].width = CHAT_SYSTEM.primaryContainer.settings.width
-		db.chatConfSync[charName].point = CHAT_SYSTEM.primaryContainer.settings.point
+		db.chatConfSync[charId].relPoint = CHAT_SYSTEM.primaryContainer.settings.relPoint
+		db.chatConfSync[charId].x = CHAT_SYSTEM.primaryContainer.settings.x
+		db.chatConfSync[charId].y = CHAT_SYSTEM.primaryContainer.settings.y
+		db.chatConfSync[charId].height = CHAT_SYSTEM.primaryContainer.settings.height
+		db.chatConfSync[charId].width = CHAT_SYSTEM.primaryContainer.settings.width
+		db.chatConfSync[charId].point = CHAT_SYSTEM.primaryContainer.settings.point
 
-		--db.chatConfSync[charName].textEntryDocked = true
+		--db.chatConfSync[charId].textEntryDocked = true
 
 		-- Don't overflow screen, remove 10px.
 		if CHAT_SYSTEM.primaryContainer.settings.height >= ( CHAT_SYSTEM.maxContainerHeight - 15 ) then
-			db.chatConfSync[charName].height = ( CHAT_SYSTEM.maxContainerHeight - 15 )
+			db.chatConfSync[charId].height = ( CHAT_SYSTEM.maxContainerHeight - 15 )
 		else
-			db.chatConfSync[charName].height = CHAT_SYSTEM.primaryContainer.settings.height
+			db.chatConfSync[charId].height = CHAT_SYSTEM.primaryContainer.settings.height
 		end
 
 		-- Same
 		if CHAT_SYSTEM.primaryContainer.settings.width >= ( CHAT_SYSTEM.maxContainerWidth - 15 ) then
-			db.chatConfSync[charName].width = ( CHAT_SYSTEM.maxContainerWidth - 15 )
+			db.chatConfSync[charId].width = ( CHAT_SYSTEM.maxContainerWidth - 15 )
 		else
-			db.chatConfSync[charName].width = CHAT_SYSTEM.primaryContainer.settings.width
+			db.chatConfSync[charId].width = CHAT_SYSTEM.primaryContainer.settings.width
 		end
 
 		-- Save Colors
-		db.chatConfSync[charName].colors = {}
+		db.chatConfSync[charId].colors = {}
 
 		for _, category in ipairs (pChatData.chatCategories) do
 			local r, g, b = GetChatCategoryColor(category)
-			db.chatConfSync[charName].colors[category] = { red = r, green = g, blue = b }
+			db.chatConfSync[charId].colors[category] = { red = r, green = g, blue = b }
 		end
 
 		-- Save Font Size
-		db.chatConfSync[charName].fontSize = GetChatFontSize()
+		db.chatConfSync[charId].fontSize = GetChatFontSize()
 
 		-- Save Tabs
-		db.chatConfSync[charName].tabs = {}
+		db.chatConfSync[charId].tabs = {}
 
 		-- GetNumChatContainerTabs(1) don't refresh its number before a ReloadUI
 		-- for numTab = 1, GetNumChatContainerTabs(1) do
 		for numTab in ipairs (CHAT_SYSTEM.primaryContainer.windows) do
 
-			db.chatConfSync[charName].tabs[numTab] = {}
+			db.chatConfSync[charId].tabs[numTab] = {}
 
 			-- Save "Clear Tab" flag
 			if pChatData.tabNotBefore[numTab] then
-				db.chatConfSync[charName].tabs[numTab].notBefore = pChatData.tabNotBefore[numTab]
+				db.chatConfSync[charId].tabs[numTab].notBefore = pChatData.tabNotBefore[numTab]
 			end
 
 			-- No.. need a ReloadUI		local name, isLocked, isInteractable, isCombatLog, areTimestampsEnabled = GetChatContainerTabInfo(1, numTab)
 			-- IsLocked
 			if CHAT_SYSTEM.primaryContainer:IsLocked(numTab) then
-				db.chatConfSync[charName].tabs[numTab].isLocked = true
+				db.chatConfSync[charId].tabs[numTab].isLocked = true
 			else
-				db.chatConfSync[charName].tabs[numTab].isLocked = false
+				db.chatConfSync[charId].tabs[numTab].isLocked = false
 			end
 
 			-- IsInteractive
 			if CHAT_SYSTEM.primaryContainer:IsInteractive(numTab) then
-				db.chatConfSync[charName].tabs[numTab].isInteractable = true
+				db.chatConfSync[charId].tabs[numTab].isInteractable = true
 			else
-				db.chatConfSync[charName].tabs[numTab].isInteractable = false
+				db.chatConfSync[charId].tabs[numTab].isInteractable = false
 			end
 
 			-- IsCombatLog
 			if CHAT_SYSTEM.primaryContainer:IsCombatLog(numTab) then
-				db.chatConfSync[charName].tabs[numTab].isCombatLog = true
+				db.chatConfSync[charId].tabs[numTab].isCombatLog = true
 				-- AreTimestampsEnabled
 				if CHAT_SYSTEM.primaryContainer:AreTimestampsEnabled(numTab) then
-					db.chatConfSync[charName].tabs[numTab].areTimestampsEnabled = true
+					db.chatConfSync[charId].tabs[numTab].areTimestampsEnabled = true
 				else
-					db.chatConfSync[charName].tabs[numTab].areTimestampsEnabled = false
+					db.chatConfSync[charId].tabs[numTab].areTimestampsEnabled = false
 				end
 			else
-				db.chatConfSync[charName].tabs[numTab].isCombatLog = false
-				db.chatConfSync[charName].tabs[numTab].areTimestampsEnabled = false
+				db.chatConfSync[charId].tabs[numTab].isCombatLog = false
+				db.chatConfSync[charId].tabs[numTab].areTimestampsEnabled = false
 			end
 
 			-- GetTabName
-			db.chatConfSync[charName].tabs[numTab].name = CHAT_SYSTEM.primaryContainer:GetTabName(numTab)
+			db.chatConfSync[charId].tabs[numTab].name = CHAT_SYSTEM.primaryContainer:GetTabName(numTab)
 
 			-- Enabled categories
-			db.chatConfSync[charName].tabs[numTab].enabledCategories = {}
+			db.chatConfSync[charId].tabs[numTab].enabledCategories = {}
 
 			for _, category in ipairs (pChatData.chatCategories) do
 				local isEnabled = IsChatContainerTabCategoryEnabled(1, numTab, category)
-				db.chatConfSync[charName].tabs[numTab].enabledCategories[category] = isEnabled
+				db.chatConfSync[charId].tabs[numTab].enabledCategories[category] = isEnabled
 			end
 
 		end
 
-		db.chatConfSync.lastChar = db.chatConfSync[charName]
+		db.chatConfSync.lastChar = db.chatConfSync[charId]
 
 	end
 
@@ -4126,14 +4175,15 @@ end
 
 -- Save Chat Tabs config when user changes it
 local function SaveTabsCategories()
-	local charName = pChatData.localPlayer or GetUnitName("player")
+	--local charName = pChatData.localPlayer or GetUnitName("player")
+	local charId = GetCurrentCharacterId()
 
 	for numTab in ipairs (CHAT_SYSTEM.primaryContainer.windows) do
 
 		for _, category in ipairs (pChatData.guildCategories) do
 			local isEnabled = IsChatContainerTabCategoryEnabled(1, numTab, category)
-			if db.chatConfSync[charName].tabs[numTab] then
-				db.chatConfSync[charName].tabs[numTab].enabledCategories[category] = isEnabled
+			if db.chatConfSync[charId].tabs[numTab] then
+				db.chatConfSync[charId].tabs[numTab].enabledCategories[category] = isEnabled
 			else
 				SaveChatConfig()
 			end
@@ -4174,106 +4224,107 @@ local function MinimizeChatInMenus()
 end
 
 -- Set the chat config from pChat settings
-local function SyncChatConfig(shouldSync, whichChar)
+local function SyncChatConfig(shouldSync, whichCharId)
 
 	if shouldSync then
-		if db.chatConfSync and db.chatConfSync[whichChar] and CHAT_SYSTEM and CHAT_SYSTEM.primaryContainer then
+		if db.chatConfSync and db.chatConfSync[whichCharId] and CHAT_SYSTEM and CHAT_SYSTEM.primaryContainer then
+			local chatConfSyncForCharId = db.chatConfSync[whichCharId]
 			if CHAT_SYSTEM.control then
 				-- Position and width/height
-				CHAT_SYSTEM.control:SetAnchor(db.chatConfSync[whichChar].point, GuiRoot, db.chatConfSync[whichChar].relPoint, db.chatConfSync[whichChar].x, db.chatConfSync[whichChar].y)
+				CHAT_SYSTEM.control:SetAnchor(chatConfSyncForCharId.point, GuiRoot, chatConfSyncForCharId.relPoint, chatConfSyncForCharId.x, chatConfSyncForCharId.y)
 				-- Height / Width
-				CHAT_SYSTEM.control:SetDimensions(db.chatConfSync[whichChar].width, db.chatConfSync[whichChar].height)
+				CHAT_SYSTEM.control:SetDimensions(chatConfSyncForCharId.width, chatConfSyncForCharId.height)
 			end
 
 			-- Save settings immediatly (to check, maybe call function which do this)
 			if CHAT_SYSTEM.primaryContainer.settings then
-				CHAT_SYSTEM.primaryContainer.settings.height = db.chatConfSync[whichChar].height
-				CHAT_SYSTEM.primaryContainer.settings.point = db.chatConfSync[whichChar].point
-				CHAT_SYSTEM.primaryContainer.settings.relPoint = db.chatConfSync[whichChar].relPoint
-				CHAT_SYSTEM.primaryContainer.settings.width = db.chatConfSync[whichChar].width
-				CHAT_SYSTEM.primaryContainer.settings.x = db.chatConfSync[whichChar].x
-				CHAT_SYSTEM.primaryContainer.settings.y = db.chatConfSync[whichChar].y
+				CHAT_SYSTEM.primaryContainer.settings.height = chatConfSyncForCharId.height
+				CHAT_SYSTEM.primaryContainer.settings.point = chatConfSyncForCharId.point
+				CHAT_SYSTEM.primaryContainer.settings.relPoint = chatConfSyncForCharId.relPoint
+				CHAT_SYSTEM.primaryContainer.settings.width = chatConfSyncForCharId.width
+				CHAT_SYSTEM.primaryContainer.settings.x = chatConfSyncForCharId.x
+				CHAT_SYSTEM.primaryContainer.settings.y = chatConfSyncForCharId.y
 			end
 
 			--[[
 			-- Don't overflow screen, remove 15px.
-			if db.chatConfSync[whichChar].height >= (CHAT_SYSTEM.maxContainerHeight - 15 ) then
+			if chatConfSyncForCharId.height >= (CHAT_SYSTEM.maxContainerHeight - 15 ) then
 				CHAT_SYSTEM.control:SetHeight((CHAT_SYSTEM.maxContainerHeight - 15 ))
-				debug("Overflow height " .. db.chatConfSync[whichChar].height .. " -+- " .. (CHAT_SYSTEM.maxContainerHeight - 15))
+				debug("Overflow height " .. chatConfSyncForCharId.height .. " -+- " .. (CHAT_SYSTEM.maxContainerHeight - 15))
 				debug(CHAT_SYSTEM.control:GetHeight())
 			else
 				-- Don't set good values ?! SetHeight(674) = GetHeight(524) ? same with Width and resizing is buggy
-				--CHAT_SYSTEM.control:SetHeight(db.chatConfSync[whichChar].height)
+				--CHAT_SYSTEM.control:SetHeight(chatConfSyncForCharId.height)
 				CHAT_SYSTEM.control:SetDimensions(settings.width, settings.height)
-				debug("height " .. db.chatConfSync[whichChar].height .. " -+- " .. CHAT_SYSTEM.control:GetHeight())
+				debug("height " .. chatConfSyncForCharId.height .. " -+- " .. CHAT_SYSTEM.control:GetHeight())
 			end
 
 			-- Same
-			if db.chatConfSync[whichChar].width >= (CHAT_SYSTEM.maxContainerWidth - 15 ) then
+			if chatConfSyncForCharId.width >= (CHAT_SYSTEM.maxContainerWidth - 15 ) then
 				CHAT_SYSTEM.control:SetWidth((CHAT_SYSTEM.maxContainerWidth - 15 ))
-				debug("Overflow width " .. db.chatConfSync[whichChar].width .. " -+- " .. (CHAT_SYSTEM.maxContainerWidth - 15))
+				debug("Overflow width " .. chatConfSyncForCharId.width .. " -+- " .. (CHAT_SYSTEM.maxContainerWidth - 15))
 				debug(CHAT_SYSTEM.control:GetWidth())
 			else
-				CHAT_SYSTEM.control:SetHeight(db.chatConfSync[whichChar].width)
-				debug("width " .. db.chatConfSync[whichChar].width .. " -+- " .. CHAT_SYSTEM.control:GetWidth())
+				CHAT_SYSTEM.control:SetHeight(chatConfSyncForCharId.width)
+				debug("width " .. chatConfSyncForCharId.width .. " -+- " .. CHAT_SYSTEM.control:GetWidth())
 			end
 			]]--
 
 			-- Colors
 			if GetChatCategoryColor and SetChatCategoryColor then
 				for _, category in ipairs (pChatData.chatCategories) do
-					if not db.chatConfSync[whichChar].colors[category] then
+					if not chatConfSyncForCharId.colors[category] then
 						local r, g, b = GetChatCategoryColor(category)
-						db.chatConfSync[whichChar].colors[category] = { red = r, green = g, blue = b }
+						chatConfSyncForCharId.colors[category] = { red = r, green = g, blue = b }
 					end
-					SetChatCategoryColor(category, db.chatConfSync[whichChar].colors[category].red, db.chatConfSync[whichChar].colors[category].green, db.chatConfSync[whichChar].colors[category].blue)
+					SetChatCategoryColor(category, chatConfSyncForCharId.colors[category].red, chatConfSyncForCharId.colors[category].green, chatConfSyncForCharId.colors[category].blue)
 				end
 			end
 
 			-- Font Size
-			-- Not in Realtime SetChatFontSize(db.chatConfSync[whichChar].fontSize), need to add CHAT_SYSTEM:SetFontSize for Realtimed
+			-- Not in Realtime SetChatFontSize(chatConfSyncForCharId.fontSize), need to add CHAT_SYSTEM:SetFontSize for Realtimed
 
 			-- ?!? Need to go by a local?..
 			if CHAT_SYSTEM.SetFontSize and SetChatFontSize then
-				local fontSize = db.chatConfSync[whichChar].fontSize
+				local fontSize = chatConfSyncForCharId.fontSize
 				CHAT_SYSTEM:SetFontSize(fontSize)
-				SetChatFontSize(db.chatConfSync[whichChar].fontSize)
+				SetChatFontSize(chatConfSyncForCharId.fontSize)
 			end
 
 			local chatSyncNumTab = 1
-			if db.chatConfSync[whichChar].tabs then
-				for numTab in ipairs(db.chatConfSync[whichChar].tabs) do
+			if chatConfSyncForCharId.tabs then
+				for numTab in ipairs(chatConfSyncForCharId.tabs) do
 
 					--Create a Tab if nessesary
 					if (GetNumChatContainerTabs(1) < numTab) then
-						-- AddChatContainerTab(1, , db.chatConfSync[whichChar].tabs[numTab].isCombatLog) No ! Require a ReloadUI
-						CHAT_SYSTEM.primaryContainer:AddWindow(db.chatConfSync[whichChar].tabs[numTab].name)
+						-- AddChatContainerTab(1, , chatConfSyncForCharId.tabs[numTab].isCombatLog) No ! Require a ReloadUI
+						CHAT_SYSTEM.primaryContainer:AddWindow(chatConfSyncForCharId.tabs[numTab].name)
 					end
 
-					if db.chatConfSync[whichChar].tabs[numTab] and db.chatConfSync[whichChar].tabs[numTab].notBefore then
+					if chatConfSyncForCharId.tabs[numTab] and chatConfSyncForCharId.tabs[numTab].notBefore then
 
 						if not pChatData.tabNotBefore then
 							pChatData.tabNotBefore = {} -- Used for tab restoration, init here.
 						end
 
-						pChatData.tabNotBefore[numTab] = db.chatConfSync[whichChar].tabs[numTab].notBefore
+						pChatData.tabNotBefore[numTab] = chatConfSyncForCharId.tabs[numTab].notBefore
 
 					end
 
 					-- Set Tab options
-					-- Not in realtime : SetChatContainerTabInfo(1, numTab, db.chatConfSync[whichChar].tabs[numTab].name, db.chatConfSync[whichChar].tabs[numTab].isLocked, db.chatConfSync[whichChar].tabs[numTab].isInteractable, db.chatConfSync[whichChar].tabs[numTab].areTimestampsEnabled)
+					-- Not in realtime : SetChatContainerTabInfo(1, numTab, chatConfSyncForCharId.tabs[numTab].name, chatConfSyncForCharId.tabs[numTab].isLocked, chatConfSyncForCharId.tabs[numTab].isInteractable, chatConfSyncForCharId.tabs[numTab].areTimestampsEnabled)
 
-					CHAT_SYSTEM.primaryContainer:SetTabName(numTab, db.chatConfSync[whichChar].tabs[numTab].name)
-					CHAT_SYSTEM.primaryContainer:SetLocked(numTab, db.chatConfSync[whichChar].tabs[numTab].isLocked)
-					CHAT_SYSTEM.primaryContainer:SetInteractivity(numTab, db.chatConfSync[whichChar].tabs[numTab].isInteractable)
-					CHAT_SYSTEM.primaryContainer:SetTimestampsEnabled(numTab, db.chatConfSync[whichChar].tabs[numTab].areTimestampsEnabled)
+					CHAT_SYSTEM.primaryContainer:SetTabName(numTab, chatConfSyncForCharId.tabs[numTab].name)
+					CHAT_SYSTEM.primaryContainer:SetLocked(numTab, chatConfSyncForCharId.tabs[numTab].isLocked)
+					CHAT_SYSTEM.primaryContainer:SetInteractivity(numTab, chatConfSyncForCharId.tabs[numTab].isInteractable)
+					CHAT_SYSTEM.primaryContainer:SetTimestampsEnabled(numTab, chatConfSyncForCharId.tabs[numTab].areTimestampsEnabled)
 
 					-- Set Channel per tab configuration
 					for _, category in ipairs (pChatData.chatCategories) do
-						if db.chatConfSync[whichChar].tabs[numTab].enabledCategories[category] == nil then -- Cal be false
-							db.chatConfSync[whichChar].tabs[numTab].enabledCategories[category] = IsChatContainerTabCategoryEnabled(1, numTab, category)
+						if chatConfSyncForCharId.tabs[numTab].enabledCategories[category] == nil then -- Cal be false
+							chatConfSyncForCharId.tabs[numTab].enabledCategories[category] = IsChatContainerTabCategoryEnabled(1, numTab, category)
 						end
-						SetChatContainerTabCategoryEnabled(1, numTab, category, db.chatConfSync[whichChar].tabs[numTab].enabledCategories[category])
+						SetChatContainerTabCategoryEnabled(1, numTab, category, chatConfSyncForCharId.tabs[numTab].enabledCategories[category])
 					end
 
 					chatSyncNumTab = numTab
@@ -4444,14 +4495,20 @@ end
 local function SyncCharacterSelectChoices()
 	-- Sync Character Select
 	pChatData.chatConfSyncChoices = {}
+	pChatData.chatConfSyncChoicesCharIds = {}
 	if db.chatConfSync then
-		for names, tagada in pairs (db.chatConfSync) do
-			if names ~= "lastChar" then
-				table.insert(pChatData.chatConfSyncChoices, names)
+		for charId, _ in pairs (db.chatConfSync) do
+			if charId ~= "lastChar" then
+				local nameOfCharId = pChat.characterId2Name[charId]
+				if charId and nameOfCharId then
+					table.insert(pChatData.chatConfSyncChoices, nameOfCharId)
+					table.insert(pChatData.chatConfSyncChoicesCharIds, charId)
+				end
 			end
 		end
 	else
 		table.insert(pChatData.chatConfSyncChoices, pChatData.localPlayer)
+		table.insert(pChatData.chatConfSyncChoicesCharIds, GetCurrentCharacterId())
 	end
 end
 
@@ -4481,7 +4538,8 @@ local function BuildLAMPanel()
 
 	-- Used to reset colors to default value, lam need a formatted array
 	-- LAM Message Settings
-	local charName = pChatData.localPlayer or GetUnitName("player")
+	--local charName = pChatData.localPlayer or GetUnitName("player")
+	local charId = GetCurrentCharacterId()
 
 	local fontsDefined = LMP:List('font')
 
@@ -4489,23 +4547,13 @@ local function BuildLAMPanel()
 		local r, g, b, a = ConvertHexToRGBA(colourString)
 		return {r = r, g = g, b = b, a = a}
 	end
-	-- Chat conf Sync Character Select
-	--> Using character unique IDs now!
-	pChatData.chatConfSyncChoices = {}
-	if db.chatConfSync then
-		for names, _ in pairs (db.chatConfSync) do
-			if names ~= "lastChar" then
-				table.insert(pChatData.chatConfSyncChoices, names)
-			end
-		end
-	else
-		table.insert(pChatData.chatConfSyncChoices, charName)
-	end
+
+	SyncCharacterSelectChoices()
 
 	-- CHAT_SYSTEM.primaryContainer.windows doesn't exists yet at OnAddonLoaded. So using the pChat reference.
 	local arrayTab = {}
-	if db.chatConfSync and db.chatConfSync[charName] and db.chatConfSync[charName].tabs then
-		for numTab, data in pairs (db.chatConfSync[charName].tabs) do
+	if db.chatConfSync and db.chatConfSync[charId] and db.chatConfSync[charId].tabs then
+		for numTab, data in pairs (db.chatConfSync[charId].tabs) do
 			table.insert(arrayTab, numTab)
 		end
 	else
@@ -4892,10 +4940,11 @@ local function BuildLAMPanel()
 				name = GetString(PCHAT_CHATSYNCCONFIGIMPORTFROM),
 				tooltip = GetString(PCHAT_CHATSYNCCONFIGIMPORTFROMTT),
 				choices = pChatData.chatConfSyncChoices,
+				choicesValues = pChatData.chatConfSyncChoicesCharIds,
 				width = "full",
-				getFunc = function() return charName end,
-				setFunc = function(choice)
-					SyncChatConfig(true, choice)
+				getFunc = function() return GetCurrentCharacterId() end,
+				setFunc = function(charId)
+					SyncChatConfig(true, charId)
 				end,
 			},
 		},
@@ -5811,9 +5860,6 @@ end
 -- Initialises the settings and settings menu
 local function GetDBAndBuildLAM()
 
-	db = ZO_SavedVars:NewAccountWide('PCHAT_OPTS', 0.9, nil, defaults)
-	pChat.db = db
-
 	local panelData = {
 		type = "panel",
 		name = ADDON_NAME,
@@ -5861,7 +5907,8 @@ local function RevertCategories(guildId)
 	local totGuilds = GetNumGuilds() + 1
 
 	if oldIndex and oldIndex < totGuilds then
-		local charName = pChatData.localPlayer or GetUnitName("player")
+		--local charName = pChatData.localPlayer or GetUnitName("player")
+		local charId = GetCurrentCharacterId()
 
 		-- If our guild was not the last one, need to revert colors
 		--debug("pChat will revert starting from " .. oldIndex .. " to " .. totGuilds)
@@ -5881,15 +5928,15 @@ local function RevertCategories(guildId)
 			end
 
 			-- New Guild color for Guild #X is the old #X+1
-			SetChatCategoryColor(CHAT_CATEGORY_GUILD_1 + iGuilds - 1, db.chatConfSync[charName].colors[CHAT_CATEGORY_GUILD_1 + iGuilds].red, db.chatConfSync[charName].colors[CHAT_CATEGORY_GUILD_1 + iGuilds].green, db.chatConfSync[charName].colors[CHAT_CATEGORY_GUILD_1 + iGuilds].blue)
+			SetChatCategoryColor(CHAT_CATEGORY_GUILD_1 + iGuilds - 1, db.chatConfSync[charId].colors[CHAT_CATEGORY_GUILD_1 + iGuilds].red, db.chatConfSync[charId].colors[CHAT_CATEGORY_GUILD_1 + iGuilds].green, db.chatConfSync[charId].colors[CHAT_CATEGORY_GUILD_1 + iGuilds].blue)
 			-- New Officer color for Guild #X is the old #X+1
-			SetChatCategoryColor(CHAT_CATEGORY_OFFICER_1 + iGuilds - 1, db.chatConfSync[charName].colors[CHAT_CATEGORY_OFFICER_1 + iGuilds].red, db.chatConfSync[charName].colors[CHAT_CATEGORY_OFFICER_1 + iGuilds].green, db.chatConfSync[charName].colors[CHAT_CATEGORY_OFFICER_1 + iGuilds].blue)
+			SetChatCategoryColor(CHAT_CATEGORY_OFFICER_1 + iGuilds - 1, db.chatConfSync[charId].colors[CHAT_CATEGORY_OFFICER_1 + iGuilds].red, db.chatConfSync[charId].colors[CHAT_CATEGORY_OFFICER_1 + iGuilds].green, db.chatConfSync[charId].colors[CHAT_CATEGORY_OFFICER_1 + iGuilds].blue)
 
 			-- Restore tab config previously set.
 			for numTab in ipairs (CHAT_SYSTEM.primaryContainer.windows) do
-				if db.chatConfSync[charName].tabs[numTab] then
-					SetChatContainerTabCategoryEnabled(1, numTab, (CHAT_CATEGORY_GUILD_1 + iGuilds - 1), db.chatConfSync[charName].tabs[numTab].enabledCategories[CHAT_CATEGORY_GUILD_1 + iGuilds])
-					SetChatContainerTabCategoryEnabled(1, numTab, (CHAT_CATEGORY_OFFICER_1 + iGuilds - 1), db.chatConfSync[charName].tabs[numTab].enabledCategories[CHAT_CATEGORY_OFFICER_1 + iGuilds])
+				if db.chatConfSync[charId].tabs[numTab] then
+					SetChatContainerTabCategoryEnabled(1, numTab, (CHAT_CATEGORY_GUILD_1 + iGuilds - 1), db.chatConfSync[charId].tabs[numTab].enabledCategories[CHAT_CATEGORY_GUILD_1 + iGuilds])
+					SetChatContainerTabCategoryEnabled(1, numTab, (CHAT_CATEGORY_OFFICER_1 + iGuilds - 1), db.chatConfSync[charId].tabs[numTab].enabledCategories[CHAT_CATEGORY_OFFICER_1 + iGuilds])
 				end
 			end
 
@@ -6145,13 +6192,14 @@ end
 
 -- Save a category color for guild chat, set by ChatSystem at launch + when user change manually
 local function SaveChatCategoriesColors(category, r, g, b)
-	local charName = pChatData.localPlayer or GetUnitName("player")
+	--local charName = pChatData.localPlayer or GetUnitName("player")
+	local charId = GetCurrentCharacterId()
 
-	if db.chatConfSync[charName] then
-		if db.chatConfSync[charName].colors[category] == nil then
-			db.chatConfSync[charName].colors[category] = {}
+	if db.chatConfSync[charId] then
+		if db.chatConfSync[charId].colors[category] == nil then
+			db.chatConfSync[charId].colors[category] = {}
 		end
-		db.chatConfSync[charName].colors[category] = { red = r, green = g, blue = b }
+		db.chatConfSync[charId].colors[category] = { red = r, green = g, blue = b }
 	end
 end
 
@@ -6200,7 +6248,8 @@ local function ChatSystemShowOptions(tabIndex)
 		end
 
 		--[[
-		if db.chatConfSync[GetUnitName("player")].textEntryDocked then
+		local charId = GetCurrentCharacterId()
+		if db.chatConfSync[charId].textEntryDocked then
 			AddMenuItem(GetString(PCHAT_UNDOCKTEXTENTRY), function() UndockTextEntry() end)
 		else
 			AddMenuItem(GetString(PCHAT_REDOCKTEXTENTRY), function() RedockTextEntry() end)
@@ -6239,6 +6288,45 @@ local function loadLibraries()
 	end
 end
 
+--Migrate some SavedVariables to new structures
+local function MigrateSavedVars()
+--debug("MigrateSavedVars")
+	--Chat configuration synchronization was moved from characterNames as table key in table db.chatConfSync
+	--to characterId -> Attention: The charId is a String as well so one needs to change it to a number
+	local newChatConfSync = {}
+	if db.chatConfSync ~= nil then
+		local charName2Id = pChat.characterNameRaw2Id
+		local charId2Name = pChat.characterId2NameRaw
+		for charName, charsChatConfSyncData in pairs(db.chatConfSync) do
+			--debug(">charName: " ..tostring(charName) .. ", type: " ..tostring(type(tonumber(charName))))
+			if charName and charName ~= "" and charName ~= "lastChar" and type(tonumber(charName)) ~= "number" then
+				--Migrate the old charName to it's charId
+				local charId = charName2Id[charName]
+				--CharId exists? If not the char is not existing anymore at this account and will be removed!
+				if charId ~= nil then
+					newChatConfSync[charId] = ZO_DeepTableCopy(charsChatConfSyncData)
+					newChatConfSync[charId].charName = charName
+				end
+			else
+				--charName is the charId already!
+				newChatConfSync[charName] = ZO_DeepTableCopy(charsChatConfSyncData)
+				newChatConfSync[charName].charName = charId2Name[charName]
+			end
+		end
+		db.chatConfSync = {}
+		db.chatConfSync = newChatConfSync
+	end
+end
+
+--Load the SavedVariables
+local function LoadSavedVariables()
+	db = ZO_SavedVars:NewAccountWide('PCHAT_OPTS', 0.9, nil, defaults)
+	pChat.db = db
+
+	--Migrate old SavedVariables to new structures
+	MigrateSavedVars()
+end
+
 -- Please note that some things are delayed in OnPlayerActivated() because Chat isn't ready when this function triggers
 local function OnAddonLoaded(_, addonName)
 	--Protect
@@ -6263,8 +6351,18 @@ local function OnAddonLoaded(_, addonName)
 			end
 		end
 
+		--Build the character name to unique ID mapping tables and vice-versa
+		--The character names are decorated with the color and icon of the class!
+		pChat.characterName2Id = getCharactersOfAccount(true, true)
+		pChat.characterId2Name = getCharactersOfAccount(false, true)
+		pChat.characterNameRaw2Id = getCharactersOfAccount(true, false)
+		pChat.characterId2NameRaw = getCharactersOfAccount(false, false)
+
 		-- Char name
 		pChatData.localPlayer = GetUnitName("player")
+
+		--Load the SV
+		LoadSavedVariables()
 
 		--LAM and db for saved vars
 		GetDBAndBuildLAM()
