@@ -129,6 +129,7 @@ local strings = {
 	PCHAT_GROUPNAMESCHOICE1 = "@UserID",
 	PCHAT_GROUPNAMESCHOICE2 = "Character Name",
 	PCHAT_GROUPNAMESCHOICE3 = "Character Name@UserID",
+	PCHAT_GROUPNAMESCHOICE4 = "@UserID/Character Name",
 
 	-- Sync settings
 

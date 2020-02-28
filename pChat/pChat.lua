@@ -826,6 +826,19 @@ local function ConvertName(chanCode, from, isCS, fromDisplayName)
 
 				db.LineStrings[db.lineNumber].rawFrom = characterName
 				new_from = DisplayWithOrWoBrackets(new_from, characterName, DISPLAY_NAME_LINK_TYPE)
+			elseif db.formatguild[guildId] == 4 then -- @UserID/Char
+				local _, characterName = GetGuildMemberCharacterInfo(guildId, GetGuildMemberIndexFromDisplayName(guildId, new_from))
+				characterName = zo_strformat(SI_UNIT_NAME, characterName)
+				if characterName == "" then characterName = new_from end -- Some buggy rosters
+
+				if pChatData.nicknames[characterName] then -- Char Nicknammed
+					characterName = pChatData.nicknames[characterName]
+				else
+					characterName = new_from .. "/" .. characterName
+				end
+
+				db.LineStrings[db.lineNumber].rawFrom = characterName
+				new_from = DisplayWithOrWoBrackets(new_from, characterName, DISPLAY_NAME_LINK_TYPE)
 			else
 				db.LineStrings[db.lineNumber].rawFrom = new_from
 				new_from = DisplayWithOrWoBrackets(new_from, new_from, DISPLAY_NAME_LINK_TYPE)
@@ -872,6 +885,10 @@ local function ConvertName(chanCode, from, isCS, fromDisplayName)
 					new_from = new_from .. fromDisplayName
 					db.LineStrings[db.lineNumber].rawFrom = nicknamedFrom or new_from
 					new_from = DisplayWithOrWoBrackets(from, nicknamedFrom or new_from, CHARACTER_LINK_TYPE)
+				elseif db.groupNames == 4 then
+					new_from = fromDisplayName .. "/" .. new_from
+					db.LineStrings[db.lineNumber].rawFrom = nicknamedFrom or new_from
+					new_from = DisplayWithOrWoBrackets(from, nicknamedFrom or new_from, CHARACTER_LINK_TYPE)
 				else
 					db.LineStrings[db.lineNumber].rawFrom = nicknamedFrom or new_from
 					new_from = DisplayWithOrWoBrackets(from, nicknamedFrom or new_from, CHARACTER_LINK_TYPE)
@@ -882,6 +899,10 @@ local function ConvertName(chanCode, from, isCS, fromDisplayName)
 					new_from = DisplayWithOrWoBrackets(fromDisplayName, nicknamedFrom or fromDisplayName, DISPLAY_NAME_LINK_TYPE)
 				elseif db.geoChannelsFormat == 3 then
 					new_from = new_from .. fromDisplayName
+					db.LineStrings[db.lineNumber].rawFrom = nicknamedFrom or new_from
+					new_from = DisplayWithOrWoBrackets(from, nicknamedFrom or new_from, CHARACTER_LINK_TYPE)
+				elseif db.geoChannelsFormat == 4 then
+					new_from = fromDisplayName .. "/" .. new_from
 					db.LineStrings[db.lineNumber].rawFrom = nicknamedFrom or new_from
 					new_from = DisplayWithOrWoBrackets(from, nicknamedFrom or new_from, CHARACTER_LINK_TYPE)
 				else
@@ -4635,23 +4656,15 @@ local function BuildLAMPanel()
 				type = "dropdown",
 				name = GetString(PCHAT_GEOCHANNELSFORMAT),
 				tooltip = GetString(PCHAT_GEOCHANNELSFORMATTT),
-				choices = {GetString("PCHAT_GROUPNAMESCHOICE", 1), GetString("PCHAT_GROUPNAMESCHOICE", 2), GetString("PCHAT_GROUPNAMESCHOICE", 3)}, -- Same as group.
+				choices = {GetString("PCHAT_GROUPNAMESCHOICE", 1), GetString("PCHAT_GROUPNAMESCHOICE", 2), GetString("PCHAT_GROUPNAMESCHOICE", 3), GetString("PCHAT_GROUPNAMESCHOICE", 4)}, -- Same as group.
+				choicesValues = {1, 2, 3, 4},
 				width = "full",
-				default = defaults.geoChannelsFormat,
-				getFunc = function() return GetString("PCHAT_GROUPNAMESCHOICE", db.geoChannelsFormat) end,
-				setFunc = function(choice)
-					if choice == GetString("PCHAT_GROUPNAMESCHOICE", 1) then
-						db.geoChannelsFormat = 1
-					elseif choice == GetString("PCHAT_GROUPNAMESCHOICE", 2) then
-						db.geoChannelsFormat = 2
-					elseif choice == GetString("PCHAT_GROUPNAMESCHOICE", 3) then
-						db.geoChannelsFormat = 3
-					else
-						-- When clicking on LAM default button
-						db.geoChannelsFormat = defaults.geoChannelsFormat
-					end
-
+				getFunc = function() return db.geoChannelsFormat end,
+				setFunc = function(value)
+					db.geoChannelsFormat = value
 				end,
+				default = defaults.geoChannelsFormat,
+
 			},
 			{-- Disable Brackets
 				type = "checkbox",
@@ -4850,23 +4863,14 @@ local function BuildLAMPanel()
 				type = "dropdown",
 				name = GetString(PCHAT_GROUPNAMES),
 				tooltip = GetString(PCHAT_GROUPNAMESTT),
-				choices = {GetString("PCHAT_GROUPNAMESCHOICE", 1), GetString("PCHAT_GROUPNAMESCHOICE", 2), GetString("PCHAT_GROUPNAMESCHOICE", 3)},
+				choices = {GetString("PCHAT_GROUPNAMESCHOICE", 1), GetString("PCHAT_GROUPNAMESCHOICE", 2), GetString("PCHAT_GROUPNAMESCHOICE", 3), GetString("PCHAT_GROUPNAMESCHOICE", 4)}, -- Same as group.
+				choicesValues = {1, 2, 3, 4},
 				width = "full",
-				default = defaults.groupNames,
-				getFunc = function() return GetString("PCHAT_GROUPNAMESCHOICE", db.groupNames) end,
-				setFunc = function(choice)
-					if choice == GetString("PCHAT_GROUPNAMESCHOICE", 1) then
-						db.groupNames = 1
-					elseif choice == GetString("PCHAT_GROUPNAMESCHOICE", 2) then
-						db.groupNames = 2
-					elseif choice == GetString("PCHAT_GROUPNAMESCHOICE", 3) then
-						db.groupNames = 3
-					else
-						-- When clicking on LAM default button
-						db.groupNames = defaults.groupNames
-					end
-
+				getFunc = function() return db.groupNames end,
+				setFunc = function(value)
+					db.groupNames = value
 				end,
+				default = defaults.groupNames,
 			},
 		},
 	} -- Sync Settings Header
@@ -5725,34 +5729,17 @@ local function BuildLAMPanel()
 				type = "dropdown",
 				name = GetString(PCHAT_NAMEFORMAT),
 				tooltip = GetString(PCHAT_NAMEFORMATTT),
-				choices = {GetString(PCHAT_FORMATCHOICE1), GetString(PCHAT_FORMATCHOICE2), GetString(PCHAT_FORMATCHOICE3)},
+				choices = {GetString(PCHAT_FORMATCHOICE1), GetString(PCHAT_FORMATCHOICE2), GetString(PCHAT_FORMATCHOICE3), GetString(PCHAT_FORMATCHOICE4)},
+				choicesValues = {1, 2, 3, 4},
 				getFunc = function()
 					-- Config per guild
-					if db.formatguild[guildId] == 1 then
-						return GetString(PCHAT_FORMATCHOICE1)
-					elseif db.formatguild[guildId] == 2 then
-						return GetString(PCHAT_FORMATCHOICE2)
-					elseif db.formatguild[guildId] == 3 then
-						return GetString(PCHAT_FORMATCHOICE3)
-					else
-						-- When user click on LAM reinit button
-						return GetString(PCHAT_FORMATCHOICE2)
-					end
+					return db.formatguild[guildId]
 				end,
-				setFunc = function(choice)
-					if choice == GetString(PCHAT_FORMATCHOICE1) then
-						db.formatguild[guildId] = 1
-					elseif choice == GetString(PCHAT_FORMATCHOICE2) then
-						db.formatguild[guildId] = 2
-					elseif choice == GetString(PCHAT_FORMATCHOICE3) then
-						db.formatguild[guildId] = 3
-					else
-						-- When user click on LAM reinit button
-						db.formatguild[guildId] = 2
-					end
+				setFunc = function(value)
+					db.formatguild[guildId] = value
 				end,
 				width = "full",
-				default = defaults.formatguild[0],
+				default = 2,
 			},
 			{
 				type = "colorpicker",

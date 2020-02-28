@@ -67,7 +67,7 @@ SafeAddString(PCHAT_CARRIAGERETURN									, "Spielernamen und Chattexte in eige
 SafeAddString(PCHAT_CARRIAGERETURNTT								, "Spielernamen und Chattexte werden durch einen Zeilenvorschub getrennt.", 1)
 
 SafeAddString(PCHAT_USEESOCOLORS										, "ESO Standardfarben", 1)
-SafeAddString(PCHAT_USEESOCOLORSTT									, "Verwendet statt der pchat Vorgabe die The Elder Scrolls Online Standard-Chat-Farben.", 1)
+SafeAddString(PCHAT_USEESOCOLORSTT									, "Verwendet statt der pChat Vorgabe die The Elder Scrolls Online Standard-Chat-Farben.", 1)
 
 SafeAddString(PCHAT_DIFFFORESOCOLORS								, "Namen farbig absetzen", 1)
 SafeAddString(PCHAT_DIFFFORESOCOLORSTT								, "Bestimmt den Helligkeitsunterschied zwischen Charakternamen / Chat-Kanal und Nachrichtentext.", 1)
@@ -144,7 +144,7 @@ SafeAddString(PCHAT_GROUPNAMESTT									, "Darstellung der Namen in Gruppen.", 
 SafeAddString(PCHAT_GROUPNAMESCHOICE1								, "@Accountname", 1)
 SafeAddString(PCHAT_GROUPNAMESCHOICE2								, "Charaktername", 1)
 SafeAddString(PCHAT_GROUPNAMESCHOICE3								, "Charaktername@Accountname", 1)
-SafeAddString(PCHAT_GROUPNAMESCHOICE4								, "Accountname/CharakterName", 1)
+SafeAddString(PCHAT_GROUPNAMESCHOICE4                               , "@AccountName/Charaktername", 1)
 
 -- Sync settings
 
