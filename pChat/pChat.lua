@@ -1,3 +1,17 @@
+--=======================================================================================================================================
+--Known problems/bugs:
+--Last updated: 2020-02-28
+--Total number: 2
+------------------------------------------------------------------------------------------------------------------------
+--#1	2020-02-20 Baetram, bug (ZOs needs to fix!): Chat handlers for formatters etc. not working. See event_player_activated and file pChat_chatHandlers.lua
+--	 	ZOs chat changes with Harrowstorm destroyed the chat handlers. Currently LibChatmessage restores them so pChat can overwrite the event formatter function of ChatProxy.
+--	 	Needs to be fixed after ZOs fixed the event handlers to accept Chatproxy vanilla UI + other addons again!
+------------------------------------------------------------------------------------------------------------------------
+--#2	2020-02-28 Baetram, bug: New selection for @accountName/character chat prefix will only show /charactername (@accountName is missing) during whispers,
+--		if clicked on a character in the chat to whisper him/her
+------------------------------------------------------------------------------------------------------------------------
+--=======================================================================================================================================
+
 --  pChat object will receive functions
 pChat = pChat or {}
 
