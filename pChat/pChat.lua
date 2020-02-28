@@ -6292,7 +6292,7 @@ end
 
 --Migrate some SavedVariables to new structures
 local function MigrateSavedVars()
---debug("MigrateSavedVars")
+debug("MigrateSavedVars")
 	--Chat configuration synchronization was moved from characterNames as table key in table db.chatConfSync
 	--to characterId -> Attention: The charId is a String as well so one needs to change it to a number
 	local newChatConfSync = {}
@@ -6317,6 +6317,33 @@ local function MigrateSavedVars()
 		end
 		db.chatConfSync = {}
 		db.chatConfSync = newChatConfSync
+	end
+
+	--Migrate the old guild settings from guildName to guildId
+	for guild = 1, GetNumGuilds() do
+		-- Guildname
+		local guildId = GetGuildId(guild)
+		local guildName = GetGuildName(guildId)
+		if db.guildTags and db.guildTags[guildName] then
+			db.guildTags[guildId] = db.guildTags[guildName]
+			db.guildTags[guildName] = nil
+		end
+		if db.officertag and db.officertag[guildName] then
+			db.officertag[guildId] = db.officertag[guildName]
+			db.officertag[guildName] = nil
+		end
+		if db.switchFor and db.switchFor[guildName] then
+			db.switchFor[guildId] = db.switchFor[guildName]
+			db.switchFor[guildName] = nil
+		end
+		if db.officerSwitchFor and db.officerSwitchFor[guildName] then
+			db.officerSwitchFor[guildId] = db.officerSwitchFor[guildName]
+			db.officerSwitchFor[guildName] = nil
+		end
+		if db.formatguild and db.formatguild[guildName] then
+			db.formatguild[guildId] = db.formatguild[guildName]
+			db.formatguild[guildName] = nil
+		end
 	end
 end
 
