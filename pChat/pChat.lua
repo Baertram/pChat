@@ -43,6 +43,7 @@ local isAddonInitialized	= false
 -- Preventer variables
 local preventWhisperNotificationsFromHistory = false
 local eventPlayerActivatedCheckRunning = false
+local eventPlayerActivatedChecksDone = 0
 
 --Variables
 pChat.tabNames = {}
@@ -5975,10 +5976,12 @@ debug("EVENT_PLAYER_ACTIVATED - Start")
 	end
 
 	--Test if the chat_system containers are given already or wait until they are.
-	if CHAT_SYSTEM and CHAT_SYSTEM.primaryContainer == nil then
+	--Only test 3 seconds, then do the event_player_activated tasks!
+	if eventPlayerActivatedChecksDone <= 12 and (CHAT_SYSTEM == nil or CHAT_SYSTEM.primaryContainer == nil) then
 debug("EVENT_PLAYER_ACTIVATED: CHAT_SYSTEM.primaryContainer is missing!")
 		if not eventPlayerActivatedCheckRunning then
-			EVENT_MANAGER:RegisterForUpdate("pChatDebug", 3000, function()
+			EVENT_MANAGER:RegisterForUpdate("pChatDebug_Event_Player_Activated", 250, function()
+				eventPlayerActivatedChecksDone = eventPlayerActivatedChecksDone + 1
 				eventPlayerActivatedCheckRunning = true
 				OnPlayerActivated()
 			end)
@@ -5986,7 +5989,7 @@ debug("EVENT_PLAYER_ACTIVATED: CHAT_SYSTEM.primaryContainer is missing!")
 	else
 debug("EVENT_PLAYER_ACTIVATED: Found CHAT_SYSTEM.primaryContainer!")
 		eventPlayerActivatedCheckRunning = false
-		EVENT_MANAGER:UnregisterForUpdate("pChatDebug")
+		EVENT_MANAGER:UnregisterForUpdate("pChatDebug_Event_Player_Activated")
 
 		if isAddonLoaded then
 			--Get a reference to the chat channelData (CHAT_SYSTEM.channelData)
@@ -6360,6 +6363,8 @@ end
 local function OnAddonLoaded(_, addonName)
 	--Protect
 	if addonName == ADDON_NAME then
+		eventPlayerActivatedChecksDone = 0
+
 		--Load the needed libraries
 		loadLibraries()
 
