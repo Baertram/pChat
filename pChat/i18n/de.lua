@@ -252,8 +252,8 @@ SafeAddString(PCHAT_NICKNAMESTT										, "Du kannst an gewissen Spielern separ
 
 SafeAddString(PCHAT_TIMESTAMPH										, "Zeitstempel & Zwischenablage", 1)
 
-SafeAddString(PCHAT_ENABLETIMESTAMP									, "Aktiviere Zeitstempel (& Rechtsklick Menü)", 1)
-SafeAddString(PCHAT_ENABLETIMESTAMPTT								, "Fügt Chat-Nachrichten einen Zeitstempel hinzu, sowie ein Rechtsklcik Maus Kontextmenü mit welchem der Chat in die Zwischenablage kopiert werden kann.", 1)
+SafeAddString(PCHAT_ENABLETIMESTAMP									, "Aktiviere Zeitstempel", 1)
+SafeAddString(PCHAT_ENABLETIMESTAMPTT								, "Fügt Chat-Nachrichten einen Zeitstempel hinzu.", 1)
 
 SafeAddString(PCHAT_TIMESTAMPCOLORISLCOL							, "Zeitstempel und Spielernamen gleich färben", 1)
 SafeAddString(PCHAT_TIMESTAMPCOLORISLCOLTT						, "Für den Zeitstempel gilt die gleiche Farbeinstellung wie für den Spielernamen, oder Nicht-Spieler-Charakter (NSC / NPC)", 1)
