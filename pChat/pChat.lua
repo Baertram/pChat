@@ -4941,6 +4941,8 @@ local function BuildLAMPanel()
 				tooltip = GetString(PCHAT_CHATSYNCCONFIGIMPORTFROMTT),
 				choices = pChatData.chatConfSyncChoices,
 				choicesValues = pChatData.chatConfSyncChoicesCharIds,
+				sort = "name-up",
+				scrollable = true,
 				width = "full",
 				getFunc = function() return GetCurrentCharacterId() end,
 				setFunc = function(charId)
