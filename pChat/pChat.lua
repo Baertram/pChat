@@ -1827,15 +1827,6 @@ function pChat_TryToJumpToIm(isMinimized)
 
 end
 
--- Rewrite of a core function, if user click on the scroll to bottom button, Hide IM notification
--- Todo: Hide IM when user manually scroll to the bottom
---[[
-function ZO_ChatSystem_ScrollToBottom(control)
-	pChat_RemoveIMNotification()
-	control.container:ScrollToBottom()
-end
-]]
-
 -- Set copied text into text entry, if possible
 local function CopyToTextEntry(message)
 
