@@ -3794,15 +3794,22 @@ end
 pChat.FormatMessage = FormatMessage
 
 -- Rewrite of core function
-function ZO_TabButton_Text_SetTextColor(self, color)
-
-	local r, g, b, a = ConvertHexToRGBA(db.colours.tabwarning)
-
-	if(self.allowLabelColorChanges) then
-		local label = GetControl(self, "Text")
-		label:SetColor(r, g, b, a)
-	end
-
+do
+    -- we try to set the alert color for the tab buttons, but as TAB_ALERT_TEXT_COLOR is local we have to intercept the call to ZO_TabButton_Text_SetTextColor
+    -- this is obviously not ideal, but until ZOS adds a way to set the alert color it's the easiest way
+    local originalZO_TabButton_Text_SetTextColor = ZO_TabButton_Text_SetTextColor
+    local lastColor, cachedColor
+    function ZO_TabButton_Text_SetTextColor(self, color)
+        if(self:GetOwningWindow() == ZO_ChatWindow) then
+            if(db.colours.tabwarning ~= lastColor) then
+                lastColor = db.colours.tabwarning
+                cachedColor = ZO_ColorDef:New(ConvertHexToRGBA(lastColor))
+            end
+            originalZO_TabButton_Text_SetTextColor(self, cachedColor)
+        else
+            originalZO_TabButton_Text_SetTextColor(self, color)
+        end
+    end
 end
 
 local FILTERS_PER_ROW = 2
