@@ -423,6 +423,3 @@ SafeAddString(PCHAT_SI_BINDING_NAME_PCHAT_SHOW_AUTO_MSG		, "Messages automatique
 SafeAddString(PCHAT_PCHAT_AUTOMSG_REMOVE_AUTO_MSG				, "Supprimer", 1)
 
 SafeAddString(PCHAT_CLEARBUFFER										, "Effacer le chat", 1)
-
---Added by Baertram
-SafeAddString(PCHAT_LUAERROR                                , "[pChat] A déclenché 10 lignes condensées avec le texte=%s - pChat - Message tronqué", 1)

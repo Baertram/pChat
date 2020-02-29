@@ -12,7 +12,7 @@
 ## APIVersion: 100030 100031
 ## Author: Ayantir, DesertDwellers, Baertram
 ## SavedVariables: PCHAT_OPTS PCHAT_OPTS_CHAR
-## DependsOn: LibAddonMenu-2.0 LibMediaProvider-1.0 LibMainMenu LibCustomMenu LibChatMessage>=93
+## DependsOn: LibAddonMenu-2.0 LibMediaProvider-1.0 LibMainMenu LibCustomMenu LibChatMessage>=93 LibDebugLogger>=126
 ## OptionalDependsOn: LibAnnyoingUpdateNotificationInGame LibCustomTitles LibDebugLogger
 
 i18n/en.lua

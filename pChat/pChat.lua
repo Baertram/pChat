@@ -21,6 +21,9 @@ local ADDON_VERSION	= "9.4.1.3"
 local ADDON_AUTHOR	= "Ayantir, DesertDwellers, Baertram (current)"
 local ADDON_WEBSITE	= "http://www.esoui.com/downloads/info93-pChat.html"
 
+pChat.logger = LibDebugLogger(ADDON_NAME)
+local logger = pChat.logger
+
 local MENU_CATEGORY_PCHAT
 
 -- Init
@@ -181,19 +184,6 @@ local PCHAT_CHANNEL_NONE = 99
 
 -- Init Automated Messages
 local automatedMessagesList = ZO_SortFilterList:Subclass()
-
--- Backuping AddMessage for internal debug - AVOID DOING A CHAT_SYSTEM:AddMessage() in pChat, it can cause recursive calls
-CHAT_SYSTEM.Zo_AddMessage = CHAT_SYSTEM.AddMessage
-function pChat.debug(debugText)
-	if not debugText or debugText == "" then return end
-	if not LibDebugLogger or not pChat.logger then
-		CHAT_SYSTEM.Zo_AddMessage(debugText)
-	else
-		local logger = pChat.logger
-		if logger then logger:Debug(debugText) end
-	end
-end
-local debug = pChat.debug
 
 local function getClassIcon(classId)
     --* GetClassInfo(*luaindex* _index_)
@@ -380,7 +370,7 @@ local function SpamFlood(from, text, chanCode)
 									-- spammableChannels[db.LineStrings[previousLine].channel] = return true if previous message was sent in a spammable channel
 									if spammableChannels[spamChanCode] and spammableChannels[db.LineStrings[previousLine].channel] then
 										-- Spam
-										--debug("Spam detected ( " .. text ..  " )")
+										--logger:Debug("Spam detected (%s)", text)
 										return true
 									end
 								end
@@ -425,7 +415,7 @@ local function SpamLookingFor(text)
 
 	for _, spamString in ipairs(spamStrings) do
 		if string.find(text, spamString) then
-			--debug("spamLookingFor:" .. text .." ;spamString=" .. spamString)
+			--logger:Debug("spamLookingFor: %s ;spamString=%s", text, spamString)
 			return true
 		end
 	end
@@ -443,11 +433,11 @@ local function SpamWantTo(text)
 		-- Item Handler
 		if string.find(text, "|H(.-):item:(.-)|h(.-)|h") then
 			-- Match
-			--debug("WT detected ( " .. text .. " )")
+			--logger:Debug("WT detected (%s)", text)
 			return true
 		elseif string.find(text, "[Ww][Ww][%s]+[Bb][Ii][Tt][Ee]") then
 			-- Match
-			--debug("WT WW Bite detected ( " .. text .. " )")
+			--logger:Debug("WT WW Bite detected (%s)", text)
 			return true
 		end
 
@@ -466,7 +456,7 @@ local function SpamGuildRecruit(text, chanCode)
 	-- 2nd is text len, they're generally long ones
 	-- Then, presence of certain words
 
-	--debug("GR analizis")
+	--logger:Debug("GR analizis")
 
 	local spamChanCode = chanCode
 	if spamChanCode == CHAT_CHANNEL_SAY then
@@ -531,7 +521,7 @@ Russian guild Daggerfall Bandits is looking for new members! We are the biggest 
 		if text30 then
 
 			-- Each message can possibly be a spam, let's wrote our checklist
-			--debug("GR Len ( " .. textLen .. " )")
+			--logger:Debug("GR Len (%d)", textLen)
 
 			if text300 then
 				guildHeuristics = 50
@@ -549,13 +539,13 @@ Russian guild Daggerfall Bandits is looking for new members! We are the biggest 
 
 			for spamString, value in ipairs(spamStrings) do
 				if string.find(text, spamString) then
-					--debug(spamString)
+					--logger:Debug(spamString)
 					guildHeuristics = guildHeuristics + value
 				end
 			end
 
 			if guildHeuristics > 60 then
-				--debug("GR : true (score=" .. guildHeuristics .. ")")
+				--logger:Debug("GR : true (score=%d)", guildHeuristics)
 				return true
 			end
 
@@ -563,7 +553,7 @@ Russian guild Daggerfall Bandits is looking for new members! We are the biggest 
 
 	end
 
-	--debug("GR : false (score=" .. guildHeuristics .. ")")
+	--logger:Debug("GR : false (score=%d)", guildHeuristics)
 	return false
 
 end
@@ -576,12 +566,12 @@ local function IsSpamEnabledForCategory(category)
 
 		-- Enabled in Options?
 		if db.floodProtect then
-			--debug("floodProtect enabled")
+			--logger:Debug("floodProtect enabled")
 			-- AntiSpam is enabled
 			return true
 		end
 
-		--debug("floodProtect disabled")
+		--logger:Debug("floodProtect disabled")
 		-- AntiSpam is disabled
 		return false
 
@@ -591,16 +581,16 @@ local function IsSpamEnabledForCategory(category)
 		if db.lookingForProtect then
 			-- Enabled in reality?
 			if pChatData.spamLookingForEnabled then
-				--debug("lookingForProtect enabled")
+				--logger:Debug("lookingForProtect enabled")
 				-- AntiSpam is enabled
 				return true
 			else
 
-				--debug("lookingForProtect is temporary disabled since " .. pChat.spamTempLookingForStopTimestamp)
+				--logger:Debug("lookingForProtect is temporary disabled since", pChat.spamTempLookingForStopTimestamp)
 
 				-- AntiSpam is disabled .. since -/+ grace time ?
 				if GetTimeStamp() - pChatData.spamTempLookingForStopTimestamp > (db.spamGracePeriod * 60) then
-					--debug("lookingForProtect enabled again")
+					--logger:Debug("lookingForProtect enabled again")
 					-- Grace period outdatted -> we need to re-enable it
 					pChatData.spamLookingForEnabled = true
 					return true
@@ -608,7 +598,7 @@ local function IsSpamEnabledForCategory(category)
 			end
 		end
 
-		--debug("lookingForProtect disabled")
+		--logger:Debug("lookingForProtect disabled")
 		-- AntiSpam is disabled
 		return false
 
@@ -618,13 +608,13 @@ local function IsSpamEnabledForCategory(category)
 		if db.wantToProtect then
 			-- Enabled in reality?
 			if pChatData.spamWantToEnabled then
-				--debug("wantToProtect enabled")
+				--logger:Debug("wantToProtect enabled")
 				-- AntiSpam is enabled
 				return true
 			else
 				-- AntiSpam is disabled .. since -/+ grace time ?
 				if GetTimeStamp() - pChatData.spamTempWantToStopTimestamp > (db.spamGracePeriod * 60) then
-					--debug("wantToProtect enabled again")
+					--logger:Debug("wantToProtect enabled again")
 					-- Grace period outdatted -> we need to re-enable it
 					pChatData.spamWantToEnabled = true
 					return true
@@ -632,7 +622,7 @@ local function IsSpamEnabledForCategory(category)
 			end
 		end
 
-		--debug("wantToProtect disabled")
+		--logger:Debug("wantToProtect disabled")
 		-- AntiSpam is disabled
 		return false
 
@@ -684,13 +674,13 @@ local function SpamFilter(chanCode, from, text, isCS)
 	-- But "I" can have exceptions
 	if zo_strformat(SI_UNIT_NAME, from) == pChatData.localPlayer or from == GetDisplayName() then
 
-		--debug("I say something ( " .. text .. " )")
+		--logger:Debug("I say something (%s)", text)
 
 		if IsSpamEnabledForCategory("LookingFor") then
 			-- "I" can look for a group
 			if SpamLookingFor(text) then
 
-				--debug("I say a LF Message ( " .. text .. " )")
+				--logger:Debug("I say a LF Message (%s)", text)
 
 				-- If I break myself the rule, disable it few minutes
 				pChatData.spamTempLookingForStopTimestamp = GetTimeStamp()
@@ -703,7 +693,7 @@ local function SpamFilter(chanCode, from, text, isCS)
 			-- "I" can be a trader
 			if SpamWantTo(text) then
 
-				--debug("I say a WT Message ( " .. text .. " )")
+				--logger:Debug("I say a WT Message (%s)", text)
 
 				-- If I break myself the rule, disable it few minutes
 				pChatData.spamTempWantToStopTimestamp = GetTimeStamp()
@@ -717,7 +707,7 @@ local function SpamFilter(chanCode, from, text, isCS)
 			-- "I" can do some guild recruitment
 			if SpamGuildRecruit(text, chanCode) then
 
-				--debug("I say a GR Message ( " .. text .. " )")
+				--logger:Debug("I say a GR Message (%s)", text)
 
 				-- If I break myself the rule, disable it few minutes
 				pChatData.spamTempGuildRecruitStopTimestamp = GetTimeStamp()
@@ -997,10 +987,10 @@ end
 -- For console
 function pChat.CMD_DEBUG()
 	if pChat.DEBUG ~= 1 then
-		d("pChat Debug : On")
+		logger:Debug("Debug : On")
 		pChat.DEBUG = 1
 	else
-		d("pChat Debug : Off")
+		logger:Debug("Debug : Off")
 		pChat.DEBUG = 0
 	end
 end
@@ -1008,20 +998,20 @@ end
 -- For console quest time
 function pChat.CMD_DEBUG1()
 	if pChat.DEBUG ~= 2 then
-		d("pChat Debug 2: On")
+		logger:Debug("Debug 2: On")
 		pChat.DEBUG = 2
 	else
-		d("pChat Debug 2: Off")
+		logger:Debug("Debug 2: Off")
 		pChat.DEBUG = 0
 	end
 end
 
 function pChat.CMD_DEBUG2()
 	if pChat.DEBUG ~=3 then
-		d("pChat Debug 3 : On")
+		logger:Debug("Debug 3 : On")
 		pChat.DEBUG = 3
 	else
-		d("pChat Debug 3 : Off")
+		logger:Debug("Debug 3 : Off")
 		pChat.DEBUG = 0
 	end
 end
@@ -1714,7 +1704,7 @@ local function OnIMReceived(from, lineNumber)
 
 		--Do not notify if history gets restored and if the setting to stop notifications is
 		if db.doNotNotifyOnRestoredWhisperFromHistory == true and preventWhisperNotificationsFromHistory == true then
---debug("[pChat]<<<Whisper restore aborted!")
+--logger:Debug("<<<Whisper restore aborted!")
 			--Prevent the whisper notifications because of history restored messages
 			preventWhisperNotificationsFromHistory = false
 			return
@@ -2477,7 +2467,7 @@ end
 
 -- Change guild channel names in entry box
 local function UpdateCharCorrespondanceTableChannelNames()
-debug("[pChat]UpdateCharCorrespondanceTableChannelNames")
+logger:Debug("UpdateCharCorrespondanceTableChannelNames")
 	-- Each guild: Update the table from ZO_ChatSystem_GetChannelInfo()
 	for i = 1, GetNumGuilds() do
 		local guildId = GetGuildId(i)
@@ -2507,7 +2497,7 @@ debug("[pChat]UpdateCharCorrespondanceTableChannelNames")
 			-- CHAT_CHANNEL_GUILD_1 /g1 is 12 /g5 is 16, /o1=17, etc
 			ChanInfoArray[CHAT_CHANNEL_GUILD_1 - 1 + i].name = tag
 			ChanInfoArray[CHAT_CHANNEL_OFFICER_1 - 1 + i].name = officertag
-debug(">Set guild/officer tags to: " ..tostring(tag) .."/" .. tostring(officertag) .." for guild# " .. tostring(i))
+logger:Debug(">Set guild/officer tags to: %s/%s for guild #%d", tag, officertag, i)
 			--Disabling dynamic chat channel names (see function GetDynamicChatChannelName(channelInfo.id))
 			ChanInfoArray[CHAT_CHANNEL_GUILD_1 - 1 + i].dynamicName = false
 			ChanInfoArray[CHAT_CHANNEL_OFFICER_1 - 1 + i].dynamicName = false
@@ -2624,7 +2614,7 @@ local function AddLinkHandlerToStringWithoutDDS(textToCheck, numLine, chanCode)
 		-- Prevent infinit loops while its still in beta
 		if preventLoopsCol > 10 then
 			stillToParse = false
-			debug("pChat triggered an infinite LinkHandling loop in its copy system with last message : " .. textToCheck .. " -- pChat")
+			logger:Debug("triggered an infinite LinkHandling loop in the copy system with last message:", textToCheck)
 		else
 			preventLoopsCol = preventLoopsCol + 1
 		end
@@ -2720,7 +2710,7 @@ local function AddLinkHandlerToString(textToCheck, numLine, chanCode)
 		-- Prevent infinit loops while its still in beta
 		if preventLoopsDDS > 20 then
 			stillToParseDDS = false
-			debug("pChat triggered an infinite DDS loop in its copy system with last message : " .. textToCheck .. " -- pChat")
+			logger:Debug("triggered an infinite DDS loop in the copy system with last message: ", textToCheck)
 		else
 			preventLoopsDDS = preventLoopsDDS + 1
 		end
@@ -2988,8 +2978,7 @@ local function AddLinkHandler(text, chanCode, numLine)
 					end
 
 					if nunmRows > 10 then
-						local errorMessage = string.format(GetString(PCHAT_LUAERROR), tostring(text))
-						debug(errorMessage)
+						logger:Warn("triggered 10 packed lines with text:", text)
 						return
 					else
 						nunmRows = nunmRows + 1
@@ -3068,10 +3057,10 @@ local function RestoreChatMessagesFromHistory(wasReloadUI)
 											--DEBUG: Add SavedVariables entries for erroneous history entries (without rawValue text etc.)
 											local restoreError = ""
 											if restoredChatRawText and restoredChatRawText == "" then
-												--debug("[pChat - Error]restoredChatRawText is missing! HistoryIndex: " ..tostring(historyIndex))
+												--logger:Warn("restoredChatRawText is missing! HistoryIndex:", historyIndex)
 												restoreError = "rawText was missing"
 											else
-												--debug("[pChat - Error]restoredChatRawText is empty! HistoryIndex: " ..tostring(historyIndex))
+												--logger:Warn("restoredChatRawText is empty! HistoryIndex:", historyIndex)
 												restoreError = "rawText was empty"
 											end
 											db.wrongRestoredHistoryIndices = db.wrongRestoredHistoryIndices or {}
@@ -3194,7 +3183,7 @@ end
 -- Create an array for the copy functions, spam functions and revert history functions
 -- WARNING : See FormatSysMessage()
 local function StorelineNumber(rawTimestamp, rawFrom, text, chanCode, originalFrom)
-	--debug("[pChat]StoreLineNumber")
+	--logger:Debug("StoreLineNumber")
 	-- Strip DDS tag from Copy text
 	local function StripDDStags(text)
 		return text:gsub("|t(.-)|t", "")
@@ -3260,9 +3249,8 @@ local function StorelineNumber(rawTimestamp, rawFrom, text, chanCode, originalFr
 
 end
 
--- WARNING : Since AddMessage is bypassed, this function and all its subfunctions DOES NOT MUST CALL d() / Emitmessage() / AddMessage() or it will result an infinite loop and crash the game
--- Debug must call CHAT_SYSTEM:Zo_AddMessage() (-> referenced internally with debug() function) wich is backuped copy of CHAT_SYSTEM.AddMessage in order to NOT increase db.lineNumber e.g. and
--- create miss-matching indices in db.lineStrings!
+-- WARNING : Since AddMessage is bypassed, this function and all its subfunctions MUST NOT CALL d() / Emitmessage() / AddMessage() or it will result an infinite loop and crash the game
+-- Debugging must be done via LibDebugLogger
 local function FormatSysMessage(statusMessage)
 
 	-- Display Timestamp if needed
@@ -3485,12 +3473,12 @@ end
 -- Executed when EVENT_CHAT_MESSAGE_CHANNEL triggers
 -- Formats the message
 local function FormatMessage(chanCode, from, text, isCS, fromDisplayName, originalFrom, originalText, DDSBeforeAll, TextBeforeAll, DDSBeforeSender, TextBeforeSender, TextAfterSender, DDSAfterSender, DDSBeforeText, TextBeforeText, TextAfterText, DDSAfterText)
-	debug("[pChat]FormatMessage - showGuildNr: " ..tostring(db.showGuildNumbers))
+	logger:Debug("FormatMessage - showGuildNr:", db.showGuildNumbers)
 	local notHandled = false
 
 	-- Will calculate if this message is a spam
 	local isSpam = SpamFilter(chanCode, from, text, isCS)
-	--debug(">isSpam: " ..tostring(isSpam))
+	--logger:Debug(">isSpam:", isSpam)
 	-- A spam, drop everything
 	if isSpam then return end
 
@@ -3502,7 +3490,7 @@ local function FormatMessage(chanCode, from, text, isCS, fromDisplayName, origin
 	-- Init text with other addons stuff. Note : text can also be modified by other addons. Only originalText is the string the game has receive
 	text = DDSBeforeText .. TextBeforeText .. text .. TextAfterText .. DDSAfterText
 
-	--debug(">text: " ..tostring(text))
+	--logger:Debug(">text:", text)
 	if text == "" then return end
 
 	if db.disableBrackets then
@@ -3524,11 +3512,11 @@ local function FormatMessage(chanCode, from, text, isCS, fromDisplayName, origin
 	end
 
 	--	for CopySystem
-	--debug(">db.lineNumber: " ..tostring(db.lineNumber))
+	--logger:Debug(">db.lineNumber:", db.lineNumber)
 	db.LineStrings[db.lineNumber] = {}
 	if not db.LineStrings[db.lineNumber].rawFrom then db.LineStrings[db.lineNumber].rawFrom = from end
 	--if not db.LineStrings[db.lineNumber].rawValue then db.LineStrings[db.lineNumber].rawValue = text
-		--debug(">>added db.LineStrings["..tostring(db.lineNumber).."].rawValue=" ..tostring(text))
+		--logger:Debug(">>added db.LineStrings[%d].rawValue=%s", db.lineNumber, text)
 	--end
 	if not db.LineStrings[db.lineNumber].rawMessage then db.LineStrings[db.lineNumber].rawMessage = text end
 	if not db.LineStrings[db.lineNumber].rawLine then db.LineStrings[db.lineNumber].rawLine = text end
@@ -3540,7 +3528,7 @@ local function FormatMessage(chanCode, from, text, isCS, fromDisplayName, origin
 	-- Add other addons stuff related to sender
 	new_from = DDSBeforeSender .. TextBeforeSender .. new_from .. TextAfterSender .. DDSAfterSender
 
-	--debug(">new_from: " ..tostring(new_from))
+	--logger:Debug(">new_from:", new_from)
 
 	-- Guild tag
 	local tag
@@ -3698,12 +3686,13 @@ local function FormatMessage(chanCode, from, text, isCS, fromDisplayName, origin
 
 		-- Guild chat
 	elseif chanCode >= CHAT_CHANNEL_GUILD_1 and chanCode <= CHAT_CHANNEL_GUILD_5 then
+		logger:Debug(">Guild chat channel")
 		local gtag = tag
 		if db.showGuildNumbers then
-debug(">Guild chat channel: " ..tostring(gtag))
+			logger:Debug(">Guild chat channel:", gtag)
 			gtag = (chanCode - CHAT_CHANNEL_GUILD_1 + 1) .. "-" .. tag
 
-			--debug(">>gtag: " .. tostring(gtag).. ", chanCode: " ..tostring(chanCode) .. ", tag: " ..tostring(tag))
+			--logger:Debug(">>gtag: %s, chanCode: %d, tag: %s", gtag, chanCode, tag)
 
 			-- Used for Copy
 			db.LineStrings[db.lineNumber].rawFrom = string.format(chatStrings.copyguild, gtag, db.LineStrings[db.lineNumber].rawFrom)
@@ -3714,7 +3703,7 @@ debug(">Guild chat channel: " ..tostring(gtag))
 			db.LineStrings[db.lineNumber].rawValue = db.LineStrings[db.lineNumber].rawValue .. string.format(chatStrings.guild, lcol, gtag, new_from, carriageReturn, rcol, text)
 
 		else
-			--debug(">No guild number")
+			--logger:Debug(">No guild number")
 
 			-- Used for Copy
 			db.LineStrings[db.lineNumber].rawFrom = string.format(chatStrings.copyguild, gtag, db.LineStrings[db.lineNumber].rawFrom)
@@ -3805,7 +3794,7 @@ debug(">Guild chat channel: " ..tostring(gtag))
 		OnIMReceived(displayedFrom, db.lineNumber - 1)
 	end
 
-	--debug("<messageNew: " ..tostring(message))
+	--logger:Debug("<messageNew:", message)
 
 	return message
 
@@ -3817,7 +3806,6 @@ function CHAT_SYSTEM:AddMessage(text)
 
 	-- Overwrite CHAT_SYSTEM:AddMessage() function to format it
 	-- Overwrite SharedChatContainer:AddDebugMessage(formattedEventText) in order to display system message in specific tabs
-	-- debug() can be used in order to use old function
 	-- Store the message in pChatData.cachedMessages if this one is sent before CHAT_SYSTEM.primaryContainer goes up (before 1st EVENT_PLAYER_ACTIVATED)
 
 	-->Attention! Endless loop if you add debug messages via d() inside this function!
@@ -4230,29 +4218,29 @@ local function SyncChatConfig(shouldSync, whichCharId)
 				CHAT_SYSTEM.primaryContainer.settings.y = chatConfSyncForCharId.y
 			end
 
-			--[[
-			-- Don't overflow screen, remove 15px.
-			if chatConfSyncForCharId.height >= (CHAT_SYSTEM.maxContainerHeight - 15 ) then
-				CHAT_SYSTEM.control:SetHeight((CHAT_SYSTEM.maxContainerHeight - 15 ))
-				debug("Overflow height " .. chatConfSyncForCharId.height .. " -+- " .. (CHAT_SYSTEM.maxContainerHeight - 15))
-				debug(CHAT_SYSTEM.control:GetHeight())
-			else
-				-- Don't set good values ?! SetHeight(674) = GetHeight(524) ? same with Width and resizing is buggy
-				--CHAT_SYSTEM.control:SetHeight(chatConfSyncForCharId.height)
-				CHAT_SYSTEM.control:SetDimensions(settings.width, settings.height)
-				debug("height " .. chatConfSyncForCharId.height .. " -+- " .. CHAT_SYSTEM.control:GetHeight())
-			end
+				--[[
+				-- Don't overflow screen, remove 15px.
+				if chatConfSyncForCharId.height >= (CHAT_SYSTEM.maxContainerHeight - 15 ) then
+					CHAT_SYSTEM.control:SetHeight((CHAT_SYSTEM.maxContainerHeight - 15 ))
+					logger:Debug("Overflow height %d -+- %d",  chatConfSyncForCharId.height, (CHAT_SYSTEM.maxContainerHeight - 15))
+					logger:Debug(CHAT_SYSTEM.control:GetHeight())
+				else
+					-- Don't set good values ?! SetHeight(674) = GetHeight(524) ? same with Width and resizing is buggy
+					--CHAT_SYSTEM.control:SetHeight(chatConfSyncForCharId.height)
+					CHAT_SYSTEM.control:SetDimensions(settings.width, settings.height)
+					logger:Debug("height %d -+- %d", chatConfSyncForCharId.height, CHAT_SYSTEM.control:GetHeight())
+				end
 
-			-- Same
-			if chatConfSyncForCharId.width >= (CHAT_SYSTEM.maxContainerWidth - 15 ) then
-				CHAT_SYSTEM.control:SetWidth((CHAT_SYSTEM.maxContainerWidth - 15 ))
-				debug("Overflow width " .. chatConfSyncForCharId.width .. " -+- " .. (CHAT_SYSTEM.maxContainerWidth - 15))
-				debug(CHAT_SYSTEM.control:GetWidth())
-			else
-				CHAT_SYSTEM.control:SetHeight(chatConfSyncForCharId.width)
-				debug("width " .. chatConfSyncForCharId.width .. " -+- " .. CHAT_SYSTEM.control:GetWidth())
-			end
-			]]--
+				-- Same
+				if chatConfSyncForCharId.width >= (CHAT_SYSTEM.maxContainerWidth - 15 ) then
+					CHAT_SYSTEM.control:SetWidth((CHAT_SYSTEM.maxContainerWidth - 15 ))
+					logger:Debug("Overflow width %d -+- %d", chatConfSyncForCharId.width, (CHAT_SYSTEM.maxContainerWidth - 15))
+					logger:Debug(CHAT_SYSTEM.control:GetWidth())
+				else
+					CHAT_SYSTEM.control:SetHeight(chatConfSyncForCharId.width)
+					logger:Debug("width %d -+- %d", chatConfSyncForCharId.width, CHAT_SYSTEM.control:GetWidth())
+				end
+				]]--
 
 			-- Colors
 			if GetChatCategoryColor and SetChatCategoryColor then
@@ -4815,10 +4803,10 @@ local function BuildLAMPanel()
 				getFunc = function() return db.defaultTabName end,
 				setFunc = 	function(choice)
 								db.defaultTabName = choice
-								--debug(choice)
-								--debug(db.defaultTabName)
+								--logger:Debug(choice)
+								--logger:Debug(db.defaultTabName)
 								db.defaultTab = getTabIdx(choice)
-								--debug(db.defaultTab)
+								--logger:Debug(db.defaultTab)
 							end,
 			},
 			--[[{-- CHAT_SYSTEM.primaryContainer.windows doesn't exists yet at OnAddonLoaded. So using the pChat reference.
@@ -5897,7 +5885,7 @@ local function RevertCategories(guildId)
 		local charId = GetCurrentCharacterId()
 
 		-- If our guild was not the last one, need to revert colors
-		--debug("pChat will revert starting from " .. oldIndex .. " to " .. totGuilds)
+		--logger:Debug("pChat will revert starting from %d to %d", oldIndex, totGuilds)
 
 		-- Does not need to reset chat settings for first guild if the 2nd has been left, same for 1-2/3 and 1-2-3/4
 		for iGuilds=oldIndex, (totGuilds - 1) do
@@ -5934,7 +5922,7 @@ end
 -- Registers the formatMessage function.
 -- Unregisters itself from the player activation event with the event manager.
 local function OnPlayerActivated()
-debug("EVENT_PLAYER_ACTIVATED - Start")
+logger:Debug("EVENT_PLAYER_ACTIVATED - Start")
 	if isAddonLoaded and not eventPlayerActivatedCheckRunning then
 		pChatData.sceneFirst = false
 
@@ -5961,7 +5949,7 @@ debug("EVENT_PLAYER_ACTIVATED - Start")
 	--Test if the chat_system containers are given already or wait until they are.
 	--Only test 3 seconds, then do the event_player_activated tasks!
 	if eventPlayerActivatedChecksDone <= 12 and (CHAT_SYSTEM == nil or CHAT_SYSTEM.primaryContainer == nil) then
-debug("EVENT_PLAYER_ACTIVATED: CHAT_SYSTEM.primaryContainer is missing!")
+logger:Debug("EVENT_PLAYER_ACTIVATED: CHAT_SYSTEM.primaryContainer is missing!")
 		if not eventPlayerActivatedCheckRunning then
 			EVENT_MANAGER:RegisterForUpdate("pChatDebug_Event_Player_Activated", 250, function()
 				eventPlayerActivatedChecksDone = eventPlayerActivatedChecksDone + 1
@@ -5970,7 +5958,7 @@ debug("EVENT_PLAYER_ACTIVATED: CHAT_SYSTEM.primaryContainer is missing!")
 			end)
 		end
 	else
-debug("EVENT_PLAYER_ACTIVATED: Found CHAT_SYSTEM.primaryContainer!")
+logger:Debug("EVENT_PLAYER_ACTIVATED: Found CHAT_SYSTEM.primaryContainer!")
 		eventPlayerActivatedCheckRunning = false
 		EVENT_MANAGER:UnregisterForUpdate("pChatDebug_Event_Player_Activated")
 
@@ -6113,7 +6101,7 @@ debug("EVENT_PLAYER_ACTIVATED: Found CHAT_SYSTEM.primaryContainer!")
 			isAddonInitialized = true
 
 			EVENT_MANAGER:UnregisterForEvent(ADDON_NAME, EVENT_PLAYER_ACTIVATED)
-			debug("EVENT_PLAYER_ACTIVATED - End: Addon was initialized")
+			logger:Debug("EVENT_PLAYER_ACTIVATED - End: Addon was initialized")
 		end
 	end
 end
@@ -6253,7 +6241,7 @@ end
 
 --Migrate some SavedVariables to new structures
 local function MigrateSavedVars()
-debug("MigrateSavedVars")
+logger:Debug("MigrateSavedVars")
 	--Chat configuration synchronization was moved from characterNames as table key in table db.chatConfSync
 	--to characterId -> Attention: The charId is a String as well so one needs to change it to a number
 	local newChatConfSync = {}
@@ -6261,7 +6249,7 @@ debug("MigrateSavedVars")
 		local charName2Id = pChat.characterNameRaw2Id
 		local charId2Name = pChat.characterId2NameRaw
 		for charName, charsChatConfSyncData in pairs(db.chatConfSync) do
-			--debug(">charName: " ..tostring(charName) .. ", type: " ..tostring(type(tonumber(charName))))
+			--logger:Debug(">charName: %s, type: %s", charName, type(tonumber(charName)))
 			if charName and charName ~= "" and charName ~= "lastChar" and type(tonumber(charName)) ~= "number" then
 				--Migrate the old charName to it's charId
 				local charId = charName2Id[charName]
