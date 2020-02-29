@@ -24,6 +24,9 @@ local ADDON_WEBSITE	= "http://www.esoui.com/downloads/info93-pChat.html"
 pChat.logger = LibDebugLogger(ADDON_NAME)
 local logger = pChat.logger
 
+pChat.chat = LibChatMessage(ADDON_NAME, "pC")
+local chat = pChat.chat
+
 local MENU_CATEGORY_PCHAT
 
 -- Init
@@ -172,9 +175,7 @@ local gamepadMode = IsInGamepadPreferredMode()
 local constTabNameTemplate = "ZO_ChatWindowTabTemplate"
 
 -- pChatData will receive variables and objects.
-local pChatData = {
-	cachedMessages = {}, -- This one must be init before OnAddonLoaded because it will receive data before this event.
-}
+local pChatData = {}
 
 -- Used for pChat LinkHandling
 local PCHAT_LINK = "p"
@@ -1585,9 +1586,9 @@ function CHAT_SYSTEM.textEntry:GetText()
 								self.requirementErrorMessage = switch.requirementErrorMessage
 								if self.requirementErrorMessage then
 									if type(self.requirementErrorMessage) == "string" then
-										CHAT_SYSTEM:AddMessage(self.requirementErrorMessage)
+										chat:Print(self.requirementErrorMessage)
 									elseif type(self.requirementErrorMessage) == "function" then
-										CHAT_SYSTEM:AddMessage(self.requirementErrorMessage())
+										chat:Print(self.requirementErrorMessage())
 									end
 								end
 							else
@@ -3162,13 +3163,6 @@ local function RestoreChatHistory()
 		--Prevent the whisper notifications because of history restored messages
 		preventWhisperNotificationsFromHistory = false
 
-		local indexMessages = #pChatData.cachedMessages
-		if indexMessages > 0 then
-			for index=1, indexMessages do
-				CHAT_SYSTEM:AddMessage(pChatData.cachedMessages[index])
-			end
-		end
-
 		db.lastWasReloadUI = false
 		db.lastWasLogOut = false
 		db.lastWasQuit = false
@@ -3249,8 +3243,6 @@ local function StorelineNumber(rawTimestamp, rawFrom, text, chanCode, originalFr
 
 end
 
--- WARNING : Since AddMessage is bypassed, this function and all its subfunctions MUST NOT CALL d() / Emitmessage() / AddMessage() or it will result an infinite loop and crash the game
--- Debugging must be done via LibDebugLogger
 local function FormatSysMessage(statusMessage)
 
 	-- Display Timestamp if needed
@@ -3800,80 +3792,6 @@ local function FormatMessage(chanCode, from, text, isCS, fromDisplayName, origin
 
 end
 pChat.FormatMessage = FormatMessage
-
--- Rewrite of core function
-function CHAT_SYSTEM:AddMessage(text)
-
-	-- Overwrite CHAT_SYSTEM:AddMessage() function to format it
-	-- Overwrite SharedChatContainer:AddDebugMessage(formattedEventText) in order to display system message in specific tabs
-	-- Store the message in pChatData.cachedMessages if this one is sent before CHAT_SYSTEM.primaryContainer goes up (before 1st EVENT_PLAYER_ACTIVATED)
-
-	-->Attention! Endless loop if you add debug messages via d() inside this function!
-	if CHAT_SYSTEM.primaryContainer and pChatData.messagesHaveBeenRestorated then
-		for k in ipairs(CHAT_SYSTEM.containers) do
-			local chatContainer = CHAT_SYSTEM.containers[k]
-			--Before API100030
-			if chatContainer.OnChatEvent then
-				chatContainer:OnChatEvent(nil, FormatSysMessage(text), CHAT_CATEGORY_SYSTEM)
-			else
-				--Since API10030
-				--/pts5.3/esoui/ingame/chatsystem/sharedchatsystem.lua: SharedChatContainer:AddEventMessageToContainer(formattedEvent, category)
-				chatContainer:AddEventMessageToContainer(FormatSysMessage(text), CHAT_CATEGORY_SYSTEM)
-			end
-		end
-	else
-		table.insert(pChatData.cachedMessages, text)
-	end
-
-end
-
-local function EmitMessage(text)
-	if CHAT_SYSTEM and CHAT_SYSTEM.primaryContainer and pChatData.messagesHaveBeenRestorated then
-		if text == "" then
-			text = "[Empty String]"
-		end
-		CHAT_SYSTEM:AddMessage(text)
-	else
-		table.insert(pChatData.cachedMessages, text)
-	end
-end
-
-local function EmitTable(t, indent, tableHistory)
-	indent		  = indent or "."
-	tableHistory	= tableHistory or {}
-
-	for k, v in pairs(t)
-	do
-		local vType = type(v)
-
-		EmitMessage(indent.."("..vType.."): "..tostring(k).." = "..tostring(v))
-
-		if(vType == "table")
-		then
-			if(tableHistory[v])
-			then
-				EmitMessage(indent.."Avoiding cycle on table...")
-			else
-				tableHistory[v] = true
-				EmitTable(v, indent.."  ", tableHistory)
-			end
-		end
-	end
-end
-
--- Rewrite of a core function d() to use the local defined new
--- EmitTable and EmitMessage functions!
-function d(...)
-	for i = 1, select("#", ...) do
-		local value = select(i, ...)
-		if(type(value) == "table")
-		then
-			EmitTable(value)
-		else
-			EmitMessage(tostring (value))
-		end
-	end
-end
 
 -- Rewrite of core function
 function ZO_TabButton_Text_SetTextColor(self, color)
@@ -6006,10 +5924,10 @@ logger:Debug("EVENT_PLAYER_ACTIVATED: Found CHAT_SYSTEM.primaryContainer!")
 
 
 			--local fontPath = ZoFontChat:GetFontInfo()
-			--CHAT_SYSTEM:AddMessage(fontPath)
-			--CHAT_SYSTEM:AddMessage("|C3AF24BLorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.|r")
-			--CHAT_SYSTEM:AddMessage("Characters below should be well displayed :")
-			--CHAT_SYSTEM:AddMessage("!\"#$%&'()*+,-./0123456789:;<=>?@ ABCDEFGHIJKLMNOPQRSTUVWXYZ [\]^_`abcdefghijklmnopqrstuvwxyz{|} ~¡£¤¥¦§©«-®°²³´µ¶·»½¿ ÀÁÂÄÆÇÈÉÊËÌÍÎÏÑÒÓÔÖ×ÙÚÛÜßàáâäæçèéêëìíîïñòóôöùúûüÿŸŒœ")
+			--chat:Print(fontPath)
+			--chat:Print("|C3AF24BLorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.|r")
+			--chat:Print("Characters below should be well displayed :")
+			--chat:Print("!\"#$%&'()*+,-./0123456789:;<=>?@ ABCDEFGHIJKLMNOPQRSTUVWXYZ [\]^_`abcdefghijklmnopqrstuvwxyz{|} ~¡£¤¥¦§©«-®°²³´µ¶·»½¿ ÀÁÂÄÆÇÈÉÊËÌÍÎÏÑÒÓÔÖ×ÙÚÛÜßàáâäæçèéêëìíîïñòóôöùúûüÿŸŒœ")
 
 			-- AntiSpam
 			pChatData.spamLookingForEnabled = true
