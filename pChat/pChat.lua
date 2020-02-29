@@ -239,7 +239,7 @@ data : strings separated by ":"
 1st arg is chancode like CHAT_CHANNEL_GUILD_1
 ]]--
 
-local ChanInfoArray
+local ChanInfoArray = ZO_ChatSystem_GetChannelInfo()
 
 pChatData.chatCategories = {
 	CHAT_CATEGORY_SAY,
@@ -3793,6 +3793,32 @@ local function FormatMessage(chanCode, from, text, isCS, fromDisplayName, origin
 end
 pChat.FormatMessage = FormatMessage
 
+-- Append system category to chat filters
+do
+    local FILTERS_PER_ROW = 2
+    local FILTER_PAD_X = 90
+    local FILTER_PAD_Y = 0
+    local FILTER_WIDTH = 150
+    local FILTER_HEIGHT = 27
+    local INITIAL_XOFFS = 0
+    local INITIAL_YOFFS = 0
+
+    SecurePostHook(CHAT_OPTIONS, "InitializeFilterButtons", function(self)
+        local filterAnchor = ZO_Anchor:New(TOPLEFT, self.filterSection, TOPLEFT, 0, 0)
+        local count = self.filterPool:GetActiveObjectCount()
+
+        local filter, key = self.filterPool:AcquireObject()
+        filter.key = key
+
+        local button = filter:GetNamedChild("Check")
+        ZO_CheckButton_SetLabelText(button, GetString("SI_CHATCHANNELCATEGORIES", CHAT_CATEGORY_SYSTEM))
+        button.channels = { CHAT_CATEGORY_SYSTEM }
+        table.insert(self.filterButtons, button)
+
+        ZO_Anchor_BoxLayout(filterAnchor, filter, count, FILTERS_PER_ROW, FILTER_PAD_X, FILTER_PAD_Y, FILTER_WIDTH, FILTER_HEIGHT, INITIAL_XOFFS, INITIAL_YOFFS)
+    end)
+end
+
 -- Rewrite of core function
 do
     -- we try to set the alert color for the tab buttons, but as TAB_ALERT_TEXT_COLOR is local we have to intercept the call to ZO_TabButton_Text_SetTextColor
@@ -3812,151 +3838,16 @@ do
     end
 end
 
-local FILTERS_PER_ROW = 2
-
--- defines the ordering of the filter categories
-local CHANNEL_ORDERING_WEIGHT = {
-	[CHAT_CATEGORY_SAY] = 10,
-	[CHAT_CATEGORY_YELL] = 20,
-
-	[CHAT_CATEGORY_WHISPER_INCOMING] = 30,
-	[CHAT_CATEGORY_PARTY] = 40,
-
-	[CHAT_CATEGORY_EMOTE] = 50,
-	[CHAT_CATEGORY_MONSTER_SAY] = 60,
-
-	[CHAT_CATEGORY_ZONE] = 80,
-	[CHAT_CATEGORY_ZONE_ENGLISH] = 90,
-
-	[CHAT_CATEGORY_ZONE_FRENCH] = 100,
-	[CHAT_CATEGORY_ZONE_GERMAN] = 110,
-
-	[CHAT_CATEGORY_ZONE_JAPANESE] = 120,
-	--CHAT_CATEGORY_ZONE_RUSSIAN] = 130,
-
-	[CHAT_CATEGORY_SYSTEM] = 200,
-}
-
-local function FilterComparator(left, right)
-	local leftPrimaryCategory = left.channels[1]
-	local rightPrimaryCategory = right.channels[1]
-
-	local leftWeight = CHANNEL_ORDERING_WEIGHT[leftPrimaryCategory]
-	local rightWeight = CHANNEL_ORDERING_WEIGHT[rightPrimaryCategory]
-
-	if leftWeight and rightWeight then
-		return leftWeight < rightWeight
-	elseif not leftWeight and not rightWeight then
-		return false
-	elseif leftWeight then
-		return true
-	end
-
-	return false
-end
-
---ESO standard chat channels to skip in chat options:
---Disable System channel so it is shown inside the options!
--- defines channels to skip when building the filter (non guild) section
-local SKIP_CHANNELS = {
-	--[CHAT_CATEGORY_SYSTEM] = true,
-	[CHAT_CATEGORY_GUILD_1] = true,
-	[CHAT_CATEGORY_GUILD_2] = true,
-	[CHAT_CATEGORY_GUILD_3] = true,
-	[CHAT_CATEGORY_GUILD_4] = true,
-	[CHAT_CATEGORY_GUILD_5] = true,
-	[CHAT_CATEGORY_OFFICER_1] = true,
-	[CHAT_CATEGORY_OFFICER_2] = true,
-	[CHAT_CATEGORY_OFFICER_3] = true,
-	[CHAT_CATEGORY_OFFICER_4] = true,
-	[CHAT_CATEGORY_OFFICER_5] = true,
-}
-
-local FILTER_PAD_X = 90
-local FILTER_PAD_Y = 0
-local FILTER_WIDTH = 150
-local FILTER_HEIGHT = 27
-local INITIAL_XOFFS = 0
-local INITIAL_YOFFS = 0
-
--- Rewrite of a core data
-local COMBINED_CHANNELS = {
-	[CHAT_CATEGORY_WHISPER_INCOMING] = {parentChannel = CHAT_CATEGORY_WHISPER_INCOMING, name = SI_CHAT_CHANNEL_NAME_WHISPER},
-	[CHAT_CATEGORY_WHISPER_OUTGOING] = {parentChannel = CHAT_CATEGORY_WHISPER_INCOMING, name = SI_CHAT_CHANNEL_NAME_WHISPER},
-
-	[CHAT_CATEGORY_MONSTER_SAY] = {parentChannel = CHAT_CATEGORY_MONSTER_SAY, name = SI_CHAT_CHANNEL_NAME_NPC},
-	[CHAT_CATEGORY_MONSTER_YELL] = {parentChannel = CHAT_CATEGORY_MONSTER_SAY, name = SI_CHAT_CHANNEL_NAME_NPC},
-	[CHAT_CATEGORY_MONSTER_WHISPER] = {parentChannel = CHAT_CATEGORY_MONSTER_SAY, name = SI_CHAT_CHANNEL_NAME_NPC},
-	[CHAT_CATEGORY_MONSTER_EMOTE] = {parentChannel = CHAT_CATEGORY_MONSTER_SAY, name = SI_CHAT_CHANNEL_NAME_NPC},
-}
---Rewrite chat options
-function CHAT_OPTIONS:InitializeFilterButtons(dialogControl)
-	--generate a table of entry data from the chat category header information
-	local entryData = {}
-	local lastEntry = CHAT_CATEGORY_HEADER_COMBAT - 1
-
-	for i = CHAT_CATEGORY_HEADER_CHANNELS, lastEntry do
-		if(SKIP_CHANNELS[i] == nil and GetString("SI_CHATCHANNELCATEGORIES", i) ~= "") then
-
-			if(COMBINED_CHANNELS[i] == nil) then
-				entryData[i] =
-				{
-					channels = { i },
-					name = GetString("SI_CHATCHANNELCATEGORIES", i),
-				}
-			else
-				--create the entry for those with combined channels just once
-				local parentChannel = COMBINED_CHANNELS[i].parentChannel
-
-				if(not entryData[parentChannel]) then
-					entryData[parentChannel] =
-					{
-						channels = { },
-						name = GetString(COMBINED_CHANNELS[i].name),
-					}
-				end
-
-				table.insert(entryData[parentChannel].channels, i)
-			end
-		end
-	end
-
-	--now generate and anchor buttons
-	local filterAnchor = ZO_Anchor:New(TOPLEFT, self.filterSection, TOPLEFT, 0, 0)
-	local count = 0
-
-	--pChat._entryData = entryData
-
-	local sortedEntries = {}
-	for _, entry in pairs(entryData) do
-		sortedEntries[#sortedEntries + 1] = entry
-	end
-
-	table.sort(sortedEntries, FilterComparator)
-
-	--pChat._sortedEntries = sortedEntries
-
-	for _, entry in ipairs(sortedEntries) do
-		local filter, key = self.filterPool:AcquireObject()
-		filter.key = key
-
-		local button = filter:GetNamedChild("Check")
-		local zoCheckButtonWasUsed = false
-		if ZO_CheckButton_SetLabelText and button then
-			ZO_CheckButton_SetLabelText(button, entry.name)
-			zoCheckButtonWasUsed = true
-		end
-		button.channels = entry.channels
-		table.insert(self.filterButtons, button)
-		if not zoCheckButtonWasUsed then
-			local label = filter:GetNamedChild("Label")
-			if label and label.SetText then
-				label:SetText(entry.name)
-			end
-		end
-		ZO_Anchor_BoxLayout(filterAnchor, filter, count, FILTERS_PER_ROW, FILTER_PAD_X, FILTER_PAD_Y, FILTER_WIDTH, FILTER_HEIGHT, INITIAL_XOFFS, INITIAL_YOFFS)
-		count = count + 1
-	end
+-- Rewrite of core data
+do
+    -- TODO this isn't currently used in FormatMessage, but may come in handy once we refactor that
+    ChanInfoArray[CHAT_CHANNEL_SAY].channelLinkable = true
+    ChanInfoArray[CHAT_CHANNEL_YELL].channelLinkable = true
+    ChanInfoArray[CHAT_CHANNEL_ZONE].channelLinkable = true
+    ChanInfoArray[CHAT_CHANNEL_ZONE_LANGUAGE_1].channelLinkable = true
+    ChanInfoArray[CHAT_CHANNEL_ZONE_LANGUAGE_2].channelLinkable = true
+    ChanInfoArray[CHAT_CHANNEL_ZONE_LANGUAGE_3].channelLinkable = true
+    ChanInfoArray[CHAT_CHANNEL_ZONE_LANGUAGE_4].channelLinkable = true
 end
 
 -- Save chat configuration
@@ -5888,9 +5779,6 @@ logger:Debug("EVENT_PLAYER_ACTIVATED: Found CHAT_SYSTEM.primaryContainer!")
 		EVENT_MANAGER:UnregisterForUpdate("pChatDebug_Event_Player_Activated")
 
 		if isAddonLoaded then
-			--Get a reference to the chat channelData (CHAT_SYSTEM.channelData)
-			ChanInfoArray = ZO_ChatSystem_GetChannelInfo()
-
 			pChatData.activeTab = 1
 
 			if CHAT_SYSTEM.ValidateChatChannel then
