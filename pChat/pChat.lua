@@ -2426,44 +2426,31 @@ local function ChangeChatFont(change)
 
 end
 
--- Rewrite of a core function
-function CHAT_SYSTEM:UpdateTextEntryChannel()
+do
+    -- we want to return pChat colors when the setting for eso colors is not enabled
+    -- TODO investigate how we can use SetChatCategoryColor, so GetChatCategoryColor returns the value directly
+    local originalZO_ChatSystem_GetCategoryColorFromChannel = ZO_ChatSystem_GetCategoryColorFromChannel
+    function ZO_ChatSystem_GetCategoryColorFromChannel(channelId)
+        if isAddonLoaded and not db.useESOcolors then
+            local pChatColor
+            if db.allGuildsSameColour and (channelId >= CHAT_CHANNEL_GUILD_1 and channelId <= CHAT_CHANNEL_GUILD_5) then
+                pChatColor = db.colours[2 * CHAT_CHANNEL_GUILD_1]
+            elseif db.allGuildsSameColour and (channelId >= CHAT_CHANNEL_OFFICER_1 and channelId <= CHAT_CHANNEL_OFFICER_5) then
+                pChatColor = db.colours[2 * CHAT_CHANNEL_OFFICER_1]
+            elseif db.allZonesSameColour and (channelId >= CHAT_CHANNEL_ZONE_LANGUAGE_1 and channelId <= CHAT_CHANNEL_ZONE_LANGUAGE_4) then
+                pChatColor = db.colours[2 * CHAT_CHANNEL_ZONE]
+            else
+                pChatColor = db.colours[2 * channelId]
+            end
 
-	local channelData = self.channelData[self.currentChannel]
-
-	if channelData then
-		self.textEntry:SetChannel(channelData, self.currentTarget)
-
-		if isAddonLoaded then
-			if not db.useESOcolors then
-
-				local pChatcolor
-				if db.allGuildsSameColour and (self.currentChannel >= CHAT_CHANNEL_GUILD_1 and self.currentChannel <= CHAT_CHANNEL_GUILD_5) then
-					pChatcolor = db.colours[2*CHAT_CHANNEL_GUILD_1]
-				elseif db.allGuildsSameColour and (self.currentChannel >= CHAT_CHANNEL_OFFICER_1 and self.currentChannel <= CHAT_CHANNEL_OFFICER_5) then
-					pChatcolor = db.colours[2*CHAT_CHANNEL_OFFICER_1]
-				elseif db.allZonesSameColour and (self.currentChannel >= CHAT_CHANNEL_ZONE_LANGUAGE_1 and self.currentChannel <= CHAT_CHANNEL_ZONE_LANGUAGE_4) then
-					pChatcolor = db.colours[2*CHAT_CHANNEL_ZONE]
-				else
-					pChatcolor = db.colours[2*self.currentChannel]
-				end
-
-				if not pChatcolor then
-					self.textEntry:SetColor(1, 1, 1, 1)
-				else
-					local r, g, b, a = ConvertHexToRGBA(pChatcolor)
-					self.textEntry:SetColor(r, g, b, a)
-				end
-
-			else
-				self.textEntry:SetColor(ZO_ChatSystem_GetCategoryColorFromChannel(self.currentChannel))
-			end
-		else
-			self.textEntry:SetColor(ZO_ChatSystem_GetCategoryColorFromChannel(self.currentChannel))
-		end
-
-	end
-
+            if not pChatColor then
+                return 1, 1, 1, 1
+            else
+                return ConvertHexToRGBA(pChatColor)
+            end
+        end
+        return originalZO_ChatSystem_GetCategoryColorFromChannel(channelId)
+    end
 end
 
 -- Change guild channel names in entry box
