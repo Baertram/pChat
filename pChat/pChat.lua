@@ -21,34 +21,7 @@ local ADDON_VERSION	= "9.4.1.3"
 local ADDON_AUTHOR	= "Ayantir, DesertDwellers, Baertram (current)"
 local ADDON_WEBSITE	= "http://www.esoui.com/downloads/info93-pChat.html"
 
--- Registering libraries
---> See function loadLibraries() below! Called at EVEN_ADD_ON_LOADED
--- [Needed]
---LibAddonMenu-2.0
-local LAM
---LibMediaProvider
-local LMP
---LibMainMenu (NOT LibMainMenu-2.0!)
 local MENU_CATEGORY_PCHAT
-local LMM
---local LCM
-local function LoadLMM(calledWhen)
-	calledWhen = calledWhen or "n/a"
-	LMM = LibMainMenu
-	if not LMM and LibStub then LMM = LibStub("LibMainMenu", false) end
-	if LMM == nil or LMM.AddCategory == nil then
-		d(string.format(GetString(PCHAT_LIB_MISSING), "LibMainMenu") .. "\n->Check: " ..tostring(calledWhen))
-		d(">pChat should work normally except you cannot use the slash command '/msg' or open the pre-defined messages UI properly!")
-		d(">>If you see this message be sure to read the first \'sticky \' comment in the pChat addon at\n> https://www.esoui.com/downloads/fileinfo.php?id=93#comments\n")
-		d(">>Read the section \'Known incompatiblity with other addons\' and follow the steps to fix the old embedded LibMainMenu in these other addons!")
-		d(">>[Attention] Please do not confuse LibMainMenu (needed within pChat) with LibMainMenu-2.0 (needed in other addons)!")
-	end
-	pChat.LMM = LMM
-	--assert((LMM and LMM.AddCategory), string.format(GetString(PCHAT_LIB_MISSING), "LibMainMenu") .. "\n->Check: " ..tostring(calledWhen))
-end
---[Optional]
---LibCustomTitles
-local LCT
 
 -- Init
 local isAddonLoaded			= false -- OnAddonLoaded() done
@@ -1056,9 +1029,8 @@ end
 
 -- Also called by bindings
 function pChat_ShowAutoMsg()
-	LoadLMM("pChat - pChat_ShowAutoMsg")
-	if LMM and LMM.ToggleCategory and MENU_CATEGORY_PCHAT then
-		LMM:ToggleCategory(MENU_CATEGORY_PCHAT)
+	if MENU_CATEGORY_PCHAT then
+		LibMainMenu:ToggleCategory(MENU_CATEGORY_PCHAT)
 	end
 end
 
@@ -1344,10 +1316,7 @@ local function InitAutomatedMessages()
 		highlight = "EsoUI/Art/MainMenu/menuBar_champion_over.dds",
 	}
 
-	LoadLMM("pChat - InitAutomatedMessages")
-	if LMM and LMM.AddCategory then
-		MENU_CATEGORY_PCHAT = LMM:AddCategory(PCHAT_MAIN_MENU_CATEGORY_DATA)
-	end
+	MENU_CATEGORY_PCHAT = LibMainMenu:AddCategory(PCHAT_MAIN_MENU_CATEGORY_DATA)
 
 	local iconData = {
 		{
@@ -1360,8 +1329,8 @@ local function InitAutomatedMessages()
 	}
 
 	-- Register the group and add the buttons (we cannot all AddRawScene, only AddSceneGroup, so we emulate both functions).
-	if LMM and LMM.AddSceneGroup and MENU_CATEGORY_PCHAT then
-		LMM:AddSceneGroup(MENU_CATEGORY_PCHAT, "pChatSceneGroup", iconData)
+	if MENU_CATEGORY_PCHAT then
+		LibMainMenu:AddSceneGroup(MENU_CATEGORY_PCHAT, "pChatSceneGroup", iconData)
 	end
 
 	pChatData.autoMsgDescriptor = {
@@ -2454,7 +2423,7 @@ local function ChangeChatFont(change)
 		return
 	else
 
-		local fontPath = LMP:Fetch("font", db.fonts)
+		local fontPath = LibMediaProvider:Fetch("font", db.fonts)
 
 		-- Entry Box
 		ZoFontEditChat:SetFont(fontPath .. "|".. fontSize .. "|shadow")
@@ -4556,7 +4525,7 @@ local function BuildLAMPanel()
 	--local charName = pChatData.localPlayer or GetUnitName("player")
 	local charId = GetCurrentCharacterId()
 
-	local fontsDefined = LMP:List('font')
+	local fontsDefined = LibMediaProvider:List('font')
 
 	local function ConvertHexToRGBAPacked(colourString)
 		local r, g, b, a = ConvertHexToRGBA(colourString)
@@ -5870,7 +5839,7 @@ local function BuildLAMPanel()
 	},
 	]]--
 
-	LAM:RegisterOptionControls("pChatOptions", optionsData)
+	LibAddonMenu2:RegisterOptionControls("pChatOptions", optionsData)
 
 end
 
@@ -5890,7 +5859,7 @@ local function GetDBAndBuildLAM()
 		website = ADDON_WEBSITE,
 	}
 
-	pChat.LAMPanel = LAM:RegisterAddonPanel("pChatOptions", panelData)
+	pChat.LAMPanel = LibAddonMenu2:RegisterAddonPanel("pChatOptions", panelData)
 
 	-- Build OptionTable. In a separate func in order to rebuild it in case of Guild Reorg.
 	SyncCharacterSelectChoices()
@@ -6282,31 +6251,6 @@ local function ChatSystemShowOptions(tabIndex)
 
 end
 
---need the needed libraries and show error messages if not found
-local function loadLibraries()
-	--[Needed]
-	LAM = LibAddonMenu2
-	if LAM == nil and LibStub then LAM = LibStub("LibAddonMenu-2.0", true) end
-	assert(LAM, string.format(GetString(PCHAT_LIB_MISSING), "LibAddonMenu-2.0"))
-
-	LMP = LibMediaProvider
-	if LMP == nil and LibStub then LMP = LibStub("LibMediaProvider-1.0", true) end
-	assert(LMP, string.format(GetString(PCHAT_LIB_MISSING), "LibMediaProvider-1.0"))
-
-	LoadLMM("pChat - Start")
-
-	LCM = LibChatMessage
-	assert(LCM, string.format(GetString(PCHAT_LIB_MISSING), "LibChatMessage"))
-
-	--[Optional]
-	LCT = LibCustomTitles
-	if not LCT and LibStub then LCT = LibStub("LibCustomTitles", true) end
-
-	if LibDebugLogger then
-		pChat.logger = LibDebugLogger("pChat")
-	end
-end
-
 --Migrate some SavedVariables to new structures
 local function MigrateSavedVars()
 debug("MigrateSavedVars")
@@ -6379,11 +6323,8 @@ local function OnAddonLoaded(_, addonName)
 	if addonName == ADDON_NAME then
 		eventPlayerActivatedChecksDone = 0
 
-		--Load the needed libraries
-		loadLibraries()
-
 		--PTS API100030 Harrowstorm: Chat message event handler fix by LibChatMessage @sirinsidiator
-		if LCM then LCM.formatRegularChat = true end
+		LibChatMessage.formatRegularChat = true
 
 		-- Resize, must be loaded before CHAT_SYSTEM is set
 		--local width, height = GuiRoot:GetDimensions()

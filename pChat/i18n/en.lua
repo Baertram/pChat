@@ -425,7 +425,6 @@ local strings = {
 
 
 	--Added by Baertram
-	PCHAT_LIB_MISSING       = "[pChat] The following library is missing and needs to be installed & enabled: \'%s\'",
 	PCHAT_LUAERROR = "[pChat] has triggered 10 packed lines with text=%s -- pChat - Message truncated",
 
 	PCHAT_RESTORED_PREFIX = "[H]",

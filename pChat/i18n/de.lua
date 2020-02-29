@@ -436,7 +436,6 @@ SafeAddString(PCHAT_PCHAT_AUTOMSG_REMOVE_AUTO_MSG				, "Löschen", 1)
 SafeAddString(PCHAT_CLEARBUFFER								, "Chatverlauf löschen", 1)
 
 --Added by Baertram
-SafeAddString(PCHAT_LIB_MISSING                             ,"[pChat] Die folgende Bibliothek fehlt und muss installiert & aktiviert werden: \'%s\'", 1)
 SafeAddString(PCHAT_LUAERROR                                ,"[pChat] hat 10 gepackte Zeilen abgefangen, mit dem folgenden Text=%s -- pChat - Nachricht wurde abgeschnitten", 1)
 
 SafeAddString(PCHAT_RESTORED_PREFIX                         , "[H]", 1)
