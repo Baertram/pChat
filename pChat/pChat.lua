@@ -1513,39 +1513,31 @@ local function getTabIdx (tabName)
 end
 
 -- Rewrite of a core function
-function CHAT_SYSTEM.textEntry:AddCommandHistory(text)
+do
+    local parts = {}
+    local chatSystem = CHAT_SYSTEM
+    local originalAddCommandHistory = chatSystem.textEntry.AddCommandHistory
+    function chatSystem.textEntry:AddCommandHistory(text)
+        -- Don't add the switch when chat is restored
+        if db.addChannelAndTargetToHistory and isAddonInitialized then
+            local currentChannel = chatSystem.currentChannel
+            local currentTarget = chatSystem.currentTarget
+            local switch = chatSystem.switchLookup[currentChannel]
+            if switch ~= nil then
+                parts[1] = switch
+                if currentTarget then
+                    parts[2] = currentTarget
+                    parts[3] = text
+                else
+                    parts[2] = text
+                    parts[3] = nil
+                end
+                text = table.concat(parts, " ")
+            end
+        end
 
-	local currentChannel = CHAT_SYSTEM.currentChannel
-	local currentTarget = CHAT_SYSTEM.currentTarget
-	local rewritedText = text
-
-	-- Don't add the switch when chat is restored
-	if isAddonInitialized and db.addChannelAndTargetToHistory then
-		--Preset with /say switch
-		local switch = CHAT_SYSTEM.switchLookup[0]
-		-- It's a message
-		switch = CHAT_SYSTEM.switchLookup[currentChannel]
-		-- Below code suspected issue fix under comment - Bug ticket 2253 6/12/2018
-		--[[
-				rewritedText = string.format("%s ", switch)
-		if currentTarget then
-			rewritedText = string.format("%s%s ", rewritedText, currentTarget)
-		end
-		rewritedText = string.format("%s%s", rewritedText, text)
-		]]--
-		-- New code for bug ticket 2253 6/12/2018
-		if switch ~= nil then
-			rewritedText = string.format("%s ", switch)
-			if currentTarget then
-				rewritedText = string.format("%s%s ", rewritedText, currentTarget)
-			end
-			rewritedText = string.format("%s%s", rewritedText, text)
-		end
-	end
-
-	CHAT_SYSTEM.textEntry.commandHistory:Add(rewritedText)
-	CHAT_SYSTEM.textEntry.commandHistoryCursor = CHAT_SYSTEM.textEntry.commandHistory:Size() + 1
-
+        originalAddCommandHistory(self, text)
+    end
 end
 
 ZO_PreHook(SharedChatSystem, "SubmitTextEntry", function(self)
