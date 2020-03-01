@@ -1548,73 +1548,20 @@ function CHAT_SYSTEM.textEntry:AddCommandHistory(text)
 
 end
 
--- Rewrite of a core function: Enable custom switches for the guilds and officers
-function CHAT_SYSTEM.textEntry:GetText()
-	local text = self.editControl:GetText()
-
-	if text ~= "" then
-		if string.sub(text,1,1) == "!" then
-			if string.len(text) <= 12 then
-
-				local automatedMessage = true
-				for k, v in ipairs(db.automatedMessages) do
-					if v.name == text then
-						text = db.automatedMessages[k].message
-						automatedMessage = true
-					end
-				end
-
-				if automatedMessage then
-
-					if string.len(text) < 1 or string.len(text) > 351 then
-						text = self.editControl:GetText()
-					end
-
-					if self.ignoreTextEntryChangedEvent then return end
-					self.ignoreTextEntryChangedEvent = true
-
-					local spaceStart, spaceEnd = zo_strfind(text, " ", 1, true)
-
-					if spaceStart and spaceStart > 1 then
-						local potentialSwitch = zo_strsub(text, 1, spaceStart - 1)
-						local switch = CHAT_SYSTEM.switchLookup[potentialSwitch:lower()]
-
-						local valid, switchArg, deferredError, spaceStartOverride = CHAT_SYSTEM:ValidateSwitch(switch, text, spaceStart)
-
-						if valid then
-							if(deferredError) then
-								self.requirementErrorMessage = switch.requirementErrorMessage
-								if self.requirementErrorMessage then
-									if type(self.requirementErrorMessage) == "string" then
-										chat:Print(self.requirementErrorMessage)
-									elseif type(self.requirementErrorMessage) == "function" then
-										chat:Print(self.requirementErrorMessage())
-									end
-								end
-							else
-								self.requirementErrorMessage = nil
-							end
-
-							CHAT_SYSTEM:SetChannel(switch.id, switchArg)
-							local oldCursorPos = CHAT_SYSTEM.textEntry:GetCursorPosition()
-
-							spaceStart = spaceStartOverride or spaceStart
-							CHAT_SYSTEM.textEntry:SetText(zo_strsub(text, spaceStart + 1))
-							text = zo_strsub(text, spaceStart + 1)
-							CHAT_SYSTEM.textEntry:SetCursorPosition(oldCursorPos - spaceStart)
-						end
-					end
-
-					self.ignoreTextEntryChangedEvent = false
-
-				end
-			end
-		end
-	end
-
-	return text
-
-end
+ZO_PreHook(SharedChatSystem, "SubmitTextEntry", function(self)
+    local text = self.textEntry:GetText()
+    if text ~= "" and text:sub(1, 1) == "!" and text:len() <= 12 then
+        for k, v in ipairs(db.automatedMessages) do
+            if v.name == text then
+                local message = db.automatedMessages[k].message
+                if message ~= "" or message:len() > 351 then
+                    self.textEntry:SetText(message)
+                    return
+                end
+            end
+        end
+    end
+end)
 
 -- Change ChatWindow Darkness by modifying its <Center> & <Edge>. Originally defined in virtual object ZO_ChatContainerTemplate in sharedchatsystem.xml
 local function ChangeChatWindowDarkness()
