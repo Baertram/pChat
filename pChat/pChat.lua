@@ -4163,34 +4163,90 @@ local function OnGroupMemberLeft(_, reason, isLocalPlayer, _, _, actionRequiredV
 	end
 end
 
-local function UpdateCharCorrespondanceTableSwitchs()
-debug("[pChat]UpdateCharCorrespondanceTableSwitchs")
-	-- Each guild:_ Update table from ZO_ChatSystem_GetChannelInfo() to set teh possible switches (chat commands like /guild1 etc.)
-	for i = 1, GetNumGuilds() do
+local AddCustomChannelSwitches, RemoveCustomChannelSwitches
+do
+    local ChannelInfo = ZO_ChatSystem_GetChannelInfo()
+    local g_switchLookup = ZO_ChatSystem_GetChannelSwitchLookupTable()
+
+    -- create a backup so we can prevent removal of built in switches
+    local isOriginal = {}
+    for channelId, data in pairs(ChannelInfo) do
+        if data.switches then
+            local switches = {}
+            for switchArg in data.switches:gmatch("%S+") do
+                switches[switchArg:lower()] = true
+            end
+            isOriginal[channelId] = switches
+        end
+    end
 		local guildId = GetGuildId(i)
 		--local guildName = GetGuildName(guildId)
-		-- Get saved string
-		local switch = db.switchFor[guildId]
-		if switch and switch ~= "" then
-			switch = GetString(SI_CHANNEL_SWITCH_GUILD_1 - 1 + i) .. " " .. switch
-		else
-			switch = GetString(SI_CHANNEL_SWITCH_GUILD_1 - 1 + i)
-		end
-		ChanInfoArray[CHAT_CHANNEL_GUILD_1 - 1 + i].switches = switch
+    function AddCustomChannelSwitches(channelId, switchesToAdd)
+        local data = ChannelInfo[channelId]
+        if not data or not switchesToAdd or switchesToAdd == "" then
+            logger:Warn("Invalid arguments passed to AddCustomChannelSwitches") 
+            return
+        end
 
-debug(">Set switch " ..tostring(switch) .." for guild# " .. tostring(i))
+        local switches = {}
+        if data.switches then
+            for switchArg in data.switches:gmatch("%S+") do
+                switches[#switches + 1] = switchArg
+            end
+        end
+        for switchArg in switchesToAdd:gmatch("%S+") do
+            switchArg = switchArg:lower()
+            if not g_switchLookup[switchArg] then
+                switches[#switches + 1] = switchArg
+                g_switchLookup[switchArg] = data
+            else
+                local message = string.format(GetString(PCHAT_DUPLICATE_CHANNEL_SWITCH_WARNING), switchArg)
+                ZO_Alert(UI_ALERT_CATEGORY_ERROR, SOUNDS.NEGATIVE_CLICK, message)
+            end
+        end
 
-		-- Get saved string
-		local officerSwitch = db.officerSwitchFor[guildId]
-		-- No SavedVar
-		if officerSwitch and officerSwitch ~= "" then
-			officerSwitch = GetString(SI_CHANNEL_SWITCH_OFFICER_1 - 1 + i)  .. " " .. officerSwitch
-		else
-			officerSwitch = GetString(SI_CHANNEL_SWITCH_OFFICER_1 - 1 + i)
-		end
-		ChanInfoArray[CHAT_CHANNEL_OFFICER_1 - 1 + i].switches = officerSwitch
-	end
+        if #switches > 0 then
+            data.switches = table.concat(switches, " ")
+        else
+            data.switches = nil
+        end
+    end
 
+    function RemoveCustomChannelSwitches(channelId, switchesToRemove)
+        local data = ChannelInfo[channelId]
+        if not data or not switchesToRemove or switchesToRemove == "" then
+            logger:Warn("Invalid arguments passed to RemoveCustomChannelSwitches") 
+            return
+        end
+        if not data.switches then
+            logger:Warn("Channel %d has no switches to remove", channelId) 
+            return
+        end
+        local shouldRemove = {}
+        for switchArg in switchesToRemove:gmatch("%S+") do
+            switchArg = switchArg:lower()
+            if not isOriginal[switchArg] then
+                shouldRemove[switchArg] = true
+            else
+                logger:Warn("Tried to remove built-in switch", switchArg) 
+            end
+        end
+
+        local switches = {}
+        for switchArg in data.switches:gmatch("%S+") do
+            if shouldRemove[switchArg] then
+                g_switchLookup[switchArg] = nil
+            else
+                switches[#switches + 1] = switchArg
+            end
+        end
+
+        if #switches > 0 then
+            data.switches = table.concat(switches, " ")
+        else
+            data.switches = nil
+        end
+    end
 end
 
 -- *********************************************************************************
@@ -5459,9 +5515,17 @@ local function BuildLAMPanel()
 				tooltip = GetString(PCHAT_SWITCHFORTT),
 				getFunc = function() return db.switchFor[guildId] end,
 				setFunc = function(newValue)
+					local channelId = CHAT_CHANNEL_GUILD_1 - 1 + guild
+
+					local oldValue = db.switchFor[guildId]
+					if oldValue and oldValue ~= "" then
+						RemoveCustomChannelSwitches(channelId, oldValue)
+					end
+
 					db.switchFor[guildId] = newValue
-					UpdateCharCorrespondanceTableSwitchs()
-					pChat.ChatSystem_CreateChannelData()
+					if newValue and newValue ~= "" then
+						AddCustomChannelSwitches(channelId, newValue)
+					end
 				end,
 				width = "full",
 				default = "",
@@ -5474,9 +5538,17 @@ local function BuildLAMPanel()
 				default = "",
 				getFunc = function() return db.officerSwitchFor[guildId] end,
 				setFunc = function(newValue)
+					local channelId = CHAT_CHANNEL_OFFICER_1 - 1 + guild
+
+					local oldValue = db.officerSwitchFor[guildId]
+					if oldValue and oldValue ~= "" then
+						RemoveCustomChannelSwitches(channelId, oldValue)
+					end
+
 					db.officerSwitchFor[guildId] = newValue
-					UpdateCharCorrespondanceTableSwitchs()
-					pChat.ChatSystem_CreateChannelData()
+					if newValue and newValue ~= "" then
+						AddCustomChannelSwitches(channelId, newValue)
+					end
 				end
 			},
 		-- Config store 1/2/3 to avoid language switchs
@@ -5768,49 +5840,20 @@ logger:Debug("EVENT_PLAYER_ACTIVATED: Found CHAT_SYSTEM.primaryContainer!")
 			-- Tags next to entry box: Add them to the chat channels of table ChanInfoArray
 			UpdateCharCorrespondanceTableChannelNames()
 
-			-- Update chat switches: Add them to the chat channels of table ChanInfoArray
-			UpdateCharCorrespondanceTableSwitchs()
+			-- Update Switches
+			for i = 1, GetNumGuilds() do
+				local guildId = GetGuildId(i)
 
-			--Update the channel and channel switch lookup tables
-			-->With API100030 the function CHAT_SYSTEM:CreateChannelData does not exist anymore but the code is used inside SharedChatSystem:Initialize
-			-->Create a Compatibility function and call it then
-			function pChat.ChatSystem_CreateChannelData()
-				debug("pChat.ChatSystem_CreateChannelData-Start")
-				local switchLookup = {}
-				local channelInfo = ChanInfoArray
-				for channelId, data in pairs(channelInfo) do
-					data.id = channelId
-
-					if data.switches then
-						debug(">switch: " ..tostring(data.switches))
-						for switchArg in data.switches:gmatch("%S+") do
-							switchArg = switchArg:lower()
-							switchLookup[switchArg] = data
-							if not switchLookup[channelId] then
-								switchLookup[channelId] = switchArg
-							end
-						end
-					end
-
-					if data.targetSwitches then
-						debug(">targetSwitches: " ..tostring(data.targetSwitches))
-						local targetData = ZO_ShallowTableCopy(data)
-						targetData.target = channelId
-						for switchArg in data.targetSwitches:gmatch("%S+") do
-							switchArg = switchArg:lower()
-							switchLookup[switchArg] = targetData
-							if not switchLookup[channelId] then
-								switchLookup[channelId] = switchArg
-							end
-						end
-					end
+				local guildSwitches = db.switchFor[guildId]
+				if(guildSwitches and guildSwitches ~= "") then
+					AddCustomChannelSwitches(CHAT_CHANNEL_GUILD_1 - 1 + i, guildSwitches)
 				end
-				--Reassign the change table values to the CHAT_SYSTEM now in order to make the
-				--changed guild switches work (e.g. /guildnameshort)
-				CHAT_SYSTEM.switchLookup = switchLookup
-				debug("pChat.ChatSystem_CreateChannelData-End")
+
+				local officerSwitches = db.officerSwitchFor[guildId]
+				if(officerSwitches and officerSwitches ~= "") then
+					AddCustomChannelSwitches(CHAT_CHANNEL_OFFICER_1 - 1 + i, officerSwitches)
+				end
 			end
-			pChat.ChatSystem_CreateChannelData()
 
 			-- Set default channel at login
 			SetToDefaultChannel()
