@@ -21,14 +21,18 @@ local ADDON_VERSION	= "9.4.1.3"
 local ADDON_AUTHOR	= "Ayantir, DesertDwellers, Baertram (current)"
 local ADDON_WEBSITE	= "http://www.esoui.com/downloads/info93-pChat.html"
 
-pChat.logger = LibDebugLogger(ADDON_NAME)
+if(LibDebugLogger) then
+    pChat.logger = LibDebugLogger.Create(LIB_IDENTIFIER)
+else
+    local function noop() end
+    pChat.logger = setmetatable({}, { __index = function() return noop end })
+end
 local logger = pChat.logger
 
 pChat.chat = LibChatMessage(ADDON_NAME, "pC")
 local chat = pChat.chat
 
 local MENU_CATEGORY_PCHAT
-
 -- Init
 local isAddonLoaded			= false -- OnAddonLoaded() done
 local isAddonInitialized	= false
