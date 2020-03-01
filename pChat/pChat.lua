@@ -22,7 +22,7 @@ local ADDON_AUTHOR	= "Ayantir, DesertDwellers, Baertram (current)"
 local ADDON_WEBSITE	= "http://www.esoui.com/downloads/info93-pChat.html"
 
 if(LibDebugLogger) then
-    pChat.logger = LibDebugLogger.Create(LIB_IDENTIFIER)
+    pChat.logger = LibDebugLogger(ADDON_NAME)
 else
     local function noop() end
     pChat.logger = setmetatable({}, { __index = function() return noop end })
