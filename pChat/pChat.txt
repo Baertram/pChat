@@ -13,7 +13,7 @@
 ## Author: Ayantir, DesertDwellers, Baertram
 ## SavedVariables: PCHAT_OPTS PCHAT_OPTS_CHAR
 ## DependsOn: LibAddonMenu-2.0 LibMediaProvider-1.0 LibMainMenu LibCustomMenu LibChatMessage>=93
-## OptionalDependsOn: LibAnnyoingUpdateNotificationInGame LibCustomTitles LibDebugLogger
+## OptionalDependsOn: LibAnnyoingUpdateNotificationInGame LibCustomTitles LibDebugLogger LibDebugLogger>=126
 
 i18n/en.lua
 i18n/$(language).lua

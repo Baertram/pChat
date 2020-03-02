@@ -436,9 +436,6 @@ SafeAddString(PCHAT_PCHAT_AUTOMSG_REMOVE_AUTO_MSG				, "Löschen", 1)
 SafeAddString(PCHAT_CLEARBUFFER								, "Chatverlauf löschen", 1)
 
 --Added by Baertram
-SafeAddString(PCHAT_LIB_MISSING                             ,"[pChat] Die folgende Bibliothek fehlt und muss installiert & aktiviert werden: \'%s\'", 1)
-SafeAddString(PCHAT_LUAERROR                                ,"[pChat] hat 10 gepackte Zeilen abgefangen, mit dem folgenden Text=%s -- pChat - Nachricht wurde abgeschnitten", 1)
-
 SafeAddString(PCHAT_RESTORED_PREFIX                         , "[H]", 1)
 SafeAddString(PCHAT_RESTOREPREFIX                           , "Prefix vor wiederherg. Nachrichten anzeigen", 1)
 SafeAddString(PCHAT_RESTOREPREFIXTT                         , "Zeigt den Prefix \'[H]\' vor wiederhergestellten Nachrichten an, damit man diese einfach erkennen kann.\nDies wirkt sich erst nach einem ReloadUI auf den aktuellen Chat aus!\nDie Farbe des Prefix wird mit den ESO Standard Farben der Chat Kanäle angezeigt.", 1)

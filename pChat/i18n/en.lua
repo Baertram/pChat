@@ -425,12 +425,11 @@ local strings = {
 
 
 	--Added by Baertram
-	PCHAT_LIB_MISSING       = "[pChat] The following library is missing and needs to be installed & enabled: \'%s\'",
-	PCHAT_LUAERROR = "[pChat] has triggered 10 packed lines with text=%s -- pChat - Message truncated",
-
 	PCHAT_RESTORED_PREFIX = "[H]",
 	PCHAT_RESTOREPREFIX = "Add prefix to restored messages",
-	PCHAT_RESTOREPREFIXTT = "Add a prefix \'[H]\' to restored messages in order to easily see they were restored.\nThis will affect the current chat only after a reloadUI!\nThe color of the prefix will be shown with the standard ESO chat channel colors."
+	PCHAT_RESTOREPREFIXTT = "Add a prefix \'[H]\' to restored messages in order to easily see they were restored.\nThis will affect the current chat only after a reloadUI!\nThe color of the prefix will be shown with the standard ESO chat channel colors.",
+
+	PCHAT_DUPLICATE_CHANNEL_SWITCH_WARNING = "Tried to replace already existing switch '%s'"
 }
 
 for stringId, stringValue in pairs(strings) do
