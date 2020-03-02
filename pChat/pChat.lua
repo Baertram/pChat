@@ -17,7 +17,7 @@ pChat = pChat or {}
 
 -- Common
 local ADDON_NAME	= "pChat"
-local ADDON_VERSION	= "9.4.1.3"
+local ADDON_VERSION	= "9.4.1.4"
 local ADDON_AUTHOR	= "Ayantir, DesertDwellers, Baertram (current)"
 local ADDON_WEBSITE	= "http://www.esoui.com/downloads/info93-pChat.html"
 
@@ -31,7 +31,7 @@ local LMP
 --LibMainMenu (NOT LibMainMenu-2.0!)
 local MENU_CATEGORY_PCHAT
 local LMM
---local LCM
+local LCM
 local function LoadLMM(calledWhen)
 	calledWhen = calledWhen or "n/a"
 	LMM = LibMainMenu
@@ -5969,28 +5969,27 @@ debug("EVENT_PLAYER_ACTIVATED - Start")
 	if isAddonLoaded and not eventPlayerActivatedCheckRunning then
 		pChatData.sceneFirst = false
 
-		--This will only work if LibChatMessage version >= 80 is enabled and the variable LCM.formatRegularChat = true was set (See EVENT_ADD_ON_LOADED)
 		--Adding the formatting to the text, the timestamp, username/accountname etc.
 		local chatHandlerFunctions = pChat.chatHandlers --> See file pChat_chatHandlers.lua
-		local ChatEventFormatters = ZO_ChatSystem_GetEventHandlers()
-		if chatHandlerFunctions and ChatEventFormatters then
+		if chatHandlerFunctions and CHAT_ROUTER and CHAT_ROUTER.RegisterMessageFormatter then
 			--Set the local variables in file pChat_chatHandlers.lua to the pChat function names
+			--for the formatters
 			chatHandlerFunctions.SetChatHandlerFunctions()
 
-			--2020-02-23 Baertram
-			--ATTENTION: This will overwrite all other chat addon's formatter etc. functions!
-			--> So pChat is the "one and only". -> Should be changed to use LibChatMessage one day
-			--> e.g. EVENT_CHAT_MESSAGE_CHANNEL will be using pChat's function pChatChatHandlersMessageChannelReceiver (file pChat_chatHandlers.lua)
+			--2020-03-02 Baertram
+			--ZOs fixed the chat event handler callback function registering.
+			--Not using LibChatMessage fix anmyore!
+			--And not "overwriting" the functions anymore, but registering new ones using CHAT_ROUTER:RegisterMessageFormatter(eventKey, messageFormatter)
 			for eventId, eventCallBackFunc in pairs(chatHandlerFunctions) do
 				if eventId and eventCallBackFunc and type(eventCallBackFunc) == "function" then
-					ChatEventFormatters[eventId] = eventCallBackFunc
+					CHAT_ROUTER:RegisterMessageFormatter(eventId, eventCallBackFunc)
 				end
 			end
 		end
 	end
 
 	--Test if the chat_system containers are given already or wait until they are.
-	--Only test 3 seconds, then do the event_player_activated tasks!
+	--Only test 3 seconds (12x250ms), then do the event_player_activated tasks!
 	if eventPlayerActivatedChecksDone <= 12 and (CHAT_SYSTEM == nil or CHAT_SYSTEM.primaryContainer == nil) then
 debug("EVENT_PLAYER_ACTIVATED: CHAT_SYSTEM.primaryContainer is missing!")
 		if not eventPlayerActivatedCheckRunning then
@@ -6288,19 +6287,23 @@ local function loadLibraries()
 	LAM = LibAddonMenu2
 	if LAM == nil and LibStub then LAM = LibStub("LibAddonMenu-2.0", true) end
 	assert(LAM, string.format(GetString(PCHAT_LIB_MISSING), "LibAddonMenu-2.0"))
+	pChat.LAM = LAM
 
-	LMP = LibMediaProvider
+	LMP = pChat.LMP or LibMediaProvider
 	if LMP == nil and LibStub then LMP = LibStub("LibMediaProvider-1.0", true) end
 	assert(LMP, string.format(GetString(PCHAT_LIB_MISSING), "LibMediaProvider-1.0"))
+	pChat.LMP = LMP
 
 	LoadLMM("pChat - Start")
 
 	LCM = LibChatMessage
-	assert(LCM, string.format(GetString(PCHAT_LIB_MISSING), "LibChatMessage"))
+	pChat.LCM = LCM
+	--assert(LCM, string.format(GetString(PCHAT_LIB_MISSING), "LibChatMessage"))
 
 	--[Optional]
 	LCT = LibCustomTitles
 	if not LCT and LibStub then LCT = LibStub("LibCustomTitles", true) end
+	pChat.LCT = LCT
 
 	if LibDebugLogger then
 		pChat.logger = LibDebugLogger("pChat")
@@ -6383,7 +6386,8 @@ local function OnAddonLoaded(_, addonName)
 		loadLibraries()
 
 		--PTS API100030 Harrowstorm: Chat message event handler fix by LibChatMessage @sirinsidiator
-		if LCM then LCM.formatRegularChat = true end
+		--> 2020-03-02: Fix is not needed anymore as ZOs provided a fix to the chat message handlers. Disabling it in LCM!
+		if LCM then LCM.formatRegularChat = false end
 
 		-- Resize, must be loaded before CHAT_SYSTEM is set
 		--local width, height = GuiRoot:GetDimensions()
