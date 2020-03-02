@@ -3,10 +3,6 @@
 --Last updated: 2020-02-28
 --Total number: 2
 ------------------------------------------------------------------------------------------------------------------------
---#1	2020-02-20 Baetram, bug (ZOs needs to fix!): Chat handlers for formatters etc. not working. See event_player_activated and file pChat_chatHandlers.lua
---	 	ZOs chat changes with Harrowstorm destroyed the chat handlers. Currently LibChatmessage restores them so pChat can overwrite the event formatter function of ChatProxy.
---	 	Needs to be fixed after ZOs fixed the event handlers to accept Chatproxy vanilla UI + other addons again!
-------------------------------------------------------------------------------------------------------------------------
 --#2	2020-02-28 Baetram, bug: New selection for @accountName/character chat prefix will only show /charactername (@accountName is missing) during whispers,
 --		if clicked on a character in the chat to whisper him/her
 ------------------------------------------------------------------------------------------------------------------------
@@ -17,11 +13,11 @@ pChat = pChat or {}
 
 -- Common
 local ADDON_NAME	= "pChat"
-local ADDON_VERSION	= "9.4.1.3"
+local ADDON_VERSION	= "9.5.0.0"
 local ADDON_AUTHOR	= "Ayantir, DesertDwellers, Baertram (current)"
 local ADDON_WEBSITE	= "http://www.esoui.com/downloads/info93-pChat.html"
 
-if(LibDebugLogger) then
+if LibDebugLogger then
     pChat.logger = LibDebugLogger(ADDON_NAME)
 else
     local function noop() end
@@ -29,8 +25,9 @@ else
 end
 local logger = pChat.logger
 
-pChat.chat = LibChatMessage(ADDON_NAME, "pC")
-local chat = pChat.chat
+if LibChatMessage then
+	pChat.LCM = LibChatMessage(ADDON_NAME, "pC")
+end
 
 local MENU_CATEGORY_PCHAT
 -- Init
@@ -174,7 +171,6 @@ local db
 local targetToWhisp
 
 --Constants
-local gamepadMode = IsInGamepadPreferredMode()
 --Chat Tab template names
 local constTabNameTemplate = "ZO_ChatWindowTabTemplate"
 
@@ -2387,9 +2383,41 @@ do
     end
 end
 
+--[[
+local function UpdateCharCorrespondanceTableSwitchs()
+logger:Debug("[pChat]UpdateCharCorrespondanceTableSwitchs")
+	-- Each guild:_ Update table from ZO_ChatSystem_GetChannelInfo() to set teh possible switches (chat commands like /guild1 etc.)
+	for i = 1, GetNumGuilds() do
+		local guildId = GetGuildId(i)
+		--local guildName = GetGuildName(guildId)
+		-- Get saved string
+		local switch = db.switchFor[guildId]
+		if switch and switch ~= "" then
+			switch = GetString(SI_CHANNEL_SWITCH_GUILD_1 - 1 + i) .. " " .. switch
+		else
+			switch = GetString(SI_CHANNEL_SWITCH_GUILD_1 - 1 + i)
+		end
+		ChanInfoArray[CHAT_CHANNEL_GUILD_1 - 1 + i].switches = switch
+
+logger:Debug(">Set switch " ..tostring(switch) .." for guild# " .. tostring(i))
+
+		-- Get saved string
+		local officerSwitch = db.officerSwitchFor[guildId]
+		-- No SavedVar
+		if officerSwitch and officerSwitch ~= "" then
+			officerSwitch = GetString(SI_CHANNEL_SWITCH_OFFICER_1 - 1 + i)  .. " " .. officerSwitch
+		else
+			officerSwitch = GetString(SI_CHANNEL_SWITCH_OFFICER_1 - 1 + i)
+		end
+		ChanInfoArray[CHAT_CHANNEL_OFFICER_1 - 1 + i].switches = officerSwitch
+	end
+
+end
+]]
+
 -- Change guild channel names in entry box
 local function UpdateCharCorrespondanceTableChannelNames()
-logger:Debug("UpdateCharCorrespondanceTableChannelNames")
+logger:Debug("Create the guild short names")
 	-- Each guild: Update the table from ZO_ChatSystem_GetChannelInfo()
 	for i = 1, GetNumGuilds() do
 		local guildId = GetGuildId(i)
@@ -4183,9 +4211,10 @@ do
             isOriginal[channelId] = switches
         end
     end
-		local guildId = GetGuildId(i)
+		--local guildId = GetGuildId(i)
 		--local guildName = GetGuildName(guildId)
     function AddCustomChannelSwitches(channelId, switchesToAdd)
+logger:Debug("AddCustomChannelSwitches-channelId: ", tostring(channelId) .. "; switchesToAdd: " ..tostring(switchesToAdd))
         local data = ChannelInfo[channelId]
         if not data or not switchesToAdd or switchesToAdd == "" then
             logger:Warn("Invalid arguments passed to AddCustomChannelSwitches") 
@@ -4217,6 +4246,7 @@ do
     end
 
     function RemoveCustomChannelSwitches(channelId, switchesToRemove)
+logger:Debug("RemoveCustomChannelSwitches-channelId: ", tostring(channelId) .. "; switchesToRemove: " ..tostring(switchesToRemove))
         local data = ChannelInfo[channelId]
         if not data or not switchesToRemove or switchesToRemove == "" then
             logger:Warn("Invalid arguments passed to RemoveCustomChannelSwitches") 
@@ -5495,7 +5525,7 @@ local function BuildLAMPanel()
 				setFunc = function(newValue)
 					db.guildTags[guildId] = newValue
 					UpdateCharCorrespondanceTableChannelNames()
-					pChat.ChatSystem_CreateChannelData()
+					pChat.LCMSystem_CreateChannelData()
 				end,
 				width = "full",
 				default = "",
@@ -5510,7 +5540,7 @@ local function BuildLAMPanel()
 				setFunc = function(newValue)
 					db.officertag[guildId] = newValue
 					UpdateCharCorrespondanceTableChannelNames()
-					pChat.ChatSystem_CreateChannelData()
+					pChat.LCMSystem_CreateChannelData()
 				end
 			},
 			{
@@ -5735,21 +5765,20 @@ logger:Debug("EVENT_PLAYER_ACTIVATED - Start")
 	if isAddonLoaded and not eventPlayerActivatedCheckRunning then
 		pChatData.sceneFirst = false
 
-		--This will only work if LibChatMessage version >= 80 is enabled and the variable LCM.formatRegularChat = true was set (See EVENT_ADD_ON_LOADED)
 		--Adding the formatting to the text, the timestamp, username/accountname etc.
 		local chatHandlerFunctions = pChat.chatHandlers --> See file pChat_chatHandlers.lua
-		local ChatEventFormatters = ZO_ChatSystem_GetEventHandlers()
-		if chatHandlerFunctions and ChatEventFormatters then
+		if chatHandlerFunctions and CHAT_ROUTER and CHAT_ROUTER.RegisterMessageFormatter then
 			--Set the local variables in file pChat_chatHandlers.lua to the pChat function names
+			--for the formatters
 			chatHandlerFunctions.SetChatHandlerFunctions()
 
-			--2020-02-23 Baertram
-			--ATTENTION: This will overwrite all other chat addon's formatter etc. functions!
-			--> So pChat is the "one and only". -> Should be changed to use LibChatMessage one day
-			--> e.g. EVENT_CHAT_MESSAGE_CHANNEL will be using pChat's function pChatChatHandlersMessageChannelReceiver (file pChat_chatHandlers.lua)
+			--2020-03-02 Baertram
+			--ZOs fixed the chat event handler callback function registering.
+			--Not using LibChatMessage fix anmyore!
+			--And not "overwriting" the functions anymore, but registering new ones using CHAT_ROUTER:RegisterMessageFormatter(eventKey, messageFormatter)
 			for eventId, eventCallBackFunc in pairs(chatHandlerFunctions) do
 				if eventId and eventCallBackFunc and type(eventCallBackFunc) == "function" then
-					ChatEventFormatters[eventId] = eventCallBackFunc
+					CHAT_ROUTER:RegisterMessageFormatter(eventId, eventCallBackFunc)
 				end
 			end
 		end
@@ -5773,6 +5802,9 @@ logger:Debug("EVENT_PLAYER_ACTIVATED: Found CHAT_SYSTEM.primaryContainer!")
 
 		if isAddonLoaded then
 			pChatData.activeTab = 1
+
+			--Get a reference to the chat channelData (CHAT_SYSTEM.channelData)
+			--ChanInfoArray = ZO_ChatSystem_GetChannelInfo()
 
 			if CHAT_SYSTEM.ValidateChatChannel then
 				ZO_PreHook(CHAT_SYSTEM, "ValidateChatChannel", function(self)
@@ -5845,6 +5877,7 @@ logger:Debug("EVENT_PLAYER_ACTIVATED: Found CHAT_SYSTEM.primaryContainer!")
 			UpdateCharCorrespondanceTableChannelNames()
 
 			-- Update Switches
+			logger:Debug("Create the guild chat switches")
 			for i = 1, GetNumGuilds() do
 				local guildId = GetGuildId(i)
 
@@ -6086,10 +6119,8 @@ end
 local function OnAddonLoaded(_, addonName)
 	--Protect
 	if addonName == ADDON_NAME then
+		logger:Debug("AddOn loaded")
 		eventPlayerActivatedChecksDone = 0
-
-		--PTS API100030 Harrowstorm: Chat message event handler fix by LibChatMessage @sirinsidiator
-		LibChatMessage.formatRegularChat = true
 
 		-- Resize, must be loaded before CHAT_SYSTEM is set
 		--local width, height = GuiRoot:GetDimensions()
