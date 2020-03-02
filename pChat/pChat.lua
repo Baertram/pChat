@@ -6,6 +6,8 @@
 --#2	2020-02-28 Baetram, bug: New selection for @accountName/character chat prefix will only show /charactername (@accountName is missing) during whispers,
 --		if clicked on a character in the chat to whisper him/her
 ------------------------------------------------------------------------------------------------------------------------
+--#3	2020-02-28 @Torygg_TheGreat, bug: NPC chat is written to db.LineStrings even if it is nowehere enabled in the chat tabs enabled categories
+------------------------------------------------------------------------------------------------------------------------
 --=======================================================================================================================================
 
 --  pChat object will receive functions
@@ -230,6 +232,27 @@ local function getCharactersOfAccount(keyIsCharName, decorate)
         end
     end
     return charactersOfAccount
+end
+
+local chatCatgoriesEnabledTable = {}
+local function isChatCategoryEnabledInAnyChatTab(chatChannel)
+	local isChatCategoryEnabledAtAnyChatTabCheck = false
+	if chatChannel and chatChannel ~= "" then
+		local actualTab = 1
+		local numTabs = #CHAT_SYSTEM.primaryContainer.windows
+		local chatCategory = GetChannelCategoryFromChannel(chatChannel)
+		if chatCategory then
+			if chatCatgoriesEnabledTable[chatCategory] == true then return true end
+			while actualTab <= numTabs do
+				if IsChatContainerTabCategoryEnabled(1, actualTab, chatCategory) then
+					isChatCategoryEnabledAtAnyChatTabCheck = true
+					chatCatgoriesEnabledTable[chatCategory] = true
+				end
+				actualTab = actualTab + 1
+			end
+		end
+	end
+	return isChatCategoryEnabledAtAnyChatTabCheck
 end
 
 --[[
@@ -1906,7 +1929,6 @@ end
 -- It will copy all text mark with the same chanCode
 -- Todo : Whisps by person
 local function CopyDiscussion(chanNumber, numLine)
-
 	if not numLine or not chanNumber or not db.LineStrings or not db.LineStrings[numLine] then return end
 
 	-- Args are passed as string trought LinkHandlerSystem
@@ -1944,18 +1966,24 @@ end
 
 -- Copy Whole chat (not tab)
 local function CopyWholeChat()
+	chatCatgoriesEnabledTable = {}
 	local stringToCopy = ""
 	for k, data in ipairs(db.LineStrings) do
-		local textToCopy = db.LineStrings[k].rawLine
-		if textToCopy ~= nil then
-			if stringToCopy == "" then
-				stringToCopy = tostring(textToCopy)
-			else
-				stringToCopy = stringToCopy .. "\r\n" .. tostring(textToCopy)
+		--bug#3: Check if the chatChannel number is given and then check if the chatChannel's category is enabled somewhere at the current chat tabs
+		--if not: Do not add this text to the dialog!
+		local doAddLine = isChatCategoryEnabledInAnyChatTab(data.channel) or false
+		if doAddLine == true then
+			local textToCopy = db.LineStrings[k].rawLine
+			if textToCopy ~= nil then
+				if stringToCopy == "" then
+					stringToCopy = tostring(textToCopy)
+				else
+					stringToCopy = stringToCopy .. "\r\n" .. tostring(textToCopy)
+				end
 			end
 		end
 	end
-	ShowCopyDialog(stringToCopy)
+	if stringToCopy and stringToCopy ~= "" then	ShowCopyDialog(stringToCopy) end
 end
 
 -- Show contextualMenu when clicking on a pChatLink
