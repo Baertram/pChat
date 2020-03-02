@@ -7,13 +7,13 @@
 
 ## Title: pChat
 ## Description: pChat overhauls the way text is displayed in the chatbox
-## AddOnVersion: 09040012
-## Version: 9.4.1.2
+## AddOnVersion: 09040013
+## Version: 9.4.1.3
 ## APIVersion: 100030 100031
 ## Author: Ayantir, DesertDwellers, Baertram
-## SavedVariables: PCHAT_OPTS PCHAT_OPTS_ALL
+## SavedVariables: PCHAT_OPTS PCHAT_OPTS_CHAR
 ## DependsOn: LibAddonMenu-2.0 LibMediaProvider-1.0 LibMainMenu LibCustomMenu LibChatMessage>=93
-## OptionalDependsOn: LibAnnyoingUpdateNotificationInGame LibCustomTitles
+## OptionalDependsOn: LibAnnyoingUpdateNotificationInGame LibCustomTitles LibDebugLogger
 
 i18n/en.lua
 i18n/$(language).lua

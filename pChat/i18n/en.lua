@@ -126,10 +126,6 @@ local strings = {
 	PCHAT_GROUPNAMES = "Names format for groups",
 	PCHAT_GROUPNAMESTT = "Format of your groupmates names in party channel",
 
-	PCHAT_GROUPNAMESCHOICE1 = "@UserID",
-	PCHAT_GROUPNAMESCHOICE2 = "Character Name",
-	PCHAT_GROUPNAMESCHOICE3 = "Character Name@UserID",
-
 	-- Sync settings
 
 	PCHAT_SYNCH = "Syncing settings",
@@ -273,6 +269,7 @@ local strings = {
 	PCHAT_FORMATCHOICE1 = "@UserID",
 	PCHAT_FORMATCHOICE2 = "Character Name",
 	PCHAT_FORMATCHOICE3 = "Character Name@UserID",
+	PCHAT_FORMATCHOICE4 = "@UserID/Character Name",
 
 	PCHAT_SETCOLORSFORTT = "Set colors for members of <<1>>",
 	PCHAT_SETCOLORSFORCHATTT = "Set colors for messages of <<1>>",

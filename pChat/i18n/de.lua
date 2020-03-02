@@ -67,7 +67,7 @@ SafeAddString(PCHAT_CARRIAGERETURN									, "Spielernamen und Chattexte in eige
 SafeAddString(PCHAT_CARRIAGERETURNTT								, "Spielernamen und Chattexte werden durch einen Zeilenvorschub getrennt.", 1)
 
 SafeAddString(PCHAT_USEESOCOLORS										, "ESO Standardfarben", 1)
-SafeAddString(PCHAT_USEESOCOLORSTT									, "Verwendet statt der pchat Vorgabe die The Elder Scrolls Online Standard-Chat-Farben.", 1)
+SafeAddString(PCHAT_USEESOCOLORSTT									, "Verwendet statt der pChat Vorgabe die The Elder Scrolls Online Standard-Chat-Farben.", 1)
 
 SafeAddString(PCHAT_DIFFFORESOCOLORS								, "Namen farbig absetzen", 1)
 SafeAddString(PCHAT_DIFFFORESOCOLORSTT								, "Bestimmt den Helligkeitsunterschied zwischen Charakternamen / Chat-Kanal und Nachrichtentext.", 1)
@@ -140,11 +140,6 @@ SafeAddString(PCHAT_GROUPLEADERCOLOR1TT							    , "Farbe der Nachrichten des G
 
 SafeAddString(PCHAT_GROUPNAMES										, "Namen Darstellung in Gruppen", 1)
 SafeAddString(PCHAT_GROUPNAMESTT									, "Darstellung der Namen in Gruppen.", 1)
-
-SafeAddString(PCHAT_GROUPNAMESCHOICE1								, "@Accountname", 1)
-SafeAddString(PCHAT_GROUPNAMESCHOICE2								, "Charaktername", 1)
-SafeAddString(PCHAT_GROUPNAMESCHOICE3								, "Charaktername@Accountname", 1)
-SafeAddString(PCHAT_GROUPNAMESCHOICE4								, "Accountname/CharakterName", 1)
 
 -- Sync settings
 
@@ -257,8 +252,8 @@ SafeAddString(PCHAT_NICKNAMESTT										, "Du kannst an gewissen Spielern separ
 
 SafeAddString(PCHAT_TIMESTAMPH										, "Zeitstempel & Zwischenablage", 1)
 
-SafeAddString(PCHAT_ENABLETIMESTAMP									, "Aktiviere Zeitstempel (& Rechtsklick Menü)", 1)
-SafeAddString(PCHAT_ENABLETIMESTAMPTT								, "Fügt Chat-Nachrichten einen Zeitstempel hinzu, sowie ein Rechtsklcik Maus Kontextmenü mit welchem der Chat in die Zwischenablage kopiert werden kann.", 1)
+SafeAddString(PCHAT_ENABLETIMESTAMP									, "Aktiviere Zeitstempel", 1)
+SafeAddString(PCHAT_ENABLETIMESTAMPTT								, "Fügt Chat-Nachrichten einen Zeitstempel hinzu.", 1)
 
 SafeAddString(PCHAT_TIMESTAMPCOLORISLCOL							, "Zeitstempel und Spielernamen gleich färben", 1)
 SafeAddString(PCHAT_TIMESTAMPCOLORISLCOLTT						, "Für den Zeitstempel gilt die gleiche Farbeinstellung wie für den Spielernamen, oder Nicht-Spieler-Charakter (NSC / NPC)", 1)
@@ -289,15 +284,16 @@ SafeAddString(PCHAT_NAMEFORMATTT										, "Legt die Formatierung für die Name
 SafeAddString(PCHAT_FORMATCHOICE1									, "@Accountname", 1)
 SafeAddString(PCHAT_FORMATCHOICE2									, "Charaktername", 1)
 SafeAddString(PCHAT_FORMATCHOICE3									, "Charaktername@Accountname", 1)
+SafeAddString(PCHAT_FORMATCHOICE4									, "@Accountname/Charaktername", 1)
 
-SafeAddString(PCHAT_SETCOLORSFORTT									, "Farbe für Mitglieder von ", 1)
-SafeAddString(PCHAT_SETCOLORSFORCHATTT								, "Farbe für Nachrichten von ", 1)
+SafeAddString(PCHAT_SETCOLORSFORTT									, "Farbe für Mitglieder von <<1>>", 1)
+SafeAddString(PCHAT_SETCOLORSFORCHATTT								, "Farbe für Nachrichten von <<1>>", 1)
 
-SafeAddString(PCHAT_SETCOLORSFOROFFICIERSTT						, "Farbe für Mitglieder des 'Offiziers-Chats' von ", 1)
-SafeAddString(PCHAT_SETCOLORSFOROFFICIERSCHATTT					, "Farbe für Nachrichten des 'Offiziers-Chats' von ", 1)
+SafeAddString(PCHAT_SETCOLORSFOROFFICIERSTT						, "Farbe für Mitglieder des 'Offiziers-Chats' von <<1>>", 1)
+SafeAddString(PCHAT_SETCOLORSFOROFFICIERSCHATTT					, "Farbe für Nachrichten des 'Offiziers-Chats' von <<1>>", 1)
 
-SafeAddString(PCHAT_MEMBERS											, " - Spieler", 1)
-SafeAddString(PCHAT_CHAT												, " - Nachrichten", 1)
+SafeAddString(PCHAT_MEMBERS											, "<<1>> - Spieler", 1)
+SafeAddString(PCHAT_CHAT												, "<<1>> - Nachrichten", 1)
 
 SafeAddString(PCHAT_OFFICERSTT										, " Offiziere", 1)
 
