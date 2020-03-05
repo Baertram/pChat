@@ -166,6 +166,8 @@ local constTabNameTemplate = "ZO_ChatWindowTabTemplate"
 
 -- pChatData will receive variables and objects.
 local pChatData = {}
+-- Logged in char name
+pChatData.localPlayer = GetUnitName("player")
 
 -- Used for pChat LinkHandling
 local PCHAT_LINK = "p"
@@ -267,6 +269,40 @@ local chatStrings =
 	copynpc = "%s: ", -- language zones
 }
 
+--Load the libraries
+local function LoadLibraries()
+	--LibDebugLogger
+	if not pChat.logger and LibDebugLogger then
+		pChat.logger = LibDebugLogger(ADDON_NAME)
+		logger = pChat.logger
+		logger:Debug("AddOn loaded")
+	end
+	--LibChatMessage
+	if not pChat.LCM and LibChatMessage then
+		pChat.LCM = LibChatMessage(ADDON_NAME, "pC")
+		if logger then logger:Debug("Library 'LibChatMessage' detected") end
+	end
+end
+--Early try to load libs (done again in EVENT_ADD_ON_LOADED)
+LoadLibraries()
+
+--Initialize some tbales of the addon
+local function InitTables()
+	-- Used for CopySystem
+	if not db.lineNumber then
+		db.lineNumber = 1
+	elseif type(db.lineNumber) ~= "number" then
+		db.lineNumber = 1
+		db.LineStrings = {}
+	elseif db.lineNumber > 5000 then
+		StripLinesFromLineStrings(0)
+	end
+
+	if not db.chatTabChannel then db.chatTabChannel = {} end
+	if not db.LineStrings then db.LineStrings = {} end
+	if not pChat.tabNames then pChat.tabNames = {} end
+end
+
 --Get the class's icon texture
 local function getClassIcon(classId)
     --* GetClassInfo(*luaindex* _index_)
@@ -337,11 +373,25 @@ local function isChatCategoryEnabledInAnyChatTab(chatChannel)
 	return isChatCategoryEnabledAtAnyChatTabCheck
 end
 
+--Prepare some needed addon variables
+local function PrepareVars()
+	--Build the character name to unique ID mapping tables and vice-versa
+	--The character names are decorated with the color and icon of the class!
+	pChat.characterName2Id = {}
+	pChat.characterId2Name = {}
+	pChat.characterNameRaw2Id = {}
+	pChat.characterId2NameRaw = {}
+	--Tables with character charname as key
+	pChat.characterName2Id = getCharactersOfAccount(true, true)
+	pChat.characterNameRaw2Id = getCharactersOfAccount(true, false)
+	--Tables with character ID as key
+	pChat.characterId2Name = getCharactersOfAccount(false, true)
+	pChat.characterId2NameRaw = getCharactersOfAccount(false, false)
+end
+
 -- Return true/false if text is a flood
 local function SpamFlood(from, text, chanCode)
-
 	-- 2+ messages identiqual in less than 30 seconds on Character channels = spam
-
 	-- Should not happen
 	if db.LineStrings then
 
@@ -408,14 +458,11 @@ local function SpamFlood(from, text, chanCode)
 		end
 
 	end
-
 	return false
-
 end
 
 -- Return true/false if text is a LFG message
 local function SpamLookingFor(text)
-
 	local spamStrings = {
 		[1] = "[lL][%s.]?[fF][%s.]?[%d]?[%s.]?[mMgG]",
 		[2] = "[lL][%s.]?[fF][%s.]?[%d]?[%s.]?[hH][eE][aA][lL]",
@@ -434,14 +481,11 @@ local function SpamLookingFor(text)
 			return true
 		end
 	end
-
 	return false
-
 end
 
 -- Return true/false if text is a WTT message
 local function SpamWantTo(text)
-
 	-- "w.T S"
 	if string.find(text, "[wW][%s.]?[tT][%s.]?[bBsStT]") then
 
@@ -457,14 +501,11 @@ local function SpamWantTo(text)
 		end
 
 	end
-
 	return false
-
 end
 
 -- Return true/false if text is a Guild recruitment one
 local function SpamGuildRecruit(text, chanCode)
-
 	-- Guild Recruitment message are too complex to only use 1/2 patterns, an heuristic method must be used
 
 	-- 1st is channel. only check geographic channels (character ones)
@@ -567,16 +608,13 @@ Russian guild Daggerfall Bandits is looking for new members! We are the biggest 
 		end
 
 	end
-
-	--logger:Debug("GR : false (score=%d)", guildHeuristics)
+    --logger:Debug("GR : false (score=%d)", guildHeuristics)
 	return false
-
 end
 
 -- Return true/false if anti spam is enabled for a certain category
 -- Categories must be : Flood, LookingFor, WantTo, GuildRecruit
 local function IsSpamEnabledForCategory(category)
-
 	if category == "Flood" then
 
 		-- Enabled in Options?
@@ -663,12 +701,10 @@ local function IsSpamEnabledForCategory(category)
 		return false
 
 	end
-
 end
 
 -- Return true is message is a spam depending on MANY parameters
 local function SpamFilter(chanCode, from, text, isCS)
-
 	-- 5 options for spam : Spam (multiple messages) ; LFM/LFG ; WT(T/S/B) ; Guild Recruitment ; Gold Spamming for various websites
 
 	-- ZOS GM are NEVER blocked
@@ -758,9 +794,7 @@ local function SpamFilter(chanCode, from, text, isCS)
 		if SpamGuildRecruit(text, chanCode) then return true end
 	end
 	]]--
-
 	return false
-
 end
 
 -- Turn a ([0,1])^3 RGB colour to "|cABCDEF" form. We could use ZO_ColorDef, but we have so many colors so we don't do it.
@@ -807,14 +841,11 @@ local function CreateTimestamp(timeStr, formatStr)
 	timestamp = timestamp:gsub("s", seconds)
 	timestamp = timestamp:gsub("A", pUp)
 	timestamp = timestamp:gsub("a", pLow)
-
 	return timestamp
-
 end
 
 -- Format from name
 local function ConvertName(chanCode, from, isCS, fromDisplayName)
-
 	local function DisplayWithOrWoBrackets(realFrom, displayed, linkType)
 		if not displayed then -- reported. Should not happen, maybe parser error with nicknames.
 			displayed = realFrom
@@ -957,14 +988,10 @@ local function ConvertName(chanCode, from, isCS, fromDisplayName)
 	if isCS then -- ZOS icon
 		new_from = "|t16:16:EsoUI/Art/ChatWindow/csIcon.dds|t" .. new_from
 	end
-
 	return new_from
-
 end
 
 local function UndockTextEntry()
-
-	--local charName = pChatData.localPlayer or GetUnitName("player")
 	local charId = GetCurrentCharacterId()
 	-- Unfinshed
 	if not db.chatConfSync[charId].TextEntryPoint then
@@ -984,19 +1011,17 @@ local function UndockTextEntry()
 	undockedTexture:SetTexture("EsoUI/Art/Performance/StatusMeterMunge.dds")
 	undockedTexture:SetAnchor(CENTER, ZO_ChatWindowTextEntry, CENTER, 0, 0)
 	undockedTexture:SetDimensions(800, 250)
-
 end
 
+--[[
 local function RedockTextEntry()
-
 	-- Unfinished
-
 	ZO_ChatWindowTextEntry:ClearAnchors()
 	ZO_ChatWindowTextEntry:SetAnchor(BOTTOMLEFT, ZO_ChatWindowMinimize, BOTTOMRIGHT, -6, -13)
 	ZO_ChatWindowTextEntry:SetAnchor(BOTTOMRIGHT, ZO_ChatWindow, BOTTOMRIGHT, -23, -13)
 	ZO_ChatWindowTextEntry:SetMovable(false)
-
 end
+]]
 
 -- Also called by bindings
 function pChat_ShowAutoMsg()
@@ -1005,28 +1030,7 @@ function pChat_ShowAutoMsg()
 	end
 end
 
--- Register Slash commands
-SLASH_COMMANDS["/msg"] = pChat_ShowAutoMsg
-
-ZO_CreateStringId("PCHAT_AUTOMSG_NAME_DEFAULT_TEXT", GetString(PCHAT_PCHAT_AUTOMSG_NAME_DEFAULT_TEXT))
-ZO_CreateStringId("PCHAT_AUTOMSG_MESSAGE_DEFAULT_TEXT", GetString(PCHAT_PCHAT_AUTOMSG_MESSAGE_DEFAULT_TEXT))
-ZO_CreateStringId("PCHAT_AUTOMSG_MESSAGE_TIP1_TEXT", GetString(PCHAT_PCHAT_AUTOMSG_MESSAGE_TIP1_TEXT))
-ZO_CreateStringId("PCHAT_AUTOMSG_MESSAGE_TIP2_TEXT", GetString(PCHAT_PCHAT_AUTOMSG_MESSAGE_TIP2_TEXT))
-ZO_CreateStringId("PCHAT_AUTOMSG_MESSAGE_TIP3_TEXT", GetString(PCHAT_PCHAT_AUTOMSG_MESSAGE_TIP3_TEXT))
-ZO_CreateStringId("PCHAT_AUTOMSG_NAME_HEADER", GetString(PCHAT_PCHAT_AUTOMSG_NAME_HEADER))
-ZO_CreateStringId("PCHAT_AUTOMSG_MESSAGE_HEADER", GetString(PCHAT_PCHAT_AUTOMSG_MESSAGE_HEADER))
-ZO_CreateStringId("PCHAT_AUTOMSG_ADD_TITLE_HEADER", GetString(PCHAT_PCHAT_AUTOMSG_ADD_TITLE_HEADER))
-ZO_CreateStringId("PCHAT_AUTOMSG_EDIT_TITLE_HEADER", GetString(PCHAT_PCHAT_AUTOMSG_EDIT_TITLE_HEADER))
-ZO_CreateStringId("PCHAT_AUTOMSG_ADD_AUTO_MSG", GetString(PCHAT_PCHAT_AUTOMSG_ADD_AUTO_MSG))
-ZO_CreateStringId("PCHAT_AUTOMSG_EDIT_AUTO_MSG", GetString(PCHAT_PCHAT_AUTOMSG_EDIT_AUTO_MSG))
-ZO_CreateStringId("SI_BINDING_NAME_PCHAT_SHOW_AUTO_MSG", GetString(PCHAT_SI_BINDING_NAME_PCHAT_SHOW_AUTO_MSG))
-ZO_CreateStringId("PCHAT_AUTOMSG_REMOVE_AUTO_MSG", GetString(PCHAT_PCHAT_AUTOMSG_REMOVE_AUTO_MSG))
-
-
-
-
 function automatedMessagesList:New(control)
-
 	ZO_SortFilterList.InitializeSortFilterList(self, control)
 
 	local AutomatedMessagesSorterKeys =
@@ -1042,7 +1046,6 @@ function automatedMessagesList:New(control)
 	--self:SetAlternateRowBackgrounds(true)
 
 	return self
-
 end
 
 -- format ESO text to raw text
@@ -2961,7 +2964,6 @@ local function RestoreChatMessagesFromHistory(wasReloadUI)
 				else
 
 					local category = categories[EVENT_CHAT_MESSAGE_CHANNEL][channelToRestore]
-					--local charName = pChatData.localPlayer or GetUnitName("player")
 					local charId = GetCurrentCharacterId()
 
 					--Prevent the whisper notifications because of history restored messages
@@ -3788,7 +3790,6 @@ local function SaveChatConfig()
 	end
 
 	if isAddonLoaded and CHAT_SYSTEM and CHAT_SYSTEM.primaryContainer then -- Some addons calls SetCVar before
-		--local charName = pChatData.localPlayer or GetUnitName("player")
 		local charId = GetCurrentCharacterId()
 
 		-- Rewrite the whole char tab
@@ -3893,7 +3894,6 @@ end
 
 -- Save Chat Tabs config when user changes it
 local function SaveTabsCategories()
-	--local charName = pChatData.localPlayer or GetUnitName("player")
 	local charId = GetCurrentCharacterId()
 
 	for numTab in ipairs (CHAT_SYSTEM.primaryContainer.windows) do
@@ -4313,7 +4313,6 @@ local function BuildLAMPanel()
 
 	-- Used to reset colors to default value, lam need a formatted array
 	-- LAM Message Settings
-	--local charName = pChatData.localPlayer or GetUnitName("player")
 	local charId = GetCurrentCharacterId()
 
 	local fontsDefined = LibMediaProvider:List('font')
@@ -5698,7 +5697,6 @@ local function RevertCategories(guildId)
 	local totGuilds = GetNumGuilds() + 1
 
 	if oldIndex and oldIndex < totGuilds then
-		--local charName = pChatData.localPlayer or GetUnitName("player")
 		local charId = GetCurrentCharacterId()
 
 		-- If our guild was not the last one, need to revert colors
@@ -5951,9 +5949,7 @@ end
 
 -- Save a category color for guild chat, set by ChatSystem at launch + when user change manually
 local function SaveChatCategoriesColors(category, r, g, b)
-	--local charName = pChatData.localPlayer or GetUnitName("player")
 	local charId = GetCurrentCharacterId()
-
 	if db.chatConfSync[charId] then
 		if db.chatConfSync[charId].colors[category] == nil then
 			db.chatConfSync[charId].colors[category] = {}
@@ -6080,6 +6076,18 @@ local function LoadSavedVariables()
 	MigrateSavedVars()
 end
 
+--Load some early hooks
+local function LoadEarlyHooks()
+	-- Resize, must be loaded before CHAT_SYSTEM is set
+	local orgCalculateConstraints = SharedChatContainer.CalculateConstraints
+	function SharedChatContainer.CalculateConstraints(...)
+		local self = ...
+		local w, h = GuiRoot:GetDimensions()
+		self.system.maxContainerWidth, self.system.maxContainerHeight = w * 0.95, h * 0.95
+		return orgCalculateConstraints(...)
+	end
+end
+
 --Load some hooks
 local function LoadHooks()
 	-- PreHook ReloadUI, SetCVar, LogOut & Quit to handle Chat Import/Export
@@ -6119,60 +6127,66 @@ local function LoadHooks()
 
 end
 
+--Load the string IDs for keybindings e.g.
+local function LoadStringIds()
+	-- Bindings
+	ZO_CreateStringId("PCHAT_AUTOMSG_NAME_DEFAULT_TEXT", GetString(PCHAT_PCHAT_AUTOMSG_NAME_DEFAULT_TEXT))
+	ZO_CreateStringId("PCHAT_AUTOMSG_MESSAGE_DEFAULT_TEXT", GetString(PCHAT_PCHAT_AUTOMSG_MESSAGE_DEFAULT_TEXT))
+	ZO_CreateStringId("PCHAT_AUTOMSG_MESSAGE_TIP1_TEXT", GetString(PCHAT_PCHAT_AUTOMSG_MESSAGE_TIP1_TEXT))
+	ZO_CreateStringId("PCHAT_AUTOMSG_MESSAGE_TIP2_TEXT", GetString(PCHAT_PCHAT_AUTOMSG_MESSAGE_TIP2_TEXT))
+	ZO_CreateStringId("PCHAT_AUTOMSG_MESSAGE_TIP3_TEXT", GetString(PCHAT_PCHAT_AUTOMSG_MESSAGE_TIP3_TEXT))
+	ZO_CreateStringId("PCHAT_AUTOMSG_NAME_HEADER", GetString(PCHAT_PCHAT_AUTOMSG_NAME_HEADER))
+	ZO_CreateStringId("PCHAT_AUTOMSG_MESSAGE_HEADER", GetString(PCHAT_PCHAT_AUTOMSG_MESSAGE_HEADER))
+	ZO_CreateStringId("PCHAT_AUTOMSG_ADD_TITLE_HEADER", GetString(PCHAT_PCHAT_AUTOMSG_ADD_TITLE_HEADER))
+	ZO_CreateStringId("PCHAT_AUTOMSG_EDIT_TITLE_HEADER", GetString(PCHAT_PCHAT_AUTOMSG_EDIT_TITLE_HEADER))
+	ZO_CreateStringId("PCHAT_AUTOMSG_ADD_AUTO_MSG", GetString(PCHAT_PCHAT_AUTOMSG_ADD_AUTO_MSG))
+	ZO_CreateStringId("PCHAT_AUTOMSG_EDIT_AUTO_MSG", GetString(PCHAT_PCHAT_AUTOMSG_EDIT_AUTO_MSG))
+	ZO_CreateStringId("SI_BINDING_NAME_PCHAT_SHOW_AUTO_MSG", GetString(PCHAT_SI_BINDING_NAME_PCHAT_SHOW_AUTO_MSG))
+	ZO_CreateStringId("PCHAT_AUTOMSG_REMOVE_AUTO_MSG", GetString(PCHAT_PCHAT_AUTOMSG_REMOVE_AUTO_MSG))
+
+	ZO_CreateStringId("SI_BINDING_NAME_PCHAT_SWITCH_TAB", GetString(PCHAT_SWITCHTONEXTTABBINDING))
+	ZO_CreateStringId("SI_BINDING_NAME_PCHAT_TOGGLE_CHAT_WINDOW", GetString(PCHAT_TOGGLECHATBINDING))
+	ZO_CreateStringId("SI_BINDING_NAME_PCHAT_WHISPER_MY_TARGET", GetString(PCHAT_WHISPMYTARGETBINDING))
+	ZO_CreateStringId("SI_BINDING_NAME_TAB_1", GetString(PCHAT_Tab1))
+	ZO_CreateStringId("SI_BINDING_NAME_TAB_2", GetString(PCHAT_Tab2))
+	ZO_CreateStringId("SI_BINDING_NAME_TAB_3", GetString(PCHAT_Tab3))
+	ZO_CreateStringId("SI_BINDING_NAME_TAB_4", GetString(PCHAT_Tab4))
+	ZO_CreateStringId("SI_BINDING_NAME_TAB_5", GetString(PCHAT_Tab5))
+	ZO_CreateStringId("SI_BINDING_NAME_TAB_6", GetString(PCHAT_Tab6))
+	ZO_CreateStringId("SI_BINDING_NAME_TAB_7", GetString(PCHAT_Tab7))
+	ZO_CreateStringId("SI_BINDING_NAME_TAB_8", GetString(PCHAT_Tab8))
+	ZO_CreateStringId("SI_BINDING_NAME_TAB_9", GetString(PCHAT_Tab9))
+	ZO_CreateStringId("SI_BINDING_NAME_TAB_10", GetString(PCHAT_Tab10))
+	ZO_CreateStringId("SI_BINDING_NAME_TAB_11", GetString(PCHAT_Tab11))
+	ZO_CreateStringId("SI_BINDING_NAME_TAB_12", GetString(PCHAT_Tab12))
+end
+
+--Load the slash commands
+local function LoadSlashCommands()
+	-- Register Slash commands
+	SLASH_COMMANDS["/msg"] = pChat_ShowAutoMsg
+end
+
 -- Please note that some things are delayed in OnPlayerActivated() because Chat isn't ready when this function triggers
 local function OnAddonLoaded(_, addonName)
 	--Protect
 	if addonName == ADDON_NAME then
 		eventPlayerActivatedChecksDone = 0
 
-		if LibDebugLogger then
-			pChat.logger = LibDebugLogger(ADDON_NAME)
-		end
-		logger = pChat.logger
-		logger:Debug("AddOn loaded")
+		--Prepare variables
+		PrepareVars()
 
-		if LibChatMessage then
-			pChat.LCM = LibChatMessage(ADDON_NAME, "pC")
-			logger:Debug("Library 'LibChatMessage' detected")
-		end
+		--Load early hooks before chat system is ready e.g.
+		LoadEarlyHooks()
 
-		-- Resize, must be loaded before CHAT_SYSTEM is set
-		do
-			local orgCalculateConstraints = SharedChatContainer.CalculateConstraints
-			function SharedChatContainer.CalculateConstraints(...)
-				local self = ...
-				local w, h = GuiRoot:GetDimensions()
-				self.system.maxContainerWidth, self.system.maxContainerHeight = w * 0.95, h * 0.95
-				return orgCalculateConstraints(...)
-			end
-		end
+		--Load the libraries (again)
+		LoadLibraries()
 
-		-- Bindings
-		ZO_CreateStringId("SI_BINDING_NAME_PCHAT_SWITCH_TAB", GetString(PCHAT_SWITCHTONEXTTABBINDING))
-		ZO_CreateStringId("SI_BINDING_NAME_PCHAT_TOGGLE_CHAT_WINDOW", GetString(PCHAT_TOGGLECHATBINDING))
-		ZO_CreateStringId("SI_BINDING_NAME_PCHAT_WHISPER_MY_TARGET", GetString(PCHAT_WHISPMYTARGETBINDING))
-		ZO_CreateStringId("SI_BINDING_NAME_TAB_1", GetString(PCHAT_Tab1))
-		ZO_CreateStringId("SI_BINDING_NAME_TAB_2", GetString(PCHAT_Tab2))
-		ZO_CreateStringId("SI_BINDING_NAME_TAB_3", GetString(PCHAT_Tab3))
-		ZO_CreateStringId("SI_BINDING_NAME_TAB_4", GetString(PCHAT_Tab4))
-		ZO_CreateStringId("SI_BINDING_NAME_TAB_5", GetString(PCHAT_Tab5))
-		ZO_CreateStringId("SI_BINDING_NAME_TAB_6", GetString(PCHAT_Tab6))
-		ZO_CreateStringId("SI_BINDING_NAME_TAB_7", GetString(PCHAT_Tab7))
-		ZO_CreateStringId("SI_BINDING_NAME_TAB_8", GetString(PCHAT_Tab8))
-		ZO_CreateStringId("SI_BINDING_NAME_TAB_9", GetString(PCHAT_Tab9))
-		ZO_CreateStringId("SI_BINDING_NAME_TAB_10", GetString(PCHAT_Tab10))
-		ZO_CreateStringId("SI_BINDING_NAME_TAB_11", GetString(PCHAT_Tab11))
-		ZO_CreateStringId("SI_BINDING_NAME_TAB_12", GetString(PCHAT_Tab12))
+		--Load keybinding and other text IDs
+		LoadStringIds()
 
-		--Build the character name to unique ID mapping tables and vice-versa
-		--The character names are decorated with the color and icon of the class!
-		pChat.characterName2Id = getCharactersOfAccount(true, true)
-		pChat.characterId2Name = getCharactersOfAccount(false, true)
-		pChat.characterNameRaw2Id = getCharactersOfAccount(true, false)
-		pChat.characterId2NameRaw = getCharactersOfAccount(false, false)
-
-		-- Char name
-		pChatData.localPlayer = GetUnitName("player")
+		--Load slash commands
+		LoadSlashCommands()
 
 		--Load the SV
 		LoadSavedVariables()
@@ -6180,28 +6194,8 @@ local function OnAddonLoaded(_, addonName)
 		--LAM and db for saved vars
 		GetDBAndBuildLAM()
 
-		-- Used for CopySystem
-
-		if not db.lineNumber then
-			db.lineNumber = 1
-		elseif type(db.lineNumber) ~= "number" then
-			db.lineNumber = 1
-			db.LineStrings = {}
-		elseif db.lineNumber > 5000 then
-			StripLinesFromLineStrings(0)
-		end
-
-		if not db.chatTabChannel then
-			db.chatTabChannel = {}
-		end
-
-		if not db.LineStrings then
-			db.LineStrings = {}
-		end
-
-		if not pChat.tabNames then
-			pChat.tabNames = {}
-		end
+		--Init some tables of the addon
+		InitTables()
 
 		-- Will set Keybind for "switch to next tab" if needed
 		SetSwitchToNextBinding()
