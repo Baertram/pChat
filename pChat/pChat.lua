@@ -176,73 +176,6 @@ local PCHAT_CHANNEL_NONE = 99
 -- Init Automated Messages
 local automatedMessagesList = ZO_SortFilterList:Subclass()
 
-local function getClassIcon(classId)
-    --* GetClassInfo(*luaindex* _index_)
-    -- @return defId integer,lore string,normalIconKeyboard textureName,pressedIconKeyboard textureName,mouseoverIconKeyboard textureName,isSelectable bool,ingameIconKeyboard textureName,ingameIconGamepad textureName,normalIconGamepad textureName,pressedIconGamepad textureName
-    local classLuaIndex = GetClassIndexById(classId)
-    local _, _, textureName, _, _, _, ingameIconKeyboard, _, _, _= GetClassInfo(classLuaIndex)
-    return ingameIconKeyboard or textureName or ""
-end
-
-local function decorateCharName(charName, classId, decorate)
-    if not charName or charName == "" then return "" end
-    if not classId then return charName end
-    decorate = decorate or false
-    if not decorate then return charName end
-    local charNameDecorated
-    --Get the class color
-    local charColorDef = GetClassColor(classId)
-    --Apply the class color to the charname
-    if nil ~= charColorDef then charNameDecorated = charColorDef:Colorize(charName) end
-    --Apply the class textures to the charname
-    charNameDecorated = zo_iconTextFormatNoSpace(getClassIcon(classId), 20, 20, charNameDecorated)
-    return charNameDecorated
-end
-
---Build the table of all characters of the account
-local function getCharactersOfAccount(keyIsCharName, decorate)
-    decorate = decorate or false
-    keyIsCharName = keyIsCharName or false
-    local charactersOfAccount
-    --Check all the characters of the account
-    for i = 1, GetNumCharacters() do
-        --GetCharacterInfo() -> *string* _name_, *[Gender|#Gender]* _gender_, *integer* _level_, *integer* _classId_, *integer* _raceId_, *[Alliance|#Alliance]* _alliance_, *string* _id_, *integer* _locationId_
-        local name, gender, level, classId, raceId, alliance, characterId, location = GetCharacterInfo(i)
-        local charName = zo_strformat(SI_UNIT_NAME, name)
-        if characterId ~= nil and charName ~= "" then
-            if charactersOfAccount == nil then charactersOfAccount = {} end
-            charName = decorateCharName(charName, classId, decorate)
-            if keyIsCharName then
-                charactersOfAccount[charName]   = characterId
-            else
-                charactersOfAccount[characterId]= charName
-            end
-        end
-    end
-    return charactersOfAccount
-end
-
-local chatCatgoriesEnabledTable = {}
-local function isChatCategoryEnabledInAnyChatTab(chatChannel)
-	local isChatCategoryEnabledAtAnyChatTabCheck = false
-	if chatChannel and chatChannel ~= "" then
-		local actualTab = 1
-		local numTabs = #CHAT_SYSTEM.primaryContainer.windows
-		local chatCategory = GetChannelCategoryFromChannel(chatChannel)
-		if chatCategory then
-			if chatCatgoriesEnabledTable[chatCategory] == true then return true end
-			while actualTab <= numTabs do
-				if IsChatContainerTabCategoryEnabled(1, actualTab, chatCategory) then
-					isChatCategoryEnabledAtAnyChatTabCheck = true
-					chatCatgoriesEnabledTable[chatCategory] = true
-				end
-				actualTab = actualTab + 1
-			end
-		end
-	end
-	return isChatCategoryEnabledAtAnyChatTabCheck
-end
-
 --[[
 PCHAT_LINK format : ZO_LinkHandler_CreateLink(message, nil, PCHAT_LINK, data)
 message = message to display, nil (ignored by ZO_LinkHandler_CreateLink), PCHAT_LINK : declaration
@@ -333,6 +266,76 @@ local chatStrings =
 	copylanguage = "[%s] %s: ", -- language zones
 	copynpc = "%s: ", -- language zones
 }
+
+--Get the class's icon texture
+local function getClassIcon(classId)
+    --* GetClassInfo(*luaindex* _index_)
+    -- @return defId integer,lore string,normalIconKeyboard textureName,pressedIconKeyboard textureName,mouseoverIconKeyboard textureName,isSelectable bool,ingameIconKeyboard textureName,ingameIconGamepad textureName,normalIconGamepad textureName,pressedIconGamepad textureName
+    local classLuaIndex = GetClassIndexById(classId)
+    local _, _, textureName, _, _, _, ingameIconKeyboard, _, _, _= GetClassInfo(classLuaIndex)
+    return ingameIconKeyboard or textureName or ""
+end
+
+--Decorate a character name with colour and icon of the class
+local function decorateCharName(charName, classId, decorate)
+    if not charName or charName == "" then return "" end
+    if not classId then return charName end
+    decorate = decorate or false
+    if not decorate then return charName end
+    local charNameDecorated
+    --Get the class color
+    local charColorDef = GetClassColor(classId)
+    --Apply the class color to the charname
+    if nil ~= charColorDef then charNameDecorated = charColorDef:Colorize(charName) end
+    --Apply the class textures to the charname
+    charNameDecorated = zo_iconTextFormatNoSpace(getClassIcon(classId), 20, 20, charNameDecorated)
+    return charNameDecorated
+end
+
+--Build the table of all characters of the account
+local function getCharactersOfAccount(keyIsCharName, decorate)
+    decorate = decorate or false
+    keyIsCharName = keyIsCharName or false
+    local charactersOfAccount
+    --Check all the characters of the account
+    for i = 1, GetNumCharacters() do
+        --GetCharacterInfo() -> *string* _name_, *[Gender|#Gender]* _gender_, *integer* _level_, *integer* _classId_, *integer* _raceId_, *[Alliance|#Alliance]* _alliance_, *string* _id_, *integer* _locationId_
+        local name, gender, level, classId, raceId, alliance, characterId, location = GetCharacterInfo(i)
+        local charName = zo_strformat(SI_UNIT_NAME, name)
+        if characterId ~= nil and charName ~= "" then
+            if charactersOfAccount == nil then charactersOfAccount = {} end
+            charName = decorateCharName(charName, classId, decorate)
+            if keyIsCharName then
+                charactersOfAccount[charName]   = characterId
+            else
+                charactersOfAccount[characterId]= charName
+            end
+        end
+    end
+    return charactersOfAccount
+end
+
+--Check if a chat category (of a chat channel) is enabled in any chat tab's settings
+local chatCatgoriesEnabledTable = {}
+local function isChatCategoryEnabledInAnyChatTab(chatChannel)
+	local isChatCategoryEnabledAtAnyChatTabCheck = false
+	if chatChannel and chatChannel ~= "" then
+		local actualTab = 1
+		local numTabs = #CHAT_SYSTEM.primaryContainer.windows
+		local chatCategory = GetChannelCategoryFromChannel(chatChannel)
+		if chatCategory then
+			if chatCatgoriesEnabledTable[chatCategory] == true then return true end
+			while actualTab <= numTabs do
+				if IsChatContainerTabCategoryEnabled(1, actualTab, chatCategory) then
+					isChatCategoryEnabledAtAnyChatTabCheck = true
+					chatCatgoriesEnabledTable[chatCategory] = true
+				end
+				actualTab = actualTab + 1
+			end
+		end
+	end
+	return isChatCategoryEnabledAtAnyChatTabCheck
+end
 
 -- Return true/false if text is a flood
 local function SpamFlood(from, text, chanCode)
@@ -2038,8 +2041,6 @@ end
 
 local function SetSwitchToNextBinding()
 
-	ZO_CreateStringId("SI_BINDING_NAME_PCHAT_SWITCH_TAB", GetString(PCHAT_SWITCHTONEXTTABBINDING))
-
 	-- get SwitchTab Keybind params
 	local layerIndex, categoryIndex, actionIndex = GetActionIndicesFromName("PCHAT_SWITCH_TAB")
 	--If exists
@@ -2277,6 +2278,7 @@ local function OnReticleTargetChanged()
 	end
 end
 
+--Load the nicknames defined in the settings and build the pChatData nicknames table with them
 local function BuildNicknames(lamCall)
 
 	local function Explode(div, str)
@@ -5738,6 +5740,7 @@ end
 -- Unregisters itself from the player activation event with the event manager.
 local function OnPlayerActivated()
 	logger:Debug("EVENT_PLAYER_ACTIVATED - Start")
+	--Addon was loaded via EVENT_ADD_ON_LOADED and we are not already doing some EVENT_PLAYER_ACTIVATED tasks
 	if isAddonLoaded and not eventPlayerActivatedCheckRunning then
 		pChatData.sceneFirst = false
 
@@ -5812,12 +5815,6 @@ local function OnPlayerActivated()
 					CHAT_SYSTEM.IMLabelMin:SetHidden(true)
 				end)
 			end
-
-			--Scroll to bottom in Chat: Secure post hook to hide the Whisper Notifications
-			SecurePostHook("ZO_ChatSystem_ScrollToBottom", function(ctrl)
-				pChat_RemoveIMNotification()
-			end)
-
 
 			--local fontPath = ZoFontChat:GetFontInfo()
 			--chat:Print(fontPath)
@@ -5974,19 +5971,12 @@ local function ChatSystemShowOptions(tabIndex)
 		ClearMenu()
 
 		if not ZO_Dialogs_IsShowingDialog() then
-			AddMenuItem(GetString(SI_CHAT_CONFIG_CREATE_NEW), function() self.system:CreateNewChatTab(self) end)
-		end
-
-		if not ZO_Dialogs_IsShowingDialog() and not window.combatLog and (not self:IsPrimary() or tabIndex ~= 1) then
-			AddMenuItem(GetString(SI_CHAT_CONFIG_REMOVE), function() self:ShowRemoveTabDialog(tabIndex) end)
-		end
-
-		if not ZO_Dialogs_IsShowingDialog() then
-			AddMenuItem(GetString(SI_CHAT_CONFIG_OPTIONS), function() self:ShowOptions(tabIndex) end)
-		end
-
-		if not ZO_Dialogs_IsShowingDialog() then
-			AddMenuItem(GetString(PCHAT_CLEARBUFFER), function()
+			AddCustomMenuItem(GetString(SI_CHAT_CONFIG_CREATE_NEW), function() self.system:CreateNewChatTab(self) end)
+			if not window.combatLog and (not self:IsPrimary() or tabIndex ~= 1) then
+				AddCustomMenuItem(GetString(SI_CHAT_CONFIG_REMOVE), function() self:ShowRemoveTabDialog(tabIndex) end)
+			end
+			AddCustomMenuItem(GetString(SI_CHAT_CONFIG_OPTIONS), function() self:ShowOptions(tabIndex) end)
+			AddCustomMenuItem(GetString(PCHAT_CLEARBUFFER), function()
 				pChatData.tabNotBefore[tabIndex] = GetTimeStamp()
 				self.windows[tabIndex].buffer:Clear()
 				self:SyncScrollToBuffer()
@@ -5995,34 +5985,33 @@ local function ChatSystemShowOptions(tabIndex)
 
 		if self:IsPrimary() and tabIndex == 1 then
 			if self:IsLocked(tabIndex) then
-				AddMenuItem(GetString(SI_CHAT_CONFIG_UNLOCK), function() self:SetLocked(tabIndex, false) end)
+				AddCustomMenuItem(GetString(SI_CHAT_CONFIG_UNLOCK), function() self:SetLocked(tabIndex, false) end)
 			else
-				AddMenuItem(GetString(SI_CHAT_CONFIG_LOCK), function() self:SetLocked(tabIndex, true) end)
+				AddCustomMenuItem(GetString(SI_CHAT_CONFIG_LOCK), function() self:SetLocked(tabIndex, true) end)
 			end
 		end
 
 		if window.combatLog then
 			if self:AreTimestampsEnabled(tabIndex) then
-				AddMenuItem(GetString(SI_CHAT_CONFIG_HIDE_TIMESTAMP), function() self:SetTimestampsEnabled(tabIndex, false) end)
+				AddCustomMenuItem(GetString(SI_CHAT_CONFIG_HIDE_TIMESTAMP), function() self:SetTimestampsEnabled(tabIndex, false) end)
 			else
-				AddMenuItem(GetString(SI_CHAT_CONFIG_SHOW_TIMESTAMP), function() self:SetTimestampsEnabled(tabIndex, true) end)
+				AddCustomMenuItem(GetString(SI_CHAT_CONFIG_SHOW_TIMESTAMP), function() self:SetTimestampsEnabled(tabIndex, true) end)
 			end
 		end
 
 		--[[
 		local charId = GetCurrentCharacterId()
 		if db.chatConfSync[charId].textEntryDocked then
-			AddMenuItem(GetString(PCHAT_UNDOCKTEXTENTRY), function() UndockTextEntry() end)
+			AddCustomMenuItem(GetString(PCHAT_UNDOCKTEXTENTRY), function() UndockTextEntry() end)
 		else
-			AddMenuItem(GetString(PCHAT_REDOCKTEXTENTRY), function() RedockTextEntry() end)
+			AddCustomMenuItem(GetString(PCHAT_REDOCKTEXTENTRY), function() RedockTextEntry() end)
 		end
 		]]
 
 		ShowMenu(window.tab)
 	end
-
+	--Do not call original ZO_ChatSystem_ShowOptions() or ZO_ChatWindow_OpenContextMenu()
 	return true
-
 end
 
 --Migrate some SavedVariables to new structures
@@ -6091,10 +6080,51 @@ local function LoadSavedVariables()
 	MigrateSavedVars()
 end
 
+--Load some hooks
+local function LoadHooks()
+	-- PreHook ReloadUI, SetCVar, LogOut & Quit to handle Chat Import/Export
+	ZO_PreHook("ReloadUI", function()
+		SaveChatHistory(1)
+		SaveChatConfig()
+	end)
+
+	ZO_PreHook("SetCVar", function()
+		SaveChatHistory(1)
+		SaveChatConfig()
+	end)
+
+	ZO_PreHook("Logout", function()
+		SaveChatHistory(2)
+		SaveChatConfig()
+	end)
+
+	ZO_PreHook("Quit", function()
+		SaveChatHistory(3)
+		SaveChatConfig()
+	end)
+
+	-- Social option change color
+	ZO_PreHook("SetChatCategoryColor", SaveChatCategoriesColors)
+	-- Chat option change categories filters, add a callLater because settings are set after this function triggers.
+	ZO_PreHook("ZO_ChatOptions_ToggleChannel", function() zo_callLater(SaveTabsCategories, 100) end)
+
+	-- Right click on a tab name
+	ZO_PreHook("ZO_ChatSystem_ShowOptions", function(control) return ChatSystemShowOptions() end)
+	ZO_PreHook("ZO_ChatWindow_OpenContextMenu", function(control) return ChatSystemShowOptions(control.index) end)
+
+	--Scroll to bottom in Chat: Secure post hook to hide the Whisper Notifications
+	SecurePostHook("ZO_ChatSystem_ScrollToBottom", function()
+		pChat_RemoveIMNotification()
+	end)
+
+end
+
 -- Please note that some things are delayed in OnPlayerActivated() because Chat isn't ready when this function triggers
 local function OnAddonLoaded(_, addonName)
 	--Protect
 	if addonName == ADDON_NAME then
+		eventPlayerActivatedChecksDone = 0
+
 		if LibDebugLogger then
 			pChat.logger = LibDebugLogger(ADDON_NAME)
 		end
@@ -6106,8 +6136,6 @@ local function OnAddonLoaded(_, addonName)
 			logger:Debug("Library 'LibChatMessage' detected")
 		end
 
-		eventPlayerActivatedChecksDone = 0
-
 		-- Resize, must be loaded before CHAT_SYSTEM is set
 		do
 			local orgCalculateConstraints = SharedChatContainer.CalculateConstraints
@@ -6118,6 +6146,23 @@ local function OnAddonLoaded(_, addonName)
 				return orgCalculateConstraints(...)
 			end
 		end
+
+		-- Bindings
+		ZO_CreateStringId("SI_BINDING_NAME_PCHAT_SWITCH_TAB", GetString(PCHAT_SWITCHTONEXTTABBINDING))
+		ZO_CreateStringId("SI_BINDING_NAME_PCHAT_TOGGLE_CHAT_WINDOW", GetString(PCHAT_TOGGLECHATBINDING))
+		ZO_CreateStringId("SI_BINDING_NAME_PCHAT_WHISPER_MY_TARGET", GetString(PCHAT_WHISPMYTARGETBINDING))
+		ZO_CreateStringId("SI_BINDING_NAME_TAB_1", GetString(PCHAT_Tab1))
+		ZO_CreateStringId("SI_BINDING_NAME_TAB_2", GetString(PCHAT_Tab2))
+		ZO_CreateStringId("SI_BINDING_NAME_TAB_3", GetString(PCHAT_Tab3))
+		ZO_CreateStringId("SI_BINDING_NAME_TAB_4", GetString(PCHAT_Tab4))
+		ZO_CreateStringId("SI_BINDING_NAME_TAB_5", GetString(PCHAT_Tab5))
+		ZO_CreateStringId("SI_BINDING_NAME_TAB_6", GetString(PCHAT_Tab6))
+		ZO_CreateStringId("SI_BINDING_NAME_TAB_7", GetString(PCHAT_Tab7))
+		ZO_CreateStringId("SI_BINDING_NAME_TAB_8", GetString(PCHAT_Tab8))
+		ZO_CreateStringId("SI_BINDING_NAME_TAB_9", GetString(PCHAT_Tab9))
+		ZO_CreateStringId("SI_BINDING_NAME_TAB_10", GetString(PCHAT_Tab10))
+		ZO_CreateStringId("SI_BINDING_NAME_TAB_11", GetString(PCHAT_Tab11))
+		ZO_CreateStringId("SI_BINDING_NAME_TAB_12", GetString(PCHAT_Tab12))
 
 		--Build the character name to unique ID mapping tables and vice-versa
 		--The character names are decorated with the color and icon of the class!
@@ -6170,54 +6215,14 @@ local function OnAddonLoaded(_, addonName)
 		-- Minimize Chat in Menus
 		MinimizeChatInMenus()
 
+		--Load the nicknames from the settings
 		BuildNicknames()
 
+		--Build the allowed URLs (top level domains and protocolls)
 		InitializeURLHandling()
 
-		-- PreHook ReloadUI, SetCVar, LogOut & Quit to handle Chat Import/Export
-		ZO_PreHook("ReloadUI", function()
-			SaveChatHistory(1)
-			SaveChatConfig()
-		end)
-
-		ZO_PreHook("SetCVar", function()
-			SaveChatHistory(1)
-			SaveChatConfig()
-		end)
-
-		ZO_PreHook("Logout", function()
-			SaveChatHistory(2)
-			SaveChatConfig()
-		end)
-
-		ZO_PreHook("Quit", function()
-			SaveChatHistory(3)
-			SaveChatConfig()
-		end)
-
-		-- Social option change color
-		ZO_PreHook("SetChatCategoryColor", SaveChatCategoriesColors)
-		-- Chat option change categories filters, add a callLater because settings are set after this function triggers.
-		ZO_PreHook("ZO_ChatOptions_ToggleChannel", function() zo_callLater(SaveTabsCategories, 100) end)
-
-		-- Right click on a tab name
-		ZO_PreHook("ZO_ChatSystem_ShowOptions", function(control) return ChatSystemShowOptions() end)
-		ZO_PreHook("ZO_ChatWindow_OpenContextMenu", function(control) return ChatSystemShowOptions(control.index) end)
-		-- Bindings
-		ZO_CreateStringId("SI_BINDING_NAME_PCHAT_TOGGLE_CHAT_WINDOW", GetString(PCHAT_TOGGLECHATBINDING))
-		ZO_CreateStringId("SI_BINDING_NAME_PCHAT_WHISPER_MY_TARGET", GetString(PCHAT_WHISPMYTARGETBINDING))
-		ZO_CreateStringId("SI_BINDING_NAME_TAB_1", GetString(PCHAT_Tab1))
-		ZO_CreateStringId("SI_BINDING_NAME_TAB_2", GetString(PCHAT_Tab2))
-		ZO_CreateStringId("SI_BINDING_NAME_TAB_3", GetString(PCHAT_Tab3))
-		ZO_CreateStringId("SI_BINDING_NAME_TAB_4", GetString(PCHAT_Tab4))
-		ZO_CreateStringId("SI_BINDING_NAME_TAB_5", GetString(PCHAT_Tab5))
-		ZO_CreateStringId("SI_BINDING_NAME_TAB_6", GetString(PCHAT_Tab6))
-		ZO_CreateStringId("SI_BINDING_NAME_TAB_7", GetString(PCHAT_Tab7))
-		ZO_CreateStringId("SI_BINDING_NAME_TAB_8", GetString(PCHAT_Tab8))
-		ZO_CreateStringId("SI_BINDING_NAME_TAB_9", GetString(PCHAT_Tab9))
-		ZO_CreateStringId("SI_BINDING_NAME_TAB_10", GetString(PCHAT_Tab10))
-		ZO_CreateStringId("SI_BINDING_NAME_TAB_11", GetString(PCHAT_Tab11))
-		ZO_CreateStringId("SI_BINDING_NAME_TAB_12", GetString(PCHAT_Tab12))
+		--Load some hookds
+		LoadHooks()
 
 		-- Because ChatSystem is loaded after EVENT_ADDON_LOADED triggers, we use 1st EVENT_PLAYER_ACTIVATED wich is run bit after
 		EVENT_MANAGER:RegisterForEvent(ADDON_NAME, EVENT_PLAYER_ACTIVATED, OnPlayerActivated)
@@ -6237,9 +6242,11 @@ local function OnAddonLoaded(_, addonName)
 		-- Unregisters
 		EVENT_MANAGER:UnregisterForEvent(ADDON_NAME, EVENT_ADD_ON_LOADED)
 
+		--Pointers to pChatData and SavedVariables
 		pChat.pChatData = pChatData
 		pChat.db = db
 
+		--Set variable that addon was laoded
 		isAddonLoaded = true
 	end
 	
