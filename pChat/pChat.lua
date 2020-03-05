@@ -4228,15 +4228,13 @@ do
     local ChannelInfo = ZO_ChatSystem_GetChannelInfo()
     local g_switchLookup = ZO_ChatSystem_GetChannelSwitchLookupTable()
 
-    -- create a backup so we can prevent removal of built in switches
-    local isOriginal = {}
+    -- store all built-in switches so we can prevent accidents
+    local isBuiltIn = {}
     for channelId, data in pairs(ChannelInfo) do
         if data.switches then
-            local switches = {}
             for switchArg in data.switches:gmatch("%S+") do
-                switches[switchArg:lower()] = true
+                isBuiltIn[switchArg:lower()] = true
             end
-            isOriginal[channelId] = switches
         end
     end
 		--local guildId = GetGuildId(i)
@@ -4257,12 +4255,15 @@ logger:Debug("AddCustomChannelSwitches-channelId: ", tostring(channelId) .. "; s
         end
         for switchArg in switchesToAdd:gmatch("%S+") do
             switchArg = switchArg:lower()
-            if not g_switchLookup[switchArg] then
-                switches[#switches + 1] = switchArg
-                g_switchLookup[switchArg] = data
-            else
+            if isBuiltIn[switchArg] then
+                local message = string.format(GetString(PCHAT_BUILT_IN_CHANNEL_SWITCH_WARNING), switchArg)
+                ZO_Alert(UI_ALERT_CATEGORY_ERROR, SOUNDS.NEGATIVE_CLICK, message)
+            elseif g_switchLookup[switchArg] then
                 local message = string.format(GetString(PCHAT_DUPLICATE_CHANNEL_SWITCH_WARNING), switchArg)
                 ZO_Alert(UI_ALERT_CATEGORY_ERROR, SOUNDS.NEGATIVE_CLICK, message)
+            else
+                switches[#switches + 1] = switchArg
+                g_switchLookup[switchArg] = data
             end
         end
 
@@ -4287,10 +4288,8 @@ logger:Debug("RemoveCustomChannelSwitches-channelId: ", tostring(channelId) .. "
         local shouldRemove = {}
         for switchArg in switchesToRemove:gmatch("%S+") do
             switchArg = switchArg:lower()
-            if not isOriginal[switchArg] then
+            if not isBuiltIn[switchArg] then
                 shouldRemove[switchArg] = true
-            else
-                logger:Warn("Tried to remove built-in switch", switchArg) 
             end
         end
 
