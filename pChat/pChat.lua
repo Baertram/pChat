@@ -6,8 +6,6 @@
 --#2	2020-02-28 Baetram, bug: New selection for @accountName/character chat prefix will only show /charactername (@accountName is missing) during whispers,
 --		if clicked on a character in the chat to whisper him/her
 ------------------------------------------------------------------------------------------------------------------------
---#3	2020-02-28 @Torygg_TheGreat, bug: NPC chat is written to db.LineStrings even if it is nowehere enabled in the chat tabs enabled categories
-------------------------------------------------------------------------------------------------------------------------
 --=======================================================================================================================================
 
 --  pChat object will receive functions
@@ -15,21 +13,11 @@ pChat = pChat or {}
 
 -- Common
 local ADDON_NAME	= "pChat"
-local ADDON_VERSION	= "9.5.0.0"
+local ADDON_VERSION	= "9.4.1.5"
 local ADDON_AUTHOR	= "Ayantir, DesertDwellers, Baertram (current)"
 local ADDON_WEBSITE	= "http://www.esoui.com/downloads/info93-pChat.html"
 
-if LibDebugLogger then
-    pChat.logger = LibDebugLogger(ADDON_NAME)
-else
-    local function noop() end
-    pChat.logger = setmetatable({}, { __index = function() return noop end })
-end
-local logger = pChat.logger
-
-if LibChatMessage then
-	pChat.LCM = LibChatMessage(ADDON_NAME, "pC")
-end
+local logger
 
 local MENU_CATEGORY_PCHAT
 -- Init
@@ -1007,52 +995,15 @@ local function RedockTextEntry()
 
 end
 
-
--- For console
-function pChat.CMD_DEBUG()
-	if pChat.DEBUG ~= 1 then
-		logger:Debug("Debug : On")
-		pChat.DEBUG = 1
-	else
-		logger:Debug("Debug : Off")
-		pChat.DEBUG = 0
-	end
-end
-
--- For console quest time
-function pChat.CMD_DEBUG1()
-	if pChat.DEBUG ~= 2 then
-		logger:Debug("Debug 2: On")
-		pChat.DEBUG = 2
-	else
-		logger:Debug("Debug 2: Off")
-		pChat.DEBUG = 0
-	end
-end
-
-function pChat.CMD_DEBUG2()
-	if pChat.DEBUG ~=3 then
-		logger:Debug("Debug 3 : On")
-		pChat.DEBUG = 3
-	else
-		logger:Debug("Debug 3 : Off")
-		pChat.DEBUG = 0
-	end
-end
-
-
 -- Also called by bindings
 function pChat_ShowAutoMsg()
-	if MENU_CATEGORY_PCHAT then
+	if LibMainMenu and MENU_CATEGORY_PCHAT then
 		LibMainMenu:ToggleCategory(MENU_CATEGORY_PCHAT)
 	end
 end
 
 -- Register Slash commands
 SLASH_COMMANDS["/msg"] = pChat_ShowAutoMsg
-SLASH_COMMANDS["/pchat_debug"] = pChat.CMD_DEBUG
-SLASH_COMMANDS["/pchat_debug1"] = pChat.CMD_DEBUG1
-SLASH_COMMANDS["/pchat_debug2"] = pChat.CMD_DEBUG2
 
 ZO_CreateStringId("PCHAT_AUTOMSG_NAME_DEFAULT_TEXT", GetString(PCHAT_PCHAT_AUTOMSG_NAME_DEFAULT_TEXT))
 ZO_CreateStringId("PCHAT_AUTOMSG_MESSAGE_DEFAULT_TEXT", GetString(PCHAT_PCHAT_AUTOMSG_MESSAGE_DEFAULT_TEXT))
@@ -5552,7 +5503,6 @@ local function BuildLAMPanel()
 				setFunc = function(newValue)
 					db.guildTags[guildId] = newValue
 					UpdateCharCorrespondanceTableChannelNames()
-					pChat.LCMSystem_CreateChannelData()
 				end,
 				width = "full",
 				default = "",
@@ -5567,7 +5517,6 @@ local function BuildLAMPanel()
 				setFunc = function(newValue)
 					db.officertag[guildId] = newValue
 					UpdateCharCorrespondanceTableChannelNames()
-					pChat.LCMSystem_CreateChannelData()
 				end
 			},
 			{
@@ -5788,7 +5737,7 @@ end
 -- Registers the formatMessage function.
 -- Unregisters itself from the player activation event with the event manager.
 local function OnPlayerActivated()
-logger:Debug("EVENT_PLAYER_ACTIVATED - Start")
+	logger:Debug("EVENT_PLAYER_ACTIVATED - Start")
 	if isAddonLoaded and not eventPlayerActivatedCheckRunning then
 		pChatData.sceneFirst = false
 
@@ -5814,7 +5763,7 @@ logger:Debug("EVENT_PLAYER_ACTIVATED - Start")
 	--Test if the chat_system containers are given already or wait until they are.
 	--Only test 3 seconds, then do the event_player_activated tasks!
 	if eventPlayerActivatedChecksDone <= 12 and (CHAT_SYSTEM == nil or CHAT_SYSTEM.primaryContainer == nil) then
-logger:Debug("EVENT_PLAYER_ACTIVATED: CHAT_SYSTEM.primaryContainer is missing!")
+		logger:Debug("EVENT_PLAYER_ACTIVATED: CHAT_SYSTEM.primaryContainer is missing!")
 		if not eventPlayerActivatedCheckRunning then
 			EVENT_MANAGER:RegisterForUpdate("pChatDebug_Event_Player_Activated", 250, function()
 				eventPlayerActivatedChecksDone = eventPlayerActivatedChecksDone + 1
@@ -5823,7 +5772,7 @@ logger:Debug("EVENT_PLAYER_ACTIVATED: CHAT_SYSTEM.primaryContainer is missing!")
 			end)
 		end
 	else
-logger:Debug("EVENT_PLAYER_ACTIVATED: Found CHAT_SYSTEM.primaryContainer!")
+		logger:Debug("EVENT_PLAYER_ACTIVATED: Found CHAT_SYSTEM.primaryContainer!")
 		eventPlayerActivatedCheckRunning = false
 		EVENT_MANAGER:UnregisterForUpdate("pChatDebug_Event_Player_Activated")
 
@@ -5903,7 +5852,7 @@ logger:Debug("EVENT_PLAYER_ACTIVATED: Found CHAT_SYSTEM.primaryContainer!")
 			-- Tags next to entry box: Add them to the chat channels of table ChanInfoArray
 			UpdateCharCorrespondanceTableChannelNames()
 
-			-- Update Switches
+			-- Update custom guild switches
 			logger:Debug("Create the guild chat switches")
 			for i = 1, GetNumGuilds() do
 				local guildId = GetGuildId(i)
@@ -6146,13 +6095,20 @@ end
 local function OnAddonLoaded(_, addonName)
 	--Protect
 	if addonName == ADDON_NAME then
+		if LibDebugLogger then
+			pChat.logger = LibDebugLogger(ADDON_NAME)
+		end
+		logger = pChat.logger
 		logger:Debug("AddOn loaded")
+
+		if LibChatMessage then
+			pChat.LCM = LibChatMessage(ADDON_NAME, "pC")
+			logger:Debug("Library 'LibChatMessage' detected")
+		end
+
 		eventPlayerActivatedChecksDone = 0
 
 		-- Resize, must be loaded before CHAT_SYSTEM is set
-		--local width, height = GuiRoot:GetDimensions()
-		--CHAT_SYSTEM.maxContainerWidth, CHAT_SYSTEM.maxContainerHeight = width, height
-
 		do
 			local orgCalculateConstraints = SharedChatContainer.CalculateConstraints
 			function SharedChatContainer.CalculateConstraints(...)
