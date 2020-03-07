@@ -16,7 +16,6 @@ LMP:Register("font", "Font Name", "pChat/fonts/Path/to/your/font.ttf")
 ]]--
 
 -- pChat core fonts
-
 LMP:Register("font", "Arvo", "pChat/fonts/Arvo/Arvo-Regular.ttf")
 LMP:Register("font", "DejaVuSans", "pChat/fonts/DejaVu/DejaVuSans.ttf")
 LMP:Register("font", "DejaVuSansCondensed", "pChat/fonts/DejaVu/DejaVuSansCondensed.ttf")

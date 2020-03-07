@@ -6,32 +6,144 @@
 --#2	2020-02-28 Baetram, bug: New selection for @accountName/character chat prefix will only show /charactername (@accountName is missing) during whispers,
 --		if clicked on a character in the chat to whisper him/her
 ------------------------------------------------------------------------------------------------------------------------
---=======================================================================================================================================
-
---  pChat object will receive functions
+--  pChat object
 pChat = pChat or {}
 
+--======================================================================================================================
+-- AddOn info
+--======================================================================================================================
 -- Common
 local ADDON_NAME	= "pChat"
 local ADDON_VERSION	= "9.4.1.5"
 local ADDON_AUTHOR	= "Ayantir, DesertDwellers, Baertram (current)"
 local ADDON_WEBSITE	= "http://www.esoui.com/downloads/info93-pChat.html"
 
-local logger
-
-local MENU_CATEGORY_PCHAT
--- Init
-local isAddonLoaded			= false -- OnAddonLoaded() done
-local isAddonInitialized	= false
-
--- Preventer variables
-local preventWhisperNotificationsFromHistory = false
-local eventPlayerActivatedCheckRunning = false
-local eventPlayerActivatedChecksDone = 0
-
---Variables
+--======================================================================================================================
+--pChat Variables--
+--======================================================================================================================
 pChat.tabNames = {}
 
+-- pChatData will receive variables and objects.
+local pChatData = {}
+-- Logged in char name
+pChatData.localPlayer = GetUnitName("player")
+
+--LibDebugLogger objects
+local logger
+local subloggerVerbose
+
+--LibMainMenu objects
+local MENU_CATEGORY_PCHAT
+
+--======================================================================================================================
+--Constants
+--======================================================================================================================
+--Chat Tab template names
+local constTabNameTemplate = "ZO_ChatWindowTabTemplate"
+
+-- Used for pChat LinkHandling
+local PCHAT_LINK = "p"
+local PCHAT_URL_CHAN = 97
+local PCHAT_CHANNEL_SAY = 98
+local PCHAT_CHANNEL_NONE = 99
+
+-- Init Automated Messages
+local automatedMessagesList = ZO_SortFilterList:Subclass()
+
+--[[
+PCHAT_LINK format : ZO_LinkHandler_CreateLink(message, nil, PCHAT_LINK, data)
+message = message to display, nil (ignored by ZO_LinkHandler_CreateLink), PCHAT_LINK : declaration
+data : strings separated by ":"
+1st arg is chancode like CHAT_CHANNEL_GUILD_1
+]]--
+
+pChatData.chatCategories = {
+	CHAT_CATEGORY_SAY,
+	CHAT_CATEGORY_YELL,
+	CHAT_CATEGORY_WHISPER_INCOMING,
+	CHAT_CATEGORY_WHISPER_OUTGOING,
+	CHAT_CATEGORY_ZONE,
+	CHAT_CATEGORY_PARTY,
+	CHAT_CATEGORY_EMOTE,
+	CHAT_CATEGORY_SYSTEM,
+	CHAT_CATEGORY_GUILD_1,
+	CHAT_CATEGORY_GUILD_2,
+	CHAT_CATEGORY_GUILD_3,
+	CHAT_CATEGORY_GUILD_4,
+	CHAT_CATEGORY_GUILD_5,
+	CHAT_CATEGORY_OFFICER_1,
+	CHAT_CATEGORY_OFFICER_2,
+	CHAT_CATEGORY_OFFICER_3,
+	CHAT_CATEGORY_OFFICER_4,
+	CHAT_CATEGORY_OFFICER_5,
+	CHAT_CATEGORY_ZONE_ENGLISH,
+	CHAT_CATEGORY_ZONE_FRENCH,
+	CHAT_CATEGORY_ZONE_GERMAN,
+	CHAT_CATEGORY_ZONE_JAPANESE,
+	CHAT_CATEGORY_MONSTER_SAY,
+	CHAT_CATEGORY_MONSTER_YELL,
+	CHAT_CATEGORY_MONSTER_WHISPER,
+	CHAT_CATEGORY_MONSTER_EMOTE,
+}
+
+pChatData.guildCategories = {
+	CHAT_CATEGORY_GUILD_1,
+	CHAT_CATEGORY_GUILD_2,
+	CHAT_CATEGORY_GUILD_3,
+	CHAT_CATEGORY_GUILD_4,
+	CHAT_CATEGORY_GUILD_5,
+	CHAT_CATEGORY_OFFICER_1,
+	CHAT_CATEGORY_OFFICER_2,
+	CHAT_CATEGORY_OFFICER_3,
+	CHAT_CATEGORY_OFFICER_4,
+	CHAT_CATEGORY_OFFICER_5,
+}
+
+pChatData.defaultChannels = {
+	PCHAT_CHANNEL_NONE,
+	CHAT_CHANNEL_ZONE,
+	CHAT_CHANNEL_SAY,
+	CHAT_CHANNEL_GUILD_1,
+	CHAT_CHANNEL_GUILD_2,
+	CHAT_CHANNEL_GUILD_3,
+	CHAT_CHANNEL_GUILD_4,
+	CHAT_CHANNEL_GUILD_5,
+	CHAT_CHANNEL_OFFICER_1,
+	CHAT_CHANNEL_OFFICER_2,
+	CHAT_CHANNEL_OFFICER_3,
+	CHAT_CHANNEL_OFFICER_4,
+	CHAT_CHANNEL_OFFICER_5,
+}
+
+local chatStrings =
+{
+	standard = "%s%s: |r%s%s%s|r", -- standard format: say, yell, group, npc, npc yell, npc whisper, zone
+	esostandart = "%s%s %s: |r%s%s%s|r", -- standard format: say, yell, group, npc, npc yell, npc whisper, zone with tag (except for monsters)
+	esoparty = "%s%s%s: |r%s%s%s|r", -- standard format: party
+	tellIn = "%s%s: |r%s%s%s|r", -- tell in
+	tellOut = "%s-> %s: |r%s%s%s|r", -- tell out
+	emote = "%s%s |r%s%s|r", -- emote
+	guild = "%s%s %s: |r%s%s%s|r", -- guild
+	language = "%s[%s] %s: |r%s%s%s|r", -- language zones
+
+	-- For copy System, only Handle "From part"
+
+	copystandard = "[%s]: ", -- standard format: say, yell, group, npc, npc yell, npc whisper, zone
+	copyesostandard = "[%s] %s: ", -- standard format: say, yell, group, npc, npc yell, npc whisper, zone with tag (except for monsters)
+	copyesoparty = "[%s]%s: ", -- standard format: party
+	copytellIn = "[%s]: ", -- tell in
+	copytellOut = "-> [%s]: ", -- tell out
+	copyemote = "%s ", -- emote
+	copyguild = "[%s] [%s]: ", -- guild
+	copylanguage = "[%s] %s: ", -- language zones
+	copynpc = "%s: ", -- language zones
+}
+
+--======================================================================================================================
+-- SavedVariables
+--======================================================================================================================
+local db
+local targetToWhisp
 -- Default variables to push in SavedVars
 local defaults = {
 	-- LAM handled
@@ -147,8 +259,8 @@ local defaults = {
 		[2*CHAT_CHANNEL_ZONE_LANGUAGE_4 + 1] = "|cB0A074", -- JP zone Right
 		["timestamp"] = "|c8F8F8F", -- timestamp
 		["tabwarning"] = "|c76BCC3", -- tab Warning ~ "Azure" (ZOS default)
-		["groupleader"] = "|cC35582", -- 
-		["groupleader1"] = "|c76BCC3", -- 
+		["groupleader"] = "|cC35582", --
+		["groupleader1"] = "|c76BCC3", --
 	},
 	doNotNotifyOnRestoredWhisperFromHistory = false,
 	addHistoryRestoredPrefix = false,
@@ -156,135 +268,54 @@ local defaults = {
 	chatConfSync = {},
 }
 
--- SV
-local db
-local targetToWhisp
+--======================================================================================================================
+-- Init / Preventer variables
+--======================================================================================================================
+-- Init
+local isAddonLoaded			= false -- OnAddonLoaded() -> true
+local isAddonInitialized	= false -- OnPlayerActivated() -> true
 
---Constants
---Chat Tab template names
-local constTabNameTemplate = "ZO_ChatWindowTabTemplate"
+--Preventer
+local preventWhisperNotificationsFromHistory = false
+local eventPlayerActivatedCheckRunning = false
+local eventPlayerActivatedChecksDone = 0
 
--- pChatData will receive variables and objects.
-local pChatData = {}
--- Logged in char name
-pChatData.localPlayer = GetUnitName("player")
+--======================================================================================================================
+--ZOs variables--
+--======================================================================================================================
+--ZOs chat channels table
+local ChannelInfo = ZO_ChatSystem_GetChannelInfo()
+--ZOs chat switches table
+local g_switchLookup = ZO_ChatSystem_GetChannelSwitchLookupTable()
 
--- Used for pChat LinkHandling
-local PCHAT_LINK = "p"
-local PCHAT_URL_CHAN = 97
-local PCHAT_CHANNEL_SAY = 98
-local PCHAT_CHANNEL_NONE = 99
-
--- Init Automated Messages
-local automatedMessagesList = ZO_SortFilterList:Subclass()
-
---[[
-PCHAT_LINK format : ZO_LinkHandler_CreateLink(message, nil, PCHAT_LINK, data)
-message = message to display, nil (ignored by ZO_LinkHandler_CreateLink), PCHAT_LINK : declaration
-data : strings separated by ":"
-1st arg is chancode like CHAT_CHANNEL_GUILD_1
-]]--
-
-local ChanInfoArray = ZO_ChatSystem_GetChannelInfo()
-
-pChatData.chatCategories = {
-	CHAT_CATEGORY_SAY,
-	CHAT_CATEGORY_YELL,
-	CHAT_CATEGORY_WHISPER_INCOMING,
-	CHAT_CATEGORY_WHISPER_OUTGOING,
-	CHAT_CATEGORY_ZONE,
-	CHAT_CATEGORY_PARTY,
-	CHAT_CATEGORY_EMOTE,
-	CHAT_CATEGORY_SYSTEM,
-	CHAT_CATEGORY_GUILD_1,
-	CHAT_CATEGORY_GUILD_2,
-	CHAT_CATEGORY_GUILD_3,
-	CHAT_CATEGORY_GUILD_4,
-	CHAT_CATEGORY_GUILD_5,
-	CHAT_CATEGORY_OFFICER_1,
-	CHAT_CATEGORY_OFFICER_2,
-	CHAT_CATEGORY_OFFICER_3,
-	CHAT_CATEGORY_OFFICER_4,
-	CHAT_CATEGORY_OFFICER_5,
-	CHAT_CATEGORY_ZONE_ENGLISH,
-	CHAT_CATEGORY_ZONE_FRENCH,
-	CHAT_CATEGORY_ZONE_GERMAN,
-	CHAT_CATEGORY_ZONE_JAPANESE,
-	CHAT_CATEGORY_MONSTER_SAY,
-	CHAT_CATEGORY_MONSTER_YELL,
-	CHAT_CATEGORY_MONSTER_WHISPER,
-	CHAT_CATEGORY_MONSTER_EMOTE,
-}
-
-pChatData.guildCategories = {
-	CHAT_CATEGORY_GUILD_1,
-	CHAT_CATEGORY_GUILD_2,
-	CHAT_CATEGORY_GUILD_3,
-	CHAT_CATEGORY_GUILD_4,
-	CHAT_CATEGORY_GUILD_5,
-	CHAT_CATEGORY_OFFICER_1,
-	CHAT_CATEGORY_OFFICER_2,
-	CHAT_CATEGORY_OFFICER_3,
-	CHAT_CATEGORY_OFFICER_4,
-	CHAT_CATEGORY_OFFICER_5,
-}
-
-pChatData.defaultChannels = {
-	PCHAT_CHANNEL_NONE,
-	CHAT_CHANNEL_ZONE,
-	CHAT_CHANNEL_SAY,
-	CHAT_CHANNEL_GUILD_1,
-	CHAT_CHANNEL_GUILD_2,
-	CHAT_CHANNEL_GUILD_3,
-	CHAT_CHANNEL_GUILD_4,
-	CHAT_CHANNEL_GUILD_5,
-	CHAT_CHANNEL_OFFICER_1,
-	CHAT_CHANNEL_OFFICER_2,
-	CHAT_CHANNEL_OFFICER_3,
-	CHAT_CHANNEL_OFFICER_4,
-	CHAT_CHANNEL_OFFICER_5,
-}
-
-local chatStrings =
-{
-	standard = "%s%s: |r%s%s%s|r", -- standard format: say, yell, group, npc, npc yell, npc whisper, zone
-	esostandart = "%s%s %s: |r%s%s%s|r", -- standard format: say, yell, group, npc, npc yell, npc whisper, zone with tag (except for monsters)
-	esoparty = "%s%s%s: |r%s%s%s|r", -- standard format: party
-	tellIn = "%s%s: |r%s%s%s|r", -- tell in
-	tellOut = "%s-> %s: |r%s%s%s|r", -- tell out
-	emote = "%s%s |r%s%s|r", -- emote
-	guild = "%s%s %s: |r%s%s%s|r", -- guild
-	language = "%s[%s] %s: |r%s%s%s|r", -- language zones
-
-	-- For copy System, only Handle "From part"
-
-	copystandard = "[%s]: ", -- standard format: say, yell, group, npc, npc yell, npc whisper, zone
-	copyesostandard = "[%s] %s: ", -- standard format: say, yell, group, npc, npc yell, npc whisper, zone with tag (except for monsters)
-	copyesoparty = "[%s]%s: ", -- standard format: party
-	copytellIn = "[%s]: ", -- tell in
-	copytellOut = "-> [%s]: ", -- tell out
-	copyemote = "%s ", -- emote
-	copyguild = "[%s] [%s]: ", -- guild
-	copylanguage = "[%s] %s: ", -- language zones
-	copynpc = "%s: ", -- language zones
-}
-
+--======================================================================================================================
 --Load the libraries
+--======================================================================================================================
 local function LoadLibraries()
 	--LibDebugLogger
 	if not pChat.logger and LibDebugLogger then
 		pChat.logger = LibDebugLogger(ADDON_NAME)
 		logger = pChat.logger
 		logger:Debug("AddOn loaded")
+		subloggerVerbose = logger:Create("Verbose")
+		subloggerVerbose:SetEnabled(false)
+		pChat.verbose = subloggerVerbose
 	end
 	--LibChatMessage
+	--[[
 	if not pChat.LCM and LibChatMessage then
 		pChat.LCM = LibChatMessage(ADDON_NAME, "pC")
 		if logger then logger:Debug("Library 'LibChatMessage' detected") end
 	end
+	]]
 end
 --Early try to load libs (done again in EVENT_ADD_ON_LOADED)
 LoadLibraries()
+
+--======================================================================================================================
+-- Helper functions
+--======================================================================================================================
+local AddCustomChannelSwitches, RemoveCustomChannelSwitches
 
 --Initialize some tbales of the addon
 local function InitTables()
@@ -351,6 +382,9 @@ local function getCharactersOfAccount(keyIsCharName, decorate)
     return charactersOfAccount
 end
 
+--======================================================================================================================
+-- pChat functions
+--======================================================================================================================
 --Check if a chat category (of a chat channel) is enabled in any chat tab's settings
 local chatCatgoriesEnabledTable = {}
 local function isChatCategoryEnabledInAnyChatTab(chatChannel)
@@ -435,7 +469,7 @@ local function SpamFlood(from, text, chanCode)
 									-- spammableChannels[db.LineStrings[previousLine].channel] = return true if previous message was sent in a spammable channel
 									if spammableChannels[spamChanCode] and spammableChannels[db.LineStrings[previousLine].channel] then
 										-- Spam
-										--logger:Debug("Spam detected (%s)", text)
+										subloggerVerbose:Debug("Spam detected (%s)", text)
 										return true
 									end
 								end
@@ -1624,7 +1658,7 @@ local function OnIMReceived(from, lineNumber)
 
 		--Do not notify if history gets restored and if the setting to stop notifications is
 		if db.doNotNotifyOnRestoredWhisperFromHistory == true and preventWhisperNotificationsFromHistory == true then
---logger:Debug("<<<Whisper restore aborted!")
+			subloggerVerbose:Debug("<<<Whisper restore aborted, from: " ..tostring(from) .. ", line#: " ..tostring(lineNumber))
 			--Prevent the whisper notifications because of history restored messages
 			preventWhisperNotificationsFromHistory = false
 			return
@@ -2365,43 +2399,92 @@ do
         end
         return originalZO_ChatSystem_GetCategoryColorFromChannel(channelId)
     end
-end
 
---[[
-local function UpdateCharCorrespondanceTableSwitchs()
-logger:Debug("[pChat]UpdateCharCorrespondanceTableSwitchs")
-	-- Each guild:_ Update table from ZO_ChatSystem_GetChannelInfo() to set teh possible switches (chat commands like /guild1 etc.)
-	for i = 1, GetNumGuilds() do
-		local guildId = GetGuildId(i)
+    -- store all built-in switches so we can prevent accidents
+    local isBuiltIn = {}
+    for channelId, data in pairs(ChannelInfo) do
+        if data.switches then
+            for switchArg in data.switches:gmatch("%S+") do
+                isBuiltIn[switchArg:lower()] = true
+            end
+        end
+    end
+		--local guildId = GetGuildId(i)
 		--local guildName = GetGuildName(guildId)
-		-- Get saved string
-		local switch = db.switchFor[guildId]
-		if switch and switch ~= "" then
-			switch = GetString(SI_CHANNEL_SWITCH_GUILD_1 - 1 + i) .. " " .. switch
-		else
-			switch = GetString(SI_CHANNEL_SWITCH_GUILD_1 - 1 + i)
-		end
-		ChanInfoArray[CHAT_CHANNEL_GUILD_1 - 1 + i].switches = switch
+    function AddCustomChannelSwitches(channelId, switchesToAdd)
+		logger:Debug("AddCustomChannelSwitches-channelId: ", tostring(channelId) .. "; switchesToAdd: " ..tostring(switchesToAdd))
+        local data = ChannelInfo[channelId]
+        if not data or not switchesToAdd or switchesToAdd == "" then
+            logger:Warn("Invalid arguments passed to 'AddCustomChannelSwitches'")
+            return
+        end
 
-logger:Debug(">Set switch " ..tostring(switch) .." for guild# " .. tostring(i))
+        local switches = {}
+        if data.switches then
+            for switchArg in data.switches:gmatch("%S+") do
+                switches[#switches + 1] = switchArg
+            end
+        end
+        for switchArg in switchesToAdd:gmatch("%S+") do
+            switchArg = switchArg:lower()
+            if isBuiltIn[switchArg] then
+                local message = string.format(GetString(PCHAT_BUILT_IN_CHANNEL_SWITCH_WARNING), switchArg)
+                ZO_Alert(UI_ALERT_CATEGORY_ERROR, SOUNDS.NEGATIVE_CLICK, message)
+            elseif g_switchLookup[switchArg] then
+                local message = string.format(GetString(PCHAT_DUPLICATE_CHANNEL_SWITCH_WARNING), switchArg)
+                ZO_Alert(UI_ALERT_CATEGORY_ERROR, SOUNDS.NEGATIVE_CLICK, message)
+            else
+                switches[#switches + 1] = switchArg
+                g_switchLookup[switchArg] = data
+            end
+        end
 
-		-- Get saved string
-		local officerSwitch = db.officerSwitchFor[guildId]
-		-- No SavedVar
-		if officerSwitch and officerSwitch ~= "" then
-			officerSwitch = GetString(SI_CHANNEL_SWITCH_OFFICER_1 - 1 + i)  .. " " .. officerSwitch
-		else
-			officerSwitch = GetString(SI_CHANNEL_SWITCH_OFFICER_1 - 1 + i)
-		end
-		ChanInfoArray[CHAT_CHANNEL_OFFICER_1 - 1 + i].switches = officerSwitch
-	end
+        if #switches > 0 then
+            data.switches = table.concat(switches, " ")
+        else
+            data.switches = nil
+        end
+    end
 
+    function RemoveCustomChannelSwitches(channelId, switchesToRemove)
+		logger:Debug("RemoveCustomChannelSwitches-channelId: ", tostring(channelId) .. "; switchesToRemove: " ..tostring(switchesToRemove))
+        local data = ChannelInfo[channelId]
+        if not data or not switchesToRemove or switchesToRemove == "" then
+            logger:Warn("Invalid arguments passed to RemoveCustomChannelSwitches")
+            return
+        end
+        if not data.switches then
+            logger:Warn("'RemoveCustomChannelSwitches', channel %d has no switches to remove", channelId)
+            return
+        end
+        local shouldRemove = {}
+        for switchArg in switchesToRemove:gmatch("%S+") do
+            switchArg = switchArg:lower()
+            if not isBuiltIn[switchArg] then
+                shouldRemove[switchArg] = true
+            end
+        end
+
+        local switches = {}
+        for switchArg in data.switches:gmatch("%S+") do
+            if shouldRemove[switchArg] then
+                g_switchLookup[switchArg] = nil
+            else
+                switches[#switches + 1] = switchArg
+            end
+        end
+
+        if #switches > 0 then
+            data.switches = table.concat(switches, " ")
+        else
+            data.switches = nil
+        end
+    end
 end
-]]
 
 -- Change guild channel names in entry box
 local function UpdateCharCorrespondanceTableChannelNames()
-logger:Debug("Create the guild short names")
+	logger:Debug("UpdateCharCorrespondanceTableChannelNames-Create the guild short names")
 	-- Each guild: Update the table from ZO_ChatSystem_GetChannelInfo()
 	for i = 1, GetNumGuilds() do
 		local guildId = GetGuildId(i)
@@ -2427,21 +2510,38 @@ logger:Debug("Create the guild short names")
 				officertag = tag
 			end
 
-			--ChanInfoArray = ZO_ChatSystem_GetChannelInfo()
 			-- CHAT_CHANNEL_GUILD_1 /g1 is 12 /g5 is 16, /o1=17, etc
-			ChanInfoArray[CHAT_CHANNEL_GUILD_1 - 1 + i].name = tag
-			ChanInfoArray[CHAT_CHANNEL_OFFICER_1 - 1 + i].name = officertag
-logger:Debug(">Set guild/officer tags to: %s/%s for guild #%d", tag, officertag, i)
+			ChannelInfo[CHAT_CHANNEL_GUILD_1 - 1 + i].name = tag
+			ChannelInfo[CHAT_CHANNEL_OFFICER_1 - 1 + i].name = officertag
+			logger:Debug(">Set guild/officer tags to: %s/%s for guild #%d", tag, officertag, i)
 			--Disabling dynamic chat channel names (see function GetDynamicChatChannelName(channelInfo.id))
-			ChanInfoArray[CHAT_CHANNEL_GUILD_1 - 1 + i].dynamicName = false
-			ChanInfoArray[CHAT_CHANNEL_OFFICER_1 - 1 + i].dynamicName = false
+			ChannelInfo[CHAT_CHANNEL_GUILD_1 - 1 + i].dynamicName = false
+			ChannelInfo[CHAT_CHANNEL_OFFICER_1 - 1 + i].dynamicName = false
 
 		else
-			ChanInfoArray[CHAT_CHANNEL_GUILD_1 - 1 + i].name = guildName
-			ChanInfoArray[CHAT_CHANNEL_OFFICER_1 - 1 + i].name = guildName
+			ChannelInfo[CHAT_CHANNEL_GUILD_1 - 1 + i].name = guildName
+			ChannelInfo[CHAT_CHANNEL_OFFICER_1 - 1 + i].name = guildName
 			--Enabling dynamic chat channel names (see function GetDynamicChatChannelName(channelInfo.id))
-			ChanInfoArray[CHAT_CHANNEL_GUILD_1 - 1 + i].dynamicName = true
-			ChanInfoArray[CHAT_CHANNEL_OFFICER_1 - 1 + i].dynamicName = true
+			ChannelInfo[CHAT_CHANNEL_GUILD_1 - 1 + i].dynamicName = true
+			ChannelInfo[CHAT_CHANNEL_OFFICER_1 - 1 + i].dynamicName = true
+		end
+	end
+end
+
+local function UpdateGuildCorrespondanceTableSwitches()
+	-- Update custom guild switches
+	logger:Debug("UpdateGuildCorrespondanceTableSwitches-Create the guild chat switches")
+	for i = 1, GetNumGuilds() do
+		local guildId = GetGuildId(i)
+
+		local guildSwitches = db.switchFor[guildId]
+		if(guildSwitches and guildSwitches ~= "") then
+			AddCustomChannelSwitches(CHAT_CHANNEL_GUILD_1 - 1 + i, guildSwitches)
+		end
+
+		local officerSwitches = db.officerSwitchFor[guildId]
+		if(officerSwitches and officerSwitches ~= "") then
+			AddCustomChannelSwitches(CHAT_CHANNEL_OFFICER_1 - 1 + i, officerSwitches)
 		end
 	end
 end
@@ -3109,7 +3209,7 @@ end
 -- Create an array for the copy functions, spam functions and revert history functions
 -- WARNING : See FormatSysMessage()
 local function StorelineNumber(rawTimestamp, rawFrom, text, chanCode, originalFrom)
-	--logger:Debug("StoreLineNumber")
+	subloggerVerbose:Debug(string.format("StoreLineNumber-Channel %s: [%s]%s(%s) %s", tostring(chanCode), tostring(rawTimestamp), tostring(originalFrom), tostring(rawFrom), tostring(text)))
 	-- Strip DDS tag from Copy text
 	local function StripDDStags(text)
 		return text:gsub("|t(.-)|t", "")
@@ -3397,7 +3497,7 @@ end
 -- Executed when EVENT_CHAT_MESSAGE_CHANNEL triggers
 -- Formats the message
 local function FormatMessage(chanCode, from, text, isCS, fromDisplayName, originalFrom, originalText, DDSBeforeAll, TextBeforeAll, DDSBeforeSender, TextBeforeSender, TextAfterSender, DDSAfterSender, DDSBeforeText, TextBeforeText, TextAfterText, DDSAfterText)
-	logger:Debug("FormatMessage - showGuildNr:", db.showGuildNumbers)
+	subloggerVerbose:Debug(string.format("FormatMessage-Line#: %s, channel %s: %s(%s/%s) %s", tostring(db.lineNumber), tostring(chanCode), tostring(originalFrom), tostring(fromDisplayName), tostring(from), tostring(text)))
 	local notHandled = false
 
 	-- Will calculate if this message is a spam
@@ -3406,7 +3506,7 @@ local function FormatMessage(chanCode, from, text, isCS, fromDisplayName, origin
 	-- A spam, drop everything
 	if isSpam then return end
 
-	--local info = ChanInfoArray[chanCode]
+	--local info = ChannelInfo[chanCode]
 
 	-- Init message with other addons stuff
 	local message = DDSBeforeAll .. TextBeforeAll
@@ -3773,13 +3873,13 @@ end
 -- Rewrite of core data
 do
     -- TODO this isn't currently used in FormatMessage, but may come in handy once we refactor that
-    ChanInfoArray[CHAT_CHANNEL_SAY].channelLinkable = true
-    ChanInfoArray[CHAT_CHANNEL_YELL].channelLinkable = true
-    ChanInfoArray[CHAT_CHANNEL_ZONE].channelLinkable = true
-    ChanInfoArray[CHAT_CHANNEL_ZONE_LANGUAGE_1].channelLinkable = true
-    ChanInfoArray[CHAT_CHANNEL_ZONE_LANGUAGE_2].channelLinkable = true
-    ChanInfoArray[CHAT_CHANNEL_ZONE_LANGUAGE_3].channelLinkable = true
-    ChanInfoArray[CHAT_CHANNEL_ZONE_LANGUAGE_4].channelLinkable = true
+    ChannelInfo[CHAT_CHANNEL_SAY].channelLinkable = true
+    ChannelInfo[CHAT_CHANNEL_YELL].channelLinkable = true
+    ChannelInfo[CHAT_CHANNEL_ZONE].channelLinkable = true
+    ChannelInfo[CHAT_CHANNEL_ZONE_LANGUAGE_1].channelLinkable = true
+    ChannelInfo[CHAT_CHANNEL_ZONE_LANGUAGE_2].channelLinkable = true
+    ChannelInfo[CHAT_CHANNEL_ZONE_LANGUAGE_3].channelLinkable = true
+    ChannelInfo[CHAT_CHANNEL_ZONE_LANGUAGE_4].channelLinkable = true
 end
 
 -- Save chat configuration
@@ -4174,93 +4274,6 @@ local function OnGroupMemberLeft(_, reason, isLocalPlayer, _, _, actionRequiredV
 	if reason == GROUP_LEAVE_REASON_KICKED and isLocalPlayer and actionRequiredVote then
 		return GetString(SI_GROUP_ELECTION_KICK_PLAYER_PASSED)
 	end
-end
-
-local AddCustomChannelSwitches, RemoveCustomChannelSwitches
-do
-    local ChannelInfo = ZO_ChatSystem_GetChannelInfo()
-    local g_switchLookup = ZO_ChatSystem_GetChannelSwitchLookupTable()
-
-    -- store all built-in switches so we can prevent accidents
-    local isBuiltIn = {}
-    for channelId, data in pairs(ChannelInfo) do
-        if data.switches then
-            for switchArg in data.switches:gmatch("%S+") do
-                isBuiltIn[switchArg:lower()] = true
-            end
-        end
-    end
-		--local guildId = GetGuildId(i)
-		--local guildName = GetGuildName(guildId)
-    function AddCustomChannelSwitches(channelId, switchesToAdd)
-logger:Debug("AddCustomChannelSwitches-channelId: ", tostring(channelId) .. "; switchesToAdd: " ..tostring(switchesToAdd))
-        local data = ChannelInfo[channelId]
-        if not data or not switchesToAdd or switchesToAdd == "" then
-            logger:Warn("Invalid arguments passed to AddCustomChannelSwitches") 
-            return
-        end
-
-        local switches = {}
-        if data.switches then
-            for switchArg in data.switches:gmatch("%S+") do
-                switches[#switches + 1] = switchArg
-            end
-        end
-        for switchArg in switchesToAdd:gmatch("%S+") do
-            switchArg = switchArg:lower()
-            if isBuiltIn[switchArg] then
-                local message = string.format(GetString(PCHAT_BUILT_IN_CHANNEL_SWITCH_WARNING), switchArg)
-                ZO_Alert(UI_ALERT_CATEGORY_ERROR, SOUNDS.NEGATIVE_CLICK, message)
-            elseif g_switchLookup[switchArg] then
-                local message = string.format(GetString(PCHAT_DUPLICATE_CHANNEL_SWITCH_WARNING), switchArg)
-                ZO_Alert(UI_ALERT_CATEGORY_ERROR, SOUNDS.NEGATIVE_CLICK, message)
-            else
-                switches[#switches + 1] = switchArg
-                g_switchLookup[switchArg] = data
-            end
-        end
-
-        if #switches > 0 then
-            data.switches = table.concat(switches, " ")
-        else
-            data.switches = nil
-        end
-    end
-
-    function RemoveCustomChannelSwitches(channelId, switchesToRemove)
-logger:Debug("RemoveCustomChannelSwitches-channelId: ", tostring(channelId) .. "; switchesToRemove: " ..tostring(switchesToRemove))
-        local data = ChannelInfo[channelId]
-        if not data or not switchesToRemove or switchesToRemove == "" then
-            logger:Warn("Invalid arguments passed to RemoveCustomChannelSwitches") 
-            return
-        end
-        if not data.switches then
-            logger:Warn("Channel %d has no switches to remove", channelId) 
-            return
-        end
-        local shouldRemove = {}
-        for switchArg in switchesToRemove:gmatch("%S+") do
-            switchArg = switchArg:lower()
-            if not isBuiltIn[switchArg] then
-                shouldRemove[switchArg] = true
-            end
-        end
-
-        local switches = {}
-        for switchArg in data.switches:gmatch("%S+") do
-            if shouldRemove[switchArg] then
-                g_switchLookup[switchArg] = nil
-            else
-                switches[#switches + 1] = switchArg
-            end
-        end
-
-        if #switches > 0 then
-            data.switches = table.concat(switches, " ")
-        else
-            data.switches = nil
-        end
-    end
 end
 
 -- *********************************************************************************
@@ -5781,7 +5794,7 @@ local function OnPlayerActivated()
 			pChatData.activeTab = 1
 
 			--Get a reference to the chat channelData (CHAT_SYSTEM.channelData)
-			--ChanInfoArray = ZO_ChatSystem_GetChannelInfo()
+			--ChannelInfo = ZO_ChatSystem_GetChannelInfo()
 
 			if CHAT_SYSTEM.ValidateChatChannel then
 				ZO_PreHook(CHAT_SYSTEM, "ValidateChatChannel", function(self)
@@ -5844,24 +5857,11 @@ local function OnPlayerActivated()
 			SyncChatConfig(db.chatSyncConfig, "lastChar")
 			SaveChatConfig()
 
-			-- Tags next to entry box: Add them to the chat channels of table ChanInfoArray
+			--Update the guilds custom tags (next to entry box): Add them to the chat channels of table ChannelInfo
 			UpdateCharCorrespondanceTableChannelNames()
 
-			-- Update custom guild switches
-			logger:Debug("Create the guild chat switches")
-			for i = 1, GetNumGuilds() do
-				local guildId = GetGuildId(i)
-
-				local guildSwitches = db.switchFor[guildId]
-				if(guildSwitches and guildSwitches ~= "") then
-					AddCustomChannelSwitches(CHAT_CHANNEL_GUILD_1 - 1 + i, guildSwitches)
-				end
-
-				local officerSwitches = db.officerSwitchFor[guildId]
-				if(officerSwitches and officerSwitches ~= "") then
-					AddCustomChannelSwitches(CHAT_CHANNEL_OFFICER_1 - 1 + i, officerSwitches)
-				end
-			end
+			--Update teh guild's custom channel switches: Add them to the chat switches of table ZO_ChatSystem_GetChannelSwitchLookupTable
+			UpdateGuildCorrespondanceTableSwitches()
 
 			-- Set default channel at login
 			SetToDefaultChannel()
