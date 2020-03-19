@@ -24,3 +24,5 @@ pChat.xml
 copyDialog.xml
 bindings.xml
 SpamFilter.lua
+MessageFormatters.lua
+ChatHandlers.lua
