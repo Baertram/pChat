@@ -27,3 +27,4 @@ SpamFilter.lua
 MessageFormatters.lua
 ChatHandlers.lua
 Settings.lua
+AutomatedMessages.lua
