@@ -26,3 +26,4 @@ bindings.xml
 SpamFilter.lua
 MessageFormatters.lua
 ChatHandlers.lua
+Settings.lua
