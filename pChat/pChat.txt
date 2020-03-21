@@ -28,3 +28,4 @@ MessageFormatters.lua
 ChatHandlers.lua
 Settings.lua
 AutomatedMessages.lua
+IncomingMessages.lua
