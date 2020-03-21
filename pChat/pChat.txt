@@ -29,3 +29,4 @@ ChatHandlers.lua
 Settings.lua
 AutomatedMessages.lua
 IncomingMessages.lua
+CopyHandler.lua
