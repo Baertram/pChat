@@ -1,4 +1,4 @@
-function pChat.InitializeMessageFormatters(pChatData, db, PCHAT_LINK, PCHAT_URL_CHAN, SpamFilter, GetChannelColors, CreateTimestamp, StorelineNumber, OnIMReceived, logger, subloggerVerbose)
+function pChat.InitializeMessageFormatters(pChatData, db, PCHAT_LINK, PCHAT_URL_CHAN, SpamFilter, GetChannelColors, CreateTimestamp, OnIMReceived, logger, subloggerVerbose)
 
     local chatStrings = {
         standard = "%s%s: |r%s%s%s|r", -- standard format: say, yell, group, npc, npc yell, npc whisper, zone
@@ -1013,7 +1013,7 @@ function pChat.InitializeMessageFormatters(pChatData, db, PCHAT_LINK, PCHAT_URL_
 
         if not notHandled then
             -- Store message and params into an array for copy system and SpamFiltering
-            StorelineNumber(GetTimeStamp(), db.LineStrings[db.lineNumber].rawFrom, text, chanCode, originalFrom)
+            pChat.StorelineNumber(GetTimeStamp(), db.LineStrings[db.lineNumber].rawFrom, text, chanCode, originalFrom)
         end
 
         -- Needs to be after .storelineNumber()
@@ -1105,7 +1105,7 @@ function pChat.InitializeMessageFormatters(pChatData, db, PCHAT_LINK, PCHAT_URL_
                     if not db.LineStrings[db.lineNumber].rawDisplayed then db.LineStrings[db.lineNumber].rawDisplayed = sysMessage end
 
                     -- No From, rawTimestamp is in statusMessage, sent as arg for SpamFiltering even if SysMessages are not filtered
-                    StorelineNumber(GetTimeStamp(), nil, statusMessage, CHAT_CHANNEL_SYSTEM, nil)
+                    pChat.StorelineNumber(GetTimeStamp(), nil, statusMessage, CHAT_CHANNEL_SYSTEM, nil)
 
                 end
 

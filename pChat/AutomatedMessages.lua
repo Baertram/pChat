@@ -90,6 +90,7 @@ function pChat.InitializeAutomatedMessages(pChatData, db, ADDON_NAME)
         return newtext
 
     end
+    pChat.FormatRawText = FormatRawText
 
     function automatedMessagesList:SetupEntry(control, data)
 

@@ -31,3 +31,4 @@ AutomatedMessages.lua
 IncomingMessages.lua
 CopyHandler.lua
 ChatConfig.lua
+ChatHistory.lua
