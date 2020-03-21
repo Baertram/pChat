@@ -1,4 +1,4 @@
-function pChat.InitializeSettings(pChatData, ADDON_NAME, PCHAT_CHANNEL_NONE, getTabNames, UpdateCharCorrespondanceTableChannelNames, ConvertHexToRGBA, ConvertRGBToHex, SyncChatConfig, ChangeChatWindowDarkness, ChangeChatFont, AddCustomChannelSwitches, RemoveCustomChannelSwitches, logger)
+function pChat.InitializeSettings(pChatData, ADDON_NAME, PCHAT_CHANNEL_NONE, getTabNames, UpdateCharCorrespondanceTableChannelNames, ConvertHexToRGBA, ConvertRGBToHex, AddCustomChannelSwitches, RemoveCustomChannelSwitches, logger)
 
     local ADDON_VERSION = "9.4.1.5"
     local ADDON_AUTHOR  = "Ayantir, DesertDwellers, Baertram (current)"
@@ -617,7 +617,7 @@ function pChat.InitializeSettings(pChatData, ADDON_NAME, PCHAT_CHANNEL_NONE, get
                     width = "full",
                     getFunc = function() return GetCurrentCharacterId() end,
                     setFunc = function(charId)
-                        SyncChatConfig(true, charId)
+                        pChat.SyncChatConfig(true, charId)
                     end,
                 },
             },
@@ -644,7 +644,7 @@ function pChat.InitializeSettings(pChatData, ADDON_NAME, PCHAT_CHANNEL_NONE, get
                     getFunc = function() return db.windowDarkness end,
                     setFunc = function(newValue)
                         db.windowDarkness = newValue
-                        ChangeChatWindowDarkness()
+                        pChat.ChangeChatWindowDarkness()
                         CHAT_SYSTEM:Maximize()
                     end,
                     width = "full",
@@ -686,7 +686,7 @@ function pChat.InitializeSettings(pChatData, ADDON_NAME, PCHAT_CHANNEL_NONE, get
                     getFunc = function() return db.fonts end,
                     setFunc = function(choice)
                         db.fonts = choice
-                        ChangeChatFont(true)
+                        pChat.ChangeChatFont(true)
                         ReloadUI()
                     end,
                     default = defaults.fontChange,
