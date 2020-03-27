@@ -8,8 +8,27 @@
 ------------------------------------------------------------------------------------------------------------------------
 --#3	2020-03-27 Baetram, bug: Enter into a group with the dungeon finder will not change to the group chat channel /group automatically, if setting is enabled
 ------------------------------------------------------------------------------------------------------------------------
---#4	2020-03-27 Baetram, bug: Sound notifications for incoming whispers not played
-------------------------------------------------------------------------------------------------------------------------
+--=======================================================================================================================================
+
+--=======================================================================================================================================
+-- Changelog version: 1.5.1.5 (last version 1.5.1.4)
+--=======================================================================================================================================
+--Fixed:
+--#4 Sound notifications for incoming whispers were not played
+
+--Changed:
+--Settings menu totally changed to use less space on main menu page but use mroe submenus; moved related settings together into the same submenus
+--Updated and corrected settings menu texts and tooltips
+--Option "Enable brightness difference" affects NonESO colors as well now
+
+--Added:
+--Description and tooltip to eso standard color and pChat color settings menu
+
+--Added on request:
+--Chat channel will be automatically changed to /party if you port/reloadui to/in a dungeon, and if you are grouped. This is a new sub-setting of the "Enable Party Switch" setting.
+--=======================================================================================================================================
+
+
 --  pChat object
 pChat = pChat or {}
 
@@ -19,13 +38,16 @@ pChat = pChat or {}
 -- Common
 local ADDON_NAME	= "pChat"
 local ADDON_VERSION	= "9.4.1.5"
-local ADDON_AUTHOR	= "Ayantir, DesertDwellers, Baertram (current)"
+local ADDON_AUTHOR	= "Ayantir, DesertDwellers, |cFFFF00Baertram|r"
 local ADDON_WEBSITE	= "http://www.esoui.com/downloads/info93-pChat.html"
+local ADDON_FEEDBACK= "https://www.esoui.com/forums/private.php?do=newpm&u=2028"
+local ADDON_DONATION= "https://www.esoui.com/portal.php?id=136&a=faq&faqid=131"
 
 --======================================================================================================================
 --pChat Variables--
 --======================================================================================================================
 pChat.tabNames = {}
+pChat.tabIndices = {}
 
 -- pChatData will receive variables and objects.
 local pChatData = {}
@@ -201,7 +223,6 @@ local defaults = {
 	notifyIM = false,
 	nicknames = "",
 	defaultTab = 1,
-	defaultTabName = "",
 	groupNames = 1,
 	geoChannelsFormat = 2,
 	urlHandling = true,
@@ -424,6 +445,20 @@ local function PrepareVars()
 	--Tables with character ID as key
 	pChat.characterId2Name = getCharactersOfAccount(false, true)
 	pChat.characterId2NameRaw = getCharactersOfAccount(false, false)
+
+	--Get the sounds
+	pChat.sounds = {}
+	if SOUNDS then
+		for soundName, _ in pairs(SOUNDS) do
+			if soundName ~= "NONE" then
+				table.insert(pChat.sounds, soundName)
+			end
+		end
+		if #pChat.sounds > 0 then
+			table.sort(pChat.sounds)
+			table.insert(pChat.sounds, 1, "NONE")
+		end
+	end
 end
 
 -- Return true/false if text is a flood
@@ -845,6 +880,25 @@ local function ConvertHexToRGBA(colourString)
 	local g=tonumber(string.sub(colourString, 5, 6), 16) or 255
 	local b=tonumber(string.sub(colourString, 7, 8), 16) or 255
 	return r/255, g/255, b/255, 1
+end
+
+ -- Substract XX from a color (darker)
+local function DarkenRGBColor(r, g, b, value)
+	if not value or value <= 0 then return r,g,b end
+	-- Scale is from 0-100 so divide per 300 will maximise difference at 0.33 (*2)
+	r = math.max(r - (value / 300 ),0)
+	g = math.max(g - (value / 300 ),0)
+	b = math.max(b - (value / 300 ),0)
+	return r,g,b
+end
+
+ -- Add XX to a color (brighter)
+local function LightenRGBColor(r, g, b, value)
+	if not value or value <= 0 then return r,g,b end
+	r = math.min(r + (value / 300 ),1)
+	g = math.min(g + (value / 300 ),1)
+	b = math.min(b + (value / 300 ),1)
+	return r,g,b
 end
 
 -- Return a formatted time
@@ -1504,29 +1558,38 @@ end
 -- **************************************************************************
 -- Chat Tab Functions
 -- **************************************************************************
-local function getTabNames()
+local function getTabNamesAndIndices()
     local totalTabs = CHAT_SYSTEM.tabPool.m_Active
     if totalTabs ~= nil and #totalTabs >= 1 then
         pChat.tabNames = {}
+        pChat.tabIndices = {}
         for idx, tmpTab in pairs(totalTabs) do
-            local tabLabel = tmpTab:GetNamedChild("Text")
-            local tmpTabName = tabLabel:GetText()
-            if tmpTabName ~= nil and tmpTabName ~= "" then
-                pChat.tabNames[idx] = tmpTabName
-            end
+			local tabLabel = tmpTab:GetNamedChild("Text")
+			if tabLabel ~= nil then
+				local tmpTabName = tabLabel:GetText()
+				if tmpTabName ~= nil and tmpTabName ~= "" then
+					pChat.tabIndices[idx] = idx
+					pChat.tabNames[idx] = tmpTabName
+				end
+			end
         end
     end
 end
 
-local function getTabIdx (tabName)
-	local tabIdx = 0
+local function getTabIdxByName(tabName)
+	pChat.tabNames = pChat.tabNames or {}
+	if #pChat.tabNames == 0 then
+		getTabNamesAndIndices()
+	end
+	local chatTabNames = pChat.tabNames
 	local totalTabs = CHAT_SYSTEM.tabPool.m_Active
 	for i = 1, #totalTabs do
-		if pChat.tabNames[i] == tabName then
-			tabIdx = i
+		if chatTabNames[i] == tabName then
+			return i
 		end
 	end
-	return tabIdx
+	--Fallback: Return chat tab 1
+	return 1
 end
 
 -- Rewrite of a core function
@@ -3417,24 +3480,7 @@ local function InitializeURLHandling()
 end
 
 local function GetChannelColors(channel, from)
-
-	 -- Substract XX to a color (darker)
-	local function FirstColorFromESOSettings(r, g, b)
-		-- Scale is from 0-100 so divide per 300 will maximise difference at 0.33 (*2)
-		r = math.max(r - (db.diffforESOcolors / 300 ),0)
-		g = math.max(g - (db.diffforESOcolors / 300 ),0)
-		b = math.max(b - (db.diffforESOcolors / 300 ),0)
-		return r,g,b
-	end
-
-	 -- Add XX to a color (brighter)
-	local function SecondColorFromESOSettings(r, g, b)
-		r = math.min(r + (db.diffforESOcolors / 300 ),1)
-		g = math.min(g + (db.diffforESOcolors / 300 ),1)
-		b = math.min(b + (db.diffforESOcolors / 300 ),1)
-		return r,g,b
-	end
-
+	--Use ESO standard colors?
 	if db.useESOcolors then
 
 		-- ESO actual color, return r,g,b
@@ -3454,13 +3500,14 @@ local function GetChannelColors(channel, from)
 			rESO, gESO, bESO = ZO_ChatSystem_GetCategoryColorFromChannel(channel)
 		end
 
-		-- Set right colour to left colour - cause ESO colors are rewrited, if onecolor, no rewriting
-		if db.oneColour then
+		-- Set right colour to left colour - cause ESO colors are rewritten, if one color is not rewritten
+		if db.oneColour == true then
 			pChat.lcol = ConvertRGBToHex(rESO, gESO, bESO)
 			pChat.rcol = pChat.lcol
 		else
-			pChat.lcol = ConvertRGBToHex(FirstColorFromESOSettings(rESO,gESO,bESO))
-			pChat.rcol = ConvertRGBToHex(SecondColorFromESOSettings(rESO,gESO,bESO))
+			--Change name and text brightness?
+			pChat.lcol = ConvertRGBToHex(DarkenRGBColor(rESO,gESO,bESO, db.diffforESOcolors))
+			pChat.rcol = ConvertRGBToHex(LightenRGBColor(rESO,gESO,bESO, db.diffforESOcolors))
 		end
 
 	else
@@ -3487,8 +3534,14 @@ local function GetChannelColors(channel, from)
 		end
 
 		-- Set right colour to left colour
-		if db.oneColour then
+		if db.oneColour == true then
 			pChat.rcol = pChat.lcol
+		else
+			--Change name and text brightness?
+			local lR, lG, lB, lA = ConvertHexToRGBA(pChat.lcol)
+			local rR, rG, rB, rA = ConvertHexToRGBA(pChat.rcol)
+			pChat.lcol = ConvertRGBToHex(DarkenRGBColor(lR,lG,lB, db.diffforESOcolors))
+			pChat.rcol = ConvertRGBToHex(LightenRGBColor(rR,rG,rB, db.diffforESOcolors))
 		end
 
 	end
@@ -4181,6 +4234,28 @@ local function SetToDefaultChannel()
 	end
 end
 
+--Check if any automatic chat channel switches should be applied
+local function CheckChatChannelSwitches()
+	--Chat channel party switch checks
+	if db then
+
+		--Chat channel party switch checks (if grouped)
+		if db.enablepartyswitch == true and IsUnitGrouped("player") == true then
+
+			--Chat channel party switch in dungeon checks
+			if db.enablepartyswitchPortToDungeon == true then
+				--Is the player in a dungeon?
+				if IsUnitInDungeon("player") == true then
+					--Change the chat channel to group now
+					CHAT_SYSTEM:SetChannel(CHAT_CHANNEL_PARTY)
+				end
+			end
+
+		end
+
+	end
+end
+
 local function SaveGuildIndexes()
 	pChatData.guildIndexes = {}
 	--For each guild get the unique serverGuildId
@@ -4345,107 +4420,22 @@ local function BuildLAMPanel()
 		table.insert(arrayTab, 1)
 	end
 
-	getTabNames()
-
-
-	--Update the available sounds from the game
-	pChat.sounds = {}
-	if SOUNDS then
-		for soundName, _ in pairs(SOUNDS) do
-			if soundName ~= "NONE" then
-				table.insert(pChat.sounds, soundName)
-			end
-		end
-		if #pChat.sounds > 0 then
-			table.sort(pChat.sounds)
-			table.insert(pChat.sounds, 1, "NONE")
-		end
+	--Get the chat tab names
+	getTabNamesAndIndices()
+	--No default tab chosen in SavedVariables yet? Use the first tab	--Update the available sounds from the game
+	if not db.defaultTab then
+		db.defaultTab = 1
 	end
+
+	--The LAM options data table
 	local optionsData = {}
 
-	-- Messages Settings
+	------------------------------------------------------------------------------------------------------------------------
+	-- Chat settings
 	optionsData[#optionsData + 1] = {
 		type = "submenu",
 		name = GetString(PCHAT_OPTIONSH),
 		controls = {
-			{-- LAM Option Show Guild Numbers
-				type = "checkbox",
-				name = GetString(PCHAT_GUILDNUMBERS),
-				tooltip = GetString(PCHAT_GUILDNUMBERSTT),
-				getFunc = function() return db.showGuildNumbers end,
-				setFunc = function(newValue)
-					db.showGuildNumbers = newValue
-				end,
-				width = "full",
-				default = defaults.showGuildNumbers,
-			},
-			{-- LAM Option Use Same Color for all Guilds
-				type = "checkbox",
-				name = GetString(PCHAT_ALLGUILDSSAMECOLOUR),
-				tooltip = GetString(PCHAT_ALLGUILDSSAMECOLOURTT),
-				getFunc = function() return db.allGuildsSameColour end,
-				setFunc = function(newValue) db.allGuildsSameColour = newValue end,
-				width = "full",
-				default = defaults.allGuildsSameColour,
-			},
-			{-- LAM Option Use same color for all zone chats
-				type = "checkbox",
-				name = GetString(PCHAT_ALLZONESSAMECOLOUR),
-				tooltip = GetString(PCHAT_ALLZONESSAMECOLOURTT),
-				getFunc = function() return db.allZonesSameColour end,
-				setFunc = function(newValue) db.allZonesSameColour = newValue end,
-				width = "full",
-				default = defaults.allZonesSameColour,
-			},
-			{-- LAM Option Use same color for all NPC
-				type = "checkbox",
-				name = GetString(PCHAT_ALLNPCSAMECOLOUR),
-				tooltip = GetString(PCHAT_ALLNPCSAMECOLOURTT),
-				getFunc = function() return db.allNPCSameColour end,
-				setFunc = function(newValue) db.allNPCSameColour = newValue end,
-				width = "full",
-				default = defaults.allNPCSameColour,
-			},
-			{-- LAM Option Remove Zone Tags
-				type = "checkbox",
-				name = GetString(PCHAT_DELZONETAGS),
-				tooltip = GetString(PCHAT_DELZONETAGSTT),
-				getFunc = function() return db.delzonetags end,
-				setFunc = function(newValue) db.delzonetags = newValue end,
-				width = "full",
-				default = defaults.delzonetags,
-			},
-			{-- LAM Option Newline between name and message
-				type = "checkbox",
-				name = GetString(PCHAT_CARRIAGERETURN),
-				tooltip = GetString(PCHAT_CARRIAGERETURNTT),
-				getFunc = function() return db.carriageReturn end,
-				setFunc = function(newValue) db.carriageReturn = newValue end,
-				width = "full",
-				default = defaults.carriageReturn,
-			},
-			{-- LAM Option Use ESO Colors
-				type = "checkbox",
-				name = GetString(PCHAT_USEESOCOLORS),
-				tooltip = GetString(PCHAT_USEESOCOLORSTT),
-				getFunc = function() return db.useESOcolors end,
-				setFunc = function(newValue) db.useESOcolors = newValue end,
-				width = "full",
-				default = defaults.useESOcolors,
-			},
-			{-- LAM Option Difference Between ESO Colors
-				type = "slider",
-				name = GetString(PCHAT_DIFFFORESOCOLORS),
-				tooltip = GetString(PCHAT_DIFFFORESOCOLORSTT),
-				min = 0,
-				max = 100,
-				step = 1,
-				getFunc = function() return db.diffforESOcolors end,
-				setFunc = function(newValue) db.diffforESOcolors = newValue end,
-				width = "full",
-				default = defaults.diffforESOcolors,
-				disabled = function() return not db.useESOcolors end,
-			},
 			{-- LAM Option Prevent Chat Fading
 				type = "checkbox",
 				name = GetString(PCHAT_PREVENTCHATTEXTFADING),
@@ -4464,68 +4454,6 @@ local function BuildLAMPanel()
 				width = "full",
 				default = defaults.augmentHistoryBuffer,
 			},
-			{-- LAM Option Use one color for lines
-				type = "checkbox",
-				name = GetString(PCHAT_USEONECOLORFORLINES),
-				tooltip = GetString(PCHAT_USEONECOLORFORLINESTT),
-				getFunc = function() return db.oneColour end,
-				setFunc = function(newValue) db.oneColour = newValue end,
-				width = "full",
-				default = defaults.oneColour,
-			},
-			{-- LAM Option Guild Tags next to entry box
-				type = "checkbox",
-				name = GetString(PCHAT_GUILDTAGSNEXTTOENTRYBOX),
-				tooltip = GetString(PCHAT_GUILDTAGSNEXTTOENTRYBOXTT),
-				width = "full",
-				default = defaults.showTagInEntry,
-				getFunc = function() return db.showTagInEntry end,
-				setFunc = function(newValue)
-							db.showTagInEntry = newValue
-							UpdateCharCorrespondanceTableChannelNames()
-						end
-			},
-			{-- LAM Option Names Format
-				type = "dropdown",
-				name = GetString(PCHAT_GEOCHANNELSFORMAT),
-				tooltip = GetString(PCHAT_GEOCHANNELSFORMATTT),
-				choices = {GetString(PCHAT_FORMATCHOICE1), GetString(PCHAT_FORMATCHOICE2), GetString(PCHAT_FORMATCHOICE3), GetString(PCHAT_FORMATCHOICE4)},
-				choicesValues = {1, 2, 3, 4},
-				width = "full",
-				getFunc = function() return db.geoChannelsFormat end,
-				setFunc = function(value)
-					db.geoChannelsFormat = value
-				end,
-				default = defaults.geoChannelsFormat,
-
-			},
-			{-- Disable Brackets
-				type = "checkbox",
-				name = GetString(PCHAT_DISABLEBRACKETS),
-				tooltip = GetString(PCHAT_DISABLEBRACKETSTT),
-				getFunc = function() return db.disableBrackets end,
-				setFunc = function(newValue) db.disableBrackets = newValue end,
-				width = "full",
-				default = defaults.disableBrackets,
-			},
-			{--Target History
-				type = "checkbox",
-				name = GetString(PCHAT_ADDCHANNELANDTARGETTOHISTORY),
-				tooltip = GetString(PCHAT_ADDCHANNELANDTARGETTOHISTORYTT),
-				getFunc = function() return db.addChannelAndTargetToHistory end,
-				setFunc = function(newValue) db.addChannelAndTargetToHistory = newValue end,
-				width = "full",
-				default = defaults.addChannelAndTargetToHistory,
-			},
-			{-- URL is clickable
-				type = "checkbox",
-				name = GetString(PCHAT_URLHANDLING),
-				tooltip = GetString(PCHAT_URLHANDLINGTT),
-				getFunc = function() return db.urlHandling end,
-				setFunc = function(newValue) db.urlHandling = newValue end,
-				width = "full",
-				default = defaults.urlHandling,
-			},
 			{-- Copy Chat
 				type = "checkbox",
 				name = GetString(PCHAT_ENABLECOPY),
@@ -4536,10 +4464,488 @@ local function BuildLAMPanel()
 				default = defaults.enablecopy,
 			},--
 		},
-	} -- Chat Tabs
+	}
+
+	-- Message settings
+	optionsData[#optionsData + 1] = {
+		type = "submenu",
+		name = GetString(PCHAT_MESSAGEOPTIONSH),
+		controls =
+		{
+			{-- LAM Option Remove Zone Tags
+				type = "checkbox",
+				name = GetString(PCHAT_DELZONETAGS),
+				tooltip = GetString(PCHAT_DELZONETAGSTT),
+				getFunc = function() return db.delzonetags end,
+				setFunc = function(newValue) db.delzonetags = newValue end,
+				width = "half",
+				default = defaults.delzonetags,
+			},
+			{-- URL is clickable
+				type = "checkbox",
+				name = GetString(PCHAT_URLHANDLING),
+				tooltip = GetString(PCHAT_URLHANDLINGTT),
+				getFunc = function() return db.urlHandling end,
+				setFunc = function(newValue) db.urlHandling = newValue end,
+				width = "half",
+				default = defaults.urlHandling,
+			},
+			--Playername in chat message
+			{
+				type     = "submenu",
+				name     = GetString(PCHAT_MESSAGEOPTIONSNAMEH),
+				controls = {
+					{-- LAM Option Names Format
+						type          = "dropdown",
+						name          = GetString(PCHAT_GEOCHANNELSFORMAT),
+						tooltip       = GetString(PCHAT_GEOCHANNELSFORMATTT),
+						choices       = { GetString(PCHAT_FORMATCHOICE1), GetString(PCHAT_FORMATCHOICE2), GetString(PCHAT_FORMATCHOICE3), GetString(PCHAT_FORMATCHOICE4) },
+						choicesValues = { 1, 2, 3, 4 },
+						getFunc       = function()
+							return db.geoChannelsFormat
+						end,
+						setFunc       = function(value)
+							db.geoChannelsFormat = value
+						end,
+						default       = defaults.geoChannelsFormat,
+						width         = "half",
+
+					},
+					{-- LAM Option Newline between name and message
+						type    = "checkbox",
+						name    = GetString(PCHAT_CARRIAGERETURN),
+						tooltip = GetString(PCHAT_CARRIAGERETURNTT),
+						getFunc = function()
+							return db.carriageReturn
+						end,
+						setFunc = function(newValue)
+							db.carriageReturn = newValue
+						end,
+						default = defaults.carriageReturn,
+						width   = "half",
+					},
+					{-- Disable Brackets
+						type    = "checkbox",
+						name    = GetString(PCHAT_DISABLEBRACKETS),
+						tooltip = GetString(PCHAT_DISABLEBRACKETSTT),
+						getFunc = function()
+							return db.disableBrackets
+						end,
+						setFunc = function(newValue)
+							db.disableBrackets = newValue
+						end,
+						default = defaults.disableBrackets,
+						width   = "half",
+					},
+				},
+			},
+			--Colors in chat messages
+			{
+				type = "submenu",
+				name = GetString(PCHAT_MESSAGEOPTIONSCOLORH),
+				controls = {
+					{-- LAM Option Use ESO Colors
+						type = "checkbox",
+						name = GetString(PCHAT_USEESOCOLORS),
+						tooltip = GetString(PCHAT_USEESOCOLORSTT),
+						getFunc = function() return db.useESOcolors end,
+						setFunc = function(newValue) db.useESOcolors = newValue end,
+						width = "half",
+						default = defaults.useESOcolors,
+					},
+					{-- LAM Option Difference Between ESO Colors
+						type = "slider",
+						name = GetString(PCHAT_DIFFFORESOCOLORS),
+						tooltip = GetString(PCHAT_DIFFFORESOCOLORSTT),
+						min = 0,
+						max = 100,
+						step = 1,
+						getFunc = function() return db.diffforESOcolors end,
+						setFunc = function(newValue) db.diffforESOcolors = newValue end,
+						width = "half",
+						default = defaults.diffforESOcolors,
+						--disabled = function() return not db.useESOcolors end,
+						disabled = function() return db.oneColour end,
+					},
+					{-- LAM Option Use same color for all zone chats
+						type = "checkbox",
+						name = GetString(PCHAT_ALLZONESSAMECOLOUR),
+						tooltip = GetString(PCHAT_ALLZONESSAMECOLOURTT),
+						getFunc = function() return db.allZonesSameColour end,
+						setFunc = function(newValue) db.allZonesSameColour = newValue end,
+						width = "half",
+						default = defaults.allZonesSameColour,
+					},
+					{-- LAM Option Use same color for all NPC
+						type = "checkbox",
+						name = GetString(PCHAT_ALLNPCSAMECOLOUR),
+						tooltip = GetString(PCHAT_ALLNPCSAMECOLOURTT),
+						getFunc = function() return db.allNPCSameColour end,
+						setFunc = function(newValue) db.allNPCSameColour = newValue end,
+						width = "half",
+						default = defaults.allNPCSameColour,
+					},
+					{-- LAM Option Use one color for lines
+						type = "checkbox",
+						name = GetString(PCHAT_USEONECOLORFORLINES),
+						tooltip = GetString(PCHAT_USEONECOLORFORLINESTT),
+						getFunc = function() return db.oneColour end,
+						setFunc = function(newValue) db.oneColour = newValue end,
+						width = "half",
+						default = defaults.oneColour,
+					},
+					-- Chat channel colors
+					{
+						type = "submenu",
+						name = GetString(PCHAT_CHATCOLORSH),
+						disabled = function() return db.useESOcolors end,
+						controls = {
+							{-- Say players
+								type = "colorpicker",
+								name = GetString(PCHAT_SAY),
+								tooltip = GetString(PCHAT_SAYTT),
+								getFunc = function() return ConvertHexToRGBA(db.colours[2*CHAT_CHANNEL_SAY]) end,
+								setFunc = function(r, g, b) db.colours[2*CHAT_CHANNEL_SAY] = ConvertRGBToHex(r, g, b) end,
+								default = ConvertHexToRGBAPacked(defaults.colours[2*CHAT_CHANNEL_SAY]),
+								disabled = function() return db.useESOcolors end,
+								width = "half",
+							},
+							{--Say Chat Color
+								type = "colorpicker",
+								name = GetString(PCHAT_SAYCHAT),
+								tooltip = GetString(PCHAT_SAYCHATTT),
+								getFunc = function() return ConvertHexToRGBA(db.colours[2*CHAT_CHANNEL_SAY + 1]) end,
+								setFunc = function(r, g, b) db.colours[2*CHAT_CHANNEL_SAY + 1] = ConvertRGBToHex(r, g, b) end,
+								default = ConvertHexToRGBAPacked(defaults.colours[2*CHAT_CHANNEL_SAY + 1]),
+								disabled = function() return db.useESOcolors or db.oneColour end,
+								width = "half",
+							},
+							{-- Zone Player
+								type = "colorpicker",
+								name = GetString(PCHAT_ZONE),
+								tooltip = GetString(PCHAT_ZONETT),
+								getFunc = function() return ConvertHexToRGBA(db.colours[2*CHAT_CHANNEL_ZONE]) end,
+								setFunc = function(r, g, b) db.colours[2*CHAT_CHANNEL_ZONE] = ConvertRGBToHex(r, g, b) end,
+								default = ConvertHexToRGBAPacked(defaults.colours[2*CHAT_CHANNEL_ZONE]),
+								disabled = function() return db.useESOcolors end,
+								width = "half",
+							},
+							{
+								type = "colorpicker",
+								name = GetString(PCHAT_ZONECHAT),
+								tooltip = GetString(PCHAT_ZONECHATTT),
+								getFunc = function() return ConvertHexToRGBA(db.colours[2*CHAT_CHANNEL_ZONE + 1]) end,
+								setFunc = function(r, g, b) db.colours[2*CHAT_CHANNEL_ZONE + 1] = ConvertRGBToHex(r, g, b) end,
+								default = ConvertHexToRGBAPacked(defaults.colours[2*CHAT_CHANNEL_ZONE + 1]),
+								disabled = function() return db.useESOcolors or db.oneColour end,
+								width = "half",
+							},
+							{--
+								type = "colorpicker",
+								name = GetString(PCHAT_ENZONE),
+								tooltip = GetString(PCHAT_ENZONETT),
+								getFunc = function() return ConvertHexToRGBA(db.colours[2*CHAT_CHANNEL_ZONE_LANGUAGE_1]) end,
+								setFunc = function(r, g, b) db.colours[2*CHAT_CHANNEL_ZONE_LANGUAGE_1] = ConvertRGBToHex(r, g, b) end,
+								default = ConvertHexToRGBAPacked(defaults.colours[2*CHAT_CHANNEL_ZONE_LANGUAGE_1]),
+								disabled = function() return db.useESOcolors or db.allZonesSameColour end,
+								width = "half",
+							},
+							{--
+								type = "colorpicker",
+								name = GetString(PCHAT_ENZONECHAT),
+								tooltip = GetString(PCHAT_ENZONECHATTT),
+								getFunc = function() return ConvertHexToRGBA(db.colours[2*CHAT_CHANNEL_ZONE_LANGUAGE_1 + 1]) end,
+								setFunc = function(r, g, b) db.colours[2*CHAT_CHANNEL_ZONE_LANGUAGE_1 + 1] = ConvertRGBToHex(r, g, b) end,
+								default = ConvertHexToRGBAPacked(defaults.colours[2*CHAT_CHANNEL_ZONE_LANGUAGE_1 + 1]),
+								disabled = function() return db.useESOcolors or db.allZonesSameColour or db.oneColour end,
+								width = "half",
+							},
+							{--
+								type = "colorpicker",
+								name = GetString(PCHAT_FRZONE),
+								tooltip = GetString(PCHAT_FRZONETT),
+								getFunc = function() return ConvertHexToRGBA(db.colours[2*CHAT_CHANNEL_ZONE_LANGUAGE_2]) end,
+								setFunc = function(r, g, b) db.colours[2*CHAT_CHANNEL_ZONE_LANGUAGE_2] = ConvertRGBToHex(r, g, b) end,
+								default = ConvertHexToRGBAPacked(defaults.colours[2*CHAT_CHANNEL_ZONE_LANGUAGE_2]),
+								disabled = function() return db.useESOcolors or db.allZonesSameColour  end,
+								width = "half",
+							},
+							{--
+								type = "colorpicker",
+								name = GetString(PCHAT_FRZONECHAT),
+								tooltip = GetString(PCHAT_FRZONECHATTT),
+								getFunc = function() return ConvertHexToRGBA(db.colours[2*CHAT_CHANNEL_ZONE_LANGUAGE_2 + 1]) end,
+								setFunc = function(r, g, b) db.colours[2*CHAT_CHANNEL_ZONE_LANGUAGE_2 + 1] = ConvertRGBToHex(r, g, b) end,
+								default = ConvertHexToRGBAPacked(defaults.colours[2*CHAT_CHANNEL_ZONE_LANGUAGE_2 + 1]),
+								disabled = function() return db.useESOcolors or db.allZonesSameColour or db.oneColour end,
+								width = "half",
+							},
+							{--
+								type = "colorpicker",
+								name = GetString(PCHAT_DEZONE),
+								tooltip = GetString(PCHAT_DEZONETT),
+								getFunc = function() return ConvertHexToRGBA(db.colours[2*CHAT_CHANNEL_ZONE_LANGUAGE_3]) end,
+								setFunc = function(r, g, b) db.colours[2*CHAT_CHANNEL_ZONE_LANGUAGE_3] = ConvertRGBToHex(r, g, b) end,
+								default = ConvertHexToRGBAPacked(defaults.colours[2*CHAT_CHANNEL_ZONE_LANGUAGE_3]),
+								disabled = function() return db.useESOcolors or db.allZonesSameColour  end,
+								width = "half",
+							},
+							{--
+								type = "colorpicker",
+								name = GetString(PCHAT_DEZONECHAT),
+								tooltip = GetString(PCHAT_DEZONECHATTT),
+								getFunc = function() return ConvertHexToRGBA(db.colours[2*CHAT_CHANNEL_ZONE_LANGUAGE_3 + 1]) end,
+								setFunc = function(r, g, b) db.colours[2*CHAT_CHANNEL_ZONE_LANGUAGE_3 + 1] = ConvertRGBToHex(r, g, b) end,
+								default = ConvertHexToRGBAPacked(defaults.colours[2*CHAT_CHANNEL_ZONE_LANGUAGE_3 + 1]),
+								disabled = function() return db.useESOcolors or db.allZonesSameColour or db.oneColour end,
+								width = "half",
+							},
+							{--
+								type = "colorpicker",
+								name = GetString(PCHAT_JPZONE),
+								tooltip = GetString(PCHAT_JPZONETT),
+								getFunc = function() return ConvertHexToRGBA(db.colours[2*CHAT_CHANNEL_ZONE_LANGUAGE_4]) end,
+								setFunc = function(r, g, b) db.colours[2*CHAT_CHANNEL_ZONE_LANGUAGE_4] = ConvertRGBToHex(r, g, b) end,
+								default = ConvertHexToRGBAPacked(defaults.colours[2*CHAT_CHANNEL_ZONE_LANGUAGE_4]),
+								disabled = function() return db.useESOcolors or db.allZonesSameColour end,
+								width = "half",
+							},
+							{--
+								type = "colorpicker",
+								name = GetString(PCHAT_JPZONECHAT),
+								tooltip = GetString(PCHAT_JPZONECHATTT),
+								getFunc = function() return ConvertHexToRGBA(db.colours[2*CHAT_CHANNEL_ZONE_LANGUAGE_4 + 1]) end,
+								setFunc = function(r, g, b) db.colours[2*CHAT_CHANNEL_ZONE_LANGUAGE_4 + 1] = ConvertRGBToHex(r, g, b) end,
+								default = ConvertHexToRGBAPacked(defaults.colours[2*CHAT_CHANNEL_ZONE_LANGUAGE_4 + 1]),
+								disabled = function() return db.useESOcolors or db.allZonesSameColour or db.oneColour end,
+								width = "half",
+							},
+							{-- Yell Player
+								type = "colorpicker",
+								name = GetString(PCHAT_YELL),
+								tooltip = GetString(PCHAT_YELLTT),
+								getFunc = function() return ConvertHexToRGBA(db.colours[2*CHAT_CHANNEL_YELL]) end,
+								setFunc = function(r, g, b) db.colours[2*CHAT_CHANNEL_YELL] = ConvertRGBToHex(r, g, b) end,
+								default = ConvertHexToRGBAPacked(defaults.colours[2*CHAT_CHANNEL_YELL]),
+								disabled = function() return db.useESOcolors end,
+								width = "half",
+							},
+							{--Yell Chat
+								type = "colorpicker",
+								name = GetString(PCHAT_YELLCHAT),
+								tooltip = GetString(PCHAT_YELLCHATTT),
+								getFunc = function() return ConvertHexToRGBA(db.colours[2*CHAT_CHANNEL_YELL + 1]) end,
+								setFunc = function(r, g, b) db.colours[2*CHAT_CHANNEL_YELL + 1] = ConvertRGBToHex(r, g, b) end,
+								default = ConvertHexToRGBAPacked(defaults.colours[2*CHAT_CHANNEL_YELL + 1]),
+								disabled = function() return db.useESOcolors or db.oneColour end,
+								width = "half",
+							},
+							{--
+								type = "colorpicker",
+								name = GetString(PCHAT_INCOMINGWHISPERS),
+								tooltip = GetString(PCHAT_INCOMINGWHISPERSTT),
+								getFunc = function() return ConvertHexToRGBA(db.colours[2*CHAT_CHANNEL_WHISPER]) end,
+								setFunc = function(r, g, b) db.colours[2*CHAT_CHANNEL_WHISPER] = ConvertRGBToHex(r, g, b) end,
+								default = ConvertHexToRGBAPacked(defaults.colours[2*CHAT_CHANNEL_WHISPER]),
+								disabled = function() return db.useESOcolors  end,
+								width = "half",
+							},
+							{--
+								type = "colorpicker",
+								name = GetString(PCHAT_INCOMINGWHISPERSCHAT),
+								tooltip = GetString(PCHAT_INCOMINGWHISPERSCHATTT),
+								getFunc = function() return ConvertHexToRGBA(db.colours[2*CHAT_CHANNEL_WHISPER + 1]) end,
+								setFunc = function(r, g, b) db.colours[2*CHAT_CHANNEL_WHISPER + 1] = ConvertRGBToHex(r, g, b) end,
+								default = ConvertHexToRGBAPacked(defaults.colours[2*CHAT_CHANNEL_WHISPER + 1]),
+								disabled = function() return db.useESOcolors or db.oneColour end,
+								width = "half",
+							},
+							{--
+								type = "colorpicker",
+								name = GetString(PCHAT_OUTGOINGWHISPERS),
+								tooltip = GetString(PCHAT_OUTGOINGWHISPERSTT),
+								getFunc = function() return ConvertHexToRGBA(db.colours[2*CHAT_CHANNEL_WHISPER_SENT]) end,
+								setFunc = function(r, g, b) db.colours[2*CHAT_CHANNEL_WHISPER_SENT] = ConvertRGBToHex(r, g, b) end,
+								default = ConvertHexToRGBAPacked(defaults.colours[2*CHAT_CHANNEL_WHISPER_SENT]),
+								disabled = function() return db.useESOcolors end,
+								width = "half",
+							},
+							{--
+								type = "colorpicker",
+								name = GetString(PCHAT_OUTGOINGWHISPERSCHAT),
+								tooltip = GetString(PCHAT_OUTGOINGWHISPERSCHATTT),
+								getFunc = function() return ConvertHexToRGBA(db.colours[2*CHAT_CHANNEL_WHISPER_SENT + 1]) end,
+								setFunc = function(r, g, b) db.colours[2*CHAT_CHANNEL_WHISPER_SENT + 1] = ConvertRGBToHex(r, g, b) end,
+								default = ConvertHexToRGBAPacked(defaults.colours[2*CHAT_CHANNEL_WHISPER_SENT + 1]),
+								disabled = function() return db.useESOcolors or db.oneColour end,
+								width = "half",
+							},
+							{--
+								type = "colorpicker",
+								name = GetString(PCHAT_GROUP),
+								tooltip = GetString(PCHAT_GROUPTT),
+								getFunc = function() return ConvertHexToRGBA(db.colours[2*CHAT_CHANNEL_PARTY]) end,
+								setFunc = function(r, g, b) db.colours[2*CHAT_CHANNEL_PARTY] = ConvertRGBToHex(r, g, b) end,
+								default = ConvertHexToRGBAPacked(defaults.colours[2*CHAT_CHANNEL_PARTY]),
+								disabled = function() return db.useESOcolors  end,
+								width = "half",
+							},
+							{--
+								type = "colorpicker",
+								name = GetString(PCHAT_GROUPCHAT),
+								tooltip = GetString(PCHAT_GROUPCHATTT),
+								getFunc = function() return ConvertHexToRGBA(db.colours[2*CHAT_CHANNEL_PARTY + 1]) end,
+								setFunc = function(r, g, b) db.colours[2*CHAT_CHANNEL_PARTY + 1] = ConvertRGBToHex(r, g, b) end,
+								default = ConvertHexToRGBAPacked(defaults.colours[2*CHAT_CHANNEL_PARTY + 1]),
+								disabled = function() return db.useESOcolors or db.oneColour end,
+								width = "half",
+							},
+						},
+					},
+					--Other Colors
+					{
+						type = "submenu",
+						name = GetString(PCHAT_OTHERCOLORSH),
+						controls = {
+							{
+								type="description",
+								text = GetString(PCHAT_USEESOCOLORS_INFO),
+							},
+							{
+								type = "colorpicker",
+								name = GetString(PCHAT_EMOTES),
+								tooltip = GetString(PCHAT_EMOTESTT),
+								getFunc = function() return ConvertHexToRGBA(db.colours[2*CHAT_CHANNEL_EMOTE]) end,
+								setFunc = function(r, g, b) db.colours[2*CHAT_CHANNEL_EMOTE] = ConvertRGBToHex(r, g, b) end,
+								default = ConvertHexToRGBAPacked(defaults.colours[2*CHAT_CHANNEL_EMOTE]),
+								disabled = function() return db.useESOcolors end,
+								width = "half",
+							},
+							{--
+								type = "colorpicker",
+								name = GetString(PCHAT_EMOTESCHAT),
+								tooltip = GetString(PCHAT_EMOTESCHATTT),
+								getFunc = function() return ConvertHexToRGBA(db.colours[2*CHAT_CHANNEL_EMOTE + 1]) end,
+								setFunc = function(r, g, b) db.colours[2*CHAT_CHANNEL_EMOTE + 1] = ConvertRGBToHex(r, g, b) end,
+								default = ConvertHexToRGBAPacked(defaults.colours[2*CHAT_CHANNEL_EMOTE + 1]),
+								disabled = function() return db.useESOcolors end,
+								width = "half",
+							},
+							{--
+								type = "colorpicker",
+								name = GetString(PCHAT_NPCSAY),
+								tooltip = GetString(PCHAT_NPCSAYTT),
+								getFunc = function() return ConvertHexToRGBA(db.colours[2*CHAT_CHANNEL_MONSTER_SAY]) end,
+								setFunc = function(r, g, b) db.colours[2*CHAT_CHANNEL_MONSTER_SAY] = ConvertRGBToHex(r, g, b) end,
+								default = ConvertHexToRGBAPacked(defaults.colours[2*CHAT_CHANNEL_MONSTER_SAY]),
+								disabled = function() return db.useESOcolors end,
+								width = "half",
+							},
+							{--
+								type = "colorpicker",
+								name = GetString(PCHAT_NPCSAYCHAT),
+								tooltip = GetString(PCHAT_NPCSAYCHATTT),
+								getFunc = function() return ConvertHexToRGBA(db.colours[2*CHAT_CHANNEL_MONSTER_SAY + 1]) end,
+								setFunc = function(r, g, b) db.colours[2*CHAT_CHANNEL_MONSTER_SAY + 1] = ConvertRGBToHex(r, g, b) end,
+								default = ConvertHexToRGBAPacked(defaults.colours[2*CHAT_CHANNEL_MONSTER_SAY + 1]),
+								disabled = function() return db.useESOcolors end,
+								width = "half",
+							},
+							{--
+								type = "colorpicker",
+								name = GetString(PCHAT_NPCYELL),
+								tooltip = GetString(PCHAT_NPCYELLTT),
+								getFunc = function() return ConvertHexToRGBA(db.colours[2*CHAT_CHANNEL_MONSTER_YELL]) end,
+								setFunc = function(r, g, b) db.colours[2*CHAT_CHANNEL_MONSTER_YELL] = ConvertRGBToHex(r, g, b) end,
+								default = ConvertHexToRGBAPacked(defaults.colours[2*CHAT_CHANNEL_MONSTER_YELL]),
+								disabled = function() return db.useESOcolors or db.allNPCSameColour end,
+								width = "half",
+							},
+							{--
+								type = "colorpicker",
+								name = GetString(PCHAT_NPCYELLCHAT),
+								tooltip = GetString(PCHAT_NPCYELLCHATTT),
+								getFunc = function() return ConvertHexToRGBA(db.colours[2*CHAT_CHANNEL_MONSTER_YELL + 1]) end,
+								setFunc = function(r, g, b) db.colours[2*CHAT_CHANNEL_MONSTER_YELL + 1] = ConvertRGBToHex(r, g, b) end,
+								default = ConvertHexToRGBAPacked(defaults.colours[2*CHAT_CHANNEL_MONSTER_YELL + 1]),
+								disabled = function() return db.useESOcolors or db.allNPCSameColour end,
+								width = "half",
+							},
+							{--
+								type = "colorpicker",
+								name = GetString(PCHAT_NPCWHISPER),
+								tooltip = GetString(PCHAT_NPCWHISPERTT),
+								getFunc = function() return ConvertHexToRGBA(db.colours[2*CHAT_CHANNEL_MONSTER_WHISPER]) end,
+								setFunc = function(r, g, b) db.colours[2*CHAT_CHANNEL_MONSTER_WHISPER] = ConvertRGBToHex(r, g, b) end,
+								default = ConvertHexToRGBAPacked(defaults.colours[2*CHAT_CHANNEL_MONSTER_WHISPER]),
+								disabled = function() return db.useESOcolors or db.allNPCSameColour end,
+								width = "half",
+							},
+							{--
+								type = "colorpicker",
+								name = GetString(PCHAT_NPCWHISPERCHAT),
+								tooltip = GetString(PCHAT_NPCWHISPERCHATTT),
+								getFunc = function() return ConvertHexToRGBA(db.colours[2*CHAT_CHANNEL_MONSTER_WHISPER + 1]) end,
+								setFunc = function(r, g, b) db.colours[2*CHAT_CHANNEL_MONSTER_WHISPER + 1] = ConvertRGBToHex(r, g, b) end,
+								default = ConvertHexToRGBAPacked(defaults.colours[2*CHAT_CHANNEL_MONSTER_WHISPER + 1]),
+								disabled = function() return db.useESOcolors or db.allNPCSameColour end,
+								width = "half",
+							},
+							{--
+								type = "colorpicker",
+								name = GetString(PCHAT_NPCEMOTES),
+								tooltip = GetString(PCHAT_NPCEMOTESTT),
+								getFunc = function() return ConvertHexToRGBA(db.colours[2*CHAT_CHANNEL_MONSTER_EMOTE]) end,
+								setFunc = function(r, g, b) db.colours[2*CHAT_CHANNEL_MONSTER_EMOTE] = ConvertRGBToHex(r, g, b) end,
+								default = ConvertHexToRGBAPacked(defaults.colours[2*CHAT_CHANNEL_MONSTER_EMOTE]),
+								disabled = function() return db.useESOcolors or db.allNPCSameColour end,
+								width = "half",
+							},
+							{--
+								type = "colorpicker",
+								name = GetString(PCHAT_NPCEMOTESCHAT),
+								tooltip = GetString(PCHAT_NPCEMOTESCHATTT),
+								getFunc = function() return ConvertHexToRGBA(db.colours[2*CHAT_CHANNEL_MONSTER_EMOTE + 1]) end,
+								setFunc = function(r, g, b) db.colours[2*CHAT_CHANNEL_MONSTER_EMOTE + 1] = ConvertRGBToHex(r, g, b) end,
+								default = ConvertHexToRGBAPacked(defaults.colours[2*CHAT_CHANNEL_MONSTER_EMOTE + 1]),
+								disabled = function() return db.useESOcolors or db.allNPCSameColour end,
+								width = "half",
+							},
+						},
+					},
+				},
+			},
+		}
+	}
+
+------------------------------------------------------------------------------------------------------------------------
+	-- Chat Tabs
 	optionsData[#optionsData + 1] = {
 		type = "submenu",
 		name = GetString(PCHAT_CHATTABH),
+		controls = {
+			{-- CHAT_SYSTEM.primaryContainer.windows doesn't exists yet at OnAddonLoaded. So using the pChat reference.
+				type = "dropdown",
+				name = GetString(PCHAT_DEFAULTTAB),
+				tooltip = GetString(PCHAT_DEFAULTTABTT),
+				choices = pChat.tabNames,
+				choicesValues = pChat.tabIndices,
+				width = "full",
+				getFunc = function() return db.defaultTab end,
+				setFunc = function(choice)
+					db.defaultTab = choice
+					--logger:Debug(choice)
+				end,
+				default = defaults.defaultTab,
+			},
+		},
+	}
+
+------------------------------------------------------------------------------------------------------------------------
+	--Chat channels
+	optionsData[#optionsData + 1] = {
+		type = "submenu",
+		name = GetString(PCHAT_CHATCHANNELSH),
 		controls = {
 			{-- Enable chat channel memory
 				type = "checkbox",
@@ -4607,55 +5013,55 @@ local function BuildLAMPanel()
 
 				end,
 			},
-			{-- CHAT_SYSTEM.primaryContainer.windows doesn't exists yet at OnAddonLoaded. So using the pChat reference.
-				type = "dropdown",
-				name = GetString(PCHAT_DEFAULTTAB),
-				tooltip = GetString(PCHAT_DEFAULTTABTT),
-				choices = pChat.tabNames,
-				width = "full",
-				getFunc = function() return db.defaultTabName end,
-				setFunc = 	function(choice)
-								db.defaultTabName = choice
-								--logger:Debug(choice)
-								--logger:Debug(db.defaultTabName)
-								db.defaultTab = getTabIdx(choice)
-								--logger:Debug(db.defaultTab)
-							end,
-			},
-			--[[{-- CHAT_SYSTEM.primaryContainer.windows doesn't exists yet at OnAddonLoaded. So using the pChat reference.
-				type = "dropdown",
-				name = GetString(PCHAT_DEFAULTTAB),
-				tooltip = GetString(PCHAT_DEFAULTTABTT),
-				choices = arrayTab,
-				width = "full",
-				default = defaults.defaultTab,
-				getFunc = function() return db.defaultTab end,
-				setFunc = function(choice) db.defaultTab = choice end,
-			},]]--
-			--[[{-- Enable whisper redirect
+			{--Target History
 				type = "checkbox",
-				name = GetString(PCHAT_enableWhisperTab),
-				tooltip = GetString(PCHAT_enableWhisperTabT),
-				getFunc = function() return db.enableWhisperTab end,
-				setFunc = function(newValue) db.enableWhisperTab = newValue end,
+				name = GetString(PCHAT_ADDCHANNELANDTARGETTOHISTORY),
+				tooltip = GetString(PCHAT_ADDCHANNELANDTARGETTOHISTORYTT),
+				getFunc = function() return db.addChannelAndTargetToHistory end,
+				setFunc = function(newValue) db.addChannelAndTargetToHistory = newValue end,
 				width = "full",
-				default = defaults.enableWhisperTab,
-			},]]--
-			-- !!!!!need code for specific tab here
-		},
-	} -- Group Submenu
+				default = defaults.addChannelAndTargetToHistory,
+			},
+		}
+	}
+
+------------------------------------------------------------------------------------------------------------------------
+	-- Group Submenu
 	optionsData[#optionsData + 1] = {
 		type = "submenu",
 		name = GetString(PCHAT_GROUPH),
 		controls = {
+			{-- Group Names
+				type = "dropdown",
+				name = GetString(PCHAT_GROUPNAMES),
+				tooltip = GetString(PCHAT_GROUPNAMESTT),
+				choices = {GetString(PCHAT_FORMATCHOICE1), GetString(PCHAT_FORMATCHOICE2), GetString(PCHAT_FORMATCHOICE3), GetString(PCHAT_FORMATCHOICE4)},
+				choicesValues = {1, 2, 3, 4},
+				width = "half",
+				getFunc = function() return db.groupNames end,
+				setFunc = function(value)
+					db.groupNames = value
+				end,
+				default = defaults.groupNames,
+			},
 			{-- Enable Party Switch
 				type = "checkbox",
 				name = GetString(PCHAT_ENABLEPARTYSWITCH),
 				tooltip = GetString(PCHAT_ENABLEPARTYSWITCHTT),
 				getFunc = function() return db.enablepartyswitch end,
 				setFunc = function(newValue) db.enablepartyswitch = newValue end,
-				width = "full",
+				width = "half",
 				default = defaults.enablepartyswitch,
+			},
+			{-- Enable Party Switch Port to/reloadui in dungeon
+				type = "checkbox",
+				name = GetString(PCHAT_ENABLEPARTYSWITCHPORTTODUNGEON),
+				tooltip = GetString(PCHAT_ENABLEPARTYSWITCHPORTTODUNGEONTT),
+				getFunc = function() return db.enablepartyswitchPortToDungeon end,
+				setFunc = function(newValue) db.enablepartyswitchPortToDungeon = newValue end,
+				width = "half",
+				default = defaults.enablepartyswitchPortToDungeon,
+				disabled = function() return not db.enablepartyswitch end
 			},
 			{-- Group Leader
 				type = "checkbox",
@@ -4674,8 +5080,9 @@ local function BuildLAMPanel()
 				setFunc = function(r, g, b) db.colours["groupleader"] = ConvertRGBToHex(r, g, b) end,
 				default = ConvertHexToRGBAPacked(defaults.colours["groupleader"]),
 				disabled = function() return not db.groupLeader end,
+				width = "half",
 			},
-			{-- Group Leader Coor 2
+			{-- Group Leader Color 2
 				type = "colorpicker",
 				name = GetString(PCHAT_GROUPLEADERCOLOR1),
 				tooltip = GetString(PCHAT_GROUPLEADERCOLOR1TT),
@@ -4691,22 +5098,208 @@ local function BuildLAMPanel()
 							return false
 						end
 					end,
-			},
-			{-- Group Names
-				type = "dropdown",
-				name = GetString(PCHAT_GROUPNAMES),
-				tooltip = GetString(PCHAT_GROUPNAMESTT),
-				choices = {GetString(PCHAT_FORMATCHOICE1), GetString(PCHAT_FORMATCHOICE2), GetString(PCHAT_FORMATCHOICE3), GetString(PCHAT_FORMATCHOICE4)},
-				choicesValues = {1, 2, 3, 4},
-				width = "full",
-				getFunc = function() return db.groupNames end,
-				setFunc = function(value)
-					db.groupNames = value
-				end,
-				default = defaults.groupNames,
+				width = "half",
 			},
 		},
-	} -- Sync Settings Header
+	}
+
+------------------------------------------------------------------------------------------------------------------------
+	--  Guild Stuff
+	local firstGuildName = GetGuildName(GetGuildId(1)) or "/g1"
+	local controlsForGuildSubmenu = {
+		{-- LAM Option Show Guild Numbers
+			type    = "checkbox",
+			name    = GetString(PCHAT_GUILDNUMBERS),
+			tooltip = GetString(PCHAT_GUILDNUMBERSTT),
+			getFunc = function()
+				return db.showGuildNumbers
+			end,
+			setFunc = function(newValue)
+				db.showGuildNumbers = newValue
+			end,
+			width   = "half",
+			default = defaults.showGuildNumbers,
+		},
+		{-- LAM Option Guild Tags next to entry box
+			type    = "checkbox",
+			name    = GetString(PCHAT_GUILDTAGSNEXTTOENTRYBOX),
+			tooltip = GetString(PCHAT_GUILDTAGSNEXTTOENTRYBOXTT),
+			width   = "half",
+			default = defaults.showTagInEntry,
+			getFunc = function()
+				return db.showTagInEntry
+			end,
+			setFunc = function(newValue)
+				db.showTagInEntry = newValue
+				UpdateCharCorrespondanceTableChannelNames()
+			end
+		},
+		{-- LAM Option Use Same Color for all Guilds
+			type    = "checkbox",
+			name    = GetString(PCHAT_ALLGUILDSSAMECOLOUR),
+			tooltip = string.format(GetString(PCHAT_ALLGUILDSSAMECOLOURTT), firstGuildName),
+			getFunc = function()
+				return db.allGuildsSameColour
+			end,
+			setFunc = function(newValue)
+				db.allGuildsSameColour = newValue
+			end,
+			width   = "half",
+			default = defaults.allGuildsSameColour,
+		},
+	}
+
+	--Now add a submenu for each of the 5 guilds
+	for guild = 1, GetNumGuilds() do
+		-- Guildname
+		local guildId = GetGuildId(guild)
+		local guildName = GetGuildName(guildId)
+		-- Occurs sometimes
+		if(not guildName or (guildName):len() < 1) then
+			guildName = "Guild " .. guild
+		end
+		-- If recently added to a new guild and never go in menu db.formatguild[guildName] won't exist
+		if not (db.formatguild[guildId]) then
+			-- 2 is default value
+			db.formatguild[guildId] = 2
+		end
+		controlsForGuildSubmenu[#controlsForGuildSubmenu + 1] = {
+			type = "submenu",
+			name = guildName,
+			controls = {
+				{
+					type = "editbox",
+					name = GetString(PCHAT_NICKNAMEFOR),
+					tooltip = GetString(PCHAT_NICKNAMEFORTT) .. " " .. guildName .. " (ID: " ..tostring(guildId) ..")",
+					getFunc = function() return db.guildTags[guildId] end,
+					setFunc = function(newValue)
+						db.guildTags[guildId] = newValue
+						UpdateCharCorrespondanceTableChannelNames()
+					end,
+					width = "half",
+					default = "",
+				},
+				{
+					type = "editbox",
+					name = GetString(PCHAT_OFFICERTAG),
+					tooltip = GetString(PCHAT_OFFICERTAGTT),
+					width = "half",
+					default = "",
+					getFunc = function() return db.officertag[guildId] end,
+					setFunc = function(newValue)
+						db.officertag[guildId] = newValue
+						UpdateCharCorrespondanceTableChannelNames()
+					end
+				},
+				{
+					type = "editbox",
+					name = GetString(PCHAT_SWITCHFOR),
+					tooltip = GetString(PCHAT_SWITCHFORTT),
+					getFunc = function() return db.switchFor[guildId] end,
+					setFunc = function(newValue)
+						local channelId = CHAT_CHANNEL_GUILD_1 - 1 + guild
+
+						local oldValue = db.switchFor[guildId]
+						if oldValue and oldValue ~= "" then
+							RemoveCustomChannelSwitches(channelId, oldValue)
+						end
+
+						db.switchFor[guildId] = newValue
+						if newValue and newValue ~= "" then
+							AddCustomChannelSwitches(channelId, newValue)
+						end
+					end,
+					width = "half",
+					default = "",
+				},
+				{
+					type = "editbox",
+					name = GetString(PCHAT_OFFICERSWITCHFOR),
+					tooltip = GetString(PCHAT_OFFICERSWITCHFORTT),
+					width = "half",
+					default = "",
+					getFunc = function() return db.officerSwitchFor[guildId] end,
+					setFunc = function(newValue)
+						local channelId = CHAT_CHANNEL_OFFICER_1 - 1 + guild
+
+						local oldValue = db.officerSwitchFor[guildId]
+						if oldValue and oldValue ~= "" then
+							RemoveCustomChannelSwitches(channelId, oldValue)
+						end
+
+						db.officerSwitchFor[guildId] = newValue
+						if newValue and newValue ~= "" then
+							AddCustomChannelSwitches(channelId, newValue)
+						end
+					end,
+				},
+				{
+					type = "dropdown",
+					name = GetString(PCHAT_NAMEFORMAT),
+					tooltip = GetString(PCHAT_NAMEFORMATTT),
+					choices = {GetString(PCHAT_FORMATCHOICE1), GetString(PCHAT_FORMATCHOICE2), GetString(PCHAT_FORMATCHOICE3), GetString(PCHAT_FORMATCHOICE4)},
+					choicesValues = {1, 2, 3, 4},
+					getFunc = function()
+						-- Config per guild
+						return db.formatguild[guildId]
+					end,
+					setFunc = function(value)
+						db.formatguild[guildId] = value
+					end,
+					width = "full",
+					default = 2,
+				},
+				{
+					type = "colorpicker",
+					name = GetString(PCHAT_MEMBERS),
+					tooltip = zo_strformat(PCHAT_SETCOLORSFORTT, guildName),
+					getFunc = function() return ConvertHexToRGBA(db.colours[2*(CHAT_CHANNEL_GUILD_1 + guild - 1)]) end,
+					setFunc = function(r, g, b) db.colours[2*(CHAT_CHANNEL_GUILD_1 + guild - 1)] = ConvertRGBToHex(r, g, b) end,
+					default = ConvertHexToRGBAPacked(defaults.colours[2*(CHAT_CHANNEL_GUILD_1 + guild - 1)]),
+					disabled = function() return db.useESOcolors or (guild~=1 and db.allGuildsSameColour) end,
+					width = "half",
+				},
+				{
+					type = "colorpicker",
+					name = GetString(PCHAT_CHAT),
+					tooltip = zo_strformat(PCHAT_SETCOLORSFORCHATTT, guildName),
+					getFunc = function() return ConvertHexToRGBA(db.colours[2*(CHAT_CHANNEL_GUILD_1 + guild - 1) + 1]) end,
+					setFunc = function(r, g, b) db.colours[2*(CHAT_CHANNEL_GUILD_1 + guild - 1) + 1] = ConvertRGBToHex(r, g, b) end,
+					default = ConvertHexToRGBAPacked(defaults.colours[2*(CHAT_CHANNEL_GUILD_1 + guild - 1) + 1]),
+					disabled = function() return db.useESOcolors or (guild~=1 and db.allGuildsSameColour) end,
+					width = "half",
+				},
+				{
+					type = "colorpicker",
+					name = GetString(PCHAT_OFFICERSTT) .. " " .. GetString(PCHAT_MEMBERS),
+					tooltip = zo_strformat(PCHAT_SETCOLORSFOROFFICIERSTT, guildName),
+					getFunc = function() return ConvertHexToRGBA(db.colours[2*(CHAT_CHANNEL_OFFICER_1 + guild - 1)]) end,
+					setFunc = function(r, g, b) db.colours[2*(CHAT_CHANNEL_OFFICER_1 + guild - 1)] = ConvertRGBToHex(r, g, b) end,
+					default = ConvertHexToRGBAPacked(defaults.colours[2*(CHAT_CHANNEL_OFFICER_1 + guild - 1)]),
+					disabled = function() return db.useESOcolors or (guild~=1 and db.allGuildsSameColour) end,
+					width = "half",
+				},
+				{
+					type = "colorpicker",
+					name = GetString(PCHAT_OFFICERSTT) .. " " .. GetString(PCHAT_CHAT),
+					tooltip = zo_strformat(PCHAT_SETCOLORSFOROFFICIERSCHATTT, guildName),
+					getFunc = function() return ConvertHexToRGBA(db.colours[2*(CHAT_CHANNEL_OFFICER_1 + guild - 1) + 1]) end,
+					setFunc = function(r, g, b) db.colours[2*(CHAT_CHANNEL_OFFICER_1 + guild - 1) + 1] = ConvertRGBToHex(r, g, b) end,
+					default = ConvertHexToRGBAPacked(defaults.colours[2*(CHAT_CHANNEL_OFFICER_1 + guild - 1) + 1]),
+					disabled = function() return db.useESOcolors or (guild~=1 and db.allGuildsSameColour) end,
+					width = "half",
+				},
+			},
+		}
+	end
+	-- Guild settings
+	optionsData[#optionsData + 1] = {
+		type = "submenu",
+		name = GetString(PCHAT_GUILDH),
+		controls =	controlsForGuildSubmenu,	--Above build table with each guild's settings as a LAM submenu
+	}
+
+	-- Sync Settings Header
 	optionsData[#optionsData + 1] = {
 		type = "submenu",
 		name = GetString(PCHAT_SYNCH),
@@ -4735,7 +5328,8 @@ local function BuildLAMPanel()
 				end,
 			},
 		},
-	} -- Mouse
+	}
+	-- Mouse
 	optionsData[#optionsData + 1] = {
 		type = "submenu",
 		name = GetString(PCHAT_APPARENCEMH),
@@ -4807,7 +5401,8 @@ local function BuildLAMPanel()
 				warning = "ReloadUI"
 			},
 		},
-	} -- LAM Menu Whispers
+	}
+	-- LAM Menu Whispers
 	optionsData[#optionsData + 1] = {
 		type = "submenu",
 		name = GetString(PCHAT_IMH),
@@ -4847,7 +5442,8 @@ local function BuildLAMPanel()
 				default = defaults.notifyIM,
 			},
 		},
-	}-- LAM Menu Restore Chat
+	}
+	-- LAM Menu Restore Chat
 	optionsData[#optionsData + 1] = {
 		type = "submenu",
 		name = GetString(PCHAT_RESTORECHATH),
@@ -4956,7 +5552,8 @@ local function BuildLAMPanel()
 				default = defaults.restoreTextEntryHistoryAtLogOutQuit,
 			},
 		},
-	} -- Anti-Spam   Timestamp options
+	}
+	-- Anti-Spam options
 	optionsData[#optionsData + 1] = {
 		type = "submenu",
 		name = GetString(PCHAT_ANTISPAMH),
@@ -5028,7 +5625,8 @@ local function BuildLAMPanel()
 				default = defaults.nicknames,
 			},
 		},
-	} -- Timestamp options
+	}
+	-- Timestamp options
 	optionsData[#optionsData + 1] = {
 		type = "submenu",
 		name = GetString(PCHAT_TIMESTAMPH),
@@ -5073,520 +5671,6 @@ local function BuildLAMPanel()
 			},
 		},
 	}
-		-- Addon Menu Other Colors
-	optionsData[#optionsData + 1] = {
-		type = "submenu",
-		name = GetString(PCHAT_CHATCOLORSH),
-		controls = {
-			{-- Say players
-				type = "colorpicker",
-				name = GetString(PCHAT_SAY),
-				tooltip = GetString(PCHAT_SAYTT),
-				getFunc = function() return ConvertHexToRGBA(db.colours[2*CHAT_CHANNEL_SAY]) end,
-				setFunc = function(r, g, b) db.colours[2*CHAT_CHANNEL_SAY] = ConvertRGBToHex(r, g, b) end,
-				default = ConvertHexToRGBAPacked(defaults.colours[2*CHAT_CHANNEL_SAY]),
-				disabled = function() return db.useESOcolors end,
-			},
-			{--Say Chat Color
-				type = "colorpicker",
-				name = GetString(PCHAT_SAYCHAT),
-				tooltip = GetString(PCHAT_SAYCHATTT),
-				getFunc = function() return ConvertHexToRGBA(db.colours[2*CHAT_CHANNEL_SAY + 1]) end,
-				setFunc = function(r, g, b) db.colours[2*CHAT_CHANNEL_SAY + 1] = ConvertRGBToHex(r, g, b) end,
-				default = ConvertHexToRGBAPacked(defaults.colours[2*CHAT_CHANNEL_SAY + 1]),
-				disabled = function() return db.useESOcolors end,
-			},
-			{-- Zone Player
-				type = "colorpicker",
-				name = GetString(PCHAT_ZONE),
-				tooltip = GetString(PCHAT_ZONETT),
-				getFunc = function() return ConvertHexToRGBA(db.colours[2*CHAT_CHANNEL_ZONE]) end,
-				setFunc = function(r, g, b) db.colours[2*CHAT_CHANNEL_ZONE] = ConvertRGBToHex(r, g, b) end,
-				default = ConvertHexToRGBAPacked(defaults.colours[2*CHAT_CHANNEL_ZONE]),
-				disabled = function() return db.useESOcolors end,
-			},
-			{
-				type = "colorpicker",
-				name = GetString(PCHAT_ZONECHAT),
-				tooltip = GetString(PCHAT_ZONECHATTT),
-				getFunc = function() return ConvertHexToRGBA(db.colours[2*CHAT_CHANNEL_ZONE + 1]) end,
-				setFunc = function(r, g, b) db.colours[2*CHAT_CHANNEL_ZONE + 1] = ConvertRGBToHex(r, g, b) end,
-				default = ConvertHexToRGBAPacked(defaults.colours[2*CHAT_CHANNEL_ZONE + 1]),
-				disabled = function() return db.useESOcolors end,
-			},
-			{-- Yell Player
-				type = "colorpicker",
-				name = GetString(PCHAT_YELL),
-				tooltip = GetString(PCHAT_YELLTT),
-				getFunc = function() return ConvertHexToRGBA(db.colours[2*CHAT_CHANNEL_YELL]) end,
-				setFunc = function(r, g, b) db.colours[2*CHAT_CHANNEL_YELL] = ConvertRGBToHex(r, g, b) end,
-				default = ConvertHexToRGBAPacked(defaults.colours[2*CHAT_CHANNEL_YELL]),
-				disabled = function() return db.useESOcolors end,
-			},
-			{--Yell Chat
-				type = "colorpicker",
-				name = GetString(PCHAT_YELLCHAT),
-				tooltip = GetString(PCHAT_YELLCHATTT),
-				getFunc = function() return ConvertHexToRGBA(db.colours[2*CHAT_CHANNEL_YELL + 1]) end,
-				setFunc = function(r, g, b) db.colours[2*CHAT_CHANNEL_YELL + 1] = ConvertRGBToHex(r, g, b) end,
-				default = ConvertHexToRGBAPacked(defaults.colours[2*CHAT_CHANNEL_YELL + 1]),
-				disabled = function() return db.useESOcolors end,
-			},
-			{--
-				type = "colorpicker",
-				name = GetString(PCHAT_INCOMINGWHISPERS),
-				tooltip = GetString(PCHAT_INCOMINGWHISPERSTT),
-				getFunc = function() return ConvertHexToRGBA(db.colours[2*CHAT_CHANNEL_WHISPER]) end,
-				setFunc = function(r, g, b) db.colours[2*CHAT_CHANNEL_WHISPER] = ConvertRGBToHex(r, g, b) end,
-				default = ConvertHexToRGBAPacked(defaults.colours[2*CHAT_CHANNEL_WHISPER]),
-				disabled = function() return db.useESOcolors end,
-			},
-			{--
-				type = "colorpicker",
-				name = GetString(PCHAT_INCOMINGWHISPERSCHAT),
-				tooltip = GetString(PCHAT_INCOMINGWHISPERSCHATTT),
-				getFunc = function() return ConvertHexToRGBA(db.colours[2*CHAT_CHANNEL_WHISPER + 1]) end,
-				setFunc = function(r, g, b) db.colours[2*CHAT_CHANNEL_WHISPER + 1] = ConvertRGBToHex(r, g, b) end,
-				default = ConvertHexToRGBAPacked(defaults.colours[2*CHAT_CHANNEL_WHISPER + 1]),
-				disabled = function() return db.useESOcolors end,
-			},
-			{--
-				type = "colorpicker",
-				name = GetString(PCHAT_OUTGOINGWHISPERS),
-				tooltip = GetString(PCHAT_OUTGOINGWHISPERSTT),
-				getFunc = function() return ConvertHexToRGBA(db.colours[2*CHAT_CHANNEL_WHISPER_SENT]) end,
-				setFunc = function(r, g, b) db.colours[2*CHAT_CHANNEL_WHISPER_SENT] = ConvertRGBToHex(r, g, b) end,
-				default = ConvertHexToRGBAPacked(defaults.colours[2*CHAT_CHANNEL_WHISPER_SENT]),
-				disabled = function() return db.useESOcolors end,
-			},
-			{--
-				type = "colorpicker",
-				name = GetString(PCHAT_OUTGOINGWHISPERSCHAT),
-				tooltip = GetString(PCHAT_OUTGOINGWHISPERSCHATTT),
-				getFunc = function() return ConvertHexToRGBA(db.colours[2*CHAT_CHANNEL_WHISPER_SENT + 1]) end,
-				setFunc = function(r, g, b) db.colours[2*CHAT_CHANNEL_WHISPER_SENT + 1] = ConvertRGBToHex(r, g, b) end,
-				default = ConvertHexToRGBAPacked(defaults.colours[2*CHAT_CHANNEL_WHISPER_SENT + 1]),
-				disabled = function() return db.useESOcolors end,
-			},
-			{--
-				type = "colorpicker",
-				name = GetString(PCHAT_GROUP),
-				tooltip = GetString(PCHAT_GROUPTT),
-				getFunc = function() return ConvertHexToRGBA(db.colours[2*CHAT_CHANNEL_PARTY]) end,
-				setFunc = function(r, g, b) db.colours[2*CHAT_CHANNEL_PARTY] = ConvertRGBToHex(r, g, b) end,
-				default = ConvertHexToRGBAPacked(defaults.colours[2*CHAT_CHANNEL_PARTY]),
-				disabled = function() return db.useESOcolors end,
-			},
-			{--
-				type = "colorpicker",
-				name = GetString(PCHAT_GROUPCHAT),
-				tooltip = GetString(PCHAT_GROUPCHATTT),
-				getFunc = function() return ConvertHexToRGBA(db.colours[2*CHAT_CHANNEL_PARTY + 1]) end,
-				setFunc = function(r, g, b) db.colours[2*CHAT_CHANNEL_PARTY + 1] = ConvertRGBToHex(r, g, b) end,
-				default = ConvertHexToRGBAPacked(defaults.colours[2*CHAT_CHANNEL_PARTY + 1]),
-				disabled = function() return db.useESOcolors end,
-			},
-		},
-	}--Other Colors
-	optionsData[#optionsData + 1] = {
-		type = "submenu",
-		name = GetString(PCHAT_OTHERCOLORSH),
-		controls = {
-			{
-				type = "colorpicker",
-				name = GetString(PCHAT_EMOTES),
-				tooltip = GetString(PCHAT_EMOTESTT),
-				getFunc = function() return ConvertHexToRGBA(db.colours[2*CHAT_CHANNEL_EMOTE]) end,
-				setFunc = function(r, g, b) db.colours[2*CHAT_CHANNEL_EMOTE] = ConvertRGBToHex(r, g, b) end,
-				default = ConvertHexToRGBAPacked(defaults.colours[2*CHAT_CHANNEL_EMOTE]),
-				disabled = function() return db.useESOcolors end,
-			},
-			{--
-				type = "colorpicker",
-				name = GetString(PCHAT_EMOTESCHAT),
-				tooltip = GetString(PCHAT_EMOTESCHATTT),
-				getFunc = function() return ConvertHexToRGBA(db.colours[2*CHAT_CHANNEL_EMOTE + 1]) end,
-				setFunc = function(r, g, b) db.colours[2*CHAT_CHANNEL_EMOTE + 1] = ConvertRGBToHex(r, g, b) end,
-				default = ConvertHexToRGBAPacked(defaults.colours[2*CHAT_CHANNEL_EMOTE + 1]),
-				disabled = function() return db.useESOcolors end,
-			},
-			{--
-				type = "colorpicker",
-				name = GetString(PCHAT_NPCSAY),
-				tooltip = GetString(PCHAT_NPCSAYTT),
-				getFunc = function() return ConvertHexToRGBA(db.colours[2*CHAT_CHANNEL_MONSTER_SAY]) end,
-				setFunc = function(r, g, b) db.colours[2*CHAT_CHANNEL_MONSTER_SAY] = ConvertRGBToHex(r, g, b) end,
-				default = ConvertHexToRGBAPacked(defaults.colours[2*CHAT_CHANNEL_MONSTER_SAY]),
-				disabled = function() return db.useESOcolors end,
-			},
-			{--
-				type = "colorpicker",
-				name = GetString(PCHAT_NPCSAYCHAT),
-				tooltip = GetString(PCHAT_NPCSAYCHATTT),
-				getFunc = function() return ConvertHexToRGBA(db.colours[2*CHAT_CHANNEL_MONSTER_SAY + 1]) end,
-				setFunc = function(r, g, b) db.colours[2*CHAT_CHANNEL_MONSTER_SAY + 1] = ConvertRGBToHex(r, g, b) end,
-				default = ConvertHexToRGBAPacked(defaults.colours[2*CHAT_CHANNEL_MONSTER_SAY + 1]),
-				disabled = function() return db.useESOcolors end,
-			},
-			{--
-				type = "colorpicker",
-				name = GetString(PCHAT_NPCYELL),
-				tooltip = GetString(PCHAT_NPCYELLTT),
-				getFunc = function() return ConvertHexToRGBA(db.colours[2*CHAT_CHANNEL_MONSTER_YELL]) end,
-				setFunc = function(r, g, b) db.colours[2*CHAT_CHANNEL_MONSTER_YELL] = ConvertRGBToHex(r, g, b) end,
-				default = ConvertHexToRGBAPacked(defaults.colours[2*CHAT_CHANNEL_MONSTER_YELL]),
-				disabled = function()
-					if db.useESOcolors then
-						return true
-					else
-						return db.allNPCSameColour
-					end
-				end,
-			},
-			{--
-				type = "colorpicker",
-				name = GetString(PCHAT_NPCYELLCHAT),
-				tooltip = GetString(PCHAT_NPCYELLCHATTT),
-				getFunc = function() return ConvertHexToRGBA(db.colours[2*CHAT_CHANNEL_MONSTER_YELL + 1]) end,
-				setFunc = function(r, g, b) db.colours[2*CHAT_CHANNEL_MONSTER_YELL + 1] = ConvertRGBToHex(r, g, b) end,
-				default = ConvertHexToRGBAPacked(defaults.colours[2*CHAT_CHANNEL_MONSTER_YELL + 1]),
-				disabled = function()
-							if db.useESOcolors then
-								return true
-							else
-								return db.allNPCSameColour
-							end
-							end,
-			},
-			{--
-				type = "colorpicker",
-				name = GetString(PCHAT_NPCWHISPER),
-				tooltip = GetString(PCHAT_NPCWHISPERTT),
-				getFunc = function() return ConvertHexToRGBA(db.colours[2*CHAT_CHANNEL_MONSTER_WHISPER]) end,
-				setFunc = function(r, g, b) db.colours[2*CHAT_CHANNEL_MONSTER_WHISPER] = ConvertRGBToHex(r, g, b) end,
-				default = ConvertHexToRGBAPacked(defaults.colours[2*CHAT_CHANNEL_MONSTER_WHISPER]),
-				disabled = function()
-					if db.useESOcolors then
-						return true
-					else
-						return db.allNPCSameColour
-					end
-				end,
-			},
-			{--
-				type = "colorpicker",
-				name = GetString(PCHAT_NPCWHISPERCHAT),
-				tooltip = GetString(PCHAT_NPCWHISPERCHATTT),
-				getFunc = function() return ConvertHexToRGBA(db.colours[2*CHAT_CHANNEL_MONSTER_WHISPER + 1]) end,
-				setFunc = function(r, g, b) db.colours[2*CHAT_CHANNEL_MONSTER_WHISPER + 1] = ConvertRGBToHex(r, g, b) end,
-				default = ConvertHexToRGBAPacked(defaults.colours[2*CHAT_CHANNEL_MONSTER_WHISPER + 1]),
-				disabled = function()
-					if db.useESOcolors then
-						return true
-					else
-						return db.allNPCSameColour
-					end
-				end,
-			},
-			{--
-				type = "colorpicker",
-				name = GetString(PCHAT_NPCEMOTES),
-				tooltip = GetString(PCHAT_NPCEMOTESTT),
-				getFunc = function() return ConvertHexToRGBA(db.colours[2*CHAT_CHANNEL_MONSTER_EMOTE]) end,
-				setFunc = function(r, g, b) db.colours[2*CHAT_CHANNEL_MONSTER_EMOTE] = ConvertRGBToHex(r, g, b) end,
-				default = ConvertHexToRGBAPacked(defaults.colours[2*CHAT_CHANNEL_MONSTER_EMOTE]),
-				disabled = function()
-					if db.useESOcolors then
-						return true
-					else
-						return db.allNPCSameColour
-					end
-				end,
-			},
-			{--
-				type = "colorpicker",
-				name = GetString(PCHAT_NPCEMOTESCHAT),
-				tooltip = GetString(PCHAT_NPCEMOTESCHATTT),
-				getFunc = function() return ConvertHexToRGBA(db.colours[2*CHAT_CHANNEL_MONSTER_EMOTE + 1]) end,
-				setFunc = function(r, g, b) db.colours[2*CHAT_CHANNEL_MONSTER_EMOTE + 1] = ConvertRGBToHex(r, g, b) end,
-				default = ConvertHexToRGBAPacked(defaults.colours[2*CHAT_CHANNEL_MONSTER_EMOTE + 1]),
-				disabled = function()
-					if db.useESOcolors then
-						return true
-					else
-						return db.allNPCSameColour
-					end
-				end,
-			},
-			{--
-				type = "colorpicker",
-				name = GetString(PCHAT_ENZONE),
-				tooltip = GetString(PCHAT_ENZONETT),
-				getFunc = function() return ConvertHexToRGBA(db.colours[2*CHAT_CHANNEL_ZONE_LANGUAGE_1]) end,
-				setFunc = function(r, g, b) db.colours[2*CHAT_CHANNEL_ZONE_LANGUAGE_1] = ConvertRGBToHex(r, g, b) end,
-				default = ConvertHexToRGBAPacked(defaults.colours[2*CHAT_CHANNEL_ZONE_LANGUAGE_1]),
-				disabled = function()
-					if db.useESOcolors then
-						return true
-					else
-						return db.allZonesSameColour
-					end
-				end,
-			},
-			{--
-				type = "colorpicker",
-				name = GetString(PCHAT_ENZONECHAT),
-				tooltip = GetString(PCHAT_ENZONECHATTT),
-				getFunc = function() return ConvertHexToRGBA(db.colours[2*CHAT_CHANNEL_ZONE_LANGUAGE_1 + 1]) end,
-				setFunc = function(r, g, b) db.colours[2*CHAT_CHANNEL_ZONE_LANGUAGE_1 + 1] = ConvertRGBToHex(r, g, b) end,
-				default = ConvertHexToRGBAPacked(defaults.colours[2*CHAT_CHANNEL_ZONE_LANGUAGE_1 + 1]),
-				disabled = function()
-					if db.useESOcolors then
-						return true
-					else
-						return db.allZonesSameColour
-					end
-				end,
-			},
-			{--
-				type = "colorpicker",
-				name = GetString(PCHAT_FRZONE),
-				tooltip = GetString(PCHAT_FRZONETT),
-				getFunc = function() return ConvertHexToRGBA(db.colours[2*CHAT_CHANNEL_ZONE_LANGUAGE_2]) end,
-				setFunc = function(r, g, b) db.colours[2*CHAT_CHANNEL_ZONE_LANGUAGE_2] = ConvertRGBToHex(r, g, b) end,
-				default = ConvertHexToRGBAPacked(defaults.colours[2*CHAT_CHANNEL_ZONE_LANGUAGE_2]),
-				disabled = function()
-					if db.useESOcolors then
-						return true
-					else
-						return db.allZonesSameColour
-					end
-				end,
-			},
-			{--
-				type = "colorpicker",
-				name = GetString(PCHAT_FRZONECHAT),
-				tooltip = GetString(PCHAT_FRZONECHATTT),
-				getFunc = function() return ConvertHexToRGBA(db.colours[2*CHAT_CHANNEL_ZONE_LANGUAGE_2 + 1]) end,
-				setFunc = function(r, g, b) db.colours[2*CHAT_CHANNEL_ZONE_LANGUAGE_2 + 1] = ConvertRGBToHex(r, g, b) end,
-				default = ConvertHexToRGBAPacked(defaults.colours[2*CHAT_CHANNEL_ZONE_LANGUAGE_2 + 1]),
-				disabled = function()
-					if db.useESOcolors then
-						return true
-					else
-						return db.allZonesSameColour
-					end
-				end,
-			},
-			{--
-				type = "colorpicker",
-				name = GetString(PCHAT_DEZONE),
-				tooltip = GetString(PCHAT_DEZONETT),
-				getFunc = function() return ConvertHexToRGBA(db.colours[2*CHAT_CHANNEL_ZONE_LANGUAGE_3]) end,
-				setFunc = function(r, g, b) db.colours[2*CHAT_CHANNEL_ZONE_LANGUAGE_3] = ConvertRGBToHex(r, g, b) end,
-				default = ConvertHexToRGBAPacked(defaults.colours[2*CHAT_CHANNEL_ZONE_LANGUAGE_3]),
-				disabled = function()
-					if db.useESOcolors then
-						return true
-					else
-						return db.allZonesSameColour
-					end
-				end,
-			},
-			{--
-				type = "colorpicker",
-				name = GetString(PCHAT_DEZONECHAT),
-				tooltip = GetString(PCHAT_DEZONECHATTT),
-				getFunc = function() return ConvertHexToRGBA(db.colours[2*CHAT_CHANNEL_ZONE_LANGUAGE_3 + 1]) end,
-				setFunc = function(r, g, b) db.colours[2*CHAT_CHANNEL_ZONE_LANGUAGE_3 + 1] = ConvertRGBToHex(r, g, b) end,
-				default = ConvertHexToRGBAPacked(defaults.colours[2*CHAT_CHANNEL_ZONE_LANGUAGE_3 + 1]),
-				disabled = function()
-					if db.useESOcolors then
-						return true
-					else
-						return db.allZonesSameColour
-					end
-				end,
-			},
-			{--
-				type = "colorpicker",
-				name = GetString(PCHAT_JPZONE),
-				tooltip = GetString(PCHAT_JPZONETT),
-				getFunc = function() return ConvertHexToRGBA(db.colours[2*CHAT_CHANNEL_ZONE_LANGUAGE_4]) end,
-				setFunc = function(r, g, b) db.colours[2*CHAT_CHANNEL_ZONE_LANGUAGE_4] = ConvertRGBToHex(r, g, b) end,
-				default = ConvertHexToRGBAPacked(defaults.colours[2*CHAT_CHANNEL_ZONE_LANGUAGE_4]),
-				disabled = function()
-					if db.useESOcolors then
-						return true
-					else
-						return db.allZonesSameColour
-					end
-				end,
-			},
-			{--
-				type = "colorpicker",
-				name = GetString(PCHAT_JPZONECHAT),
-				tooltip = GetString(PCHAT_JPZONECHATTT),
-				getFunc = function() return ConvertHexToRGBA(db.colours[2*CHAT_CHANNEL_ZONE_LANGUAGE_4 + 1]) end,
-				setFunc = function(r, g, b) db.colours[2*CHAT_CHANNEL_ZONE_LANGUAGE_4 + 1] = ConvertRGBToHex(r, g, b) end,
-				default = ConvertHexToRGBAPacked(defaults.colours[2*CHAT_CHANNEL_ZONE_LANGUAGE_4 + 1]),
-				disabled = function()
-					if db.useESOcolors then
-						return true
-					else
-						return db.allZonesSameColour
-					end
-				end,
-			},
-		},
-	}
--- Guilds
-
---  Guild Stuff
---
-	for guild = 1, GetNumGuilds() do
-		-- Guildname
-		local guildId = GetGuildId(guild)
-		local guildName = GetGuildName(guildId)
-		-- Occurs sometimes
-		if(not guildName or (guildName):len() < 1) then
-			guildName = "Guild " .. guild
-		end
-		-- If recently added to a new guild and never go in menu db.formatguild[guildName] won't exist
-		if not (db.formatguild[guildId]) then
-			-- 2 is default value
-			db.formatguild[guildId] = 2
-		end
-		optionsData[#optionsData + 1] = {
-		type = "submenu",
-		name = guildName,
-		controls = {
-			{
-				type = "editbox",
-				name = GetString(PCHAT_NICKNAMEFOR),
-				tooltip = GetString(PCHAT_NICKNAMEFORTT) .. " " .. guildName .. " (ID: " ..tostring(guildId) ..")",
-				getFunc = function() return db.guildTags[guildId] end,
-				setFunc = function(newValue)
-					db.guildTags[guildId] = newValue
-					UpdateCharCorrespondanceTableChannelNames()
-				end,
-				width = "full",
-				default = "",
-			},
-			{
-				type = "editbox",
-				name = GetString(PCHAT_OFFICERTAG),
-				tooltip = GetString(PCHAT_OFFICERTAGTT),
-				width = "full",
-				default = "",
-				getFunc = function() return db.officertag[guildId] end,
-				setFunc = function(newValue)
-					db.officertag[guildId] = newValue
-					UpdateCharCorrespondanceTableChannelNames()
-				end
-			},
-			{
-				type = "editbox",
-				name = GetString(PCHAT_SWITCHFOR),
-				tooltip = GetString(PCHAT_SWITCHFORTT),
-				getFunc = function() return db.switchFor[guildId] end,
-				setFunc = function(newValue)
-					local channelId = CHAT_CHANNEL_GUILD_1 - 1 + guild
-
-					local oldValue = db.switchFor[guildId]
-					if oldValue and oldValue ~= "" then
-						RemoveCustomChannelSwitches(channelId, oldValue)
-					end
-
-					db.switchFor[guildId] = newValue
-					if newValue and newValue ~= "" then
-						AddCustomChannelSwitches(channelId, newValue)
-					end
-				end,
-				width = "full",
-				default = "",
-			},
-			{
-				type = "editbox",
-				name = GetString(PCHAT_OFFICERSWITCHFOR),
-				tooltip = GetString(PCHAT_OFFICERSWITCHFORTT),
-				width = "full",
-				default = "",
-				getFunc = function() return db.officerSwitchFor[guildId] end,
-				setFunc = function(newValue)
-					local channelId = CHAT_CHANNEL_OFFICER_1 - 1 + guild
-
-					local oldValue = db.officerSwitchFor[guildId]
-					if oldValue and oldValue ~= "" then
-						RemoveCustomChannelSwitches(channelId, oldValue)
-					end
-
-					db.officerSwitchFor[guildId] = newValue
-					if newValue and newValue ~= "" then
-						AddCustomChannelSwitches(channelId, newValue)
-					end
-				end
-			},
-		-- Config store 1/2/3 to avoid language switchs
-		-- TODO : Optimize
-			{
-				type = "dropdown",
-				name = GetString(PCHAT_NAMEFORMAT),
-				tooltip = GetString(PCHAT_NAMEFORMATTT),
-				choices = {GetString(PCHAT_FORMATCHOICE1), GetString(PCHAT_FORMATCHOICE2), GetString(PCHAT_FORMATCHOICE3), GetString(PCHAT_FORMATCHOICE4)},
-				choicesValues = {1, 2, 3, 4},
-				getFunc = function()
-					-- Config per guild
-					return db.formatguild[guildId]
-				end,
-				setFunc = function(value)
-					db.formatguild[guildId] = value
-				end,
-				width = "full",
-				default = 2,
-			},
-			{
-				type = "colorpicker",
-				name = zo_strformat(PCHAT_MEMBERS, guildName),
-				tooltip = zo_strformat(PCHAT_SETCOLORSFORTT, guildName),
-				getFunc = function() return ConvertHexToRGBA(db.colours[2*(CHAT_CHANNEL_GUILD_1 + guild - 1)]) end,
-				setFunc = function(r, g, b) db.colours[2*(CHAT_CHANNEL_GUILD_1 + guild - 1)] = ConvertRGBToHex(r, g, b) end,
-				default = ConvertHexToRGBAPacked(defaults.colours[2*(CHAT_CHANNEL_GUILD_1 + guild - 1)]),
-				disabled = function() return db.useESOcolors end,
-			},
-			{
-				type = "colorpicker",
-				name = zo_strformat(PCHAT_CHAT, guildName),
-				tooltip = zo_strformat(PCHAT_SETCOLORSFORCHATTT, guildName),
-				getFunc = function() return ConvertHexToRGBA(db.colours[2*(CHAT_CHANNEL_GUILD_1 + guild - 1) + 1]) end,
-				setFunc = function(r, g, b) db.colours[2*(CHAT_CHANNEL_GUILD_1 + guild - 1) + 1] = ConvertRGBToHex(r, g, b) end,
-				default = ConvertHexToRGBAPacked(defaults.colours[2*(CHAT_CHANNEL_GUILD_1 + guild - 1) + 1]),
-				disabled = function() return db.useESOcolors end,
-			},
-			{
-				type = "colorpicker",
-				name = guildName .. GetString(PCHAT_OFFICERSTT) .. zo_strformat(PCHAT_MEMBERS, ""),
-				tooltip = zo_strformat(PCHAT_SETCOLORSFOROFFICIERSTT, guildName),
-				getFunc = function() return ConvertHexToRGBA(db.colours[2*(CHAT_CHANNEL_OFFICER_1 + guild - 1)]) end,
-				setFunc = function(r, g, b) db.colours[2*(CHAT_CHANNEL_OFFICER_1 + guild - 1)] = ConvertRGBToHex(r, g, b) end,
-				default = ConvertHexToRGBAPacked(defaults.colours[2*(CHAT_CHANNEL_OFFICER_1 + guild - 1)]),
-				disabled = function() return db.useESOcolors end,
-			},
-			{
-				type = "colorpicker",
-				name = guildName .. GetString(PCHAT_OFFICERSTT) .. zo_strformat(PCHAT_CHAT, ""),
-				tooltip = zo_strformat(PCHAT_SETCOLORSFOROFFICIERSCHATTT, guildName),
-				getFunc = function() return ConvertHexToRGBA(db.colours[2*(CHAT_CHANNEL_OFFICER_1 + guild - 1) + 1]) end,
-				setFunc = function(r, g, b) db.colours[2*(CHAT_CHANNEL_OFFICER_1 + guild - 1) + 1] = ConvertRGBToHex(r, g, b) end,
-				default = ConvertHexToRGBAPacked(defaults.colours[2*(CHAT_CHANNEL_OFFICER_1 + guild - 1) + 1]),
-				disabled = function() return db.useESOcolors end,
-			},
-		},
-	}
-	end
-
-
-
 
 	--[[
 	index = index + 1
@@ -5608,6 +5692,7 @@ local function BuildLAMPanel()
 	},
 	]]--
 
+	--Create the LibAdonMenu2 settings panel now
 	LibAddonMenu2:RegisterOptionControls("pChatOptions", optionsData)
 
 end
@@ -5626,6 +5711,8 @@ local function GetDBAndBuildLAM()
 		registerForRefresh = true,
 		registerForDefaults = true,
 		website = ADDON_WEBSITE,
+		feedback = ADDON_FEEDBACK,
+		donation = ADDON_DONATION,
 	}
 
 	pChat.LAMPanel = LibAddonMenu2:RegisterAddonPanel("pChatOptions", panelData)
@@ -5699,143 +5786,155 @@ local function RevertCategories(guildId)
 
 end
 
--- Registers the formatMessage function.
--- Unregisters itself from the player activation event with the event manager.
+-- Registers the formatMessage function etc.
+-- Chat and player are active here!
 local function OnPlayerActivated()
 	logger:Debug("EVENT_PLAYER_ACTIVATED - Start")
-	--Addon was loaded via EVENT_ADD_ON_LOADED and we are not already doing some EVENT_PLAYER_ACTIVATED tasks
-	if isAddonLoaded and not eventPlayerActivatedCheckRunning then
-		pChatData.sceneFirst = false
+------------------------------------------------------------------------------------------------------------------------
+	if not isAddonInitialized == true then
+		--Addon was loaded via EVENT_ADD_ON_LOADED and we are not already doing some EVENT_PLAYER_ACTIVATED tasks
+		if isAddonLoaded and not eventPlayerActivatedCheckRunning then
+			pChatData.sceneFirst = false
 
-		--Adding the formatting to the text, the timestamp, username/accountname etc.
-		local chatHandlerFunctions = pChat.chatHandlers --> See file pChat_chatHandlers.lua
-		if chatHandlerFunctions and CHAT_ROUTER and CHAT_ROUTER.RegisterMessageFormatter then
-			--Set the local variables in file pChat_chatHandlers.lua to the pChat function names
-			--for the formatters
-			chatHandlerFunctions.SetChatHandlerFunctions()
+			--Adding the formatting to the text, the timestamp, username/accountname etc.
+			local chatHandlerFunctions = pChat.chatHandlers --> See file pChat_chatHandlers.lua
+			if chatHandlerFunctions and CHAT_ROUTER and CHAT_ROUTER.RegisterMessageFormatter then
+				--Set the local variables in file pChat_chatHandlers.lua to the pChat function names
+				--for the formatters
+				chatHandlerFunctions.SetChatHandlerFunctions()
 
-			--2020-03-02 Baertram
-			--ZOs fixed the chat event handler callback function registering.
-			--Not using LibChatMessage fix anmyore!
-			--And not "overwriting" the functions anymore, but registering new ones using CHAT_ROUTER:RegisterMessageFormatter(eventKey, messageFormatter)
-			for eventId, eventCallBackFunc in pairs(chatHandlerFunctions) do
-				if eventId and eventCallBackFunc and type(eventCallBackFunc) == "function" then
-					CHAT_ROUTER:RegisterMessageFormatter(eventId, eventCallBackFunc)
+				--2020-03-02 Baertram
+				--ZOs fixed the chat event handler callback function registering.
+				--Not using LibChatMessage fix anmyore!
+				--And not "overwriting" the functions anymore, but registering new ones using CHAT_ROUTER:RegisterMessageFormatter(eventKey, messageFormatter)
+				for eventId, eventCallBackFunc in pairs(chatHandlerFunctions) do
+					if eventId and eventCallBackFunc and type(eventCallBackFunc) == "function" then
+						CHAT_ROUTER:RegisterMessageFormatter(eventId, eventCallBackFunc)
+					end
 				end
 			end
 		end
-	end
 
-	--Test if the chat_system containers are given already or wait until they are.
-	--Only test 3 seconds, then do the event_player_activated tasks!
-	if eventPlayerActivatedChecksDone <= 12 and (CHAT_SYSTEM == nil or CHAT_SYSTEM.primaryContainer == nil) then
-		logger:Debug("EVENT_PLAYER_ACTIVATED: CHAT_SYSTEM.primaryContainer is missing!")
-		if not eventPlayerActivatedCheckRunning then
-			EVENT_MANAGER:RegisterForUpdate("pChatDebug_Event_Player_Activated", 250, function()
-				eventPlayerActivatedChecksDone = eventPlayerActivatedChecksDone + 1
-				eventPlayerActivatedCheckRunning = true
-				OnPlayerActivated()
-			end)
-		end
-	else
-		logger:Debug("EVENT_PLAYER_ACTIVATED: Found CHAT_SYSTEM.primaryContainer!")
-		eventPlayerActivatedCheckRunning = false
-		EVENT_MANAGER:UnregisterForUpdate("pChatDebug_Event_Player_Activated")
-
-		if isAddonLoaded then
-			pChatData.activeTab = 1
-
-			--Get a reference to the chat channelData (CHAT_SYSTEM.channelData)
-			--ChannelInfo = ZO_ChatSystem_GetChannelInfo()
-
-			if CHAT_SYSTEM.ValidateChatChannel then
-				ZO_PreHook(CHAT_SYSTEM, "ValidateChatChannel", function(self)
-					if (db.enableChatTabChannel  == true) and (self.currentChannel ~= CHAT_CHANNEL_WHISPER) then
-						local tabIndex = self.primaryContainer.currentBuffer:GetParent().tab.index
-						db.chatTabChannel[tabIndex] = db.chatTabChannel[tabIndex] or {}
-						db.chatTabChannel[tabIndex].channel = self.currentChannel
-						db.chatTabChannel[tabIndex].target  = self.currentTarget
-					end
+		--Test if the chat_system containers are given already or wait until they are.
+		--Only test 3 seconds, then do the event_player_activated tasks!
+		if eventPlayerActivatedChecksDone <= 12 and (CHAT_SYSTEM == nil or CHAT_SYSTEM.primaryContainer == nil) then
+			logger:Debug("EVENT_PLAYER_ACTIVATED: CHAT_SYSTEM.primaryContainer is missing!")
+			if not eventPlayerActivatedCheckRunning then
+				EVENT_MANAGER:RegisterForUpdate("pChatDebug_Event_Player_Activated", 250, function()
+					eventPlayerActivatedChecksDone = eventPlayerActivatedChecksDone + 1
+					eventPlayerActivatedCheckRunning = true
+					OnPlayerActivated()
 				end)
 			end
+		else
+			logger:Debug("EVENT_PLAYER_ACTIVATED: Found CHAT_SYSTEM.primaryContainer!")
+			eventPlayerActivatedCheckRunning = false
+			EVENT_MANAGER:UnregisterForUpdate("pChatDebug_Event_Player_Activated")
 
-			if CHAT_SYSTEM.primaryContainer.HandleTabClick then
-				ZO_PreHook(CHAT_SYSTEM.primaryContainer, "HandleTabClick", function(self, tab)
-					pChatData.activeTab = tab.index
-					if (db.enableChatTabChannel == true) then
-						local tabIndex = tab.index
-						if db.chatTabChannel[tabIndex] then
-							CHAT_SYSTEM:SetChannel(db.chatTabChannel[tabIndex].channel, db.chatTabChannel[tabIndex].target)
+			if isAddonLoaded then
+				pChatData.activeTab = 1
+
+				--Get a reference to the chat channelData (CHAT_SYSTEM.channelData)
+				--ChannelInfo = ZO_ChatSystem_GetChannelInfo()
+
+				if CHAT_SYSTEM.ValidateChatChannel then
+					ZO_PreHook(CHAT_SYSTEM, "ValidateChatChannel", function(self)
+						if (db.enableChatTabChannel  == true) and (self.currentChannel ~= CHAT_CHANNEL_WHISPER) then
+							local tabIndex = self.primaryContainer.currentBuffer:GetParent().tab.index
+							db.chatTabChannel[tabIndex] = db.chatTabChannel[tabIndex] or {}
+							db.chatTabChannel[tabIndex].channel = self.currentChannel
+							db.chatTabChannel[tabIndex].target  = self.currentTarget
 						end
-					end
-					--ZO_TabButton_Text_RestoreDefaultColors(tab)
-				end)
+					end)
+				end
+
+				if CHAT_SYSTEM.primaryContainer.HandleTabClick then
+					ZO_PreHook(CHAT_SYSTEM.primaryContainer, "HandleTabClick", function(self, tab)
+						pChatData.activeTab = tab.index
+						if (db.enableChatTabChannel == true) then
+							local tabIndex = tab.index
+							if db.chatTabChannel[tabIndex] then
+								CHAT_SYSTEM:SetChannel(db.chatTabChannel[tabIndex].channel, db.chatTabChannel[tabIndex].target)
+							end
+						end
+						--ZO_TabButton_Text_RestoreDefaultColors(tab)
+					end)
+				end
+
+				if CHAT_SYSTEM.Maximize then
+					-- Visual Notification PreHook
+					ZO_PreHook(CHAT_SYSTEM, "Maximize", function(self)
+						CHAT_SYSTEM.IMLabelMin:SetHidden(true)
+					end)
+				end
+
+				--local fontPath = ZoFontChat:GetFontInfo()
+				--chat:Print(fontPath)
+				--chat:Print("|C3AF24BLorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.|r")
+				--chat:Print("Characters below should be well displayed :")
+				--chat:Print("!\"#$%&'()*+,-./0123456789:;<=>?@ ABCDEFGHIJKLMNOPQRSTUVWXYZ [\]^_`abcdefghijklmnopqrstuvwxyz{|} ~¡£¤¥¦§©«-®°²³´µ¶·»½¿ ÀÁÂÄÆÇÈÉÊËÌÍÎÏÑÒÓÔÖ×ÙÚÛÜßàáâäæçèéêëìíîïñòóôöùúûüÿŸŒœ")
+
+				-- AntiSpam
+				pChatData.spamLookingForEnabled = true
+				pChatData.spamWantToEnabled = true
+				pChatData.spamGuildRecruitEnabled = true
+
+				-- Show 1000 lines instead of 200 & Change fade delay
+				ShowFadedLines()
+				-- Get Chat Tab Names stored in chatTabNames {}
+				getTabNamesAndIndices()
+				-- Rebuild Lam Panel
+				BuildLAMPanel()
+				-- Create the chat tab's PostHook
+				CreateNewChatTabPostHook()
+
+				-- Should we minimize ?
+				MinimizeChatAtLaunch()
+
+				-- Message for new chars
+				AutoSyncSettingsForNewPlayer()
+
+				-- Chat Config synchronization
+				SyncChatConfig(db.chatSyncConfig, "lastChar")
+				SaveChatConfig()
+
+				--Update the guilds custom tags (next to entry box): Add them to the chat channels of table ChannelInfo
+				UpdateCharCorrespondanceTableChannelNames()
+
+				--Update teh guild's custom channel switches: Add them to the chat switches of table ZO_ChatSystem_GetChannelSwitchLookupTable
+				UpdateGuildCorrespondanceTableSwitches()
+
+				-- Set default channel at login
+				SetToDefaultChannel()
+
+				-- Save all category colors
+				SaveGuildIndexes()
+
+				-- Handle Copy text
+				CopyToTextEntryText()
+
+				-- Restore History if needed
+				RestoreChatHistory()
+				-- Default Tab
+				SetDefaultTab(db.defaultTab)
+				-- Change Window apparence
+				ChangeChatWindowDarkness()
+
+				isAddonInitialized = true
+
+				--Do not unregister the event as we still need it for the chat channel party switch checks in dungeons!
+				--EVENT_MANAGER:UnregisterForEvent(ADDON_NAME, EVENT_PLAYER_ACTIVATED)
+				logger:Debug("EVENT_PLAYER_ACTIVATED - End: Addon is initialized now")
 			end
-
-			if CHAT_SYSTEM.Maximize then
-				-- Visual Notification PreHook
-				ZO_PreHook(CHAT_SYSTEM, "Maximize", function(self)
-					CHAT_SYSTEM.IMLabelMin:SetHidden(true)
-				end)
-			end
-
-			--local fontPath = ZoFontChat:GetFontInfo()
-			--chat:Print(fontPath)
-			--chat:Print("|C3AF24BLorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.|r")
-			--chat:Print("Characters below should be well displayed :")
-			--chat:Print("!\"#$%&'()*+,-./0123456789:;<=>?@ ABCDEFGHIJKLMNOPQRSTUVWXYZ [\]^_`abcdefghijklmnopqrstuvwxyz{|} ~¡£¤¥¦§©«-®°²³´µ¶·»½¿ ÀÁÂÄÆÇÈÉÊËÌÍÎÏÑÒÓÔÖ×ÙÚÛÜßàáâäæçèéêëìíîïñòóôöùúûüÿŸŒœ")
-
-			-- AntiSpam
-			pChatData.spamLookingForEnabled = true
-			pChatData.spamWantToEnabled = true
-			pChatData.spamGuildRecruitEnabled = true
-
-			-- Show 1000 lines instead of 200 & Change fade delay
-			ShowFadedLines()
-			-- Get Chat Tab Names stored in chatTabNames {}
-			getTabNames()
-			-- Rebuild Lam Panel
-			BuildLAMPanel()
-			-- Create the chat tab's PostHook
-			CreateNewChatTabPostHook()
-
-			-- Should we minimize ?
-			MinimizeChatAtLaunch()
-
-			-- Message for new chars
-			AutoSyncSettingsForNewPlayer()
-
-			-- Chat Config synchronization
-			SyncChatConfig(db.chatSyncConfig, "lastChar")
-			SaveChatConfig()
-
-			--Update the guilds custom tags (next to entry box): Add them to the chat channels of table ChannelInfo
-			UpdateCharCorrespondanceTableChannelNames()
-
-			--Update teh guild's custom channel switches: Add them to the chat switches of table ZO_ChatSystem_GetChannelSwitchLookupTable
-			UpdateGuildCorrespondanceTableSwitches()
-
-			-- Set default channel at login
-			SetToDefaultChannel()
-
-			-- Save all category colors
-			SaveGuildIndexes()
-
-			-- Handle Copy text
-			CopyToTextEntryText()
-
-			-- Restore History if needed
-			RestoreChatHistory()
-			-- Default Tab
-			SetDefaultTab(db.defaultTab)
-			-- Change Window apparence
-			ChangeChatWindowDarkness()
-
-			isAddonInitialized = true
-
-			EVENT_MANAGER:UnregisterForEvent(ADDON_NAME, EVENT_PLAYER_ACTIVATED)
-			logger:Debug("EVENT_PLAYER_ACTIVATED - End: Addon was initialized")
 		end
+------------------------------------------------------------------------------------------------------------------------
+	else
+		--The addon was already initialized
+
+		--Check if any automatich chat channel switches should be applied
+		CheckChatChannelSwitches()
+
+		logger:Debug("EVENT_PLAYER_ACTIVATED - End: Addon was already initialized")
 	end
 end
 
@@ -5867,7 +5966,7 @@ local function SwitchToParty(characterName)
 			-- Someone else joined group
 			-- If GetGroupSize() == 2 : Means "me" just created a group and "someone" just joining
 			 if GetGroupSize() == 2 then
-				-- Switch to party channel when joinin a group
+				-- Switch to party channel when joining a group
 				if db.enablepartyswitch then
 					CHAT_SYSTEM:SetChannel(CHAT_CHANNEL_PARTY)
 				end
@@ -5890,7 +5989,7 @@ local function OnGroupMemberLeft(_, characterName, reason, wasMeWhoLeft)
 	if GetGroupSize() <= 1 then
 		-- Go back to default channel when leaving a group
 		if db.enablepartyswitch then
-			-- Only if we was on party
+			-- Only if we were in a party
 			if CHAT_SYSTEM.currentChannel == CHAT_CHANNEL_PARTY and db.defaultchannel ~= PCHAT_CHANNEL_NONE then
 				SetToDefaultChannel()
 			end

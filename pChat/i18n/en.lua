@@ -26,18 +26,21 @@ local strings = {
 -- New Need Translations
 
 
-	PCHAT_OPTIONSH = "Messages Settings",
+	PCHAT_OPTIONSH = "Chat settings",
+	PCHAT_MESSAGEOPTIONSH = "Message settings",
+	PCHAT_MESSAGEOPTIONSNAMEH = "Name in messages",
+	PCHAT_MESSAGEOPTIONSCOLORH = "Color of messages",
 
 	PCHAT_GUILDNUMBERS = "Guild numbers",
 	PCHAT_GUILDNUMBERSTT = "Shows the guild number next to the guild tag",
 
-	PCHAT_ALLGUILDSSAMECOLOUR = "Use same color for all guilds",
-	PCHAT_ALLGUILDSSAMECOLOURTT = "Makes all guild chats use the same color as /guild1",
+	PCHAT_ALLGUILDSSAMECOLOUR = "Same color for all guilds",
+	PCHAT_ALLGUILDSSAMECOLOURTT = "Makes all guild chats use the same color as \'%s\'",
 
-	PCHAT_ALLZONESSAMECOLOUR = "Use same color for all zone chats",
+	PCHAT_ALLZONESSAMECOLOUR = "Same color for all zones",
 	PCHAT_ALLZONESSAMECOLOURTT = "Makes all zone chats use the same color as /zone",
 
-	PCHAT_ALLNPCSAMECOLOUR = "Use same color for all NPC lines",
+	PCHAT_ALLNPCSAMECOLOUR = "Same color for all NPC",
 	PCHAT_ALLNPCSAMECOLOURTT = "Makes all NPC lines use the same color as NPC say",
 
 	PCHAT_DELZONETAGS = "Remove zone tags",
@@ -48,14 +51,14 @@ local strings = {
 	PCHAT_ZONETAGPARTY = "Group",
 	PCHAT_ZONETAGZONE = "zone",
 
-	PCHAT_CARRIAGERETURN = "Newline between name and message",
+	PCHAT_CARRIAGERETURN = "Name & message in seperated lines",
 	PCHAT_CARRIAGERETURNTT = "Player names and chat texts are separated by a newline.",
 
 	PCHAT_USEESOCOLORS = "Use ESO colors",
-	PCHAT_USEESOCOLORSTT = "Use colors set in social settings instead pChat ones",
+	PCHAT_USEESOCOLORSTT = "Use colors set in social settings instead pChat ones.\nIf you enable this setting the chat channel colors won't be activated!",
 
-	PCHAT_DIFFFORESOCOLORS = "Difference between ESO colors",
-	PCHAT_DIFFFORESOCOLORSTT = "If using ESO colors and Use two colors option, you can adjust brightness difference between player name and message displayed",
+	PCHAT_DIFFFORESOCOLORS = "Enable brightness difference",
+	PCHAT_DIFFFORESOCOLORSTT = "Adjust brightness difference between player name/zone and message text displayed by this value (name will get darker / message text will get lighter).\nThis option is not working if you enable the option \'Use one color for lines\'!",
 
 	PCHAT_REMOVECOLORSFROMMESSAGES = "Remove colors from messages",
 	PCHAT_REMOVECOLORSFROMMESSAGESTT = "Stops people using things like rainbow colored text",
@@ -67,10 +70,10 @@ local strings = {
 	PCHAT_AUGMENTHISTORYBUFFERTT = "Per default, only the last 200 lines are displayed in chat. This feature raise this value up to 1000 lines",
 
 	PCHAT_USEONECOLORFORLINES = "Use one color for lines",
-	PCHAT_USEONECOLORFORLINESTT = "Instead of having two colors per channel, only use 1st color",
+	PCHAT_USEONECOLORFORLINESTT = "Instead of having two colors per channel, only use 1st color (the player color)",
 
-	PCHAT_GUILDTAGSNEXTTOENTRYBOX = "Guild tags next to entry box",
-	PCHAT_GUILDTAGSNEXTTOENTRYBOXTT = "Show the guild tag instead of the guild name next to where you type",
+	PCHAT_GUILDTAGSNEXTTOENTRYBOX = "Guild tags next to text box",
+	PCHAT_GUILDTAGSNEXTTOENTRYBOXTT = "Show the guild tag instead of the guild name left of the chat's text entry box",
 
 	PCHAT_DISABLEBRACKETS = "Remove brackets around names",
 	PCHAT_DISABLEBRACKETSTT = "Remove the brackets [] around player names",
@@ -98,30 +101,33 @@ local strings = {
 	PCHAT_DEFAULTTAB = "Default tab",
 	PCHAT_DEFAULTTABTT = "Select which tab to display at startup",
 
-	PCHAT_ADDCHANNELANDTARGETTOHISTORY = "Switch channel when using history",
+	PCHAT_ADDCHANNELANDTARGETTOHISTORY = "Switch channel using arrow keys",
 	PCHAT_ADDCHANNELANDTARGETTOHISTORYTT = "Switch the channel when using arrow keys to match the channel previously used.",
 
-	PCHAT_URLHANDLING = "Detect and make URLs linkable",
-	PCHAT_URLHANDLINGTT = "If a URL starting with http(s):// is linked in chat pChat will detect it and you'll be able to click on it to directly go on the concerned link with your system browser",
+	PCHAT_URLHANDLING = "Detect URLs/links",
+	PCHAT_URLHANDLINGTT = "If a URL starting with http(s):// is linked in chat pChat will detect it and you'll be able to click on it to directly open the link with your system set standard web browser.\Attention: ESO will always ask if you want to open the external link first.",
 
 	PCHAT_ENABLECOPY = "Enable copy",
 	PCHAT_ENABLECOPYTT = "Enable copy with a right click on text - Also enable the channel switch with a left click. Disable this option if you got problems to display links in chat",
 
 	-- Group Settings
 
-	PCHAT_GROUPH = "Party channel tweaks",
+	PCHAT_GROUPH = "Party tweaks",
 
-	PCHAT_ENABLEPARTYSWITCH = "Enable Party Switch",
+	PCHAT_ENABLEPARTYSWITCH = "Auto channel switch: party",
 	PCHAT_ENABLEPARTYSWITCHTT = "Enabling Party switch will switch your current channel to party when joining a party and  switch back to your default channel when leaving a party",
+
+	PCHAT_ENABLEPARTYSWITCHPORTTODUNGEON 	= "Auto channel switch in dungeon",
+	PCHAT_ENABLEPARTYSWITCHPORTTODUNGEONTT 	= "The above mentioned party switch will also change the chat channel to /party if you port into a dungeon/do a reloadui in a dungeon + your are grouped.\nThis setting will be only available if the party switch is enabled!",
 
 	PCHAT_GROUPLEADER = "Special color for party leader",
 	PCHAT_GROUPLEADERTT = "Enabling this feature will let you set a special color for party leader messages",
 
-	PCHAT_GROUPLEADERCOLOR = "Party leader color",
-	PCHAT_GROUPLEADERCOLORTT = "Color of party leader messages. 2nd color is only to set if \"Use ESO colors\" is set to Off",
+	PCHAT_GROUPLEADERCOLOR = "Leader name color",
+	PCHAT_GROUPLEADERCOLORTT = "Color of party leader name.",
 
-	PCHAT_GROUPLEADERCOLOR1 = "Color of messages for party leader",
-	PCHAT_GROUPLEADERCOLOR1TT = "Color of message for party leader. If \"Use ESO colors\" is set to Off, this option will be disabled. The color of the party leader will be the one set above and the party leader messages will be this one",
+	PCHAT_GROUPLEADERCOLOR1 = "Leader message color",
+	PCHAT_GROUPLEADERCOLOR1TT = "Color of message for party leader. If \"Use ESO colors\" is enabled this option will be disabled.",
 
 	PCHAT_GROUPNAMES = "Names format for groups",
 	PCHAT_GROUPNAMESTT = "Format of your groupmates names in party channel",
@@ -250,6 +256,9 @@ local strings = {
 	PCHAT_TIMESTAMPTT = "Set color for the timestamp",
 
 	-- Guild settings
+	PCHAT_GUILDH = "Guild tweaks",
+
+	PCHAT_CHATCHANNELSH = "Chat channels",
 
 	PCHAT_NICKNAMEFOR = "Nickname",
 	PCHAT_NICKNAMEFORTT = "Nickname for ",
@@ -277,108 +286,108 @@ local strings = {
 	PCHAT_SETCOLORSFOROFFICIERSTT = "Set colors for members of Officer chat of <<1>>",
 	PCHAT_SETCOLORSFOROFFICIERSCHATTT = "Set colors for messages of Officer chat of <<1>>",
 
-	PCHAT_MEMBERS = "<<1>> - Players",
-	PCHAT_CHAT = "<<1>> - Messages",
+	PCHAT_MEMBERS = "Player name",
+	PCHAT_CHAT = "Message",
 
-	PCHAT_OFFICERSTT = " Officers",
+	PCHAT_OFFICERSTT = " Officer",
 
 	-- Channel colors settings
 
-	PCHAT_CHATCOLORSH = "Chat Colors",
+	PCHAT_CHATCOLORSH = "Chat channel colors",
 
-	PCHAT_SAY = "Say - Player",
-	PCHAT_SAYTT = "Set player color for say channel",
+	PCHAT_SAY = "Say - name",
+	PCHAT_SAYTT = "Set player name color for say channel",
 
-	PCHAT_SAYCHAT = "Say - Chat",
-	PCHAT_SAYCHATTT = "Set chat color for say channel",
+	PCHAT_SAYCHAT = "Say - message",
+	PCHAT_SAYCHATTT = "Set chat message color for say channel",
 
-	PCHAT_ZONE = "Zone - Player",
-	PCHAT_ZONETT = "Set player color for zone channel",
+	PCHAT_ZONE = "Zone - name",
+	PCHAT_ZONETT = "Set player name color for zone channel",
 
-	PCHAT_ZONECHAT = "Zone - Chat",
-	PCHAT_ZONECHATTT = "Set chat color for zone channel",
+	PCHAT_ZONECHAT = "Zone - message",
+	PCHAT_ZONECHATTT = "Set chat message color for zone channel",
 
-	PCHAT_YELL = "Yell - Player",
-	PCHAT_YELLTT = "Set player color for yell channel",
+	PCHAT_YELL = "Yell - name",
+	PCHAT_YELLTT = "Set player name color for yell channel",
 
-	PCHAT_YELLCHAT = "Yell - Chat",
-	PCHAT_YELLCHATTT = "Set chat color for yell channel",
+	PCHAT_YELLCHAT = "Yell - message",
+	PCHAT_YELLCHATTT = "Set chat message color for yell channel",
 
-	PCHAT_INCOMINGWHISPERS = "Incoming whispers - Player",
-	PCHAT_INCOMINGWHISPERSTT = "Set player color for incoming whispers",
+	PCHAT_INCOMINGWHISPERS = "Incoming whispers - name",
+	PCHAT_INCOMINGWHISPERSTT = "Set player name color for incoming whispers",
 
-	PCHAT_INCOMINGWHISPERSCHAT = "Incoming whispers - Chat",
-	PCHAT_INCOMINGWHISPERSCHATTT = "Set chat color for incoming whispers",
+	PCHAT_INCOMINGWHISPERSCHAT = "Incoming whispers - message",
+	PCHAT_INCOMINGWHISPERSCHATTT = "Set chat message color for incoming whispers",
 
-	PCHAT_OUTGOINGWHISPERS = "Outgoing whispers - Player",
-	PCHAT_OUTGOINGWHISPERSTT = "Set player color for outgoing whispers",
+	PCHAT_OUTGOINGWHISPERS = "Outgoing whispers - name",
+	PCHAT_OUTGOINGWHISPERSTT = "Set player name color for outgoing whispers",
 
-	PCHAT_OUTGOINGWHISPERSCHAT = "Outgoing whispers - Chat",
-	PCHAT_OUTGOINGWHISPERSCHATTT = "Set chat color for outgoing whispers",
+	PCHAT_OUTGOINGWHISPERSCHAT = "Outgoing whispers - message",
+	PCHAT_OUTGOINGWHISPERSCHATTT = "Set chat message color for outgoing whispers",
 
-	PCHAT_GROUP = "Group - Player",
-	PCHAT_GROUPTT = "Set player color for group chat",
+	PCHAT_GROUP = "Group - name",
+	PCHAT_GROUPTT = "Set player name color for group chat",
 
-	PCHAT_GROUPCHAT = "Group - Chat",
-	PCHAT_GROUPCHATTT = "Set chat color for group chat",
+	PCHAT_GROUPCHAT = "Group - message",
+	PCHAT_GROUPCHATTT = "Set chat message color for group chat",
 
 	-- Other colors
 
 	PCHAT_OTHERCOLORSH = "Other Colors",
 
-	PCHAT_EMOTES = "Emotes - Player",
-	PCHAT_EMOTESTT = "Set player color for emotes",
+	PCHAT_EMOTES = "Emotes - name",
+	PCHAT_EMOTESTT = "Set player name color for emotes",
 
-	PCHAT_EMOTESCHAT = "Emotes - Chat",
-	PCHAT_EMOTESCHATTT = "Set chat color for emotes",
+	PCHAT_EMOTESCHAT = "Emotes - message",
+	PCHAT_EMOTESCHATTT = "Set chat message color for emotes",
 
-	PCHAT_ENZONE = "EN Zone - Player",
-	PCHAT_ENZONETT = "Set player color for English zone channel",
+	PCHAT_ENZONE = "EN Zone - name",
+	PCHAT_ENZONETT = "Set player name color for English zone channel",
 
-	PCHAT_ENZONECHAT = "EN Zone - Chat",
-	PCHAT_ENZONECHATTT = "Set chat color for English zone channel",
+	PCHAT_ENZONECHAT = "EN Zone - message",
+	PCHAT_ENZONECHATTT = "Set chat message color for English zone channel",
 
-	PCHAT_FRZONE = "FR Zone - Player",
-	PCHAT_FRZONETT = "Set player color for French zone channel",
+	PCHAT_FRZONE = "FR Zone - name",
+	PCHAT_FRZONETT = "Set player name color for French zone channel",
 
-	PCHAT_FRZONECHAT = "FR Zone - Chat",
-	PCHAT_FRZONECHATTT = "Set chat color for French zone channel",
+	PCHAT_FRZONECHAT = "FR Zone - message",
+	PCHAT_FRZONECHATTT = "Set chat message color for French zone channel",
 
-	PCHAT_DEZONE = "DE Zone - Player",
-	PCHAT_DEZONETT = "Set player color for German zone channel",
+	PCHAT_DEZONE = "DE Zone - name",
+	PCHAT_DEZONETT = "Set player name color for German zone channel",
 
-	PCHAT_DEZONECHAT = "DE Zone - Chat",
-	PCHAT_DEZONECHATTT = "Set chat color for German zone channel",
+	PCHAT_DEZONECHAT = "DE Zone - message",
+	PCHAT_DEZONECHATTT = "Set chat message color for German zone channel",
 
-	PCHAT_JPZONE = "JP Zone - Player",
-	PCHAT_JPZONETT = "Set player color for Japanese zone channel",
+	PCHAT_JPZONE = "JP Zone - name",
+	PCHAT_JPZONETT = "Set player name color for Japanese zone channel",
 
-	PCHAT_JPZONECHAT = "JP Zone - Chat",
-	PCHAT_JPZONECHATTT = "Set chat color for Japanese zone channel",
+	PCHAT_JPZONECHAT = "JP Zone - message",
+	PCHAT_JPZONECHATTT = "Set chat message color for Japanese zone channel",
 
-	PCHAT_NPCSAY = "NPC Say - NPC name",
+	PCHAT_NPCSAY = "NPC Say - name",
 	PCHAT_NPCSAYTT = "Set NPC name color for NPC say",
 
-	PCHAT_NPCSAYCHAT = "NPC Say - Chat",
-	PCHAT_NPCSAYCHATTT = "Set NPC chat color for NPC say",
+	PCHAT_NPCSAYCHAT = "NPC Say - message",
+	PCHAT_NPCSAYCHATTT = "Set NPC chat message color for NPC say",
 
-	PCHAT_NPCYELL = "NPC Yell - NPC name",
+	PCHAT_NPCYELL = "NPC Yell - name",
 	PCHAT_NPCYELLTT = "Set NPC name color for NPC yell",
 
-	PCHAT_NPCYELLCHAT = "NPC Yell - Chat",
-	PCHAT_NPCYELLCHATTT = "Set NPC chat color for NPC yell",
+	PCHAT_NPCYELLCHAT = "NPC Yell - message",
+	PCHAT_NPCYELLCHATTT = "Set NPC chat message color for NPC yell",
 
-	PCHAT_NPCWHISPER = "NPC Whisper - NPC name",
+	PCHAT_NPCWHISPER = "NPC Whisper - name",
 	PCHAT_NPCWHISPERTT = "Set NPC name color for NPC whisper",
 
-	PCHAT_NPCWHISPERCHAT = "NPC Whisper - Chat",
-	PCHAT_NPCWHISPERCHATTT = "Set NPC chat color for NPC whisper",
+	PCHAT_NPCWHISPERCHAT = "NPC Whisper - message",
+	PCHAT_NPCWHISPERCHATTT = "Set NPC chat message color for NPC whisper",
 
-	PCHAT_NPCEMOTES = "NPC Emotes - NPC name",
+	PCHAT_NPCEMOTES = "NPC Emotes - name",
 	PCHAT_NPCEMOTESTT = "Set NPC name color for NPC emotes",
 
-	PCHAT_NPCEMOTESCHAT = "NPC Emotes - Chat",
-	PCHAT_NPCEMOTESCHATTT = "Set NPC chat color for NPC emotes",
+	PCHAT_NPCEMOTESCHAT = "NPC Emotes - message",
+	PCHAT_NPCEMOTESCHATTT = "Set NPC chat message color for NPC emotes",
 
 	-- Debug settings
 
@@ -425,12 +434,12 @@ local strings = {
 
 
 	--Added by Baertram
-	PCHAT_LIB_MISSING       = "[pChat] The following library is missing and needs to be installed & enabled: \'%s\'",
-	PCHAT_LUAERROR = "[pChat] has triggered 10 packed lines with text=%s -- pChat - Message truncated",
-
 	PCHAT_RESTORED_PREFIX = "[H]",
 	PCHAT_RESTOREPREFIX = "Add prefix to restored messages",
-	PCHAT_RESTOREPREFIXTT = "Add a prefix \'[H]\' to restored messages in order to easily see they were restored.\nThis will affect the current chat only after a reloadUI!\nThe color of the prefix will be shown with the standard ESO chat channel colors."
+	PCHAT_RESTOREPREFIXTT = "Add a prefix \'[H]\' to restored messages in order to easily see they were restored.\nThis will affect the current chat only after a reloadUI!\nThe color of the prefix will be shown with the standard ESO chat channel colors.",
+
+	PCHAT_BUILT_IN_CHANNEL_SWITCH_WARNING = "Cannot use existing built-in switch '%s'",
+	PCHAT_DUPLICATE_CHANNEL_SWITCH_WARNING = "Tried to replace already existing switch '%s'"
 }
 
 for stringId, stringValue in pairs(strings) do
