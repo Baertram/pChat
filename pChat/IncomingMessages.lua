@@ -1,33 +1,34 @@
+-- Add IM label on XML Initialization, set anchor and set it hidden
+function pChat_AddIMLabel(control)
+
+    control:SetParent(CHAT_SYSTEM.control)
+    control:ClearAnchors()
+    control:SetAnchor(RIGHT, ZO_ChatWindowOptions, LEFT, -5, 32)
+    CHAT_SYSTEM.IMLabel = control
+
+end
+
+-- Add IM label on XML Initialization, set anchor and set it hidden. Used for Chat Minibar
+function pChat_AddIMLabelMin(control)
+
+    control:SetParent(CHAT_SYSTEM.control)
+    control:ClearAnchors()
+    control:SetAnchor(BOTTOM, CHAT_SYSTEM.minBar.maxButton, TOP, 2, 0)
+    CHAT_SYSTEM.IMLabelMin = control
+
+end
+
+-- Add IM close button on XML Initialization, set anchor and set it hidden
+function pChat_AddIMButton(control)
+
+    control:SetParent(CHAT_SYSTEM.control)
+    control:ClearAnchors()
+    control:SetAnchor(RIGHT, ZO_ChatWindowOptions, LEFT, 2, 35)
+    CHAT_SYSTEM.IMbutton = control
+
+end
+
 function pChat.InitializeIncomingMessages(pChatData, db, constTabNameTemplate, subloggerVerbose)
-    -- Add IM label on XML Initialization, set anchor and set it hidden
-    function pChat_AddIMLabel(control)
-
-        control:SetParent(CHAT_SYSTEM.control)
-        control:ClearAnchors()
-        control:SetAnchor(RIGHT, ZO_ChatWindowOptions, LEFT, -5, 32)
-        CHAT_SYSTEM.IMLabel = control
-
-    end
-
-    -- Add IM label on XML Initialization, set anchor and set it hidden. Used for Chat Minibar
-    function pChat_AddIMLabelMin(control)
-
-        control:SetParent(CHAT_SYSTEM.control)
-        control:ClearAnchors()
-        control:SetAnchor(BOTTOM, CHAT_SYSTEM.minBar.maxButton, TOP, 2, 0)
-        CHAT_SYSTEM.IMLabelMin = control
-
-    end
-
-    -- Add IM close button on XML Initialization, set anchor and set it hidden
-    function pChat_AddIMButton(control)
-
-        control:SetParent(CHAT_SYSTEM.control)
-        control:ClearAnchors()
-        control:SetAnchor(RIGHT, ZO_ChatWindowOptions, LEFT, 2, 35)
-        CHAT_SYSTEM.IMbutton = control
-
-    end
 
     -- Hide it
     local function HideIMTooltip()
@@ -109,6 +110,7 @@ function pChat.InitializeIncomingMessages(pChatData, db, constTabNameTemplate, s
         end
 
     end
+    pChat.OnIMReceived = OnIMReceived
 
     -- Hide IM notification when click on it. Can be Called by XML
     function pChat_RemoveIMNotification()

@@ -706,7 +706,7 @@ do
     local originalZO_TabButton_Text_SetTextColor = ZO_TabButton_Text_SetTextColor
     local lastColor, cachedColor
     function ZO_TabButton_Text_SetTextColor(button, color)
-        if(self:GetOwningWindow() == ZO_ChatWindow) then
+        if(button:GetOwningWindow() == ZO_ChatWindow) then
             if(db.colours.tabwarning ~= lastColor) then
                 lastColor = db.colours.tabwarning
                 cachedColor = ZO_ColorDef:New(ConvertHexToRGBA(lastColor))
@@ -754,7 +754,7 @@ end
 local function OnSelfJoinedGuild(_, guildServerId, characterName, guildId)
 
     -- It will rebuild optionsTable and recreate tables if user didn't went in this section before
-    BuildLAMPanel()
+    pChat.BuildLAMPanel()
 
     -- If recently added to a new guild and never go in menu db.formatguild[guildName] won't exist, it won't create the value if joining an known guild
     if not db.formatguild[guildServerId] then
@@ -893,7 +893,7 @@ local function OnPlayerActivated()
             -- Get Chat Tab Names stored in chatTabNames {}
             getTabNames()
             -- Rebuild Lam Panel
-            BuildLAMPanel()
+            pChat.BuildLAMPanel()
             -- Create the chat tab's PostHook
             CreateNewChatTabPostHook()
 
@@ -928,7 +928,7 @@ end
 local function OnSelfLeftGuild(_, guildServerId, characterName, guildId)
 
     -- It will rebuild optionsTable and recreate tables if user didn't went in this section before
-    BuildLAMPanel()
+    pChat.BuildLAMPanel()
 
     -- Revert category colors & options
     RevertCategories(guildServerId)
@@ -1092,7 +1092,7 @@ local function OnAddonLoaded(_, addonName)
         db = pChat.InitializeSettings(pChatData, ADDON_NAME, PCHAT_CHANNEL_NONE, getTabNames, UpdateCharCorrespondanceTableChannelNames, ConvertHexToRGBA, ConvertRGBToHex, AddCustomChannelSwitches, RemoveCustomChannelSwitches, logger)
 
         -- prepare chat history functionality
-        pChat.InitializeChatHistory(pChatData, db, PCHAT_RESTORED_PREFIX, PCHAT_CHANNEL_SAY, PCHAT_CHANNEL_NONE, constTabNameTemplate, CreateTimestamp, subloggerVerbose)
+        pChat.InitializeChatHistory(pChatData, db, PCHAT_CHANNEL_SAY, PCHAT_CHANNEL_NONE, constTabNameTemplate, CreateTimestamp, subloggerVerbose)
 
         -- Will set Keybind for "switch to next tab" if needed
         SetSwitchToNextBinding()
@@ -1107,7 +1107,7 @@ local function OnAddonLoaded(_, addonName)
         pChat.InitializeChatConfig(pChatData, db, PCHAT_CHANNEL_NONE)
 
         local SpamFilter = pChat.InitializeSpamFilter(pChatData, db, PCHAT_CHANNEL_SAY, subloggerVerbose)
-        local FormatMessage, FormatSysMessage = pChat.InitializeMessageFormatters(pChatData, db, PCHAT_LINK, PCHAT_URL_CHAN, SpamFilter, GetChannelColors, CreateTimestamp, OnIMReceived, logger, subloggerVerbose)
+        local FormatMessage, FormatSysMessage = pChat.InitializeMessageFormatters(pChatData, db, PCHAT_LINK, PCHAT_URL_CHAN, SpamFilter, GetChannelColors, CreateTimestamp, logger, subloggerVerbose)
 
         -- For compatibility. Called by others addons.
         pChat.FormatMessage = FormatMessage

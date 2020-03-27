@@ -1517,6 +1517,7 @@ function pChat.InitializeSettings(pChatData, ADDON_NAME, PCHAT_CHANNEL_NONE, get
         LibAddonMenu2:RegisterOptionControls("pChatOptions", optionsData)
 
     end
+    pChat.BuildLAMPanel = BuildLAMPanel
 
     -- Initialises the settings and settings menu
     local function GetDBAndBuildLAM()

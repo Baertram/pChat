@@ -234,6 +234,7 @@ function pChat.InitializeAutomatedMessages(pChatData, db, ADDON_NAME)
 
     -- Init Automated messages, build the scene and handle array of automated strings
     local function InitAutomatedMessages()
+        pChat_BuildAutomatedMessagesDialog(pChatXMLAutoMsgDialog)
 
         -- Create Scene
         PCHAT_AUTOMSG_SCENE = ZO_Scene:New("pChatAutomatedMessagesScene", SCENE_MANAGER)

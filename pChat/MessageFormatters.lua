@@ -1,4 +1,4 @@
-function pChat.InitializeMessageFormatters(pChatData, db, PCHAT_LINK, PCHAT_URL_CHAN, SpamFilter, GetChannelColors, CreateTimestamp, OnIMReceived, logger, subloggerVerbose)
+function pChat.InitializeMessageFormatters(pChatData, db, PCHAT_LINK, PCHAT_URL_CHAN, SpamFilter, GetChannelColors, CreateTimestamp, logger, subloggerVerbose)
 
     local chatStrings = {
         standard = "%s%s: |r%s%s%s|r", -- standard format: say, yell, group, npc, npc yell, npc whisper, zone
@@ -696,6 +696,7 @@ function pChat.InitializeMessageFormatters(pChatData, db, PCHAT_LINK, PCHAT_URL_
         return formattedText
 
     end
+    pChat.AddLinkHandler = AddLinkHandler
 
     -- Executed when EVENT_CHAT_MESSAGE_CHANNEL triggers
     -- Formats the message
@@ -1018,7 +1019,7 @@ function pChat.InitializeMessageFormatters(pChatData, db, PCHAT_LINK, PCHAT_URL_
 
         -- Needs to be after .storelineNumber()
         if chanCode == CHAT_CHANNEL_WHISPER then
-            OnIMReceived(displayedFrom, db.lineNumber - 1)
+            pChat.OnIMReceived(displayedFrom, db.lineNumber - 1)
         end
 
         --logger:Debug("<messageNew:", message)

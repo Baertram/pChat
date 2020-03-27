@@ -1,4 +1,4 @@
-function pChat.InitializeChatHistory(pChatData, db, PCHAT_RESTORED_PREFIX, PCHAT_CHANNEL_SAY, PCHAT_CHANNEL_NONE, constTabNameTemplate, CreateTimestamp, subloggerVerbose)
+function pChat.InitializeChatHistory(pChatData, db, PCHAT_CHANNEL_SAY, PCHAT_CHANNEL_NONE, constTabNameTemplate, CreateTimestamp, subloggerVerbose)
 
     local function StripLinesFromLineStrings(typeOfExit)
 
@@ -175,7 +175,7 @@ function pChat.InitializeChatHistory(pChatData, db, PCHAT_RESTORED_PREFIX, PCHAT
                                                     --If the message was restored from history then add a prefix [H] )for history) to it!
                                                     restoredChatRawText = restoredPrefix .. restoredChatRawText
                                                 end
-                                                CHAT_SYSTEM.containers[containerIndex]:AddEventMessageToWindow(CHAT_SYSTEM.containers[containerIndex].windows[tabIndex], AddLinkHandler(restoredChatRawText, channelToRestore, historyIndex), category)
+                                                CHAT_SYSTEM.containers[containerIndex]:AddEventMessageToWindow(CHAT_SYSTEM.containers[containerIndex].windows[tabIndex], pChat.AddLinkHandler(restoredChatRawText, channelToRestore, historyIndex), category)
                                                 -- TODO why is this commented out?
                                                 --else
                                                 --    --DEBUG: Add SavedVariables entries for erroneous history entries (without rawValue text etc.)

@@ -20,9 +20,7 @@ i18n/$(language).lua
 fonts.lua
 pChat_chatHandlers.lua
 pChat.lua
-pChat.xml
-copyDialog.xml
-bindings.xml
+
 SpamFilter.lua
 MessageFormatters.lua
 ChatHandlers.lua
@@ -32,3 +30,7 @@ IncomingMessages.lua
 CopyHandler.lua
 ChatConfig.lua
 ChatHistory.lua
+
+pChat.xml
+copyDialog.xml
+bindings.xml
