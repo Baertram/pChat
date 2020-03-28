@@ -16,16 +16,20 @@
 --Fixed:
 --#4 Sound notifications for incoming whispers were not played
 
+
 --Changed:
 --Settings menu totally changed to use less space on main menu page but use mroe submenus; moved related settings together into the same submenus
 --Updated and corrected settings menu texts and tooltips
---Option "Enable brightness difference" affects NonESO colors as well now
+-->Still in progess!
+
 
 --Added:
 --Description and tooltip to eso standard color and pChat color settings menu
+--Option "Enable brightness difference" affects NonESO colors as well now
+
 
 --Added on request:
---Chat channel will be automatically changed to /party if you port/reloadui to/in a dungeon, and if you are grouped. This is a new sub-setting of the "Enable Party Switch" setting.
+--New setting: Chat channel will be automatically changed to /party if you port/reloadui to/in a dungeon, and if you are grouped. This is a new sub-setting of the "Enable Party Switch" setting.
 --=======================================================================================================================================
 
 
@@ -4828,7 +4832,7 @@ local function BuildLAMPanel()
 								getFunc = function() return ConvertHexToRGBA(db.colours[2*CHAT_CHANNEL_EMOTE + 1]) end,
 								setFunc = function(r, g, b) db.colours[2*CHAT_CHANNEL_EMOTE + 1] = ConvertRGBToHex(r, g, b) end,
 								default = ConvertHexToRGBAPacked(defaults.colours[2*CHAT_CHANNEL_EMOTE + 1]),
-								disabled = function() return db.useESOcolors end,
+								disabled = function() return db.useESOcolors or db.oneColour end,
 								width = "half",
 							},
 							{--
@@ -4848,7 +4852,7 @@ local function BuildLAMPanel()
 								getFunc = function() return ConvertHexToRGBA(db.colours[2*CHAT_CHANNEL_MONSTER_SAY + 1]) end,
 								setFunc = function(r, g, b) db.colours[2*CHAT_CHANNEL_MONSTER_SAY + 1] = ConvertRGBToHex(r, g, b) end,
 								default = ConvertHexToRGBAPacked(defaults.colours[2*CHAT_CHANNEL_MONSTER_SAY + 1]),
-								disabled = function() return db.useESOcolors end,
+								disabled = function() return db.useESOcolors or db.oneColour end,
 								width = "half",
 							},
 							{--
@@ -4868,7 +4872,7 @@ local function BuildLAMPanel()
 								getFunc = function() return ConvertHexToRGBA(db.colours[2*CHAT_CHANNEL_MONSTER_YELL + 1]) end,
 								setFunc = function(r, g, b) db.colours[2*CHAT_CHANNEL_MONSTER_YELL + 1] = ConvertRGBToHex(r, g, b) end,
 								default = ConvertHexToRGBAPacked(defaults.colours[2*CHAT_CHANNEL_MONSTER_YELL + 1]),
-								disabled = function() return db.useESOcolors or db.allNPCSameColour end,
+								disabled = function() return db.useESOcolors or db.allNPCSameColour or db.oneColour end,
 								width = "half",
 							},
 							{--
@@ -4888,7 +4892,7 @@ local function BuildLAMPanel()
 								getFunc = function() return ConvertHexToRGBA(db.colours[2*CHAT_CHANNEL_MONSTER_WHISPER + 1]) end,
 								setFunc = function(r, g, b) db.colours[2*CHAT_CHANNEL_MONSTER_WHISPER + 1] = ConvertRGBToHex(r, g, b) end,
 								default = ConvertHexToRGBAPacked(defaults.colours[2*CHAT_CHANNEL_MONSTER_WHISPER + 1]),
-								disabled = function() return db.useESOcolors or db.allNPCSameColour end,
+								disabled = function() return db.useESOcolors or db.allNPCSameColour or db.oneColour end,
 								width = "half",
 							},
 							{--
@@ -4908,7 +4912,7 @@ local function BuildLAMPanel()
 								getFunc = function() return ConvertHexToRGBA(db.colours[2*CHAT_CHANNEL_MONSTER_EMOTE + 1]) end,
 								setFunc = function(r, g, b) db.colours[2*CHAT_CHANNEL_MONSTER_EMOTE + 1] = ConvertRGBToHex(r, g, b) end,
 								default = ConvertHexToRGBAPacked(defaults.colours[2*CHAT_CHANNEL_MONSTER_EMOTE + 1]),
-								disabled = function() return db.useESOcolors or db.allNPCSameColour end,
+								disabled = function() return db.useESOcolors or db.allNPCSameColour or db.oneColour end,
 								width = "half",
 							},
 						},

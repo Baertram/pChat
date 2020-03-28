@@ -1,4 +1,4 @@
-<GuiXml>
+<GuiXml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sir.insidi.at/or/schema/esoui.xsd">
 	<Controls>
 		
 		<Button name="pChatAutoMsgTemplateRmv" mouseOverBlendMode="ADD" inherits="ZO_ButtonBehaviorClickSound" virtual="true" hidden="true">
