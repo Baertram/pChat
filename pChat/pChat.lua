@@ -191,6 +191,8 @@ local defaults = {
 	timestampcolorislcol = false,
 	useESOcolors = true,
 	diffforESOcolors = 40,
+	diffChatColorsDarkenValue = 50,
+	diffChatColorsLightenValue = 30,
 	timestampFormat = "HH:m",
 	guildTags = {},
 	officertag = {},
@@ -887,21 +889,29 @@ local function ConvertHexToRGBA(colourString)
 end
 
  -- Substract XX from a color (darker)
-local function DarkenRGBColor(r, g, b, value)
+local function DarkenRGBColor(r, g, b, value, divisorPercent)
 	if not value or value <= 0 then return r,g,b end
+	divisorPercent = divisorPercent or 30
+	if divisorPercent < 10 then divisorPercent = 10 end
+	if divisorPercent > 90 then divisorPercent = 90 end
+	local divisor = divisorPercent * 10
 	-- Scale is from 0-100 so divide per 300 will maximise difference at 0.33 (*2)
-	r = math.max(r - (value / 300 ),0)
-	g = math.max(g - (value / 300 ),0)
-	b = math.max(b - (value / 300 ),0)
+	r = math.max(r - (value / divisor),0)
+	g = math.max(g - (value / divisor),0)
+	b = math.max(b - (value / divisor),0)
 	return r,g,b
 end
 
  -- Add XX to a color (brighter)
-local function LightenRGBColor(r, g, b, value)
+local function LightenRGBColor(r, g, b, value, divisorPercent)
 	if not value or value <= 0 then return r,g,b end
-	r = math.min(r + (value / 300 ),1)
-	g = math.min(g + (value / 300 ),1)
-	b = math.min(b + (value / 300 ),1)
+	divisorPercent = divisorPercent or 75
+	if divisorPercent < 10 then divisorPercent = 10 end
+	if divisorPercent > 90 then divisorPercent = 90 end
+	local divisor = divisorPercent * 10
+	r = math.min(r + (value / divisor),1)
+	g = math.min(g + (value / divisor),1)
+	b = math.min(b + (value / divisor),1)
 	return r,g,b
 end
 
@@ -3510,8 +3520,8 @@ local function GetChannelColors(channel, from)
 			pChat.rcol = pChat.lcol
 		else
 			--Change name and text brightness?
-			pChat.lcol = ConvertRGBToHex(DarkenRGBColor(rESO,gESO,bESO, db.diffforESOcolors))
-			pChat.rcol = ConvertRGBToHex(LightenRGBColor(rESO,gESO,bESO, db.diffforESOcolors))
+			pChat.lcol = ConvertRGBToHex(DarkenRGBColor(rESO,gESO,bESO, db.diffforESOcolors, 100-db.diffChatColorsDarkenValue))
+			pChat.rcol = ConvertRGBToHex(LightenRGBColor(rESO,gESO,bESO, db.diffforESOcolors, 100-db.diffChatColorsLightenValue))
 		end
 
 	else
@@ -3544,8 +3554,8 @@ local function GetChannelColors(channel, from)
 			--Change name and text brightness?
 			local lR, lG, lB, lA = ConvertHexToRGBA(pChat.lcol)
 			local rR, rG, rB, rA = ConvertHexToRGBA(pChat.rcol)
-			pChat.lcol = ConvertRGBToHex(DarkenRGBColor(lR,lG,lB, db.diffforESOcolors))
-			pChat.rcol = ConvertRGBToHex(LightenRGBColor(rR,rG,rB, db.diffforESOcolors))
+			pChat.lcol = ConvertRGBToHex(DarkenRGBColor(lR,lG,lB, db.diffforESOcolors, 100-db.diffChatColorsDarkenValue))
+			pChat.rcol = ConvertRGBToHex(LightenRGBColor(rR,rG,rB, db.diffforESOcolors, 100-db.diffChatColorsLightenValue))
 		end
 
 	end
@@ -4547,7 +4557,8 @@ local function BuildLAMPanel()
 			{
 				type = "submenu",
 				name = GetString(PCHAT_MESSAGEOPTIONSCOLORH),
-				controls = {
+				controls =
+				{
 					{-- LAM Option Use ESO Colors
 						type = "checkbox",
 						name = GetString(PCHAT_USEESOCOLORS),
@@ -4557,19 +4568,14 @@ local function BuildLAMPanel()
 						width = "half",
 						default = defaults.useESOcolors,
 					},
-					{-- LAM Option Difference Between ESO Colors
-						type = "slider",
-						name = GetString(PCHAT_DIFFFORESOCOLORS),
-						tooltip = GetString(PCHAT_DIFFFORESOCOLORSTT),
-						min = 0,
-						max = 100,
-						step = 1,
-						getFunc = function() return db.diffforESOcolors end,
-						setFunc = function(newValue) db.diffforESOcolors = newValue end,
+					{-- LAM Option Use one color for lines
+						type = "checkbox",
+						name = GetString(PCHAT_USEONECOLORFORLINES),
+						tooltip = GetString(PCHAT_USEONECOLORFORLINESTT),
+						getFunc = function() return db.oneColour end,
+						setFunc = function(newValue) db.oneColour = newValue end,
 						width = "half",
-						default = defaults.diffforESOcolors,
-						--disabled = function() return not db.useESOcolors end,
-						disabled = function() return db.oneColour end,
+						default = defaults.oneColour,
 					},
 					{-- LAM Option Use same color for all zone chats
 						type = "checkbox",
@@ -4589,14 +4595,44 @@ local function BuildLAMPanel()
 						width = "half",
 						default = defaults.allNPCSameColour,
 					},
-					{-- LAM Option Use one color for lines
-						type = "checkbox",
-						name = GetString(PCHAT_USEONECOLORFORLINES),
-						tooltip = GetString(PCHAT_USEONECOLORFORLINESTT),
-						getFunc = function() return db.oneColour end,
-						setFunc = function(newValue) db.oneColour = newValue end,
+					{-- LAM Option Difference Between ESO Colors
+						type = "slider",
+						name = GetString(PCHAT_DIFFFORESOCOLORS),
+						tooltip = GetString(PCHAT_DIFFFORESOCOLORSTT),
+						min = 0,
+						max = 100,
+						step = 1,
+						getFunc = function() return db.diffforESOcolors end,
+						setFunc = function(newValue) db.diffforESOcolors = newValue end,
+						width = "full",
+						default = defaults.diffforESOcolors,
+						disabled = function() return db.oneColour end,
+					},
+					{
+						type = "slider",
+						name = GetString(PCHAT_DIFFFORESOCOLORSDARKEN),
+						tooltip = GetString(PCHAT_DIFFFORESOCOLORSDARKENTT),
+						min = 0,
+						max = 90,
+						step = 1,
+						getFunc = function() return db.diffChatColorsDarkenValue end,
+						setFunc = function(newValue) db.diffChatColorsDarkenValue = newValue end,
 						width = "half",
-						default = defaults.oneColour,
+						default = defaults.diffChatColorsDarkenValue,
+						disabled = function() return db.diffforESOcolors == 0 or db.oneColour end,
+					},
+					{
+						type = "slider",
+						name = GetString(PCHAT_DIFFFORESOCOLORSLIGHTEN),
+						tooltip = GetString(PCHAT_DIFFFORESOCOLORSLIGHTENTT),
+						min = 0,
+						max = 90,
+						step = 1,
+						getFunc = function() return db.diffChatColorsLightenValue end,
+						setFunc = function(newValue) db.diffChatColorsLightenValue = newValue end,
+						width = "half",
+						default = defaults.diffChatColorsLightenValue,
+						disabled = function() return db.diffforESOcolors == 0 or db.oneColour end,
 					},
 					-- Chat channel colors
 					{
@@ -5026,85 +5062,83 @@ local function BuildLAMPanel()
 				width = "full",
 				default = defaults.addChannelAndTargetToHistory,
 			},
+			-- Group Submenu
+			{
+				type = "submenu",
+				name = GetString(PCHAT_GROUPH),
+				controls = {
+					{-- Group Names
+						type = "dropdown",
+						name = GetString(PCHAT_GROUPNAMES),
+						tooltip = GetString(PCHAT_GROUPNAMESTT),
+						choices = {GetString(PCHAT_FORMATCHOICE1), GetString(PCHAT_FORMATCHOICE2), GetString(PCHAT_FORMATCHOICE3), GetString(PCHAT_FORMATCHOICE4)},
+						choicesValues = {1, 2, 3, 4},
+						getFunc = function() return db.groupNames end,
+						setFunc = function(value)
+							db.groupNames = value
+						end,
+						default = defaults.groupNames,
+						width = "full",
+					},
+					{-- Enable Party Switch
+						type = "checkbox",
+						name = GetString(PCHAT_ENABLEPARTYSWITCH),
+						tooltip = GetString(PCHAT_ENABLEPARTYSWITCHTT),
+						getFunc = function() return db.enablepartyswitch end,
+						setFunc = function(newValue) db.enablepartyswitch = newValue end,
+						width = "half",
+						default = defaults.enablepartyswitch,
+					},
+					{-- Enable Party Switch Port to/reloadui in dungeon
+						type = "checkbox",
+						name = GetString(PCHAT_ENABLEPARTYSWITCHPORTTODUNGEON),
+						tooltip = GetString(PCHAT_ENABLEPARTYSWITCHPORTTODUNGEONTT),
+						getFunc = function() return db.enablepartyswitchPortToDungeon end,
+						setFunc = function(newValue) db.enablepartyswitchPortToDungeon = newValue end,
+						width = "half",
+						default = defaults.enablepartyswitchPortToDungeon,
+						disabled = function() return not db.enablepartyswitch end
+					},
+					{-- Group Leader
+						type = "checkbox",
+						name = GetString(PCHAT_GROUPLEADER),
+						tooltip = GetString(PCHAT_GROUPLEADERTT),
+						getFunc = function() return db.groupLeader end,
+						setFunc = function(newValue) db.groupLeader = newValue end,
+						width = "full",
+						default = defaults.groupLeader,
+					},
+					{-- Group Leader Color
+						type = "colorpicker",
+						name = GetString(PCHAT_GROUPLEADERCOLOR),
+						tooltip = GetString(PCHAT_GROUPLEADERCOLORTT),
+						getFunc = function() return ConvertHexToRGBA(db.colours["groupleader"]) end,
+						setFunc = function(r, g, b) db.colours["groupleader"] = ConvertRGBToHex(r, g, b) end,
+						default = ConvertHexToRGBAPacked(defaults.colours["groupleader"]),
+						disabled = function() return not db.groupLeader end,
+						width = "half",
+					},
+					{-- Group Leader Color 2
+						type = "colorpicker",
+						name = GetString(PCHAT_GROUPLEADERCOLOR1),
+						tooltip = GetString(PCHAT_GROUPLEADERCOLOR1TT),
+						getFunc = function() return ConvertHexToRGBA(db.colours["groupleader1"]) end,
+						setFunc = function(r, g, b) db.colours["groupleader1"] = ConvertRGBToHex(r, g, b) end,
+						default = ConvertHexToRGBAPacked(defaults.colours["groupleader1"]),
+						disabled = function()
+								if not db.groupLeader then
+									return true
+								elseif db.useESOcolors then
+									return true
+								else
+									return false
+								end
+							end,
+						width = "half",
+					},
+				},
+			},
 		}
-	}
-
-------------------------------------------------------------------------------------------------------------------------
-	-- Group Submenu
-	optionsData[#optionsData + 1] = {
-		type = "submenu",
-		name = GetString(PCHAT_GROUPH),
-		controls = {
-			{-- Group Names
-				type = "dropdown",
-				name = GetString(PCHAT_GROUPNAMES),
-				tooltip = GetString(PCHAT_GROUPNAMESTT),
-				choices = {GetString(PCHAT_FORMATCHOICE1), GetString(PCHAT_FORMATCHOICE2), GetString(PCHAT_FORMATCHOICE3), GetString(PCHAT_FORMATCHOICE4)},
-				choicesValues = {1, 2, 3, 4},
-				width = "half",
-				getFunc = function() return db.groupNames end,
-				setFunc = function(value)
-					db.groupNames = value
-				end,
-				default = defaults.groupNames,
-			},
-			{-- Enable Party Switch
-				type = "checkbox",
-				name = GetString(PCHAT_ENABLEPARTYSWITCH),
-				tooltip = GetString(PCHAT_ENABLEPARTYSWITCHTT),
-				getFunc = function() return db.enablepartyswitch end,
-				setFunc = function(newValue) db.enablepartyswitch = newValue end,
-				width = "half",
-				default = defaults.enablepartyswitch,
-			},
-			{-- Enable Party Switch Port to/reloadui in dungeon
-				type = "checkbox",
-				name = GetString(PCHAT_ENABLEPARTYSWITCHPORTTODUNGEON),
-				tooltip = GetString(PCHAT_ENABLEPARTYSWITCHPORTTODUNGEONTT),
-				getFunc = function() return db.enablepartyswitchPortToDungeon end,
-				setFunc = function(newValue) db.enablepartyswitchPortToDungeon = newValue end,
-				width = "half",
-				default = defaults.enablepartyswitchPortToDungeon,
-				disabled = function() return not db.enablepartyswitch end
-			},
-			{-- Group Leader
-				type = "checkbox",
-				name = GetString(PCHAT_GROUPLEADER),
-				tooltip = GetString(PCHAT_GROUPLEADERTT),
-				getFunc = function() return db.groupLeader end,
-				setFunc = function(newValue) db.groupLeader = newValue end,
-				width = "full",
-				default = defaults.groupLeader,
-			},
-			{-- Group Leader Color
-				type = "colorpicker",
-				name = GetString(PCHAT_GROUPLEADERCOLOR),
-				tooltip = GetString(PCHAT_GROUPLEADERCOLORTT),
-				getFunc = function() return ConvertHexToRGBA(db.colours["groupleader"]) end,
-				setFunc = function(r, g, b) db.colours["groupleader"] = ConvertRGBToHex(r, g, b) end,
-				default = ConvertHexToRGBAPacked(defaults.colours["groupleader"]),
-				disabled = function() return not db.groupLeader end,
-				width = "half",
-			},
-			{-- Group Leader Color 2
-				type = "colorpicker",
-				name = GetString(PCHAT_GROUPLEADERCOLOR1),
-				tooltip = GetString(PCHAT_GROUPLEADERCOLOR1TT),
-				getFunc = function() return ConvertHexToRGBA(db.colours["groupleader1"]) end,
-				setFunc = function(r, g, b) db.colours["groupleader1"] = ConvertRGBToHex(r, g, b) end,
-				default = ConvertHexToRGBAPacked(defaults.colours["groupleader1"]),
-				disabled = function()
-						if not db.groupLeader then
-							return true
-						elseif db.useESOcolors then
-							return true
-						else
-							return false
-						end
-					end,
-				width = "half",
-			},
-		},
 	}
 
 ------------------------------------------------------------------------------------------------------------------------

@@ -58,7 +58,11 @@ local strings = {
 	PCHAT_USEESOCOLORSTT = "Use colors set in social settings instead pChat ones.\nIf you enable this setting the chat channel colors won't be activated!",
 
 	PCHAT_DIFFFORESOCOLORS = "Enable brightness difference",
-	PCHAT_DIFFFORESOCOLORSTT = "Adjust brightness difference between player name/zone and message text displayed by this value (name will get darker / message text will get lighter).\nThis option is not working if you enable the option \'Use one color for lines\'!",
+	PCHAT_DIFFFORESOCOLORSTT = "Adjust brightness difference between player name/zone and message text displayed by this value (name will get darker / message text will get brighter).\nThis option is not working if you enable the option \'Use one color for lines\'!\nSet the slider to 0 to deactivate the brightness difference.",
+	PCHAT_DIFFFORESOCOLORSDARKEN = "Brightness diff.: Darken by",
+	PCHAT_DIFFFORESOCOLORSDARKENTT = "Darken the chat name by this value.",
+	PCHAT_DIFFFORESOCOLORSLIGHTEN = "Brightness diff.: Brighten by",
+	PCHAT_DIFFFORESOCOLORSLIGHTENTT = "Brighten the chat text by this value.",
 
 	PCHAT_REMOVECOLORSFROMMESSAGES = "Remove colors from messages",
 	PCHAT_REMOVECOLORSFROMMESSAGESTT = "Stops people using things like rainbow colored text",
@@ -117,7 +121,7 @@ local strings = {
 	PCHAT_ENABLEPARTYSWITCH = "Auto channel switch: party",
 	PCHAT_ENABLEPARTYSWITCHTT = "Enabling Party switch will switch your current channel to party when joining a party and  switch back to your default channel when leaving a party",
 
-	PCHAT_ENABLEPARTYSWITCHPORTTODUNGEON 	= "Auto channel switch in dungeon",
+	PCHAT_ENABLEPARTYSWITCHPORTTODUNGEON 	= "Auto switch: dungeon",
 	PCHAT_ENABLEPARTYSWITCHPORTTODUNGEONTT 	= "The above mentioned party switch will also change the chat channel to /party if you port into a dungeon/do a reloadui in a dungeon + your are grouped.\nThis setting will be only available if the party switch is enabled!",
 
 	PCHAT_GROUPLEADER = "Special color for party leader",

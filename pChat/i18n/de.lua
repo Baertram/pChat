@@ -73,7 +73,11 @@ SafeAddString(PCHAT_USEESOCOLORS									, "ESO Standardfarben", 1)
 SafeAddString(PCHAT_USEESOCOLORSTT									, "Verwendet statt der pChat Vorgabe die \'The Elder Scrolls Online\' Standard-Chat-Farben.\nMit dieser Option aktiviert sind die Farbeinstellungen für Chat Kanal Farben nicht aktiviert!", 1)
 
 SafeAddString(PCHAT_DIFFFORESOCOLORS								, "Aktiviere Helligkeitsunterschied", 1)
-SafeAddString(PCHAT_DIFFFORESOCOLORSTT								, "Bestimmt den Helligkeitsunterschied zwischen Charakternamen/Chat-Kanal und Nachrichtentext. Der Name wird dunkler, der Text wird heller.\nDiese Option ist nicht verwendbar, wenn die Option \'Einfarbige Zeilen\' aktiviert wurde!", 1)
+SafeAddString(PCHAT_DIFFFORESOCOLORSTT								, "Bestimmt den Helligkeitsunterschied zwischen Charakternamen/Chat-Kanal und Nachrichtentext. Der Name wird dunkler, der Text wird heller.\nDiese Option ist nicht verwendbar, wenn die Option \'Einfarbige Zeilen\' aktiviert wurde!\nSetze den Regler auf 0, um den Helligkeitsunterschied zu deaktivieren.", 1)
+SafeAddString(PCHAT_DIFFFORESOCOLORSDARKEN                          , "Helligkeitsunt.: Verdunkeln um", 1)
+SafeAddString(PCHAT_DIFFFORESOCOLORSDARKENTT                        , "Verdunkle den Chat Namen um diesen Wert.", 1)
+SafeAddString(PCHAT_DIFFFORESOCOLORSLIGHTEN                         , "Helligkeitsunt.: Aufhellen um", 1)
+SafeAddString(PCHAT_DIFFFORESOCOLORSLIGHTENTT                       , "Helle den Chat Text um diesen Wert auf.", 1)
 
 SafeAddString(PCHAT_REMOVECOLORSFROMMESSAGES						, "Entferne Farbe aus Nachrichten", 1)
 SafeAddString(PCHAT_REMOVECOLORSFROMMESSAGESTT					, "Verhindert die Anzeige von Farben in Nachrichten (z.B. Regenbogentext von Mitspielern).", 1)
@@ -129,10 +133,10 @@ SafeAddString(PCHAT_ENABLECOPYTT										, "Aktivieren Sie das Kopieren von Tex
 
 SafeAddString(PCHAT_GROUPH												, "Gruppen Einstellungen", 1)
 
-SafeAddString(PCHAT_ENABLEPARTYSWITCH								, "Automatischer Kanalwechsel: Gruppe", 1)
+SafeAddString(PCHAT_ENABLEPARTYSWITCH								, "Autom. Kanalwechsel: Gruppe", 1)
 SafeAddString(PCHAT_ENABLEPARTYSWITCHTT							    , "Wenn du einer Gruppe beitrittst, wechselt der Chat Kanal automatisch zur Gruppe. Beim Verlassen der Gruppe entsprechend zurück zum zuletzt verwendeten Kanal.", 1)
 
-SafeAddString(PCHAT_ENABLEPARTYSWITCHPORTTODUNGEON,                 "Auto. Kanalwechsel in Verlies", 1)
+SafeAddString(PCHAT_ENABLEPARTYSWITCHPORTTODUNGEON,                 "Autom. Wechsel: Verlies", 1)
 SafeAddString(PCHAT_ENABLEPARTYSWITCHPORTTODUNGEONTT, 	            "Der oben genannte automatische Gruppen Kanal Wechsel wird auch beim Reisen in ein Verlies/Benutzeroberfläche neuladen im Verlies ausgeführt, wenn du in einer Gruppe bist.\nDiese Option ist nur dann aktiv, wenn der automatische Gruppen Kanel Wechsel aktiviert wurde!", 1)
 
 
