@@ -4444,7 +4444,200 @@ local function BuildLAMPanel()
 	--The LAM options data table
 	local optionsData = {}
 
-	------------------------------------------------------------------------------------------------------------------------
+
+------------------------------------------------------------------------------------------------------------------------
+	--  Guild Stuff -- table "controlsForGuildSubmenu" will be added further down
+	local firstGuildName = GetGuildName(GetGuildId(1)) or "/g1"
+	local controlsForGuildSubmenu = {
+		{-- LAM Option Show Guild Numbers
+			type    = "checkbox",
+			name    = GetString(PCHAT_GUILDNUMBERS),
+			tooltip = GetString(PCHAT_GUILDNUMBERSTT),
+			getFunc = function()
+				return db.showGuildNumbers
+			end,
+			setFunc = function(newValue)
+				db.showGuildNumbers = newValue
+			end,
+			width   = "half",
+			default = defaults.showGuildNumbers,
+		},
+		{-- LAM Option Guild Tags next to entry box
+			type    = "checkbox",
+			name    = GetString(PCHAT_GUILDTAGSNEXTTOENTRYBOX),
+			tooltip = GetString(PCHAT_GUILDTAGSNEXTTOENTRYBOXTT),
+			width   = "half",
+			default = defaults.showTagInEntry,
+			getFunc = function()
+				return db.showTagInEntry
+			end,
+			setFunc = function(newValue)
+				db.showTagInEntry = newValue
+				UpdateCharCorrespondanceTableChannelNames()
+			end
+		},
+		{-- LAM Option Use Same Color for all Guilds
+			type    = "checkbox",
+			name    = GetString(PCHAT_ALLGUILDSSAMECOLOUR),
+			tooltip = string.format(GetString(PCHAT_ALLGUILDSSAMECOLOURTT), firstGuildName),
+			getFunc = function()
+				return db.allGuildsSameColour
+			end,
+			setFunc = function(newValue)
+				db.allGuildsSameColour = newValue
+			end,
+			width   = "half",
+			default = defaults.allGuildsSameColour,
+		},
+	}
+
+	--Now add a submenu for each of the 5 guilds
+	for guild = 1, GetNumGuilds() do
+		-- Guildname
+		local guildId = GetGuildId(guild)
+		local guildName = GetGuildName(guildId)
+		-- Occurs sometimes
+		if(not guildName or (guildName):len() < 1) then
+			guildName = "Guild " .. guild
+		end
+		-- If recently added to a new guild and never go in menu db.formatguild[guildName] won't exist
+		if not (db.formatguild[guildId]) then
+			-- 2 is default value
+			db.formatguild[guildId] = 2
+		end
+		controlsForGuildSubmenu[#controlsForGuildSubmenu + 1] = {
+			type = "submenu",
+			name = guildName,
+			controls = {
+				{
+					type = "editbox",
+					name = GetString(PCHAT_NICKNAMEFOR),
+					tooltip = GetString(PCHAT_NICKNAMEFORTT) .. " " .. guildName .. " (ID: " ..tostring(guildId) ..")",
+					getFunc = function() return db.guildTags[guildId] end,
+					setFunc = function(newValue)
+						db.guildTags[guildId] = newValue
+						UpdateCharCorrespondanceTableChannelNames()
+					end,
+					width = "half",
+					default = "",
+				},
+				{
+					type = "editbox",
+					name = GetString(PCHAT_OFFICERTAG),
+					tooltip = GetString(PCHAT_OFFICERTAGTT),
+					width = "half",
+					default = "",
+					getFunc = function() return db.officertag[guildId] end,
+					setFunc = function(newValue)
+						db.officertag[guildId] = newValue
+						UpdateCharCorrespondanceTableChannelNames()
+					end
+				},
+				{
+					type = "editbox",
+					name = GetString(PCHAT_SWITCHFOR),
+					tooltip = GetString(PCHAT_SWITCHFORTT),
+					getFunc = function() return db.switchFor[guildId] end,
+					setFunc = function(newValue)
+						local channelId = CHAT_CHANNEL_GUILD_1 - 1 + guild
+
+						local oldValue = db.switchFor[guildId]
+						if oldValue and oldValue ~= "" then
+							RemoveCustomChannelSwitches(channelId, oldValue)
+						end
+
+						db.switchFor[guildId] = newValue
+						if newValue and newValue ~= "" then
+							AddCustomChannelSwitches(channelId, newValue)
+						end
+					end,
+					width = "half",
+					default = "",
+				},
+				{
+					type = "editbox",
+					name = GetString(PCHAT_OFFICERSWITCHFOR),
+					tooltip = GetString(PCHAT_OFFICERSWITCHFORTT),
+					width = "half",
+					default = "",
+					getFunc = function() return db.officerSwitchFor[guildId] end,
+					setFunc = function(newValue)
+						local channelId = CHAT_CHANNEL_OFFICER_1 - 1 + guild
+
+						local oldValue = db.officerSwitchFor[guildId]
+						if oldValue and oldValue ~= "" then
+							RemoveCustomChannelSwitches(channelId, oldValue)
+						end
+
+						db.officerSwitchFor[guildId] = newValue
+						if newValue and newValue ~= "" then
+							AddCustomChannelSwitches(channelId, newValue)
+						end
+					end,
+				},
+				{
+					type = "dropdown",
+					name = GetString(PCHAT_NAMEFORMAT),
+					tooltip = GetString(PCHAT_NAMEFORMATTT),
+					choices = {GetString(PCHAT_FORMATCHOICE1), GetString(PCHAT_FORMATCHOICE2), GetString(PCHAT_FORMATCHOICE3), GetString(PCHAT_FORMATCHOICE4)},
+					choicesValues = {1, 2, 3, 4},
+					getFunc = function()
+						-- Config per guild
+						return db.formatguild[guildId]
+					end,
+					setFunc = function(value)
+						db.formatguild[guildId] = value
+					end,
+					width = "full",
+					default = 2,
+				},
+				{
+					type = "colorpicker",
+					name = GetString(PCHAT_MEMBERS),
+					tooltip = zo_strformat(PCHAT_SETCOLORSFORTT, guildName),
+					getFunc = function() return ConvertHexToRGBA(db.colours[2*(CHAT_CHANNEL_GUILD_1 + guild - 1)]) end,
+					setFunc = function(r, g, b) db.colours[2*(CHAT_CHANNEL_GUILD_1 + guild - 1)] = ConvertRGBToHex(r, g, b) end,
+					default = ConvertHexToRGBAPacked(defaults.colours[2*(CHAT_CHANNEL_GUILD_1 + guild - 1)]),
+					disabled = function() return db.useESOcolors or (guild~=1 and db.allGuildsSameColour) end,
+					width = "half",
+				},
+				{
+					type = "colorpicker",
+					name = GetString(PCHAT_CHAT),
+					tooltip = zo_strformat(PCHAT_SETCOLORSFORCHATTT, guildName),
+					getFunc = function() return ConvertHexToRGBA(db.colours[2*(CHAT_CHANNEL_GUILD_1 + guild - 1) + 1]) end,
+					setFunc = function(r, g, b) db.colours[2*(CHAT_CHANNEL_GUILD_1 + guild - 1) + 1] = ConvertRGBToHex(r, g, b) end,
+					default = ConvertHexToRGBAPacked(defaults.colours[2*(CHAT_CHANNEL_GUILD_1 + guild - 1) + 1]),
+					disabled = function() return db.useESOcolors or (guild~=1 and db.allGuildsSameColour) or db.oneColour end,
+					width = "half",
+				},
+				{
+					type = "colorpicker",
+					name = GetString(PCHAT_OFFICERSTT) .. " " .. GetString(PCHAT_MEMBERS),
+					tooltip = zo_strformat(PCHAT_SETCOLORSFOROFFICIERSTT, guildName),
+					getFunc = function() return ConvertHexToRGBA(db.colours[2*(CHAT_CHANNEL_OFFICER_1 + guild - 1)]) end,
+					setFunc = function(r, g, b) db.colours[2*(CHAT_CHANNEL_OFFICER_1 + guild - 1)] = ConvertRGBToHex(r, g, b) end,
+					default = ConvertHexToRGBAPacked(defaults.colours[2*(CHAT_CHANNEL_OFFICER_1 + guild - 1)]),
+					disabled = function() return db.useESOcolors or (guild~=1 and db.allGuildsSameColour) end,
+					width = "half",
+				},
+				{
+					type = "colorpicker",
+					name = GetString(PCHAT_OFFICERSTT) .. " " .. GetString(PCHAT_CHAT),
+					tooltip = zo_strformat(PCHAT_SETCOLORSFOROFFICIERSCHATTT, guildName),
+					getFunc = function() return ConvertHexToRGBA(db.colours[2*(CHAT_CHANNEL_OFFICER_1 + guild - 1) + 1]) end,
+					setFunc = function(r, g, b) db.colours[2*(CHAT_CHANNEL_OFFICER_1 + guild - 1) + 1] = ConvertRGBToHex(r, g, b) end,
+					default = ConvertHexToRGBAPacked(defaults.colours[2*(CHAT_CHANNEL_OFFICER_1 + guild - 1) + 1]),
+					disabled = function() return db.useESOcolors or (guild~=1 and db.allGuildsSameColour) or db.oneColour end,
+					width = "half",
+				},
+			},
+		}
+	end
+
+------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------
 	-- Chat settings
 	optionsData[#optionsData + 1] = {
 		type = "submenu",
@@ -4477,6 +4670,80 @@ local function BuildLAMPanel()
 				width = "full",
 				default = defaults.enablecopy,
 			},--
+
+			-- Chat window
+			{
+				type = "submenu",
+				name = GetString(PCHAT_APPARENCEMH),
+				controls = {
+					{--	New Message Color
+						type = "colorpicker",
+						name = GetString(PCHAT_TABWARNING),
+						tooltip = GetString(PCHAT_TABWARNINGTT),
+						getFunc = function() return ConvertHexToRGBA(db.colours["tabwarning"]) end,
+						setFunc = function(r, g, b) db.colours["tabwarning"] = ConvertRGBToHex(r, g, b) end,
+						default = ConvertHexToRGBAPacked(defaults.colours["tabwarning"]),
+					},
+					{-- Chat Window Transparency
+						type = "slider",
+						name = GetString(PCHAT_WINDOWDARKNESS),
+						tooltip = GetString(PCHAT_WINDOWDARKNESSTT),
+						min = 0,
+						max = 11,
+						step = 1,
+						getFunc = function() return db.windowDarkness end,
+						setFunc = function(newValue)
+							db.windowDarkness = newValue
+							ChangeChatWindowDarkness()
+							CHAT_SYSTEM:Maximize()
+						end,
+						width = "full",
+						default = defaults.windowDarkness,
+					},
+					{-- Minimize at luanch
+						type = "checkbox",
+						name = GetString(PCHAT_CHATMINIMIZEDATLAUNCH),
+						tooltip = GetString(PCHAT_CHATMINIMIZEDATLAUNCHTT),
+						getFunc = function() return db.chatMinimizedAtLaunch end,
+						setFunc = function(newValue) db.chatMinimizedAtLaunch = newValue end,
+						width = "full",
+						default = defaults.chatMinimizedAtLaunch,
+					},
+					{-- Minimize Menues
+						type = "checkbox",
+						name = GetString(PCHAT_CHATMINIMIZEDINMENUS),
+						tooltip = GetString(PCHAT_CHATMINIMIZEDINMENUSTT),
+						getFunc = function() return db.chatMinimizedInMenus end,
+						setFunc = function(newValue) db.chatMinimizedInMenus = newValue end,
+						width = "full",
+						default = defaults.chatMinimizedInMenus,
+					},
+					{ -- Mximize After Menus
+						type = "checkbox",
+						name = GetString(PCHAT_CHATMAXIMIZEDAFTERMENUS),
+						tooltip = GetString(PCHAT_CHATMAXIMIZEDAFTERMENUSTT),
+						getFunc = function() return db.chatMaximizedAfterMenus end,
+						setFunc = function(newValue) db.chatMaximizedAfterMenus = newValue end,
+						width = "full",
+						default = defaults.chatMaximizedAfterMenus,
+					},
+					{ -- Fonts
+						type = "dropdown",
+						name = GetString(PCHAT_FONTCHANGE),
+						tooltip = GetString(PCHAT_FONTCHANGETT),
+						choices = fontsDefined,
+						width = "full",
+						getFunc = function() return db.fonts end,
+						setFunc = function(choice)
+							db.fonts = choice
+							ChangeChatFont(true)
+							ReloadUI()
+						end,
+						default = defaults.fontChange,
+						warning = "ReloadUI"
+					},
+				},
+			},
 		},
 	}
 
@@ -4503,6 +4770,51 @@ local function BuildLAMPanel()
 				setFunc = function(newValue) db.urlHandling = newValue end,
 				width = "half",
 				default = defaults.urlHandling,
+			},
+			-- Timestamp options
+			{
+				type = "submenu",
+				name = GetString(PCHAT_TIMESTAMPH),
+				controls = {
+					{
+						type = "checkbox",
+						name = GetString(PCHAT_ENABLETIMESTAMP),
+						tooltip = GetString(PCHAT_ENABLETIMESTAMPTT),
+						getFunc = function() return db.showTimestamp end,
+						setFunc = function(newValue) db.showTimestamp = newValue end,
+						width = "full",
+						default = defaults.showTimestamp,
+					},
+					{
+						type = "checkbox",
+						name = GetString(PCHAT_TIMESTAMPCOLORISLCOL),
+						tooltip = GetString(PCHAT_TIMESTAMPCOLORISLCOLTT),
+						getFunc = function() return db.timestampcolorislcol end,
+						setFunc = function(newValue) db.timestampcolorislcol = newValue end,
+						width = "full",
+						default = defaults.timestampcolorislcol,
+						disabled = function() return not db.showTimestamp end,
+					},
+					{
+						type = "editbox",
+						name = GetString(PCHAT_TIMESTAMPFORMAT),
+						tooltip = GetString(PCHAT_TIMESTAMPFORMATTT),
+						getFunc = function() return db.timestampFormat end,
+						setFunc = function(newValue) db.timestampFormat = newValue end,
+						width = "full",
+						default = defaults.timestampFormat,
+						disabled = function() return not db.showTimestamp end,
+					},
+					{
+						type = "colorpicker",
+						name = GetString(PCHAT_TIMESTAMP),
+						tooltip = GetString(PCHAT_TIMESTAMPTT),
+						getFunc = function() return ConvertHexToRGBA(db.colours.timestamp) end,
+						setFunc = function(r, g, b) db.colours.timestamp = ConvertRGBToHex(r, g, b) end,
+						default = ConvertHexToRGBAPacked(defaults.colours.timestamp),
+						disabled = function() return not db.showTimestamp or db.timestampcolorislcol end,
+					},
+				},
 			},
 			--Playername in chat message
 			{
@@ -5126,215 +5438,68 @@ local function BuildLAMPanel()
 						setFunc = function(r, g, b) db.colours["groupleader1"] = ConvertRGBToHex(r, g, b) end,
 						default = ConvertHexToRGBAPacked(defaults.colours["groupleader1"]),
 						disabled = function()
-								if not db.groupLeader then
-									return true
-								elseif db.useESOcolors then
-									return true
-								else
-									return false
-								end
-							end,
+							if not db.groupLeader then
+								return true
+							elseif db.useESOcolors then
+								return true
+							elseif db.oneColour then
+								return true
+							else
+								return false
+							end
+						end,
 						width = "half",
 					},
 				},
 			},
-		}
-	}
+			-- Guild settings
+			{
+				type = "submenu",
+				name = GetString(PCHAT_GUILDH),
+				controls = controlsForGuildSubmenu,	--Above build table with each guild's settings as a LAM submenu
+			},
+			-- Whispers
+			{
+				type = "submenu",
+				name = GetString(PCHAT_IMH),
+				controls = {
 
-------------------------------------------------------------------------------------------------------------------------
-	--  Guild Stuff
-	local firstGuildName = GetGuildName(GetGuildId(1)) or "/g1"
-	local controlsForGuildSubmenu = {
-		{-- LAM Option Show Guild Numbers
-			type    = "checkbox",
-			name    = GetString(PCHAT_GUILDNUMBERS),
-			tooltip = GetString(PCHAT_GUILDNUMBERSTT),
-			getFunc = function()
-				return db.showGuildNumbers
-			end,
-			setFunc = function(newValue)
-				db.showGuildNumbers = newValue
-			end,
-			width   = "half",
-			default = defaults.showGuildNumbers,
-		},
-		{-- LAM Option Guild Tags next to entry box
-			type    = "checkbox",
-			name    = GetString(PCHAT_GUILDTAGSNEXTTOENTRYBOX),
-			tooltip = GetString(PCHAT_GUILDTAGSNEXTTOENTRYBOXTT),
-			width   = "half",
-			default = defaults.showTagInEntry,
-			getFunc = function()
-				return db.showTagInEntry
-			end,
-			setFunc = function(newValue)
-				db.showTagInEntry = newValue
-				UpdateCharCorrespondanceTableChannelNames()
-			end
-		},
-		{-- LAM Option Use Same Color for all Guilds
-			type    = "checkbox",
-			name    = GetString(PCHAT_ALLGUILDSSAMECOLOUR),
-			tooltip = string.format(GetString(PCHAT_ALLGUILDSSAMECOLOURTT), firstGuildName),
-			getFunc = function()
-				return db.allGuildsSameColour
-			end,
-			setFunc = function(newValue)
-				db.allGuildsSameColour = newValue
-			end,
-			width   = "half",
-			default = defaults.allGuildsSameColour,
-		},
-	}
+					{-- -- LAM Option Whisper: Notification by sound slider
+						type = "slider",
+						name = GetString(PCHAT_SOUNDFORINCWHISPS),
+						tooltip = GetString(PCHAT_SOUNDFORINCWHISPSTT),
+						getFunc = function() return db.notifyIMIndex end,
+						setFunc = function(newIndexValue)
+							db.notifyIMIndex = newIndexValue
+							local soundName = pChat.sounds[newIndexValue]
+							if newIndexValue ~= 1 then
+								if soundName and SOUNDS and SOUNDS[soundName] then
+									PlaySound(SOUNDS[soundName])
+								end
+							end
+							--Update the label to show the sound name
+							UpdateSoundDescription("whisper", newIndexValue)
+						end,
+						width = "full",
+						step = 1,
+						min = 1,
+						max = #pChat.sounds,
+						default = defaults.notifyIMIndex,
+						reference = "pChatLAMWhisperSoundSlider",
+					},
 
-	--Now add a submenu for each of the 5 guilds
-	for guild = 1, GetNumGuilds() do
-		-- Guildname
-		local guildId = GetGuildId(guild)
-		local guildName = GetGuildName(guildId)
-		-- Occurs sometimes
-		if(not guildName or (guildName):len() < 1) then
-			guildName = "Guild " .. guild
-		end
-		-- If recently added to a new guild and never go in menu db.formatguild[guildName] won't exist
-		if not (db.formatguild[guildId]) then
-			-- 2 is default value
-			db.formatguild[guildId] = 2
-		end
-		controlsForGuildSubmenu[#controlsForGuildSubmenu + 1] = {
-			type = "submenu",
-			name = guildName,
-			controls = {
-				{
-					type = "editbox",
-					name = GetString(PCHAT_NICKNAMEFOR),
-					tooltip = GetString(PCHAT_NICKNAMEFORTT) .. " " .. guildName .. " (ID: " ..tostring(guildId) ..")",
-					getFunc = function() return db.guildTags[guildId] end,
-					setFunc = function(newValue)
-						db.guildTags[guildId] = newValue
-						UpdateCharCorrespondanceTableChannelNames()
-					end,
-					width = "half",
-					default = "",
-				},
-				{
-					type = "editbox",
-					name = GetString(PCHAT_OFFICERTAG),
-					tooltip = GetString(PCHAT_OFFICERTAGTT),
-					width = "half",
-					default = "",
-					getFunc = function() return db.officertag[guildId] end,
-					setFunc = function(newValue)
-						db.officertag[guildId] = newValue
-						UpdateCharCorrespondanceTableChannelNames()
-					end
-				},
-				{
-					type = "editbox",
-					name = GetString(PCHAT_SWITCHFOR),
-					tooltip = GetString(PCHAT_SWITCHFORTT),
-					getFunc = function() return db.switchFor[guildId] end,
-					setFunc = function(newValue)
-						local channelId = CHAT_CHANNEL_GUILD_1 - 1 + guild
-
-						local oldValue = db.switchFor[guildId]
-						if oldValue and oldValue ~= "" then
-							RemoveCustomChannelSwitches(channelId, oldValue)
-						end
-
-						db.switchFor[guildId] = newValue
-						if newValue and newValue ~= "" then
-							AddCustomChannelSwitches(channelId, newValue)
-						end
-					end,
-					width = "half",
-					default = "",
-				},
-				{
-					type = "editbox",
-					name = GetString(PCHAT_OFFICERSWITCHFOR),
-					tooltip = GetString(PCHAT_OFFICERSWITCHFORTT),
-					width = "half",
-					default = "",
-					getFunc = function() return db.officerSwitchFor[guildId] end,
-					setFunc = function(newValue)
-						local channelId = CHAT_CHANNEL_OFFICER_1 - 1 + guild
-
-						local oldValue = db.officerSwitchFor[guildId]
-						if oldValue and oldValue ~= "" then
-							RemoveCustomChannelSwitches(channelId, oldValue)
-						end
-
-						db.officerSwitchFor[guildId] = newValue
-						if newValue and newValue ~= "" then
-							AddCustomChannelSwitches(channelId, newValue)
-						end
-					end,
-				},
-				{
-					type = "dropdown",
-					name = GetString(PCHAT_NAMEFORMAT),
-					tooltip = GetString(PCHAT_NAMEFORMATTT),
-					choices = {GetString(PCHAT_FORMATCHOICE1), GetString(PCHAT_FORMATCHOICE2), GetString(PCHAT_FORMATCHOICE3), GetString(PCHAT_FORMATCHOICE4)},
-					choicesValues = {1, 2, 3, 4},
-					getFunc = function()
-						-- Config per guild
-						return db.formatguild[guildId]
-					end,
-					setFunc = function(value)
-						db.formatguild[guildId] = value
-					end,
-					width = "full",
-					default = 2,
-				},
-				{
-					type = "colorpicker",
-					name = GetString(PCHAT_MEMBERS),
-					tooltip = zo_strformat(PCHAT_SETCOLORSFORTT, guildName),
-					getFunc = function() return ConvertHexToRGBA(db.colours[2*(CHAT_CHANNEL_GUILD_1 + guild - 1)]) end,
-					setFunc = function(r, g, b) db.colours[2*(CHAT_CHANNEL_GUILD_1 + guild - 1)] = ConvertRGBToHex(r, g, b) end,
-					default = ConvertHexToRGBAPacked(defaults.colours[2*(CHAT_CHANNEL_GUILD_1 + guild - 1)]),
-					disabled = function() return db.useESOcolors or (guild~=1 and db.allGuildsSameColour) end,
-					width = "half",
-				},
-				{
-					type = "colorpicker",
-					name = GetString(PCHAT_CHAT),
-					tooltip = zo_strformat(PCHAT_SETCOLORSFORCHATTT, guildName),
-					getFunc = function() return ConvertHexToRGBA(db.colours[2*(CHAT_CHANNEL_GUILD_1 + guild - 1) + 1]) end,
-					setFunc = function(r, g, b) db.colours[2*(CHAT_CHANNEL_GUILD_1 + guild - 1) + 1] = ConvertRGBToHex(r, g, b) end,
-					default = ConvertHexToRGBAPacked(defaults.colours[2*(CHAT_CHANNEL_GUILD_1 + guild - 1) + 1]),
-					disabled = function() return db.useESOcolors or (guild~=1 and db.allGuildsSameColour) end,
-					width = "half",
-				},
-				{
-					type = "colorpicker",
-					name = GetString(PCHAT_OFFICERSTT) .. " " .. GetString(PCHAT_MEMBERS),
-					tooltip = zo_strformat(PCHAT_SETCOLORSFOROFFICIERSTT, guildName),
-					getFunc = function() return ConvertHexToRGBA(db.colours[2*(CHAT_CHANNEL_OFFICER_1 + guild - 1)]) end,
-					setFunc = function(r, g, b) db.colours[2*(CHAT_CHANNEL_OFFICER_1 + guild - 1)] = ConvertRGBToHex(r, g, b) end,
-					default = ConvertHexToRGBAPacked(defaults.colours[2*(CHAT_CHANNEL_OFFICER_1 + guild - 1)]),
-					disabled = function() return db.useESOcolors or (guild~=1 and db.allGuildsSameColour) end,
-					width = "half",
-				},
-				{
-					type = "colorpicker",
-					name = GetString(PCHAT_OFFICERSTT) .. " " .. GetString(PCHAT_CHAT),
-					tooltip = zo_strformat(PCHAT_SETCOLORSFOROFFICIERSCHATTT, guildName),
-					getFunc = function() return ConvertHexToRGBA(db.colours[2*(CHAT_CHANNEL_OFFICER_1 + guild - 1) + 1]) end,
-					setFunc = function(r, g, b) db.colours[2*(CHAT_CHANNEL_OFFICER_1 + guild - 1) + 1] = ConvertRGBToHex(r, g, b) end,
-					default = ConvertHexToRGBAPacked(defaults.colours[2*(CHAT_CHANNEL_OFFICER_1 + guild - 1) + 1]),
-					disabled = function() return db.useESOcolors or (guild~=1 and db.allGuildsSameColour) end,
-					width = "half",
+					{-- -- LAM Option Whisper: Visual Notification
+						type = "checkbox",
+						name = GetString(PCHAT_NOTIFYIM),
+						tooltip = GetString(PCHAT_NOTIFYIMTT),
+						getFunc = function() return db.notifyIM end,
+						setFunc = function(newValue) db.notifyIM = newValue end,
+						width = "full",
+						default = defaults.notifyIM,
+					},
 				},
 			},
 		}
-	end
-	-- Guild settings
-	optionsData[#optionsData + 1] = {
-		type = "submenu",
-		name = GetString(PCHAT_GUILDH),
-		controls =	controlsForGuildSubmenu,	--Above build table with each guild's settings as a LAM submenu
 	}
 
 	-- Sync Settings Header
@@ -5367,120 +5532,81 @@ local function BuildLAMPanel()
 			},
 		},
 	}
-	-- Mouse
-	optionsData[#optionsData + 1] = {
+
+	-- Anti-Spam options
+	optionsData[#optionsData + 1] =	{
 		type = "submenu",
-		name = GetString(PCHAT_APPARENCEMH),
+		name = GetString(PCHAT_ANTISPAMH),
 		controls = {
-			{--	New Message Color
-				type = "colorpicker",
-				name = GetString(PCHAT_TABWARNING),
-				tooltip = GetString(PCHAT_TABWARNINGTT),
-				getFunc = function() return ConvertHexToRGBA(db.colours["tabwarning"]) end,
-				setFunc = function(r, g, b) db.colours["tabwarning"] = ConvertRGBToHex(r, g, b) end,
-				default = ConvertHexToRGBAPacked(defaults.colours["tabwarning"]),
-			},
-			{-- Chat Window Transparency
+			{-- flood protect
+				type = "checkbox",
+				name = GetString(PCHAT_FLOODPROTECT),
+				tooltip = GetString(PCHAT_FLOODPROTECTTT),
+				getFunc = function() return db.floodProtect end,
+				setFunc = function(newValue) db.floodProtect = newValue end,
+				width = "full",
+				default = defaults.floodProtect,
+			}, --Anti spam  grace period
+			{
 				type = "slider",
-				name = GetString(PCHAT_WINDOWDARKNESS),
-				tooltip = GetString(PCHAT_WINDOWDARKNESSTT),
+				name = GetString(PCHAT_FLOODGRACEPERIOD),
+				tooltip = GetString(PCHAT_FLOODGRACEPERIODTT),
 				min = 0,
-				max = 11,
+				max = 180,
 				step = 1,
-				getFunc = function() return db.windowDarkness end,
-				setFunc = function(newValue)
-					db.windowDarkness = newValue
-					ChangeChatWindowDarkness()
-					CHAT_SYSTEM:Maximize()
-				end,
+				getFunc = function() return db.floodGracePeriod end,
+				setFunc = function(newValue) db.floodGracePeriod = newValue end,
 				width = "full",
-				default = defaults.windowDarkness,
+				default = defaults.floodGracePeriod,
+				disabled = function() return not db.floodProtect end,
 			},
-			{-- Minimize at luanch
+			{
 				type = "checkbox",
-				name = GetString(PCHAT_CHATMINIMIZEDATLAUNCH),
-				tooltip = GetString(PCHAT_CHATMINIMIZEDATLAUNCHTT),
-				getFunc = function() return db.chatMinimizedAtLaunch end,
-				setFunc = function(newValue) db.chatMinimizedAtLaunch = newValue end,
+				name = GetString(PCHAT_LOOKINGFORPROTECT),
+				tooltip = GetString(PCHAT_LOOKINGFORPROTECTTT),
+				getFunc = function() return db.lookingForProtect end,
+				setFunc = function(newValue) db.lookingForProtect = newValue end,
 				width = "full",
-				default = defaults.chatMinimizedAtLaunch,
+				default = defaults.lookingForProtect,
 			},
-			{-- Minimize Menues
-				type = "checkbox",
-				name = GetString(PCHAT_CHATMINIMIZEDINMENUS),
-				tooltip = GetString(PCHAT_CHATMINIMIZEDINMENUSTT),
-				getFunc = function() return db.chatMinimizedInMenus end,
-				setFunc = function(newValue) db.chatMinimizedInMenus = newValue end,
+			{
+			type = "checkbox",
+				name = GetString(PCHAT_WANTTOPROTECT),
+				tooltip = GetString(PCHAT_WANTTOPROTECTTT),
+				getFunc = function() return db.wantToProtect end,
+				setFunc = function(newValue) db.wantToProtect = newValue end,
 				width = "full",
-				default = defaults.chatMinimizedInMenus,
+				default = defaults.wantToProtect,
 			},
-			{ -- Mximize After Menus
-				type = "checkbox",
-				name = GetString(PCHAT_CHATMAXIMIZEDAFTERMENUS),
-				tooltip = GetString(PCHAT_CHATMAXIMIZEDAFTERMENUSTT),
-				getFunc = function() return db.chatMaximizedAfterMenus end,
-				setFunc = function(newValue) db.chatMaximizedAfterMenus = newValue end,
-				width = "full",
-				default = defaults.chatMaximizedAfterMenus,
-			},
-			{ -- Fonts
-				type = "dropdown",
-				name = GetString(PCHAT_FONTCHANGE),
-				tooltip = GetString(PCHAT_FONTCHANGETT),
-				choices = fontsDefined,
-				width = "full",
-				getFunc = function() return db.fonts end,
-				setFunc = function(choice)
-					db.fonts = choice
-					ChangeChatFont(true)
-					ReloadUI()
-				end,
-				default = defaults.fontChange,
-				warning = "ReloadUI"
-			},
-		},
-	}
-	-- LAM Menu Whispers
-	optionsData[#optionsData + 1] = {
-		type = "submenu",
-		name = GetString(PCHAT_IMH),
-		controls = {
-
-			{-- -- LAM Option Whisper: Notification by sound slider
+			{
 				type = "slider",
-				name = GetString(PCHAT_SOUNDFORINCWHISPS),
-				tooltip = GetString(PCHAT_SOUNDFORINCWHISPSTT),
-				getFunc = function() return db.notifyIMIndex end,
-				setFunc = function(newIndexValue)
-					db.notifyIMIndex = newIndexValue
-					local soundName = pChat.sounds[newIndexValue]
-					if newIndexValue ~= 1 then
-						if soundName and SOUNDS and SOUNDS[soundName] then
-							PlaySound(SOUNDS[soundName])
-						end
-					end
-					--Update the label to show the sound name
-					UpdateSoundDescription("whisper", newIndexValue)
+				name = GetString(PCHAT_SPAMGRACEPERIOD),
+				tooltip = GetString(PCHAT_SPAMGRACEPERIODTT),
+				min = 0,
+				max = 10,
+				step = 1,
+				getFunc = function() return db.spamGracePeriod end,
+				setFunc = function(newValue) db.spamGracePeriod = newValue end,
+				width = "full",
+				default = defaults.spamGracePeriod,
+			},
+			{
+				type = "editbox",
+				name = GetString(PCHAT_NICKNAMES),
+				tooltip = GetString(PCHAT_NICKNAMESTT),
+				isMultiline = true,
+				isExtraWide = true,
+				getFunc = function() return db.nicknames end,
+				setFunc = function(newValue)
+					db.nicknames = newValue
+					BuildNicknames(true) -- Rebuild the control if data is invalid
 				end,
 				width = "full",
-				step = 1,
-				min = 1,
-				max = #pChat.sounds,
-				default = defaults.notifyIMIndex,
-				reference = "pChatLAMWhisperSoundSlider",
-			},
-
-			{-- -- LAM Option Whisper: Visual Notification
-				type = "checkbox",
-				name = GetString(PCHAT_NOTIFYIM),
-				tooltip = GetString(PCHAT_NOTIFYIMTT),
-				getFunc = function() return db.notifyIM end,
-				setFunc = function(newValue) db.notifyIM = newValue end,
-				width = "full",
-				default = defaults.notifyIM,
+				default = defaults.nicknames,
 			},
 		},
 	}
+
 	-- LAM Menu Restore Chat
 	optionsData[#optionsData + 1] = {
 		type = "submenu",
@@ -5588,124 +5714,6 @@ local function BuildLAMPanel()
 				setFunc = function(newValue) db.restoreTextEntryHistoryAtLogOutQuit = newValue end,
 				width = "full",
 				default = defaults.restoreTextEntryHistoryAtLogOutQuit,
-			},
-		},
-	}
-	-- Anti-Spam options
-	optionsData[#optionsData + 1] = {
-		type = "submenu",
-		name = GetString(PCHAT_ANTISPAMH),
-		controls = {
-			{-- flood protect
-				type = "checkbox",
-				name = GetString(PCHAT_FLOODPROTECT),
-				tooltip = GetString(PCHAT_FLOODPROTECTTT),
-				getFunc = function() return db.floodProtect end,
-				setFunc = function(newValue) db.floodProtect = newValue end,
-				width = "full",
-				default = defaults.floodProtect,
-			}, --Anti spam  grace period
-			{
-				type = "slider",
-				name = GetString(PCHAT_FLOODGRACEPERIOD),
-				tooltip = GetString(PCHAT_FLOODGRACEPERIODTT),
-				min = 0,
-				max = 180,
-				step = 1,
-				getFunc = function() return db.floodGracePeriod end,
-				setFunc = function(newValue) db.floodGracePeriod = newValue end,
-				width = "full",
-				default = defaults.floodGracePeriod,
-				disabled = function() return not db.floodProtect end,
-			},
-			{
-				type = "checkbox",
-				name = GetString(PCHAT_LOOKINGFORPROTECT),
-				tooltip = GetString(PCHAT_LOOKINGFORPROTECTTT),
-				getFunc = function() return db.lookingForProtect end,
-				setFunc = function(newValue) db.lookingForProtect = newValue end,
-				width = "full",
-				default = defaults.lookingForProtect,
-			},
-			{
-			type = "checkbox",
-				name = GetString(PCHAT_WANTTOPROTECT),
-				tooltip = GetString(PCHAT_WANTTOPROTECTTT),
-				getFunc = function() return db.wantToProtect end,
-				setFunc = function(newValue) db.wantToProtect = newValue end,
-				width = "full",
-				default = defaults.wantToProtect,
-			},
-			{
-				type = "slider",
-				name = GetString(PCHAT_SPAMGRACEPERIOD),
-				tooltip = GetString(PCHAT_SPAMGRACEPERIODTT),
-				min = 0,
-				max = 10,
-				step = 1,
-				getFunc = function() return db.spamGracePeriod end,
-				setFunc = function(newValue) db.spamGracePeriod = newValue end,
-				width = "full",
-				default = defaults.spamGracePeriod,
-			},
-			{
-				type = "editbox",
-				name = GetString(PCHAT_NICKNAMES),
-				tooltip = GetString(PCHAT_NICKNAMESTT),
-				isMultiline = true,
-				isExtraWide = true,
-				getFunc = function() return db.nicknames end,
-				setFunc = function(newValue)
-					db.nicknames = newValue
-					BuildNicknames(true) -- Rebuild the control if data is invalid
-				end,
-				width = "full",
-				default = defaults.nicknames,
-			},
-		},
-	}
-	-- Timestamp options
-	optionsData[#optionsData + 1] = {
-		type = "submenu",
-		name = GetString(PCHAT_TIMESTAMPH),
-		controls = {
-			{
-				type = "checkbox",
-				name = GetString(PCHAT_ENABLETIMESTAMP),
-				tooltip = GetString(PCHAT_ENABLETIMESTAMPTT),
-				getFunc = function() return db.showTimestamp end,
-				setFunc = function(newValue) db.showTimestamp = newValue end,
-				width = "full",
-				default = defaults.showTimestamp,
-			},
-			{
-				type = "checkbox",
-				name = GetString(PCHAT_TIMESTAMPCOLORISLCOL),
-				tooltip = GetString(PCHAT_TIMESTAMPCOLORISLCOLTT),
-				getFunc = function() return db.timestampcolorislcol end,
-				setFunc = function(newValue) db.timestampcolorislcol = newValue end,
-				width = "full",
-				default = defaults.timestampcolorislcol,
-				disabled = function() return not db.showTimestamp end,
-			},
-			{
-				type = "editbox",
-				name = GetString(PCHAT_TIMESTAMPFORMAT),
-				tooltip = GetString(PCHAT_TIMESTAMPFORMATTT),
-				getFunc = function() return db.timestampFormat end,
-				setFunc = function(newValue) db.timestampFormat = newValue end,
-				width = "full",
-				default = defaults.timestampFormat,
-				disabled = function() return not db.showTimestamp end,
-			},
-			{
-				type = "colorpicker",
-				name = GetString(PCHAT_TIMESTAMP),
-				tooltip = GetString(PCHAT_TIMESTAMPTT),
-				getFunc = function() return ConvertHexToRGBA(db.colours.timestamp) end,
-				setFunc = function(r, g, b) db.colours.timestamp = ConvertRGBToHex(r, g, b) end,
-				default = ConvertHexToRGBAPacked(defaults.colours.timestamp),
-				disabled = function() return not db.showTimestamp or db.timestampcolorislcol end,
 			},
 		},
 	}
