@@ -18,9 +18,9 @@
 i18n/en.lua
 i18n/$(language).lua
 fonts.lua
-pChat_chatHandlers.lua
 pChat.lua
 
+HelperFunctions.lua
 SpamFilter.lua
 MessageFormatters.lua
 ChatHandlers.lua

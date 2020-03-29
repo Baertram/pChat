@@ -1,4 +1,4 @@
-function pChat.InitializeChatHistory(pChatData, db, PCHAT_CHANNEL_SAY, PCHAT_CHANNEL_NONE, constTabNameTemplate, CreateTimestamp, subloggerVerbose)
+function pChat.InitializeChatHistory(pChatData, db, PCHAT_CHANNEL_SAY, PCHAT_CHANNEL_NONE, constTabNameTemplate, subloggerVerbose)
 
     local function StripLinesFromLineStrings(typeOfExit)
 
@@ -329,7 +329,7 @@ function pChat.InitializeChatHistory(pChatData, db, PCHAT_CHANNEL_SAY, PCHAT_CHA
             -- Timestamp cannot be nil anymore with SpamFilter, so use the option itself
             if db.showTimestamp then
                 -- Format for Copy
-                formattedMessage = "[" .. CreateTimestamp(GetTimeString()) .. "] "
+                formattedMessage = "[" .. pChat.CreateTimestamp(GetTimeString()) .. "] "
             end
 
             -- Strip DDS tags for GM

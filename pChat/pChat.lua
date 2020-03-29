@@ -116,8 +116,6 @@ local eventPlayerActivatedChecksDone = 0
 
 --ZOs chat channels table
 local ChannelInfo = ZO_ChatSystem_GetChannelInfo()
---ZOs chat switches table
-local g_switchLookup = ZO_ChatSystem_GetChannelSwitchLookupTable()
 
 --======================================================================================================================
 --Load the libraries
@@ -142,59 +140,6 @@ end
 LoadLibraries()
 
 --======================================================================================================================
--- Helper functions
---======================================================================================================================
-local AddCustomChannelSwitches, RemoveCustomChannelSwitches
-
---Get the class's icon texture
-local function getClassIcon(classId)
-    --* GetClassInfo(*luaindex* _index_)
-    -- @return defId integer,lore string,normalIconKeyboard textureName,pressedIconKeyboard textureName,mouseoverIconKeyboard textureName,isSelectable bool,ingameIconKeyboard textureName,ingameIconGamepad textureName,normalIconGamepad textureName,pressedIconGamepad textureName
-    local classLuaIndex = GetClassIndexById(classId)
-    local _, _, textureName, _, _, _, ingameIconKeyboard, _, _, _= GetClassInfo(classLuaIndex)
-    return ingameIconKeyboard or textureName or ""
-end
-
---Decorate a character name with colour and icon of the class
-local function decorateCharName(charName, classId, decorate)
-    if not charName or charName == "" then return "" end
-    if not classId then return charName end
-    decorate = decorate or false
-    if not decorate then return charName end
-    local charNameDecorated
-    --Get the class color
-    local charColorDef = GetClassColor(classId)
-    --Apply the class color to the charname
-    if nil ~= charColorDef then charNameDecorated = charColorDef:Colorize(charName) end
-    --Apply the class textures to the charname
-    charNameDecorated = zo_iconTextFormatNoSpace(getClassIcon(classId), 20, 20, charNameDecorated)
-    return charNameDecorated
-end
-
---Build the table of all characters of the account
-local function getCharactersOfAccount(keyIsCharName, decorate)
-    decorate = decorate or false
-    keyIsCharName = keyIsCharName or false
-    local charactersOfAccount
-    --Check all the characters of the account
-    for i = 1, GetNumCharacters() do
-        --GetCharacterInfo() -> *string* _name_, *[Gender|#Gender]* _gender_, *integer* _level_, *integer* _classId_, *integer* _raceId_, *[Alliance|#Alliance]* _alliance_, *string* _id_, *integer* _locationId_
-        local name, gender, level, classId, raceId, alliance, characterId, location = GetCharacterInfo(i)
-        local charName = zo_strformat(SI_UNIT_NAME, name)
-        if characterId ~= nil and charName ~= "" then
-            if charactersOfAccount == nil then charactersOfAccount = {} end
-            charName = decorateCharName(charName, classId, decorate)
-            if keyIsCharName then
-                charactersOfAccount[charName]   = characterId
-            else
-                charactersOfAccount[characterId]= charName
-            end
-        end
-    end
-    return charactersOfAccount
-end
-
---======================================================================================================================
 -- pChat functions
 --======================================================================================================================
 
@@ -207,58 +152,11 @@ local function PrepareVars()
     pChat.characterNameRaw2Id = {}
     pChat.characterId2NameRaw = {}
     --Tables with character charname as key
-    pChat.characterName2Id = getCharactersOfAccount(true, true)
-    pChat.characterNameRaw2Id = getCharactersOfAccount(true, false)
+    pChat.characterName2Id = pChat.getCharactersOfAccount(true, true)
+    pChat.characterNameRaw2Id = pChat.getCharactersOfAccount(true, false)
     --Tables with character ID as key
-    pChat.characterId2Name = getCharactersOfAccount(false, true)
-    pChat.characterId2NameRaw = getCharactersOfAccount(false, false)
-end
-
--- Turn a ([0,1])^3 RGB colour to "|cABCDEF" form. We could use ZO_ColorDef, but we have so many colors so we don't do it.
-local function ConvertRGBToHex(r, g, b)
-    return string.format("|c%.2x%.2x%.2x", zo_floor(r * 255), zo_floor(g * 255), zo_floor(b * 255))
-end
-
--- Convert a colour from "|cABCDEF" form to [0,1] RGB form.
-local function ConvertHexToRGBA(colourString)
-    local r=tonumber(string.sub(colourString, 3, 4), 16) or 255
-    local g=tonumber(string.sub(colourString, 5, 6), 16) or 255
-    local b=tonumber(string.sub(colourString, 7, 8), 16) or 255
-    return r/255, g/255, b/255, 1
-end
-
--- Return a formatted time
-local function CreateTimestamp(timeStr, formatStr)
-    formatStr = formatStr or db.timestampFormat
-
-    -- split up default timestamp
-    local hours, minutes, seconds = timeStr:match("([^%:]+):([^%:]+):([^%:]+)")
-    local hoursNoLead = tonumber(hours) -- hours without leading zero
-    local hours12NoLead = (hoursNoLead - 1)%12 + 1
-    local hours12
-    if (hours12NoLead < 10) then
-        hours12 = "0" .. hours12NoLead
-    else
-        hours12 = hours12NoLead
-    end
-    local pUp = "AM"
-    local pLow = "am"
-    if (hoursNoLead >= 12) then
-        pUp = "PM"
-        pLow = "pm"
-    end
-
-    -- create new one
-    local timestamp = formatStr
-    timestamp = timestamp:gsub("HH", hours)
-    timestamp = timestamp:gsub("H", hoursNoLead)
-    timestamp = timestamp:gsub("hh", hours12)
-    timestamp = timestamp:gsub("h", hours12NoLead)
-    timestamp = timestamp:gsub("m", minutes)
-    timestamp = timestamp:gsub("s", seconds)
-    timestamp = timestamp:gsub("A", pUp)
-    timestamp = timestamp:gsub("a", pLow)
-    return timestamp
+    pChat.characterId2Name = pChat.getCharactersOfAccount(false, true)
+    pChat.characterId2NameRaw = pChat.getCharactersOfAccount(false, false)
 end
 
 
@@ -316,91 +214,10 @@ do
             if not pChatColor then
                 return 1, 1, 1, 1
             else
-                return ConvertHexToRGBA(pChatColor)
+                return pChat.ConvertHexToRGBA(pChatColor)
             end
         end
         return originalZO_ChatSystem_GetCategoryColorFromChannel(channelId)
-    end
-
-    -- store all built-in switches so we can prevent accidents
-    local isBuiltIn = {}
-    for channelId, data in pairs(ChannelInfo) do
-        if data.switches then
-            for switchArg in data.switches:gmatch("%S+") do
-                isBuiltIn[switchArg:lower()] = true
-            end
-        end
-    end
-    --local guildId = GetGuildId(i)
-    --local guildName = GetGuildName(guildId)
-    function AddCustomChannelSwitches(channelId, switchesToAdd)
-        logger:Debug("AddCustomChannelSwitches-channelId: ", tostring(channelId) .. "; switchesToAdd: " ..tostring(switchesToAdd))
-        local data = ChannelInfo[channelId]
-        if not data or not switchesToAdd or switchesToAdd == "" then
-            logger:Warn("Invalid arguments passed to 'AddCustomChannelSwitches'")
-            return
-        end
-
-        local switches = {}
-        if data.switches then
-            for switchArg in data.switches:gmatch("%S+") do
-                switches[#switches + 1] = switchArg
-            end
-        end
-        for switchArg in switchesToAdd:gmatch("%S+") do
-            switchArg = switchArg:lower()
-            if isBuiltIn[switchArg] then
-                local message = string.format(GetString(PCHAT_BUILT_IN_CHANNEL_SWITCH_WARNING), switchArg)
-                ZO_Alert(UI_ALERT_CATEGORY_ERROR, SOUNDS.NEGATIVE_CLICK, message)
-            elseif g_switchLookup[switchArg] then
-                local message = string.format(GetString(PCHAT_DUPLICATE_CHANNEL_SWITCH_WARNING), switchArg)
-                ZO_Alert(UI_ALERT_CATEGORY_ERROR, SOUNDS.NEGATIVE_CLICK, message)
-            else
-                switches[#switches + 1] = switchArg
-                g_switchLookup[switchArg] = data
-            end
-        end
-
-        if #switches > 0 then
-            data.switches = table.concat(switches, " ")
-        else
-            data.switches = nil
-        end
-    end
-
-    function RemoveCustomChannelSwitches(channelId, switchesToRemove)
-        logger:Debug("RemoveCustomChannelSwitches-channelId: ", tostring(channelId) .. "; switchesToRemove: " ..tostring(switchesToRemove))
-        local data = ChannelInfo[channelId]
-        if not data or not switchesToRemove or switchesToRemove == "" then
-            logger:Warn("Invalid arguments passed to RemoveCustomChannelSwitches")
-            return
-        end
-        if not data.switches then
-            logger:Warn("'RemoveCustomChannelSwitches', channel %d has no switches to remove", channelId)
-            return
-        end
-        local shouldRemove = {}
-        for switchArg in switchesToRemove:gmatch("%S+") do
-            switchArg = switchArg:lower()
-            if not isBuiltIn[switchArg] then
-                shouldRemove[switchArg] = true
-            end
-        end
-
-        local switches = {}
-        for switchArg in data.switches:gmatch("%S+") do
-            if shouldRemove[switchArg] then
-                g_switchLookup[switchArg] = nil
-            else
-                switches[#switches + 1] = switchArg
-            end
-        end
-
-        if #switches > 0 then
-            data.switches = table.concat(switches, " ")
-        else
-            data.switches = nil
-        end
     end
 end
 
@@ -458,97 +275,14 @@ local function UpdateGuildCorrespondanceTableSwitches()
 
         local guildSwitches = db.switchFor[guildId]
         if(guildSwitches and guildSwitches ~= "") then
-            AddCustomChannelSwitches(CHAT_CHANNEL_GUILD_1 - 1 + i, guildSwitches)
+            pChat.AddCustomChannelSwitches(CHAT_CHANNEL_GUILD_1 - 1 + i, guildSwitches)
         end
 
         local officerSwitches = db.officerSwitchFor[guildId]
         if(officerSwitches and officerSwitches ~= "") then
-            AddCustomChannelSwitches(CHAT_CHANNEL_OFFICER_1 - 1 + i, officerSwitches)
+            pChat.AddCustomChannelSwitches(CHAT_CHANNEL_OFFICER_1 - 1 + i, officerSwitches)
         end
     end
-end
-
-
-
-local function GetChannelColors(channel, from)
-
-    -- Substract XX to a color (darker)
-    local function FirstColorFromESOSettings(r, g, b)
-        -- Scale is from 0-100 so divide per 300 will maximise difference at 0.33 (*2)
-        r = math.max(r - (db.diffforESOcolors / 300 ),0)
-        g = math.max(g - (db.diffforESOcolors / 300 ),0)
-        b = math.max(b - (db.diffforESOcolors / 300 ),0)
-        return r,g,b
-    end
-
-    -- Add XX to a color (brighter)
-    local function SecondColorFromESOSettings(r, g, b)
-        r = math.min(r + (db.diffforESOcolors / 300 ),1)
-        g = math.min(g + (db.diffforESOcolors / 300 ),1)
-        b = math.min(b + (db.diffforESOcolors / 300 ),1)
-        return r,g,b
-    end
-
-    if db.useESOcolors then
-
-        -- ESO actual color, return r,g,b
-        local rESO, gESO, bESO
-        -- Handle the same-colour options.
-        if db.allNPCSameColour and (channel == CHAT_CHANNEL_MONSTER_SAY or channel == CHAT_CHANNEL_MONSTER_YELL or channel == CHAT_CHANNEL_MONSTER_WHISPER) then
-            rESO, gESO, bESO = ZO_ChatSystem_GetCategoryColorFromChannel(CHAT_CHANNEL_MONSTER_SAY)
-        elseif db.allGuildsSameColour and (channel >= CHAT_CHANNEL_GUILD_1 and channel <= CHAT_CHANNEL_GUILD_5) then
-            rESO, gESO, bESO = ZO_ChatSystem_GetCategoryColorFromChannel(CHAT_CHANNEL_GUILD_1)
-        elseif db.allGuildsSameColour and (channel >= CHAT_CHANNEL_OFFICER_1 and channel <= CHAT_CHANNEL_OFFICER_5) then
-            rESO, gESO, bESO = ZO_ChatSystem_GetCategoryColorFromChannel(CHAT_CHANNEL_OFFICER_1)
-        elseif db.allZonesSameColour and (channel >= CHAT_CHANNEL_ZONE_LANGUAGE_1 and channel <= CHAT_CHANNEL_ZONE_LANGUAGE_4) then
-            rESO, gESO, bESO = ZO_ChatSystem_GetCategoryColorFromChannel(CHAT_CHANNEL_ZONE_LANGUAGE_1)
-        elseif channel == CHAT_CHANNEL_PARTY and from and db.groupLeader and zo_strformat(SI_UNIT_NAME, from) == GetUnitName(GetGroupLeaderUnitTag()) then
-            rESO, gESO, bESO = ConvertHexToRGBA(db.colours["groupleader"])
-        else
-            rESO, gESO, bESO = ZO_ChatSystem_GetCategoryColorFromChannel(channel)
-        end
-
-        -- Set right colour to left colour - cause ESO colors are rewrited, if onecolor, no rewriting
-        if db.oneColour then
-            pChat.lcol = ConvertRGBToHex(rESO, gESO, bESO)
-            pChat.rcol = pChat.lcol
-        else
-            pChat.lcol = ConvertRGBToHex(FirstColorFromESOSettings(rESO,gESO,bESO))
-            pChat.rcol = ConvertRGBToHex(SecondColorFromESOSettings(rESO,gESO,bESO))
-        end
-
-    else
-        -- pChat Colors
-        -- Handle the same-colour options.
-        if db.allNPCSameColour and (channel == CHAT_CHANNEL_MONSTER_SAY or channel == CHAT_CHANNEL_MONSTER_YELL or channel == CHAT_CHANNEL_MONSTER_WHISPER) then
-            pChat.lcol = db.colours[2*CHAT_CHANNEL_MONSTER_SAY]
-            pChat.rcol = db.colours[2*CHAT_CHANNEL_MONSTER_SAY + 1]
-        elseif db.allGuildsSameColour and (channel >= CHAT_CHANNEL_GUILD_1 and channel <= CHAT_CHANNEL_GUILD_5) then
-            pChat.lcol = db.colours[2*CHAT_CHANNEL_GUILD_1]
-            pChat.rcol = db.colours[2*CHAT_CHANNEL_GUILD_1 + 1]
-        elseif db.allGuildsSameColour and (channel >= CHAT_CHANNEL_OFFICER_1 and channel <= CHAT_CHANNEL_OFFICER_5) then
-            pChat.lcol = db.colours[2*CHAT_CHANNEL_OFFICER_1]
-            pChat.rcol = db.colours[2*CHAT_CHANNEL_OFFICER_1 + 1]
-        elseif db.allZonesSameColour and (channel >= CHAT_CHANNEL_ZONE_LANGUAGE_1 and channel <= CHAT_CHANNEL_ZONE_LANGUAGE_4) then
-            pChat.lcol = db.colours[2*CHAT_CHANNEL_ZONE]
-            pChat.rcol = db.colours[2*CHAT_CHANNEL_ZONE + 1]
-        elseif channel == CHAT_CHANNEL_PARTY and from and db.groupLeader and zo_strformat(SI_UNIT_NAME, from) == GetUnitName(GetGroupLeaderUnitTag()) then
-            pChat.lcol = db.colours["groupleader"]
-            pChat.rcol = db.colours["groupleader1"]
-        else
-            pChat.lcol = db.colours[2*channel]
-            pChat.rcol = db.colours[2*channel + 1]
-        end
-
-        -- Set right colour to left colour
-        if db.oneColour then
-            pChat.rcol = pChat.lcol
-        end
-
-    end
-
-    return pChat.lcol, pChat.rcol
-
 end
 
 
@@ -562,7 +296,7 @@ do
         if(button:GetOwningWindow() == ZO_ChatWindow) then
             if(db.colours.tabwarning ~= lastColor) then
                 lastColor = db.colours.tabwarning
-                cachedColor = ZO_ColorDef:New(ConvertHexToRGBA(lastColor))
+                cachedColor = ZO_ColorDef:New(pChat.ConvertHexToRGBA(lastColor))
             end
             originalZO_TabButton_Text_SetTextColor(button, cachedColor)
         else
@@ -942,13 +676,13 @@ local function OnAddonLoaded(_, addonName)
         pChat.InitializeChatTabs(pChatData, constTabNameTemplate)
 
         --Load the SV and LAM panel
-        db = pChat.InitializeSettings(pChatData, ADDON_NAME, PCHAT_CHANNEL_NONE, UpdateCharCorrespondanceTableChannelNames, ConvertHexToRGBA, ConvertRGBToHex, AddCustomChannelSwitches, RemoveCustomChannelSwitches, logger)
+        db = pChat.InitializeSettings(pChatData, ADDON_NAME, PCHAT_CHANNEL_NONE, UpdateCharCorrespondanceTableChannelNames, logger)
 
         -- set up channel names
         UpdateCharCorrespondanceTableChannelNames()
 
         -- prepare chat history functionality
-        pChat.InitializeChatHistory(pChatData, db, PCHAT_CHANNEL_SAY, PCHAT_CHANNEL_NONE, constTabNameTemplate, CreateTimestamp, subloggerVerbose)
+        pChat.InitializeChatHistory(pChatData, db, PCHAT_CHANNEL_SAY, PCHAT_CHANNEL_NONE, constTabNameTemplate, subloggerVerbose)
 
 
         -- Automated messages
@@ -961,7 +695,7 @@ local function OnAddonLoaded(_, addonName)
         pChat.InitializeChatConfig(pChatData, db, PCHAT_CHANNEL_NONE)
 
         local SpamFilter = pChat.InitializeSpamFilter(pChatData, db, PCHAT_CHANNEL_SAY, subloggerVerbose)
-        local FormatMessage, FormatSysMessage = pChat.InitializeMessageFormatters(pChatData, db, PCHAT_LINK, PCHAT_URL_CHAN, SpamFilter, GetChannelColors, CreateTimestamp, logger, subloggerVerbose)
+        local FormatMessage, FormatSysMessage = pChat.InitializeMessageFormatters(pChatData, db, PCHAT_LINK, PCHAT_URL_CHAN, SpamFilter, logger, subloggerVerbose)
 
         -- For compatibility. Called by others addons.
         pChat.FormatMessage = FormatMessage
@@ -1015,12 +749,6 @@ function pChat_WhispMyTarget()
     if targetToWhisp then
         CHAT_SYSTEM:StartTextEntry(nil, CHAT_CHANNEL_WHISPER, targetToWhisp)
     end
-end
-
-
--- For compatibility. Called by others addons.
-function pChat_GetChannelColors(channel, from)
-    return GetChannelColors(channel, from)
 end
 
 EVENT_MANAGER:RegisterForEvent(ADDON_NAME, EVENT_ADD_ON_LOADED, OnAddonLoaded)

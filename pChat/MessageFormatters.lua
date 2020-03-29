@@ -1,4 +1,4 @@
-function pChat.InitializeMessageFormatters(pChatData, db, PCHAT_LINK, PCHAT_URL_CHAN, SpamFilter, GetChannelColors, CreateTimestamp, logger, subloggerVerbose)
+function pChat.InitializeMessageFormatters(pChatData, db, PCHAT_LINK, PCHAT_URL_CHAN, SpamFilter, logger, subloggerVerbose)
 
     local chatStrings = {
         standard = "%s%s: |r%s%s%s|r", -- standard format: say, yell, group, npc, npc yell, npc whisper, zone
@@ -783,7 +783,7 @@ function pChat.InitializeMessageFormatters(pChatData, db, PCHAT_LINK, PCHAT_URL_
         end
 
         -- Initialise colours
-        local lcol, rcol = GetChannelColors(chanCode, from)
+        local lcol, rcol = pChat.GetChannelColors(chanCode, from)
 
         -- Add timestamp
         if db.showTimestamp then
@@ -801,11 +801,11 @@ function pChat.InitializeMessageFormatters(pChatData, db, PCHAT_LINK, PCHAT_URL_
 
             -- Message is timestamp for now
             -- Add PCHAT_HANDLER for display
-            local timestamp = ZO_LinkHandler_CreateLink(CreateTimestamp(GetTimeString()), nil, PCHAT_LINK, db.lineNumber .. ":" .. chanCode) .. " "
+            local timestamp = ZO_LinkHandler_CreateLink(pChat.CreateTimestamp(GetTimeString()), nil, PCHAT_LINK, db.lineNumber .. ":" .. chanCode) .. " "
 
             -- Timestamp color
             message = message .. string.format("%s%s|r", timecol, timestamp)
-            db.LineStrings[db.lineNumber].rawValue = string.format("%s[%s] |r", timecol, CreateTimestamp(GetTimeString()))
+            db.LineStrings[db.lineNumber].rawValue = string.format("%s[%s] |r", timecol, pChat.CreateTimestamp(GetTimeString()))
         else
             --Fixed lines by Maggi (pChat PrivateMessage-> Pastebin link: https://pastebin.com/raw/dM7GQCsY)
             db.LineStrings[db.lineNumber].rawValue = ""
@@ -1039,7 +1039,7 @@ function pChat.InitializeMessageFormatters(pChatData, db, PCHAT_LINK, PCHAT_URL_
             if db.showTimestamp then
 
                 -- Timestamp formatted
-                timestamp = CreateTimestamp(GetTimeString())
+                timestamp = pChat.CreateTimestamp(GetTimeString())
 
                 local timecol
                 -- Timestamp color is chanCode so no coloring

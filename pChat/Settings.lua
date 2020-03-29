@@ -1,4 +1,6 @@
-function pChat.InitializeSettings(pChatData, ADDON_NAME, PCHAT_CHANNEL_NONE, UpdateCharCorrespondanceTableChannelNames, ConvertHexToRGBA, ConvertRGBToHex, AddCustomChannelSwitches, RemoveCustomChannelSwitches, logger)
+function pChat.InitializeSettings(pChatData, ADDON_NAME, PCHAT_CHANNEL_NONE, UpdateCharCorrespondanceTableChannelNames, logger)
+    local ConvertRGBToHex = pChat.ConvertRGBToHex
+    local ConvertHexToRGBA = pChat.ConvertHexToRGBA
 
     local ADDON_VERSION = "9.4.1.5"
     local ADDON_AUTHOR  = "Ayantir, DesertDwellers, Baertram (current)"
@@ -1424,12 +1426,12 @@ function pChat.InitializeSettings(pChatData, ADDON_NAME, PCHAT_CHANNEL_NONE, Upd
 
                             local oldValue = db.switchFor[guildId]
                             if oldValue and oldValue ~= "" then
-                                RemoveCustomChannelSwitches(channelId, oldValue)
+                                pChat.RemoveCustomChannelSwitches(channelId, oldValue)
                             end
 
                             db.switchFor[guildId] = newValue
                             if newValue and newValue ~= "" then
-                                AddCustomChannelSwitches(channelId, newValue)
+                                pChat.AddCustomChannelSwitches(channelId, newValue)
                             end
                         end,
                         width = "full",
@@ -1447,12 +1449,12 @@ function pChat.InitializeSettings(pChatData, ADDON_NAME, PCHAT_CHANNEL_NONE, Upd
 
                             local oldValue = db.officerSwitchFor[guildId]
                             if oldValue and oldValue ~= "" then
-                                RemoveCustomChannelSwitches(channelId, oldValue)
+                                pChat.RemoveCustomChannelSwitches(channelId, oldValue)
                             end
 
                             db.officerSwitchFor[guildId] = newValue
                             if newValue and newValue ~= "" then
-                                AddCustomChannelSwitches(channelId, newValue)
+                                pChat.AddCustomChannelSwitches(channelId, newValue)
                             end
                         end
                     },
