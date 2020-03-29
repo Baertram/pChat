@@ -1,4 +1,4 @@
-function pChat.InitializeChatHistory(pChatData, db, PCHAT_CHANNEL_SAY, PCHAT_CHANNEL_NONE, constTabNameTemplate, subloggerVerbose)
+function pChat.InitializeChatHistory(pChatData, db, PCHAT_CHANNEL_SAY, PCHAT_CHANNEL_NONE, subloggerVerbose)
 
     local function StripLinesFromLineStrings(typeOfExit)
 
@@ -213,10 +213,10 @@ function pChat.InitializeChatHistory(pChatData, db, PCHAT_CHANNEL_SAY, PCHAT_CHA
             for numTab, container in ipairs (CHAT_SYSTEM.primaryContainer.windows) do
                 if numTab > 1 then
                     CHAT_SYSTEM.primaryContainer:HandleTabClick(container.tab)
-                    local tabText = GetControl(constTabNameTemplate .. numTab .. "Text")
+                    local tabText = pChat.GetTabTextControl(numTab)
                     tabText:SetColor(GetInterfaceColor(INTERFACE_COLOR_TYPE_TEXT_COLORS, INTERFACE_TEXT_COLOR_SELECTED))
                     tabText:GetParent().state = PRESSED
-                    local oldTabText = GetControl(constTabNameTemplate .. (numTab - 1) .. "Text")
+                    local oldTabText = pChat.GetTabTextControl(numTab - 1)
                     oldTabText:SetColor(GetInterfaceColor(INTERFACE_COLOR_TYPE_TEXT_COLORS, INTERFACE_TEXT_COLOR_CONTRAST))
                     oldTabText:GetParent().state = UNPRESSED
                 end
@@ -224,10 +224,10 @@ function pChat.InitializeChatHistory(pChatData, db, PCHAT_CHANNEL_SAY, PCHAT_CHA
 
             if numTabs > 1 then
                 CHAT_SYSTEM.primaryContainer:HandleTabClick(CHAT_SYSTEM.primaryContainer.windows[1].tab)
-                local tabText = GetControl(constTabNameTemplate.."1Text")
+                local tabText = pChat.GetTabTextControl(1)
                 tabText:SetColor(GetInterfaceColor(INTERFACE_COLOR_TYPE_TEXT_COLORS, INTERFACE_TEXT_COLOR_SELECTED))
                 tabText:GetParent().state = PRESSED
-                local oldTabText = GetControl(constTabNameTemplate .. #CHAT_SYSTEM.primaryContainer.windows .. "Text")
+                local oldTabText = pChat.GetTabTextControl(#CHAT_SYSTEM.primaryContainer.windows)
                 oldTabText:SetColor(GetInterfaceColor(INTERFACE_COLOR_TYPE_TEXT_COLORS, INTERFACE_TEXT_COLOR_CONTRAST))
                 oldTabText:GetParent().state = UNPRESSED
             end

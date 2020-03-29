@@ -1,4 +1,4 @@
-function pChat.InitializeChatTabs(pChatData, constTabNameTemplate)
+function pChat.InitializeChatTabs(pChatData)
 
     pChat.tabNames = {}
 
@@ -71,10 +71,10 @@ function pChat.InitializeChatTabs(pChatData, constTabNameTemplate)
                     if activeTab + 1 == numTab then
                         CHAT_SYSTEM.primaryContainer:HandleTabClick(container.tab)
 
-                        local tabText = GetControl(constTabNameTemplate .. numTab .. "Text")
+                        local tabText = pChat.GetTabTextControl(numTab)
                         tabText:SetColor(GetInterfaceColor(INTERFACE_COLOR_TYPE_TEXT_COLORS, INTERFACE_TEXT_COLOR_SELECTED))
                         tabText:GetParent().state = PRESSED
-                        local oldTabText = GetControl(constTabNameTemplate .. activeTab .. "Text")
+                        local oldTabText = pChat.GetTabTextControl(activeTab)
                         oldTabText:SetColor(GetInterfaceColor(INTERFACE_COLOR_TYPE_TEXT_COLORS, INTERFACE_TEXT_COLOR_CONTRAST))
                         oldTabText:GetParent().state = UNPRESSED
 
@@ -86,10 +86,10 @@ function pChat.InitializeChatTabs(pChatData, constTabNameTemplate)
 
             if (not hasSwitched) then
                 CHAT_SYSTEM.primaryContainer:HandleTabClick(CHAT_SYSTEM.primaryContainer.windows[1].tab)
-                local tabText = GetControl(constTabNameTemplate .. "1Text")
+                local tabText = pChat.GetTabTextControl(1)
                 tabText:SetColor(GetInterfaceColor(INTERFACE_COLOR_TYPE_TEXT_COLORS, INTERFACE_TEXT_COLOR_SELECTED))
                 tabText:GetParent().state = PRESSED
-                local oldTabText = GetControl(constTabNameTemplate .. tostring(#CHAT_SYSTEM.primaryContainer.windows) .. "Text")
+                local oldTabText = pChat.GetTabTextControl(#CHAT_SYSTEM.primaryContainer.windows)
                 oldTabText:SetColor(GetInterfaceColor(INTERFACE_COLOR_TYPE_TEXT_COLORS, INTERFACE_TEXT_COLOR_CONTRAST))
                 oldTabText:GetParent().state = UNPRESSED
             end

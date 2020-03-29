@@ -28,7 +28,7 @@ function pChat_AddIMButton(control)
 
 end
 
-function pChat.InitializeIncomingMessages(pChatData, db, constTabNameTemplate, subloggerVerbose)
+function pChat.InitializeIncomingMessages(pChatData, db, subloggerVerbose)
 
     -- Hide it
     local function HideIMTooltip()
@@ -148,10 +148,10 @@ function pChat.InitializeIncomingMessages(pChatData, db, constTabNameTemplate, s
 
                     CHAT_SYSTEM.primaryContainer:HandleTabClick(CHAT_SYSTEM.primaryContainer.windows[actualTab].tab)
 
-                    local tabText = GetControl(constTabNameTemplate .. actualTab .. "Text")
+                    local tabText = pChat.GetTabTextControl(actualTab)
                     tabText:SetColor(GetInterfaceColor(INTERFACE_COLOR_TYPE_TEXT_COLORS, INTERFACE_TEXT_COLOR_SELECTED))
                     tabText:GetParent().state = PRESSED
-                    local oldTabText = GetControl(constTabNameTemplate .. oldActiveTab .. "Text")
+                    local oldTabText = pChat.GetTabTextControl(oldActiveTab)
                     oldTabText:SetColor(GetInterfaceColor(INTERFACE_COLOR_TYPE_TEXT_COLORS, INTERFACE_TEXT_COLOR_CONTRAST))
                     oldTabText:GetParent().state = UNPRESSED
                     ZO_ChatSystem_ScrollToBottom(CHAT_SYSTEM.control)
@@ -170,10 +170,10 @@ function pChat.InitializeIncomingMessages(pChatData, db, constTabNameTemplate, s
 
                     CHAT_SYSTEM.primaryContainer:HandleTabClick(CHAT_SYSTEM.primaryContainer.windows[actualTab].tab)
 
-                    local tabText = GetControl(constTabNameTemplate .. actualTab .. "Text")
+                    local tabText = pChat.GetTabTextControl(actualTab)
                     tabText:SetColor(GetInterfaceColor(INTERFACE_COLOR_TYPE_TEXT_COLORS, INTERFACE_TEXT_COLOR_SELECTED))
                     tabText:GetParent().state = PRESSED
-                    local oldTabText = GetControl(constTabNameTemplate .. oldActiveTab .. "Text")
+                    local oldTabText = pChat.GetTabTextControl(oldActiveTab)
                     oldTabText:SetColor(GetInterfaceColor(INTERFACE_COLOR_TYPE_TEXT_COLORS, INTERFACE_TEXT_COLOR_CONTRAST))
                     oldTabText:GetParent().state = UNPRESSED
                     ZO_ChatSystem_ScrollToBottom(CHAT_SYSTEM.control)

@@ -31,8 +31,6 @@ local subloggerVerbose
 --======================================================================================================================
 --Constants
 --======================================================================================================================
---Chat Tab template names
-local constTabNameTemplate = "ZO_ChatWindowTabTemplate"
 
 -- Used for pChat LinkHandling
 local PCHAT_LINK = "p"
@@ -421,7 +419,7 @@ local function OnAddonLoaded(_, addonName)
         LoadSlashCommands()
 
         -- prepare chat tab functions
-        pChat.InitializeChatTabs(pChatData, constTabNameTemplate)
+        pChat.InitializeChatTabs(pChatData)
 
         --Load the SV and LAM panel
         db = pChat.InitializeSettings(pChatData, ADDON_NAME, PCHAT_CHANNEL_NONE, UpdateCharCorrespondanceTableChannelNames, logger)
@@ -430,7 +428,7 @@ local function OnAddonLoaded(_, addonName)
         UpdateCharCorrespondanceTableChannelNames()
 
         -- prepare chat history functionality
-        pChat.InitializeChatHistory(pChatData, db, PCHAT_CHANNEL_SAY, PCHAT_CHANNEL_NONE, constTabNameTemplate, subloggerVerbose)
+        pChat.InitializeChatHistory(pChatData, db, PCHAT_CHANNEL_SAY, PCHAT_CHANNEL_NONE, subloggerVerbose)
 
 
         -- Automated messages
@@ -461,7 +459,7 @@ local function OnAddonLoaded(_, addonName)
         pChat.db = db
 
         --IM Features
-        pChat.InitializeIncomingMessages(pChatData, db, constTabNameTemplate, subloggerVerbose)
+        pChat.InitializeIncomingMessages(pChatData, db, subloggerVerbose)
 
         --Set variable that addon was laoded
         pChatData.isAddonLoaded = true

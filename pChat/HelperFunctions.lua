@@ -280,3 +280,14 @@ do
     pChat.AddCustomChannelSwitches = AddCustomChannelSwitches
     pChat.RemoveCustomChannelSwitches = RemoveCustomChannelSwitches
 end
+
+do
+    --Chat Tab template names
+    local CONTROL_NAME_TEMPLATE = "ZO_ChatWindowTabTemplate%dText"
+
+    local function GetTabTextControl(tabIndex)
+        return GetControl(CONTROL_NAME_TEMPLATE:format(tabIndex))
+    end
+
+    pChat.GetTabTextControl = GetTabTextControl
+end
