@@ -129,7 +129,7 @@ local function LoadLibraries()
         logger = pChat.logger
         logger:Debug("AddOn loaded")
         subloggerVerbose = logger:Create("Verbose")
-        subloggerVerbose:SetEnabled(false)
+        --subloggerVerbose:SetEnabled(false)
         pChat.verbose = subloggerVerbose
     end
     --LibChatMessage
@@ -1090,6 +1090,9 @@ local function OnAddonLoaded(_, addonName)
 
         --Load the SV and LAM panel
         db = pChat.InitializeSettings(pChatData, ADDON_NAME, PCHAT_CHANNEL_NONE, getTabNames, UpdateCharCorrespondanceTableChannelNames, ConvertHexToRGBA, ConvertRGBToHex, AddCustomChannelSwitches, RemoveCustomChannelSwitches, logger)
+
+        -- set up channel names
+        UpdateCharCorrespondanceTableChannelNames()
 
         -- prepare chat history functionality
         pChat.InitializeChatHistory(pChatData, db, PCHAT_CHANNEL_SAY, PCHAT_CHANNEL_NONE, constTabNameTemplate, CreateTimestamp, subloggerVerbose)
