@@ -129,7 +129,7 @@ local function LoadLibraries()
         logger = pChat.logger
         logger:Debug("AddOn loaded")
         subloggerVerbose = logger:Create("Verbose")
-        --subloggerVerbose:SetEnabled(false)
+        subloggerVerbose:SetEnabled(false)
         pChat.verbose = subloggerVerbose
     end
     --LibChatMessage
@@ -262,34 +262,6 @@ local function CreateTimestamp(timeStr, formatStr)
 end
 
 
--- **************************************************************************
--- Chat Tab Functions
--- **************************************************************************
-local function getTabNames()
-    local totalTabs = CHAT_SYSTEM.tabPool.m_Active
-    if totalTabs ~= nil and #totalTabs >= 1 then
-        pChat.tabNames = {}
-        for idx, tmpTab in pairs(totalTabs) do
-            local tabLabel = tmpTab:GetNamedChild("Text")
-            local tmpTabName = tabLabel:GetText()
-            if tmpTabName ~= nil and tmpTabName ~= "" then
-                pChat.tabNames[idx] = tmpTabName
-            end
-        end
-    end
-end
-
-local function getTabIdx (tabName)
-    local tabIdx = 0
-    local totalTabs = CHAT_SYSTEM.tabPool.m_Active
-    for i = 1, #totalTabs do
-        if pChat.tabNames[i] == tabName then
-            tabIdx = i
-        end
-    end
-    return tabIdx
-end
-
 -- Rewrite of a core function
 do
     local parts = {}
@@ -316,125 +288,6 @@ do
 
         originalAddCommandHistory(self, text)
     end
-end
-
-
--- Needed to bind Shift+Tab in SetSwitchToNextBinding
-function KEYBINDING_MANAGER:IsChordingAlwaysEnabled()
-    return true
-end
-
-local function SetSwitchToNextBinding()
-
-    -- get SwitchTab Keybind params
-    local layerIndex, categoryIndex, actionIndex = GetActionIndicesFromName("PCHAT_SWITCH_TAB")
-    --If exists
-    if layerIndex and categoryIndex and actionIndex then
-        local key = GetActionBindingInfo(layerIndex, categoryIndex, actionIndex, 1)
-        if key == KEY_INVALID then
-            -- Unbind it
-            if IsProtectedFunction("UnbindAllKeysFromAction") then
-                CallSecureProtected("UnbindAllKeysFromAction", layerIndex, categoryIndex, actionIndex)
-            else
-                UnbindAllKeysFromAction(layerIndex, categoryIndex, actionIndex)
-            end
-
-            -- Set it to its default value
-            if IsProtectedFunction("BindKeyToAction") then
-                CallSecureProtected("BindKeyToAction", layerIndex, categoryIndex, actionIndex, 1, KEY_TAB, 0, 0, KEY_SHIFT, 0)
-            else
-                BindKeyToAction(layerIndex, categoryIndex, actionIndex, 1, KEY_TAB , 0, 0, KEY_SHIFT, 0)
-            end
-        end
-    end
-end
-
--- Can be called by Bindings
-function pChat_SwitchToNextTab()
-
-    local hasSwitched
-
-    local PRESSED = 1
-    local UNPRESSED = 2
-    local numTabs = #CHAT_SYSTEM.primaryContainer.windows
-    local activeTab = pChatData.activeTab
-
-    if numTabs > 1 then
-        for numTab, container in ipairs (CHAT_SYSTEM.primaryContainer.windows) do
-
-            if (not hasSwitched) then
-                if activeTab + 1 == numTab then
-                    CHAT_SYSTEM.primaryContainer:HandleTabClick(container.tab)
-
-                    local tabText = GetControl(constTabNameTemplate .. numTab .. "Text")
-                    tabText:SetColor(GetInterfaceColor(INTERFACE_COLOR_TYPE_TEXT_COLORS, INTERFACE_TEXT_COLOR_SELECTED))
-                    tabText:GetParent().state = PRESSED
-                    local oldTabText = GetControl(constTabNameTemplate .. activeTab .. "Text")
-                    oldTabText:SetColor(GetInterfaceColor(INTERFACE_COLOR_TYPE_TEXT_COLORS, INTERFACE_TEXT_COLOR_CONTRAST))
-                    oldTabText:GetParent().state = UNPRESSED
-
-                    hasSwitched = true
-                end
-            end
-
-        end
-
-        if (not hasSwitched) then
-            CHAT_SYSTEM.primaryContainer:HandleTabClick(CHAT_SYSTEM.primaryContainer.windows[1].tab)
-            local tabText = GetControl(constTabNameTemplate .. "1Text")
-            tabText:SetColor(GetInterfaceColor(INTERFACE_COLOR_TYPE_TEXT_COLORS, INTERFACE_TEXT_COLOR_SELECTED))
-            tabText:GetParent().state = PRESSED
-            local oldTabText = GetControl(constTabNameTemplate .. tostring(#CHAT_SYSTEM.primaryContainer.windows) .. "Text")
-            oldTabText:SetColor(GetInterfaceColor(INTERFACE_COLOR_TYPE_TEXT_COLORS, INTERFACE_TEXT_COLOR_CONTRAST))
-            oldTabText:GetParent().state = UNPRESSED
-        end
-    end
-
-end
-
-function pChat_ChangeTab(tabToSet)
-    if type(tabToSet)~="number" then return end
-    local container=CHAT_SYSTEM.primaryContainer if not container then return end
-    if tabToSet<1 or tabToSet>#container.windows then return end
-    if container.windows[tabToSet].tab==nil then return end
-    container.tabGroup:SetClickedButton(container.windows[tabToSet].tab)
-    if CHAT_SYSTEM:IsMinimized() then CHAT_SYSTEM:Maximize() end
-    local container=CHAT_SYSTEM.primaryContainer
-    if not container then return end
-    local tabToSet=container.currentBuffer:GetParent().tab.tabToSet
-
-end
-
-local function CreateNewChatTabPostHook()
-    if not CHAT_SYSTEM or not CHAT_SYSTEM.primaryContainer or not CHAT_SYSTEM.primaryContainer.windows then return end
-    --For each chat tab do
-    for tabIndex, tabObject in ipairs(CHAT_SYSTEM.primaryContainer.windows) do
-        --Set the maximum lines in the chat tab to 1000 instead of 200
-        if db.augmentHistoryBuffer then
-            tabObject.buffer:SetMaxHistoryLines(1000) -- 1000 = max of control
-        end
-        --If the chat fade out is disabled: Set the fade timeout to 3600 milliseconds
-        if db.alwaysShowChat then
-            --New values for fadeOut taken from file:
-            --https://github.com/esoui/esoui/blob/360dee5f494a444c2418a4e20fab8237e29f641b/esoui/ingame/chatsystem/console/gamepadchatsystem.lua
-            local NEVER_FADE = 0
-            --container.windows[tabIndex].buffer:SetLineFade(NEVER_FADE, NEVER_FADE)
-            tabObject.buffer:SetLineFade(NEVER_FADE, NEVER_FADE) --old values: 3600, 2
-        end
-    end
-
-end
-
-local function ShowFadedLines()
-    --  local origChatSystemCreateNewChatTab = CHAT_SYSTEM.CreateNewChatTab
-    --  CHAT_SYSTEM.CreateNewChatTab = function(self, ...)
-    --      origChatSystemCreateNewChatTab(self, ...)
-    --      CreateNewChatTabPostHook()
-    --  end
-    SecurePostHook(CHAT_SYSTEM, "CreateNewChatTab", function()
-        CreateNewChatTabPostHook()
-    end)
-
 end
 
 local function OnReticleTargetChanged()
@@ -888,14 +741,11 @@ local function OnPlayerActivated()
             pChatData.spamWantToEnabled = true
             pChatData.spamGuildRecruitEnabled = true
 
-            -- Show 1000 lines instead of 200 & Change fade delay
-            ShowFadedLines()
-            -- Get Chat Tab Names stored in chatTabNames {}
-            getTabNames()
             -- Rebuild Lam Panel
             pChat.BuildLAMPanel()
-            -- Create the chat tab's PostHook
-            CreateNewChatTabPostHook()
+
+            -- Chat Tab setup
+            pChat.SetupChatTabs(db)
 
             -- Chat Config setup
             pChat.ApplyChatConfig()
@@ -1088,8 +938,11 @@ local function OnAddonLoaded(_, addonName)
         --Load slash commands
         LoadSlashCommands()
 
+        -- prepare chat tab functions
+        pChat.InitializeChatTabs(pChatData, constTabNameTemplate)
+
         --Load the SV and LAM panel
-        db = pChat.InitializeSettings(pChatData, ADDON_NAME, PCHAT_CHANNEL_NONE, getTabNames, UpdateCharCorrespondanceTableChannelNames, ConvertHexToRGBA, ConvertRGBToHex, AddCustomChannelSwitches, RemoveCustomChannelSwitches, logger)
+        db = pChat.InitializeSettings(pChatData, ADDON_NAME, PCHAT_CHANNEL_NONE, UpdateCharCorrespondanceTableChannelNames, ConvertHexToRGBA, ConvertRGBToHex, AddCustomChannelSwitches, RemoveCustomChannelSwitches, logger)
 
         -- set up channel names
         UpdateCharCorrespondanceTableChannelNames()
@@ -1097,8 +950,6 @@ local function OnAddonLoaded(_, addonName)
         -- prepare chat history functionality
         pChat.InitializeChatHistory(pChatData, db, PCHAT_CHANNEL_SAY, PCHAT_CHANNEL_NONE, constTabNameTemplate, CreateTimestamp, subloggerVerbose)
 
-        -- Will set Keybind for "switch to next tab" if needed
-        SetSwitchToNextBinding()
 
         -- Automated messages
         pChat.InitializeAutomatedMessages(pChatData, db, ADDON_NAME)

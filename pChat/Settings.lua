@@ -1,4 +1,4 @@
-function pChat.InitializeSettings(pChatData, ADDON_NAME, PCHAT_CHANNEL_NONE, getTabNames, UpdateCharCorrespondanceTableChannelNames, ConvertHexToRGBA, ConvertRGBToHex, AddCustomChannelSwitches, RemoveCustomChannelSwitches, logger)
+function pChat.InitializeSettings(pChatData, ADDON_NAME, PCHAT_CHANNEL_NONE, UpdateCharCorrespondanceTableChannelNames, ConvertHexToRGBA, ConvertRGBToHex, AddCustomChannelSwitches, RemoveCustomChannelSwitches, logger)
 
     local ADDON_VERSION = "9.4.1.5"
     local ADDON_AUTHOR  = "Ayantir, DesertDwellers, Baertram (current)"
@@ -231,7 +231,7 @@ function pChat.InitializeSettings(pChatData, ADDON_NAME, PCHAT_CHANNEL_NONE, get
             table.insert(arrayTab, 1)
         end
 
-        getTabNames()
+        pChat.getTabNames()
 
 
         --Update the available sounds from the game
@@ -504,7 +504,7 @@ function pChat.InitializeSettings(pChatData, ADDON_NAME, PCHAT_CHANNEL_NONE, get
                         db.defaultTabName = choice
                         --logger:Debug(choice)
                         --logger:Debug(db.defaultTabName)
-                        db.defaultTab = getTabIdx(choice)
+                        db.defaultTab = pChat.getTabIdx(choice)
                         --logger:Debug(db.defaultTab)
                     end,
                 },

@@ -30,6 +30,7 @@ IncomingMessages.lua
 CopyHandler.lua
 ChatConfig.lua
 ChatHistory.lua
+ChatTabs.lua
 
 pChat.xml
 copyDialog.xml
