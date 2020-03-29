@@ -26,7 +26,6 @@ pChatData.localPlayer = GetUnitName("player")
 
 --LibDebugLogger objects
 local logger
-local subloggerVerbose
 
 --======================================================================================================================
 --Constants
@@ -56,12 +55,11 @@ local ChannelInfo = ZO_ChatSystem_GetChannelInfo()
 local function LoadLibraries()
     --LibDebugLogger
     if not pChat.logger and LibDebugLogger then
-        pChat.logger = LibDebugLogger(ADDON_NAME)
-        logger = pChat.logger
+        logger = LibDebugLogger(ADDON_NAME)
         logger:Debug("AddOn loaded")
-        subloggerVerbose = logger:Create("Verbose")
-        subloggerVerbose:SetEnabled(false)
-        pChat.verbose = subloggerVerbose
+        logger.verbose = logger:Create("Verbose")
+        logger.verbose:SetEnabled(false)
+        pChat.logger = logger
     end
     --LibChatMessage
     --  if not pChat.LCM and LibChatMessage then
@@ -428,7 +426,7 @@ local function OnAddonLoaded(_, addonName)
         UpdateCharCorrespondanceTableChannelNames()
 
         -- prepare chat history functionality
-        pChat.InitializeChatHistory(pChatData, db, PCHAT_CHANNEL_SAY, PCHAT_CHANNEL_NONE, subloggerVerbose)
+        pChat.InitializeChatHistory(pChatData, db, PCHAT_CHANNEL_SAY, PCHAT_CHANNEL_NONE, logger)
 
 
         -- Automated messages
@@ -440,8 +438,8 @@ local function OnAddonLoaded(_, addonName)
         -- Initialize Chat Config features
         pChat.InitializeChatConfig(pChatData, db, PCHAT_CHANNEL_NONE)
 
-        local SpamFilter = pChat.InitializeSpamFilter(pChatData, db, PCHAT_CHANNEL_SAY, subloggerVerbose)
-        local FormatMessage, FormatSysMessage = pChat.InitializeMessageFormatters(pChatData, db, PCHAT_LINK, PCHAT_URL_CHAN, SpamFilter, logger, subloggerVerbose)
+        local SpamFilter = pChat.InitializeSpamFilter(pChatData, db, PCHAT_CHANNEL_SAY, logger)
+        local FormatMessage, FormatSysMessage = pChat.InitializeMessageFormatters(pChatData, db, PCHAT_LINK, PCHAT_URL_CHAN, SpamFilter, logger)
 
         -- For compatibility. Called by others addons.
         pChat.FormatMessage = FormatMessage
@@ -459,7 +457,7 @@ local function OnAddonLoaded(_, addonName)
         pChat.db = db
 
         --IM Features
-        pChat.InitializeIncomingMessages(pChatData, db, subloggerVerbose)
+        pChat.InitializeIncomingMessages(pChatData, db, logger)
 
         --Set variable that addon was laoded
         pChatData.isAddonLoaded = true
@@ -499,5 +497,3 @@ do
         end
     end
 end
-
-

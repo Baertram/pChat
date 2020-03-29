@@ -28,7 +28,7 @@ function pChat_AddIMButton(control)
 
 end
 
-function pChat.InitializeIncomingMessages(pChatData, db, subloggerVerbose)
+function pChat.InitializeIncomingMessages(pChatData, db, logger)
 
     -- Hide it
     local function HideIMTooltip()
@@ -65,7 +65,7 @@ function pChat.InitializeIncomingMessages(pChatData, db, subloggerVerbose)
 
             --Do not notify if history gets restored and if the setting to stop notifications is
             if db.doNotNotifyOnRestoredWhisperFromHistory == true and pChatData.preventWhisperNotificationsFromHistory == true then
-                subloggerVerbose:Debug("<<<Whisper restore aborted, from: " ..tostring(from) .. ", line#: " ..tostring(lineNumber))
+                logger.verbose:Debug("<<<Whisper restore aborted, from: " ..tostring(from) .. ", line#: " ..tostring(lineNumber))
                 --Prevent the whisper notifications because of history restored messages
                 pChatData.preventWhisperNotificationsFromHistory = false
                 return

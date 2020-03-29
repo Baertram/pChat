@@ -1,4 +1,4 @@
-function pChat.InitializeMessageFormatters(pChatData, db, PCHAT_LINK, PCHAT_URL_CHAN, SpamFilter, logger, subloggerVerbose)
+function pChat.InitializeMessageFormatters(pChatData, db, PCHAT_LINK, PCHAT_URL_CHAN, SpamFilter, logger)
 
     local chatStrings = {
         standard = "%s%s: |r%s%s%s|r", -- standard format: say, yell, group, npc, npc yell, npc whisper, zone
@@ -701,7 +701,7 @@ function pChat.InitializeMessageFormatters(pChatData, db, PCHAT_LINK, PCHAT_URL_
     -- Executed when EVENT_CHAT_MESSAGE_CHANNEL triggers
     -- Formats the message
     local function FormatMessage(chanCode, from, text, isCS, fromDisplayName, originalFrom, originalText, DDSBeforeAll, TextBeforeAll, DDSBeforeSender, TextBeforeSender, TextAfterSender, DDSAfterSender, DDSBeforeText, TextBeforeText, TextAfterText, DDSAfterText)
-        subloggerVerbose:Debug(string.format("FormatMessage-Line#: %s, channel %s: %s(%s/%s) %s", tostring(db.lineNumber), tostring(chanCode), tostring(originalFrom), tostring(fromDisplayName), tostring(from), tostring(text)))
+        logger.verbose:Debug(string.format("FormatMessage-Line#: %s, channel %s: %s(%s/%s) %s", tostring(db.lineNumber), tostring(chanCode), tostring(originalFrom), tostring(fromDisplayName), tostring(from), tostring(text)))
         local notHandled = false
 
         -- Will calculate if this message is a spam

@@ -1,4 +1,4 @@
-function pChat.InitializeChatHistory(pChatData, db, PCHAT_CHANNEL_SAY, PCHAT_CHANNEL_NONE, subloggerVerbose)
+function pChat.InitializeChatHistory(pChatData, db, PCHAT_CHANNEL_SAY, PCHAT_CHANNEL_NONE, logger)
 
     local function StripLinesFromLineStrings(typeOfExit)
 
@@ -314,7 +314,7 @@ function pChat.InitializeChatHistory(pChatData, db, PCHAT_CHANNEL_SAY, PCHAT_CHA
     -- Create an array for the copy functions, spam functions and revert history functions
     -- WARNING : See FormatSysMessage()
     local function StorelineNumber(rawTimestamp, rawFrom, text, chanCode, originalFrom)
-        subloggerVerbose:Debug(string.format("StoreLineNumber-Channel %s: [%s]%s(%s) %s", tostring(chanCode), tostring(rawTimestamp), tostring(originalFrom), tostring(rawFrom), tostring(text)))
+        logger.verbose:Debug(string.format("StoreLineNumber-Channel %s: [%s]%s(%s) %s", tostring(chanCode), tostring(rawTimestamp), tostring(originalFrom), tostring(rawFrom), tostring(text)))
         -- Strip DDS tag from Copy text
         local function StripDDStags(text)
             return text:gsub("|t(.-)|t", "")

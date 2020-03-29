@@ -1,4 +1,4 @@
-function pChat.InitializeSpamFilter(pChatData, db, PCHAT_CHANNEL_SAY, subloggerVerbose)
+function pChat.InitializeSpamFilter(pChatData, db, PCHAT_CHANNEL_SAY, logger)
 
     -- Return true/false if text is a flood
     local function SpamFlood(from, text, chanCode)
@@ -46,7 +46,7 @@ function pChat.InitializeSpamFilter(pChatData, db, PCHAT_CHANNEL_SAY, subloggerV
                                         -- spammableChannels[db.LineStrings[previousLine].channel] = return true if previous message was sent in a spammable channel
                                         if spammableChannels[spamChanCode] and spammableChannels[db.LineStrings[previousLine].channel] then
                                             -- Spam
-                                            subloggerVerbose:Debug("Spam detected (%s)", text)
+                                            logger.verbose:Debug("Spam detected (%s)", text)
                                             return true
                                         end
                                     end
