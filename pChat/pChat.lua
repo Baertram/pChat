@@ -18,7 +18,6 @@ local ADDON_NAME    = "pChat"
 --======================================================================================================================
 --pChat Variables--
 --======================================================================================================================
-pChat.tabNames = {}
 
 -- pChatData will receive variables and objects.
 local pChatData = {}
@@ -41,74 +40,10 @@ local PCHAT_URL_CHAN = 97
 local PCHAT_CHANNEL_SAY = 98
 local PCHAT_CHANNEL_NONE = 99
 
---PCHAT_LINK format : ZO_LinkHandler_CreateLink(message, nil, PCHAT_LINK, data)
---message = message to display, nil (ignored by ZO_LinkHandler_CreateLink), PCHAT_LINK : declaration
---data : strings separated by ":"
---1st arg is chancode like CHAT_CHANNEL_GUILD_1
-
-pChatData.chatCategories = {
-    CHAT_CATEGORY_SAY,
-    CHAT_CATEGORY_YELL,
-    CHAT_CATEGORY_WHISPER_INCOMING,
-    CHAT_CATEGORY_WHISPER_OUTGOING,
-    CHAT_CATEGORY_ZONE,
-    CHAT_CATEGORY_PARTY,
-    CHAT_CATEGORY_EMOTE,
-    CHAT_CATEGORY_SYSTEM,
-    CHAT_CATEGORY_GUILD_1,
-    CHAT_CATEGORY_GUILD_2,
-    CHAT_CATEGORY_GUILD_3,
-    CHAT_CATEGORY_GUILD_4,
-    CHAT_CATEGORY_GUILD_5,
-    CHAT_CATEGORY_OFFICER_1,
-    CHAT_CATEGORY_OFFICER_2,
-    CHAT_CATEGORY_OFFICER_3,
-    CHAT_CATEGORY_OFFICER_4,
-    CHAT_CATEGORY_OFFICER_5,
-    CHAT_CATEGORY_ZONE_ENGLISH,
-    CHAT_CATEGORY_ZONE_FRENCH,
-    CHAT_CATEGORY_ZONE_GERMAN,
-    CHAT_CATEGORY_ZONE_JAPANESE,
-    CHAT_CATEGORY_MONSTER_SAY,
-    CHAT_CATEGORY_MONSTER_YELL,
-    CHAT_CATEGORY_MONSTER_WHISPER,
-    CHAT_CATEGORY_MONSTER_EMOTE,
-}
-
-pChatData.guildCategories = {
-    CHAT_CATEGORY_GUILD_1,
-    CHAT_CATEGORY_GUILD_2,
-    CHAT_CATEGORY_GUILD_3,
-    CHAT_CATEGORY_GUILD_4,
-    CHAT_CATEGORY_GUILD_5,
-    CHAT_CATEGORY_OFFICER_1,
-    CHAT_CATEGORY_OFFICER_2,
-    CHAT_CATEGORY_OFFICER_3,
-    CHAT_CATEGORY_OFFICER_4,
-    CHAT_CATEGORY_OFFICER_5,
-}
-
-pChatData.defaultChannels = {
-    PCHAT_CHANNEL_NONE,
-    CHAT_CHANNEL_ZONE,
-    CHAT_CHANNEL_SAY,
-    CHAT_CHANNEL_GUILD_1,
-    CHAT_CHANNEL_GUILD_2,
-    CHAT_CHANNEL_GUILD_3,
-    CHAT_CHANNEL_GUILD_4,
-    CHAT_CHANNEL_GUILD_5,
-    CHAT_CHANNEL_OFFICER_1,
-    CHAT_CHANNEL_OFFICER_2,
-    CHAT_CHANNEL_OFFICER_3,
-    CHAT_CHANNEL_OFFICER_4,
-    CHAT_CHANNEL_OFFICER_5,
-}
-
 --======================================================================================================================
 -- Local Variables
 --======================================================================================================================
 local db
-local targetToWhisp
 
 -- Preventer
 local eventPlayerActivatedCheckRunning = false
@@ -185,12 +120,6 @@ do
         end
 
         originalAddCommandHistory(self, text)
-    end
-end
-
-local function OnReticleTargetChanged()
-    if IsUnitPlayer("reticleover") then
-        targetToWhisp = GetUnitName("reticleover")
     end
 end
 
@@ -317,88 +246,6 @@ do
     ChannelInfo[CHAT_CHANNEL_ZONE_LANGUAGE_4].channelLinkable = true
 end
 
-local function SaveGuildIndexes()
-    pChatData.guildIndexes = {}
-    --For each guild get the unique serverGuildId
-    for guildNum = 1, GetNumGuilds() do
-        -- Guildname
-        local guildId = GetGuildId(guildNum)
-        local guildName = GetGuildName(guildId)
-        -- Occurs sometimes
-        if(not guildName or (guildName):len() < 1) then
-            guildName = "Guild " .. guildNum
-        end
-        pChatData.guildIndexes[guildId] = {
-            num     = guildNum,
-            id      = guildId,
-            name    = guildName,
-        }
-    end
-end
-
-
--- Triggered by EVENT_GUILD_SELF_JOINED_GUILD
-local function OnSelfJoinedGuild(_, guildServerId, characterName, guildId)
-
-    -- It will rebuild optionsTable and recreate tables if user didn't went in this section before
-    pChat.BuildLAMPanel()
-
-    -- If recently added to a new guild and never go in menu db.formatguild[guildName] won't exist, it won't create the value if joining an known guild
-    if not db.formatguild[guildServerId] then
-        -- 2 is default value
-        db.formatguild[guildServerId] = 2
-    end
-
-    -- Save Guild indexes for guild reorganization
-    SaveGuildIndexes()
-
-end
-
--- Revert category settings
-local function RevertCategories(guildId)
-
-    -- Old GuildId
-    local oldIndex = pChatData.guildIndexes[guildId].num
-    -- old Total Guilds
-    local totGuilds = GetNumGuilds() + 1
-
-    if oldIndex and oldIndex < totGuilds then
-        local charId = GetCurrentCharacterId()
-
-        -- If our guild was not the last one, need to revert colors
-        --logger:Debug("pChat will revert starting from %d to %d", oldIndex, totGuilds)
-
-        -- Does not need to reset chat settings for first guild if the 2nd has been left, same for 1-2/3 and 1-2-3/4
-        for iGuilds=oldIndex, (totGuilds - 1) do
-
-            -- If default channel was g1, keep it g1
-            if not (db.defaultchannel == CHAT_CATEGORY_GUILD_1 or db.defaultchannel == CHAT_CATEGORY_OFFICER_1) then
-
-                if db.defaultchannel == (CHAT_CATEGORY_GUILD_1 + iGuilds) then
-                    db.defaultchannel = (CHAT_CATEGORY_GUILD_1 + iGuilds - 1)
-                elseif db.defaultchannel == (CHAT_CATEGORY_OFFICER_1 + iGuilds) then
-                    db.defaultchannel = (CHAT_CATEGORY_OFFICER_1 + iGuilds - 1)
-                end
-
-            end
-
-            -- New Guild color for Guild #X is the old #X+1
-            SetChatCategoryColor(CHAT_CATEGORY_GUILD_1 + iGuilds - 1, db.chatConfSync[charId].colors[CHAT_CATEGORY_GUILD_1 + iGuilds].red, db.chatConfSync[charId].colors[CHAT_CATEGORY_GUILD_1 + iGuilds].green, db.chatConfSync[charId].colors[CHAT_CATEGORY_GUILD_1 + iGuilds].blue)
-            -- New Officer color for Guild #X is the old #X+1
-            SetChatCategoryColor(CHAT_CATEGORY_OFFICER_1 + iGuilds - 1, db.chatConfSync[charId].colors[CHAT_CATEGORY_OFFICER_1 + iGuilds].red, db.chatConfSync[charId].colors[CHAT_CATEGORY_OFFICER_1 + iGuilds].green, db.chatConfSync[charId].colors[CHAT_CATEGORY_OFFICER_1 + iGuilds].blue)
-
-            -- Restore tab config previously set.
-            for numTab in ipairs (CHAT_SYSTEM.primaryContainer.windows) do
-                if db.chatConfSync[charId].tabs[numTab] then
-                    SetChatContainerTabCategoryEnabled(1, numTab, (CHAT_CATEGORY_GUILD_1 + iGuilds - 1), db.chatConfSync[charId].tabs[numTab].enabledCategories[CHAT_CATEGORY_GUILD_1 + iGuilds])
-                    SetChatContainerTabCategoryEnabled(1, numTab, (CHAT_CATEGORY_OFFICER_1 + iGuilds - 1), db.chatConfSync[charId].tabs[numTab].enabledCategories[CHAT_CATEGORY_OFFICER_1 + iGuilds])
-                end
-            end
-
-        end
-    end
-
-end
 
 -- Registers the formatMessage function.
 -- Unregisters itself from the player activation event with the event manager.
@@ -428,41 +275,6 @@ local function OnPlayerActivated()
         EVENT_MANAGER:UnregisterForUpdate("pChatDebug_Event_Player_Activated")
 
         if pChatData.isAddonLoaded then
-            pChatData.activeTab = 1
-
-            --Get a reference to the chat channelData (CHAT_SYSTEM.channelData)
-            --ChannelInfo = ZO_ChatSystem_GetChannelInfo()
-
-            if CHAT_SYSTEM.ValidateChatChannel then
-                ZO_PreHook(CHAT_SYSTEM, "ValidateChatChannel", function(self)
-                    if (db.enableChatTabChannel  == true) and (self.currentChannel ~= CHAT_CHANNEL_WHISPER) then
-                        local tabIndex = self.primaryContainer.currentBuffer:GetParent().tab.index
-                        db.chatTabChannel[tabIndex] = db.chatTabChannel[tabIndex] or {}
-                        db.chatTabChannel[tabIndex].channel = self.currentChannel
-                        db.chatTabChannel[tabIndex].target  = self.currentTarget
-                    end
-                end)
-            end
-
-            if CHAT_SYSTEM.primaryContainer.HandleTabClick then
-                ZO_PreHook(CHAT_SYSTEM.primaryContainer, "HandleTabClick", function(self, tab)
-                    pChatData.activeTab = tab.index
-                    if (db.enableChatTabChannel == true) then
-                        local tabIndex = tab.index
-                        if db.chatTabChannel[tabIndex] then
-                            CHAT_SYSTEM:SetChannel(db.chatTabChannel[tabIndex].channel, db.chatTabChannel[tabIndex].target)
-                        end
-                    end
-                    --ZO_TabButton_Text_RestoreDefaultColors(tab)
-                end)
-            end
-
-            if CHAT_SYSTEM.Maximize then
-                -- Visual Notification PreHook
-                ZO_PreHook(CHAT_SYSTEM, "Maximize", function(self)
-                    CHAT_SYSTEM.IMLabelMin:SetHidden(true)
-                end)
-            end
 
             --local fontPath = ZoFontChat:GetFontInfo()
             --chat:Print(fontPath)
@@ -490,9 +302,6 @@ local function OnPlayerActivated()
             --Update teh guild's custom channel switches: Add them to the chat switches of table ZO_ChatSystem_GetChannelSwitchLookupTable
             UpdateGuildCorrespondanceTableSwitches()
 
-            -- Save all category colors
-            SaveGuildIndexes()
-
             -- Handle Copy text
             pChat.InitializeCopyHandler(pChatData, db, PCHAT_URL_CHAN, PCHAT_LINK)
 
@@ -506,67 +315,6 @@ local function OnPlayerActivated()
         end
     end
 end
-
-
--- Runs whenever "me" left a guild (or get kicked)
-local function OnSelfLeftGuild(_, guildServerId, characterName, guildId)
-
-    -- It will rebuild optionsTable and recreate tables if user didn't went in this section before
-    pChat.BuildLAMPanel()
-
-    -- Revert category colors & options
-    RevertCategories(guildServerId)
-
-end
-
-local function SwitchToParty(characterName)
-
-    zo_callLater(function(characterName) -- characterName = avoid ZOS bug
-        -- If "me" join group
-        if(GetRawUnitName("player") == characterName) then
-
-            -- Switch to party channel when joining a group
-            if db.enablepartyswitch then
-                CHAT_SYSTEM:SetChannel(CHAT_CHANNEL_PARTY)
-            end
-
-    else
-
-        -- Someone else joined group
-        -- If GetGroupSize() == 2 : Means "me" just created a group and "someone" just joining
-        if GetGroupSize() == 2 then
-            -- Switch to party channel when joinin a group
-            if db.enablepartyswitch then
-                CHAT_SYSTEM:SetChannel(CHAT_CHANNEL_PARTY)
-            end
-        end
-
-    end
-    end, 200)
-
-end
-
--- Triggers when EVENT_GROUP_MEMBER_JOINED
-local function OnGroupMemberJoined(_, characterName)
-    SwitchToParty(characterName)
-end
-
--- triggers when EVENT_GROUP_MEMBER_LEFT
-local function OnGroupMemberLeft(_, characterName, reason, wasMeWhoLeft)
-
-    -- Go back to default channel
-    if GetGroupSize() <= 1 then
-        -- Go back to default channel when leaving a group
-        if db.enablepartyswitch then
-            -- Only if we was on party
-            if CHAT_SYSTEM.currentChannel == CHAT_CHANNEL_PARTY and db.defaultchannel ~= PCHAT_CHANNEL_NONE then
-                pChat.SetToDefaultChannel()
-            end
-        end
-    end
-
-end
-
 
 --Load some early hooks
 local function LoadEarlyHooks()
@@ -705,18 +453,6 @@ local function OnAddonLoaded(_, addonName)
         -- Because ChatSystem is loaded after EVENT_ADDON_LOADED triggers, we use 1st EVENT_PLAYER_ACTIVATED wich is run bit after
         EVENT_MANAGER:RegisterForEvent(ADDON_NAME, EVENT_PLAYER_ACTIVATED, OnPlayerActivated)
 
-        -- Register OnSelfJoinedGuild with EVENT_GUILD_SELF_JOINED_GUILD
-        EVENT_MANAGER:RegisterForEvent(ADDON_NAME, EVENT_GUILD_SELF_JOINED_GUILD, OnSelfJoinedGuild)
-        -- Register OnSelfLeftGuild with EVENT_GUILD_SELF_LEFT_GUILD
-        EVENT_MANAGER:RegisterForEvent(ADDON_NAME, EVENT_GUILD_SELF_LEFT_GUILD, OnSelfLeftGuild)
-
-        -- Whisp my target
-        EVENT_MANAGER:RegisterForEvent(ADDON_NAME, EVENT_RETICLE_TARGET_CHANGED, OnReticleTargetChanged)
-
-        -- Party switches
-        EVENT_MANAGER:RegisterForEvent(ADDON_NAME, EVENT_GROUP_MEMBER_JOINED, OnGroupMemberJoined)
-        EVENT_MANAGER:RegisterForEvent(ADDON_NAME, EVENT_GROUP_MEMBER_LEFT, OnGroupMemberLeft)
-
         -- Unregisters
         EVENT_MANAGER:UnregisterForEvent(ADDON_NAME, EVENT_ADD_ON_LOADED)
 
@@ -733,6 +469,8 @@ local function OnAddonLoaded(_, addonName)
 
 end
 
+EVENT_MANAGER:RegisterForEvent(ADDON_NAME, EVENT_ADD_ON_LOADED, OnAddonLoaded)
+
 --Handled by keybind
 function pChat_ToggleChat()
 
@@ -744,11 +482,24 @@ function pChat_ToggleChat()
 
 end
 
--- Called by bindings
-function pChat_WhispMyTarget()
-    if targetToWhisp then
-        CHAT_SYSTEM:StartTextEntry(nil, CHAT_CHANNEL_WHISPER, targetToWhisp)
+-- Whisp my target
+do
+    local targetToWhisp
+
+    local function OnReticleTargetChanged()
+        if IsUnitPlayer("reticleover") then
+            targetToWhisp = GetUnitName("reticleover")
+        end
+    end
+
+    EVENT_MANAGER:RegisterForEvent(ADDON_NAME, EVENT_RETICLE_TARGET_CHANGED, OnReticleTargetChanged)
+
+    -- Called by bindings
+    function pChat_WhispMyTarget()
+        if targetToWhisp then
+            CHAT_SYSTEM:StartTextEntry(nil, CHAT_CHANNEL_WHISPER, targetToWhisp)
+        end
     end
 end
 
-EVENT_MANAGER:RegisterForEvent(ADDON_NAME, EVENT_ADD_ON_LOADED, OnAddonLoaded)
+

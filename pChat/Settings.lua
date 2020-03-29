@@ -1545,6 +1545,99 @@ function pChat.InitializeSettings(pChatData, ADDON_NAME, PCHAT_CHANNEL_NONE, Upd
 
     end
 
+    -- Revert category settings
+    local function RevertCategories(guildId)
+
+        -- Old GuildId
+        local oldIndex = pChatData.guildIndexes[guildId].num
+        -- old Total Guilds
+        local totGuilds = GetNumGuilds() + 1
+
+        if oldIndex and oldIndex < totGuilds then
+            local charId = GetCurrentCharacterId()
+
+            -- If our guild was not the last one, need to revert colors
+            --logger:Debug("pChat will revert starting from %d to %d", oldIndex, totGuilds)
+
+            -- Does not need to reset chat settings for first guild if the 2nd has been left, same for 1-2/3 and 1-2-3/4
+            for iGuilds=oldIndex, (totGuilds - 1) do
+
+                -- If default channel was g1, keep it g1
+                if not (db.defaultchannel == CHAT_CATEGORY_GUILD_1 or db.defaultchannel == CHAT_CATEGORY_OFFICER_1) then
+
+                    if db.defaultchannel == (CHAT_CATEGORY_GUILD_1 + iGuilds) then
+                        db.defaultchannel = (CHAT_CATEGORY_GUILD_1 + iGuilds - 1)
+                    elseif db.defaultchannel == (CHAT_CATEGORY_OFFICER_1 + iGuilds) then
+                        db.defaultchannel = (CHAT_CATEGORY_OFFICER_1 + iGuilds - 1)
+                    end
+
+                end
+
+                -- New Guild color for Guild #X is the old #X+1
+                SetChatCategoryColor(CHAT_CATEGORY_GUILD_1 + iGuilds - 1, db.chatConfSync[charId].colors[CHAT_CATEGORY_GUILD_1 + iGuilds].red, db.chatConfSync[charId].colors[CHAT_CATEGORY_GUILD_1 + iGuilds].green, db.chatConfSync[charId].colors[CHAT_CATEGORY_GUILD_1 + iGuilds].blue)
+                -- New Officer color for Guild #X is the old #X+1
+                SetChatCategoryColor(CHAT_CATEGORY_OFFICER_1 + iGuilds - 1, db.chatConfSync[charId].colors[CHAT_CATEGORY_OFFICER_1 + iGuilds].red, db.chatConfSync[charId].colors[CHAT_CATEGORY_OFFICER_1 + iGuilds].green, db.chatConfSync[charId].colors[CHAT_CATEGORY_OFFICER_1 + iGuilds].blue)
+
+                -- Restore tab config previously set.
+                for numTab in ipairs (CHAT_SYSTEM.primaryContainer.windows) do
+                    if db.chatConfSync[charId].tabs[numTab] then
+                        SetChatContainerTabCategoryEnabled(1, numTab, (CHAT_CATEGORY_GUILD_1 + iGuilds - 1), db.chatConfSync[charId].tabs[numTab].enabledCategories[CHAT_CATEGORY_GUILD_1 + iGuilds])
+                        SetChatContainerTabCategoryEnabled(1, numTab, (CHAT_CATEGORY_OFFICER_1 + iGuilds - 1), db.chatConfSync[charId].tabs[numTab].enabledCategories[CHAT_CATEGORY_OFFICER_1 + iGuilds])
+                    end
+                end
+
+            end
+        end
+
+    end
+
+    local function SaveGuildIndexes()
+        pChatData.guildIndexes = {}
+        --For each guild get the unique serverGuildId
+        for guildNum = 1, GetNumGuilds() do
+            -- Guildname
+            local guildId = GetGuildId(guildNum)
+            local guildName = GetGuildName(guildId)
+            -- Occurs sometimes
+            if(not guildName or (guildName):len() < 1) then
+                guildName = "Guild " .. guildNum
+            end
+            pChatData.guildIndexes[guildId] = {
+                num     = guildNum,
+                id      = guildId,
+                name    = guildName,
+            }
+        end
+    end
+
+
+    -- Triggered by EVENT_GUILD_SELF_JOINED_GUILD
+    local function OnSelfJoinedGuild(_, guildServerId, characterName, guildId)
+
+        -- It will rebuild optionsTable and recreate tables if user didn't went in this section before
+        BuildLAMPanel()
+
+        -- If recently added to a new guild and never go in menu db.formatguild[guildName] won't exist, it won't create the value if joining an known guild
+        if not db.formatguild[guildServerId] then
+            -- 2 is default value
+            db.formatguild[guildServerId] = 2
+        end
+
+        -- Save Guild indexes for guild reorganization
+        SaveGuildIndexes()
+
+    end
+
+    -- Runs whenever "me" left a guild (or get kicked)
+    local function OnSelfLeftGuild(_, guildServerId, characterName, guildId)
+        -- It will rebuild optionsTable and recreate tables if user didn't went in this section before
+        BuildLAMPanel()
+
+        -- Revert category colors & options
+        RevertCategories(guildServerId)
+    end
+
+
     --Migrate some SavedVariables to new structures
     local function MigrateSavedVars()
         logger:Debug("MigrateSavedVars")
@@ -1614,6 +1707,15 @@ function pChat.InitializeSettings(pChatData, ADDON_NAME, PCHAT_CHANNEL_NONE, Upd
 
     --Load the nicknames from the settings
     BuildNicknames()
+
+    -- Save all guild indices
+    SaveGuildIndexes()
+
+    -- Register OnSelfJoinedGuild with EVENT_GUILD_SELF_JOINED_GUILD
+    EVENT_MANAGER:RegisterForEvent(ADDON_NAME, EVENT_GUILD_SELF_JOINED_GUILD, OnSelfJoinedGuild)
+
+    -- Register OnSelfLeftGuild with EVENT_GUILD_SELF_LEFT_GUILD
+    EVENT_MANAGER:RegisterForEvent(ADDON_NAME, EVENT_GUILD_SELF_LEFT_GUILD, OnSelfLeftGuild)
 
     return db
 end

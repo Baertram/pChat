@@ -1,4 +1,62 @@
 function pChat.InitializeChatConfig(pChatData, db, PCHAT_CHANNEL_NONE)
+    pChatData.chatCategories = {
+        CHAT_CATEGORY_SAY,
+        CHAT_CATEGORY_YELL,
+        CHAT_CATEGORY_WHISPER_INCOMING,
+        CHAT_CATEGORY_WHISPER_OUTGOING,
+        CHAT_CATEGORY_ZONE,
+        CHAT_CATEGORY_PARTY,
+        CHAT_CATEGORY_EMOTE,
+        CHAT_CATEGORY_SYSTEM,
+        CHAT_CATEGORY_GUILD_1,
+        CHAT_CATEGORY_GUILD_2,
+        CHAT_CATEGORY_GUILD_3,
+        CHAT_CATEGORY_GUILD_4,
+        CHAT_CATEGORY_GUILD_5,
+        CHAT_CATEGORY_OFFICER_1,
+        CHAT_CATEGORY_OFFICER_2,
+        CHAT_CATEGORY_OFFICER_3,
+        CHAT_CATEGORY_OFFICER_4,
+        CHAT_CATEGORY_OFFICER_5,
+        CHAT_CATEGORY_ZONE_ENGLISH,
+        CHAT_CATEGORY_ZONE_FRENCH,
+        CHAT_CATEGORY_ZONE_GERMAN,
+        CHAT_CATEGORY_ZONE_JAPANESE,
+        CHAT_CATEGORY_MONSTER_SAY,
+        CHAT_CATEGORY_MONSTER_YELL,
+        CHAT_CATEGORY_MONSTER_WHISPER,
+        CHAT_CATEGORY_MONSTER_EMOTE,
+    }
+
+    pChatData.guildCategories = {
+        CHAT_CATEGORY_GUILD_1,
+        CHAT_CATEGORY_GUILD_2,
+        CHAT_CATEGORY_GUILD_3,
+        CHAT_CATEGORY_GUILD_4,
+        CHAT_CATEGORY_GUILD_5,
+        CHAT_CATEGORY_OFFICER_1,
+        CHAT_CATEGORY_OFFICER_2,
+        CHAT_CATEGORY_OFFICER_3,
+        CHAT_CATEGORY_OFFICER_4,
+        CHAT_CATEGORY_OFFICER_5,
+    }
+
+    -- TODO unused. remove
+    pChatData.defaultChannels = {
+        PCHAT_CHANNEL_NONE,
+        CHAT_CHANNEL_ZONE,
+        CHAT_CHANNEL_SAY,
+        CHAT_CHANNEL_GUILD_1,
+        CHAT_CHANNEL_GUILD_2,
+        CHAT_CHANNEL_GUILD_3,
+        CHAT_CHANNEL_GUILD_4,
+        CHAT_CHANNEL_GUILD_5,
+        CHAT_CHANNEL_OFFICER_1,
+        CHAT_CHANNEL_OFFICER_2,
+        CHAT_CHANNEL_OFFICER_3,
+        CHAT_CHANNEL_OFFICER_4,
+        CHAT_CHANNEL_OFFICER_5,
+    }
 
     local function UndockTextEntry()
         local charId = GetCurrentCharacterId()
@@ -360,7 +418,54 @@ function pChat.InitializeChatConfig(pChatData, db, PCHAT_CHANNEL_NONE)
             CHAT_SYSTEM:SetChannel(db.defaultchannel)
         end
     end
-    pChat.SetToDefaultChannel = SetToDefaultChannel
+
+    -- triggers when EVENT_GROUP_MEMBER_LEFT
+    local function OnGroupMemberLeft(_, characterName, reason, wasMeWhoLeft)
+
+        -- Go back to default channel
+        if GetGroupSize() <= 1 then
+            -- Go back to default channel when leaving a group
+            if db.enablepartyswitch then
+                -- Only if we was on party
+                if CHAT_SYSTEM.currentChannel == CHAT_CHANNEL_PARTY and db.defaultchannel ~= PCHAT_CHANNEL_NONE then
+                    SetToDefaultChannel()
+                end
+            end
+        end
+
+    end
+
+    local function SwitchToParty(characterName)
+
+        zo_callLater(function(characterName) -- characterName = avoid ZOS bug
+            -- If "me" join group
+            if(GetRawUnitName("player") == characterName) then
+
+                -- Switch to party channel when joining a group
+                if db.enablepartyswitch then
+                    CHAT_SYSTEM:SetChannel(CHAT_CHANNEL_PARTY)
+                end
+
+        else
+
+            -- Someone else joined group
+            -- If GetGroupSize() == 2 : Means "me" just created a group and "someone" just joining
+            if GetGroupSize() == 2 then
+                -- Switch to party channel when joinin a group
+                if db.enablepartyswitch then
+                    CHAT_SYSTEM:SetChannel(CHAT_CHANNEL_PARTY)
+                end
+            end
+
+        end
+        end, 200)
+
+    end
+
+    -- Triggers when EVENT_GROUP_MEMBER_JOINED
+    local function OnGroupMemberJoined(_, characterName)
+        SwitchToParty(characterName)
+    end
 
     -- Save a category color for guild chat, set by ChatSystem at launch + when user change manually
     local function SaveChatCategoriesColors(category, r, g, b)
@@ -483,6 +588,10 @@ function pChat.InitializeChatConfig(pChatData, db, PCHAT_CHANNEL_NONE)
     -- Minimize Chat in Menus
     MinimizeChatInMenus()
 
+    -- Party switches
+    EVENT_MANAGER:RegisterForEvent(ADDON_NAME, EVENT_GROUP_MEMBER_JOINED, OnGroupMemberJoined)
+    EVENT_MANAGER:RegisterForEvent(ADDON_NAME, EVENT_GROUP_MEMBER_LEFT, OnGroupMemberLeft)
+
     -- this is called during the first EVENT_PLAYER_ACTIVATED
     function pChat.ApplyChatConfig()
         if not pChatData.isAddonInitialized then
@@ -503,4 +612,5 @@ function pChat.InitializeChatConfig(pChatData, db, PCHAT_CHANNEL_NONE)
             SetToDefaultChannel()
         end
     end
+
 end

@@ -1,5 +1,7 @@
 function pChat.InitializeChatTabs(pChatData, constTabNameTemplate)
 
+    pChat.tabNames = {}
+
     local function getTabNames()
         local totalTabs = CHAT_SYSTEM.tabPool.m_Active
         if totalTabs ~= nil and #totalTabs >= 1 then
@@ -130,6 +132,32 @@ function pChat.InitializeChatTabs(pChatData, constTabNameTemplate)
 
     -- need to call this separately due to the load and init order
     function pChat.SetupChatTabs(db)
+        pChatData.activeTab = 1
+
+        if CHAT_SYSTEM.ValidateChatChannel then
+            ZO_PreHook(CHAT_SYSTEM, "ValidateChatChannel", function(self)
+                if (db.enableChatTabChannel  == true) and (self.currentChannel ~= CHAT_CHANNEL_WHISPER) then
+                    local tabIndex = self.primaryContainer.currentBuffer:GetParent().tab.index
+                    db.chatTabChannel[tabIndex] = db.chatTabChannel[tabIndex] or {}
+                    db.chatTabChannel[tabIndex].channel = self.currentChannel
+                    db.chatTabChannel[tabIndex].target  = self.currentTarget
+                end
+            end)
+        end
+
+        if CHAT_SYSTEM.primaryContainer.HandleTabClick then
+            ZO_PreHook(CHAT_SYSTEM.primaryContainer, "HandleTabClick", function(self, tab)
+                pChatData.activeTab = tab.index
+                if (db.enableChatTabChannel == true) then
+                    local tabIndex = tab.index
+                    if db.chatTabChannel[tabIndex] then
+                        CHAT_SYSTEM:SetChannel(db.chatTabChannel[tabIndex].channel, db.chatTabChannel[tabIndex].target)
+                    end
+                end
+                --ZO_TabButton_Text_RestoreDefaultColors(tab)
+            end)
+        end
+
         -- Needed to bind Shift+Tab in SetSwitchToNextBinding
         function KEYBINDING_MANAGER:IsChordingAlwaysEnabled()
             return true

@@ -187,4 +187,9 @@ function pChat.InitializeIncomingMessages(pChatData, db, constTabNameTemplate, s
         end
 
     end
+
+    -- Visual Notification PreHook
+    ZO_PreHook(CHAT_SYSTEM, "Maximize", function(self)
+        CHAT_SYSTEM.IMLabelMin:SetHidden(true)
+    end)
 end
