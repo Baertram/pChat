@@ -77,9 +77,6 @@
 		</TopLevelControl>
 		
 		<TopLevelControl name="pChatXMLAutoMsgDialog" inherits="ZO_CustomDialogBase" hidden="true">
-			<OnInitialized>
-				pChat_BuildAutomatedMessagesDialog(self)
-			</OnInitialized>
 			<Controls>
 				<Label name="$(parent)NameHeader" inherits="ZO_DialogContentAnchors" color="INTERFACE_COLOR_TYPE_TEXT_COLORS:INTERFACE_TEXT_COLOR_NORMAL" font="ZoFontGame" text="PCHAT_AUTOMSG_NAME_HEADER"/>
 
