@@ -82,7 +82,6 @@ function pChat.InitializeSettings(UpdateCharCorrespondanceTableChannelNames)
         notifyIM = false,
         nicknames = "",
         defaultTab = 1,
-        defaultTabName = "",
         groupNames = 1,
         geoChannelsFormat = 2,
         urlHandling = true,
@@ -362,12 +361,12 @@ function pChat.InitializeSettings(UpdateCharCorrespondanceTableChannelNames)
 
 							local oldValue = db.switchFor[guildId]
 							if oldValue and oldValue ~= "" then
-								RemoveCustomChannelSwitches(channelId, oldValue)
+								pChat.RemoveCustomChannelSwitches(channelId, oldValue)
 							end
 
 							db.switchFor[guildId] = newValue
 							if newValue and newValue ~= "" then
-								AddCustomChannelSwitches(channelId, newValue)
+								pChat.AddCustomChannelSwitches(channelId, newValue)
 							end
 						end,
 						width = "half",
@@ -385,12 +384,12 @@ function pChat.InitializeSettings(UpdateCharCorrespondanceTableChannelNames)
 
 							local oldValue = db.officerSwitchFor[guildId]
 							if oldValue and oldValue ~= "" then
-								RemoveCustomChannelSwitches(channelId, oldValue)
+								pChat.RemoveCustomChannelSwitches(channelId, oldValue)
 							end
 
 							db.officerSwitchFor[guildId] = newValue
 							if newValue and newValue ~= "" then
-								AddCustomChannelSwitches(channelId, newValue)
+								pChat.AddCustomChannelSwitches(channelId, newValue)
 							end
 						end,
 					},
@@ -513,7 +512,7 @@ function pChat.InitializeSettings(UpdateCharCorrespondanceTableChannelNames)
 							getFunc = function() return db.windowDarkness end,
 							setFunc = function(newValue)
 								db.windowDarkness = newValue
-								ChangeChatWindowDarkness()
+								pChat.ChangeChatWindowDarkness()
 								CHAT_SYSTEM:Maximize()
 							end,
 							width = "full",
@@ -555,7 +554,7 @@ function pChat.InitializeSettings(UpdateCharCorrespondanceTableChannelNames)
 							getFunc = function() return db.fonts end,
 							setFunc = function(choice)
 								db.fonts = choice
-								ChangeChatFont(true)
+								pChat.ChangeChatFont(true)
 								ReloadUI()
 							end,
 							default = defaults.fontChange,
