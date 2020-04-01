@@ -1,24 +1,47 @@
 --=======================================================================================================================================
 --Known problems/bugs:
---Last updated: 2020-02-28
---Total number: 2
+--Last updated: 2020-03-27
+--Total number: 4
 ------------------------------------------------------------------------------------------------------------------------
---#2    2020-02-28 Baetram, bug: New selection for @accountName/character chat prefix will only show /charactername (@accountName is missing) during whispers,
---      if clicked on a character in the chat to whisper him/her
+--#2	2020-02-28 Baetram, bug: New selection for @accountName/character chat prefix will only show /charactername (@accountName is missing) during whispers,
+--		if clicked on a character in the chat to whisper him/her
 ------------------------------------------------------------------------------------------------------------------------
+--#3	2020-03-27 Baetram, bug: Enter into a group with the dungeon finder will not change to the group chat channel /group automatically, if setting is enabled
+------------------------------------------------------------------------------------------------------------------------
+--=======================================================================================================================================
+
+--=======================================================================================================================================
+-- Changelog version: 10.0.0.0 (last version 9.4.1.4)
+--=======================================================================================================================================
+--Fixed:
+--#4 Sound notifications for incoming whispers were not played
+
+
+--Changed:
+--Split pChat.lua into several files -> Thanks to sirinsidiator!
+--Settings menu totally changed to use less space on main menu page but use mroe submenus; moved related settings together into the same submenus
+--Updated and corrected settings menu texts and tooltips
+
+--Added:
+--Description and tooltip to eso standard color and pChat color settings menu
+--Option "Enable brightness difference" affects NonESO colors as well now
+
+--Added on request:
+--New setting: Chat channel will be automatically changed to /party if you port/reloadui to/in a dungeon, and if you are grouped. This is a new sub-setting of the "Enable Party Switch" setting.
+--=======================================================================================================================================
+
 --  pChat object
 pChat = pChat or {}
 
 --======================================================================================================================
--- AddOn info
+-- AddOn Constants
 --======================================================================================================================
--- Common
-local ADDON_NAME    = "pChat"
+local CONSTANTS = pChat.CONSTANTS
+local ADDON_NAME    = CONSTANTS.ADDON_NAME
 
 --======================================================================================================================
 --pChat Variables--
 --======================================================================================================================
-
 -- pChatData will receive variables and objects.
 local pChatData = {}
 -- Logged in char name
@@ -26,16 +49,6 @@ pChatData.localPlayer = GetUnitName("player")
 
 --LibDebugLogger objects
 local logger
-
---======================================================================================================================
---Constants
---======================================================================================================================
-
--- Used for pChat LinkHandling
-local PCHAT_LINK = "p"
-local PCHAT_URL_CHAN = 97
-local PCHAT_CHANNEL_SAY = 98
-local PCHAT_CHANNEL_NONE = 99
 
 --======================================================================================================================
 -- Local Variables
@@ -88,6 +101,20 @@ local function PrepareVars()
     --Tables with character ID as key
     pChat.characterId2Name = pChat.getCharactersOfAccount(false, true)
     pChat.characterId2NameRaw = pChat.getCharactersOfAccount(false, false)
+
+    --Update the available sounds from the game
+    pChat.sounds = {}
+    if SOUNDS then
+        for soundName, _ in pairs(SOUNDS) do
+            if soundName ~= "NONE" then
+                table.insert(pChat.sounds, soundName)
+            end
+        end
+        if #pChat.sounds > 0 then
+            table.sort(pChat.sounds)
+            table.insert(pChat.sounds, 1, "NONE")
+        end
+    end
 end
 
 
@@ -219,8 +246,9 @@ do
     local lastColor, cachedColor
     function ZO_TabButton_Text_SetTextColor(button, color)
         if(button:GetOwningWindow() == ZO_ChatWindow) then
-            if(db.colours.tabwarning ~= lastColor) then
-                lastColor = db.colours.tabwarning
+            local colours = db.colours
+            if(colours.tabwarning ~= lastColor) then
+                lastColor = colours.tabwarning
                 cachedColor = ZO_ColorDef:New(pChat.ConvertHexToRGBA(lastColor))
             end
             originalZO_TabButton_Text_SetTextColor(button, cachedColor)
@@ -259,7 +287,7 @@ local function OnPlayerActivated()
     if eventPlayerActivatedChecksDone <= 12 and (CHAT_SYSTEM == nil or CHAT_SYSTEM.primaryContainer == nil) then
         logger:Debug("EVENT_PLAYER_ACTIVATED: CHAT_SYSTEM.primaryContainer is missing!")
         if not eventPlayerActivatedCheckRunning then
-            EVENT_MANAGER:RegisterForUpdate("pChatDebug_Event_Player_Activated", 250, function()
+            EVENT_MANAGER:RegisterForUpdate(ADDON_NAME .. "Debug_Event_Player_Activated", 250, function()
                 eventPlayerActivatedChecksDone = eventPlayerActivatedChecksDone + 1
                 eventPlayerActivatedCheckRunning = true
                 OnPlayerActivated()
@@ -268,7 +296,7 @@ local function OnPlayerActivated()
     else
         logger:Debug("EVENT_PLAYER_ACTIVATED: Found CHAT_SYSTEM.primaryContainer!")
         eventPlayerActivatedCheckRunning = false
-        EVENT_MANAGER:UnregisterForUpdate("pChatDebug_Event_Player_Activated")
+        EVENT_MANAGER:UnregisterForUpdate(ADDON_NAME .. "Debug_Event_Player_Activated")
 
         if pChatData.isAddonLoaded then
 
@@ -287,7 +315,7 @@ local function OnPlayerActivated()
             pChat.BuildLAMPanel()
 
             -- Chat Tab setup
-            pChat.SetupChatTabs(db)
+            pChat.SetupChatTabs()
 
             -- Chat Config setup
             pChat.ApplyChatConfig()
@@ -299,7 +327,7 @@ local function OnPlayerActivated()
             UpdateGuildCorrespondanceTableSwitches()
 
             -- Handle Copy text
-            pChat.InitializeCopyHandler(pChatData, db, PCHAT_URL_CHAN, PCHAT_LINK)
+            pChat.InitializeCopyHandler()
 
             -- Restore History if needed
             pChat.RestoreChatHistory()
@@ -347,7 +375,6 @@ local function LoadHooks()
         pChat.SaveChatConfig()
     end)
 
-
     --Scroll to bottom in Chat: Secure post hook to hide the Whisper Notifications
     SecurePostHook("ZO_ChatSystem_ScrollToBottom", function()
         pChat_RemoveIMNotification()
@@ -357,7 +384,10 @@ end
 
 --Load the string IDs for keybindings e.g.
 local function LoadStringIds()
-    -- Bindings
+    --Load Keybind Strings
+    pChat.LoadKeybindStrings()
+
+    --Automated message texts
     ZO_CreateStringId("PCHAT_AUTOMSG_NAME_DEFAULT_TEXT", GetString(PCHAT_PCHAT_AUTOMSG_NAME_DEFAULT_TEXT))
     ZO_CreateStringId("PCHAT_AUTOMSG_MESSAGE_DEFAULT_TEXT", GetString(PCHAT_PCHAT_AUTOMSG_MESSAGE_DEFAULT_TEXT))
     ZO_CreateStringId("PCHAT_AUTOMSG_MESSAGE_TIP1_TEXT", GetString(PCHAT_PCHAT_AUTOMSG_MESSAGE_TIP1_TEXT))
@@ -369,24 +399,7 @@ local function LoadStringIds()
     ZO_CreateStringId("PCHAT_AUTOMSG_EDIT_TITLE_HEADER", GetString(PCHAT_PCHAT_AUTOMSG_EDIT_TITLE_HEADER))
     ZO_CreateStringId("PCHAT_AUTOMSG_ADD_AUTO_MSG", GetString(PCHAT_PCHAT_AUTOMSG_ADD_AUTO_MSG))
     ZO_CreateStringId("PCHAT_AUTOMSG_EDIT_AUTO_MSG", GetString(PCHAT_PCHAT_AUTOMSG_EDIT_AUTO_MSG))
-    ZO_CreateStringId("SI_BINDING_NAME_PCHAT_SHOW_AUTO_MSG", GetString(PCHAT_SI_BINDING_NAME_PCHAT_SHOW_AUTO_MSG))
     ZO_CreateStringId("PCHAT_AUTOMSG_REMOVE_AUTO_MSG", GetString(PCHAT_PCHAT_AUTOMSG_REMOVE_AUTO_MSG))
-
-    ZO_CreateStringId("SI_BINDING_NAME_PCHAT_SWITCH_TAB", GetString(PCHAT_SWITCHTONEXTTABBINDING))
-    ZO_CreateStringId("SI_BINDING_NAME_PCHAT_TOGGLE_CHAT_WINDOW", GetString(PCHAT_TOGGLECHATBINDING))
-    ZO_CreateStringId("SI_BINDING_NAME_PCHAT_WHISPER_MY_TARGET", GetString(PCHAT_WHISPMYTARGETBINDING))
-    ZO_CreateStringId("SI_BINDING_NAME_TAB_1", GetString(PCHAT_Tab1))
-    ZO_CreateStringId("SI_BINDING_NAME_TAB_2", GetString(PCHAT_Tab2))
-    ZO_CreateStringId("SI_BINDING_NAME_TAB_3", GetString(PCHAT_Tab3))
-    ZO_CreateStringId("SI_BINDING_NAME_TAB_4", GetString(PCHAT_Tab4))
-    ZO_CreateStringId("SI_BINDING_NAME_TAB_5", GetString(PCHAT_Tab5))
-    ZO_CreateStringId("SI_BINDING_NAME_TAB_6", GetString(PCHAT_Tab6))
-    ZO_CreateStringId("SI_BINDING_NAME_TAB_7", GetString(PCHAT_Tab7))
-    ZO_CreateStringId("SI_BINDING_NAME_TAB_8", GetString(PCHAT_Tab8))
-    ZO_CreateStringId("SI_BINDING_NAME_TAB_9", GetString(PCHAT_Tab9))
-    ZO_CreateStringId("SI_BINDING_NAME_TAB_10", GetString(PCHAT_Tab10))
-    ZO_CreateStringId("SI_BINDING_NAME_TAB_11", GetString(PCHAT_Tab11))
-    ZO_CreateStringId("SI_BINDING_NAME_TAB_12", GetString(PCHAT_Tab12))
 end
 
 --Load the slash commands
@@ -400,6 +413,10 @@ local function OnAddonLoaded(_, addonName)
     --Protect
     if addonName == ADDON_NAME then
         eventPlayerActivatedChecksDone = 0
+
+        --Pointers to pChatData and SavedVariables
+        pChat.pChatData = pChatData
+        pChat.db = db
 
         --Prepare variables
         PrepareVars()
@@ -417,47 +434,44 @@ local function OnAddonLoaded(_, addonName)
         LoadSlashCommands()
 
         -- prepare chat tab functions
-        pChat.InitializeChatTabs(pChatData)
+        pChat.InitializeChatTabs()
 
         --Load the SV and LAM panel
-        db = pChat.InitializeSettings(pChatData, ADDON_NAME, PCHAT_CHANNEL_NONE, UpdateCharCorrespondanceTableChannelNames, logger)
+        db = pChat.InitializeSettings(UpdateCharCorrespondanceTableChannelNames)
 
         -- set up channel names
         UpdateCharCorrespondanceTableChannelNames()
 
         -- prepare chat history functionality
-        pChat.InitializeChatHistory(pChatData, db, PCHAT_CHANNEL_SAY, PCHAT_CHANNEL_NONE, logger)
-
+        pChat.InitializeChatHistory()
 
         -- Automated messages
-        pChat.InitializeAutomatedMessages(pChatData, db, ADDON_NAME)
+        pChat.InitializeAutomatedMessages()
 
-        --Load some hookds
+        --Load some hooks
         LoadHooks()
 
         -- Initialize Chat Config features
-        pChat.InitializeChatConfig(pChatData, db, PCHAT_CHANNEL_NONE)
+        pChat.InitializeChatConfig()
 
-        local SpamFilter = pChat.InitializeSpamFilter(pChatData, db, PCHAT_CHANNEL_SAY, logger)
-        local FormatMessage, FormatSysMessage = pChat.InitializeMessageFormatters(pChatData, db, PCHAT_LINK, PCHAT_URL_CHAN, SpamFilter, logger)
+        pChat.SpamFilter = pChat.InitializeSpamFilter()
+        local FormatMessage, FormatSysMessage = pChat.InitializeMessageFormatters()
 
         -- For compatibility. Called by others addons.
         pChat.FormatMessage = FormatMessage
         pChat.formatSysMessage = FormatSysMessage
         pChat_FormatSysMessage = FormatSysMessage
 
+        --EVENTS--
         -- Because ChatSystem is loaded after EVENT_ADDON_LOADED triggers, we use 1st EVENT_PLAYER_ACTIVATED wich is run bit after
         EVENT_MANAGER:RegisterForEvent(ADDON_NAME, EVENT_PLAYER_ACTIVATED, OnPlayerActivated)
+        EVENT_MANAGER:RegisterForEvent(ADDON_NAME, EVENT_RETICLE_TARGET_CHANGED, pChat.OnReticleTargetChanged)
 
-        -- Unregisters
+        -- EVENT Unregister
         EVENT_MANAGER:UnregisterForEvent(ADDON_NAME, EVENT_ADD_ON_LOADED)
 
-        --Pointers to pChatData and SavedVariables
-        pChat.pChatData = pChatData
-        pChat.db = db
-
         --IM Features
-        pChat.InitializeIncomingMessages(pChatData, db, logger)
+        pChat.InitializeIncomingMessages()
 
         --Set variable that addon was laoded
         pChatData.isAddonLoaded = true
@@ -467,33 +481,3 @@ end
 
 EVENT_MANAGER:RegisterForEvent(ADDON_NAME, EVENT_ADD_ON_LOADED, OnAddonLoaded)
 
---Handled by keybind
-function pChat_ToggleChat()
-
-    if CHAT_SYSTEM:IsMinimized() then
-        CHAT_SYSTEM:Maximize()
-    else
-        CHAT_SYSTEM:Minimize()
-    end
-
-end
-
--- Whisp my target
-do
-    local targetToWhisp
-
-    local function OnReticleTargetChanged()
-        if IsUnitPlayer("reticleover") then
-            targetToWhisp = GetUnitName("reticleover")
-        end
-    end
-
-    EVENT_MANAGER:RegisterForEvent(ADDON_NAME, EVENT_RETICLE_TARGET_CHANGED, OnReticleTargetChanged)
-
-    -- Called by bindings
-    function pChat_WhispMyTarget()
-        if targetToWhisp then
-            CHAT_SYSTEM:StartTextEntry(nil, CHAT_CHANNEL_WHISPER, targetToWhisp)
-        end
-    end
-end

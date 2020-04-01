@@ -1,3 +1,6 @@
+local CONSTANTS = pChat.CONSTANTS
+local ADDON_NAME = CONSTANTS.ADDON_NAME
+
 -- Add IM label on XML Initialization, set anchor and set it hidden
 function pChat_AddIMLabel(control)
 
@@ -28,7 +31,10 @@ function pChat_AddIMButton(control)
 
 end
 
-function pChat.InitializeIncomingMessages(pChatData, db, logger)
+function pChat.InitializeIncomingMessages()
+    local pChatData = pChat.pChatData
+    local db = pChat.db
+    local logger = pChat.logger
 
     -- Hide it
     local function HideIMTooltip()

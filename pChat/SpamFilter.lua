@@ -1,4 +1,10 @@
-function pChat.InitializeSpamFilter(pChatData, db, PCHAT_CHANNEL_SAY, logger)
+local CONSTANTS = pChat.CONSTANTS
+local ADDON_NAME = CONSTANTS.ADDON_NAME
+
+function pChat.InitializeSpamFilter()
+    local pChatData = pChat.pChatData
+    local db = pChat.db
+    local logger = pChat.logger
 
     -- Return true/false if text is a flood
     local function SpamFlood(from, text, chanCode)
@@ -26,10 +32,10 @@ function pChat.InitializeSpamFilter(pChatData, db, PCHAT_CHANNEL_SAY, logger)
                                         -- Previous and current must be in zone(s), yell, say, emote (Character Channels except party)
                                         -- TODO: Find a characterchannel func
 
-                                        -- CHAT_CHANNEL_SAY = 0 == nil in lua, will broke the array, so use PCHAT_CHANNEL_SAY
+                                        -- CHAT_CHANNEL_SAY = 0 == nil in lua, will broke the array, so use CONSTANTS.PCHAT_CHANNEL_SAY
                                         local spamChanCode = chanCode
                                         if spamChanCode == CHAT_CHANNEL_SAY then
-                                            spamChanCode = PCHAT_CHANNEL_SAY
+                                            spamChanCode = CONSTANTS.PCHAT_CHANNEL_SAY
                                         end
 
                                         local spammableChannels = {}
@@ -37,7 +43,7 @@ function pChat.InitializeSpamFilter(pChatData, db, PCHAT_CHANNEL_SAY, logger)
                                         spammableChannels[CHAT_CHANNEL_ZONE_LANGUAGE_2] = true
                                         spammableChannels[CHAT_CHANNEL_ZONE_LANGUAGE_3] = true
                                         spammableChannels[CHAT_CHANNEL_ZONE_LANGUAGE_4] = true
-                                        spammableChannels[PCHAT_CHANNEL_SAY] = true
+                                        spammableChannels[CONSTANTS.PCHAT_CHANNEL_SAY] = true
                                         spammableChannels[CHAT_CHANNEL_YELL] = true
                                         spammableChannels[CHAT_CHANNEL_ZONE] = true
                                         spammableChannels[CHAT_CHANNEL_EMOTE] = true
@@ -127,7 +133,7 @@ function pChat.InitializeSpamFilter(pChatData, db, PCHAT_CHANNEL_SAY, logger)
 
         local spamChanCode = chanCode
         if spamChanCode == CHAT_CHANNEL_SAY then
-            spamChanCode = PCHAT_CHANNEL_SAY
+            spamChanCode = CONSTANTS.PCHAT_CHANNEL_SAY
         end
 
         local spammableChannels = {}
@@ -135,7 +141,7 @@ function pChat.InitializeSpamFilter(pChatData, db, PCHAT_CHANNEL_SAY, logger)
         spammableChannels[CHAT_CHANNEL_ZONE_LANGUAGE_2] = true
         spammableChannels[CHAT_CHANNEL_ZONE_LANGUAGE_3] = true
         spammableChannels[CHAT_CHANNEL_ZONE_LANGUAGE_4] = true
-        spammableChannels[PCHAT_CHANNEL_SAY] = true
+        spammableChannels[CONSTANTS.PCHAT_CHANNEL_SAY] = true
         spammableChannels[CHAT_CHANNEL_YELL] = true
         spammableChannels[CHAT_CHANNEL_ZONE] = true
         spammableChannels[CHAT_CHANNEL_EMOTE] = true

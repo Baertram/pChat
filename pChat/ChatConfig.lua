@@ -1,4 +1,10 @@
-function pChat.InitializeChatConfig(pChatData, db, PCHAT_CHANNEL_NONE)
+local CONSTANTS = pChat.CONSTANTS
+local ADDON_NAME = CONSTANTS.ADDON_NAME
+
+function pChat.InitializeChatConfig()
+    local pChatData = pChat.pChatData
+    local db = pChat.db
+
     pChatData.chatCategories = {
         CHAT_CATEGORY_SAY,
         CHAT_CATEGORY_YELL,
@@ -43,7 +49,7 @@ function pChat.InitializeChatConfig(pChatData, db, PCHAT_CHANNEL_NONE)
 
     -- TODO unused. remove
     pChatData.defaultChannels = {
-        PCHAT_CHANNEL_NONE,
+        CONSTANTS.PCHAT_CHANNEL_NONE,
         CHAT_CHANNEL_ZONE,
         CHAT_CHANNEL_SAY,
         CHAT_CHANNEL_GUILD_1,
@@ -414,7 +420,7 @@ function pChat.InitializeChatConfig(pChatData, db, PCHAT_CHANNEL_NONE)
 
     -- Set channel to the default one
     local function SetToDefaultChannel()
-        if db.defaultchannel ~= PCHAT_CHANNEL_NONE then
+        if db.defaultchannel ~= CONSTANTS.PCHAT_CHANNEL_NONE then
             CHAT_SYSTEM:SetChannel(db.defaultchannel)
         end
     end
@@ -427,7 +433,7 @@ function pChat.InitializeChatConfig(pChatData, db, PCHAT_CHANNEL_NONE)
             -- Go back to default channel when leaving a group
             if db.enablepartyswitch then
                 -- Only if we was on party
-                if CHAT_SYSTEM.currentChannel == CHAT_CHANNEL_PARTY and db.defaultchannel ~= PCHAT_CHANNEL_NONE then
+                if CHAT_SYSTEM.currentChannel == CHAT_CHANNEL_PARTY and db.defaultchannel ~= CONSTANTS.PCHAT_CHANNEL_NONE then
                     SetToDefaultChannel()
                 end
             end

@@ -64,26 +64,37 @@ do
         return r/255, g/255, b/255, 1
     end
 
+    -- Substract XX from a color (darker)
+    local function DarkenRGBColor(r, g, b, value, divisorPercent)
+        if not value or value <= 0 then return r,g,b end
+        divisorPercent = divisorPercent or 30
+        if divisorPercent < 10 then divisorPercent = 10 end
+        if divisorPercent > 90 then divisorPercent = 90 end
+        local divisor = divisorPercent * 10
+        -- Scale is from 0-100 so divide per 300 will maximise difference at 0.33 (*2)
+        r = math.max(r - (value / divisor),0)
+        g = math.max(g - (value / divisor),0)
+        b = math.max(b - (value / divisor),0)
+        return r,g,b
+    end
+
+     -- Add XX to a color (brighter)
+    local function LightenRGBColor(r, g, b, value, divisorPercent)
+        if not value or value <= 0 then return r,g,b end
+        divisorPercent = divisorPercent or 75
+        if divisorPercent < 10 then divisorPercent = 10 end
+        if divisorPercent > 90 then divisorPercent = 90 end
+        local divisor = divisorPercent * 10
+        r = math.min(r + (value / divisor),1)
+        g = math.min(g + (value / divisor),1)
+        b = math.min(b + (value / divisor),1)
+        return r,g,b
+    end
+
     local function GetChannelColors(channel, from)
         local db = pChat.db
 
-        -- Substract XX to a color (darker)
-        local function FirstColorFromESOSettings(r, g, b)
-            -- Scale is from 0-100 so divide per 300 will maximise difference at 0.33 (*2)
-            r = math.max(r - (db.diffforESOcolors / 300 ),0)
-            g = math.max(g - (db.diffforESOcolors / 300 ),0)
-            b = math.max(b - (db.diffforESOcolors / 300 ),0)
-            return r,g,b
-        end
-
-        -- Add XX to a color (brighter)
-        local function SecondColorFromESOSettings(r, g, b)
-            r = math.min(r + (db.diffforESOcolors / 300 ),1)
-            g = math.min(g + (db.diffforESOcolors / 300 ),1)
-            b = math.min(b + (db.diffforESOcolors / 300 ),1)
-            return r,g,b
-        end
-
+        --Use ESO standard colors?
         if db.useESOcolors then
 
             -- ESO actual color, return r,g,b
@@ -98,18 +109,19 @@ do
             elseif db.allZonesSameColour and (channel >= CHAT_CHANNEL_ZONE_LANGUAGE_1 and channel <= CHAT_CHANNEL_ZONE_LANGUAGE_4) then
                 rESO, gESO, bESO = ZO_ChatSystem_GetCategoryColorFromChannel(CHAT_CHANNEL_ZONE_LANGUAGE_1)
             elseif channel == CHAT_CHANNEL_PARTY and from and db.groupLeader and zo_strformat(SI_UNIT_NAME, from) == GetUnitName(GetGroupLeaderUnitTag()) then
-                rESO, gESO, bESO = pChat.ConvertHexToRGBA(db.colours["groupleader"])
+                rESO, gESO, bESO = ConvertHexToRGBA(db.colours["groupleader"])
             else
                 rESO, gESO, bESO = ZO_ChatSystem_GetCategoryColorFromChannel(channel)
             end
 
-            -- Set right colour to left colour - cause ESO colors are rewrited, if onecolor, no rewriting
-            if db.oneColour then
-                pChat.lcol = pChat.ConvertRGBToHex(rESO, gESO, bESO)
+            -- Set right colour to left colour - cause ESO colors are rewritten, if one color is not rewritten
+            if db.oneColour == true then
+                pChat.lcol = ConvertRGBToHex(rESO, gESO, bESO)
                 pChat.rcol = pChat.lcol
             else
-                pChat.lcol = pChat.ConvertRGBToHex(FirstColorFromESOSettings(rESO,gESO,bESO))
-                pChat.rcol = pChat.ConvertRGBToHex(SecondColorFromESOSettings(rESO,gESO,bESO))
+                --Change name and text brightness?
+                pChat.lcol = ConvertRGBToHex(DarkenRGBColor(rESO,gESO,bESO, db.diffforESOcolors, 100-db.diffChatColorsDarkenValue))
+                pChat.rcol = ConvertRGBToHex(LightenRGBColor(rESO,gESO,bESO, db.diffforESOcolors, 100-db.diffChatColorsLightenValue))
             end
 
         else
@@ -136,8 +148,14 @@ do
             end
 
             -- Set right colour to left colour
-            if db.oneColour then
+            if db.oneColour == true then
                 pChat.rcol = pChat.lcol
+            else
+                --Change name and text brightness?
+                local lR, lG, lB, lA = ConvertHexToRGBA(pChat.lcol)
+                local rR, rG, rB, rA = ConvertHexToRGBA(pChat.rcol)
+                pChat.lcol = ConvertRGBToHex(DarkenRGBColor(lR,lG,lB, db.diffforESOcolors, 100-db.diffChatColorsDarkenValue))
+                pChat.rcol = ConvertRGBToHex(LightenRGBColor(rR,rG,rB, db.diffforESOcolors, 100-db.diffChatColorsLightenValue))
             end
 
         end
@@ -149,6 +167,8 @@ do
     pChat.ConvertRGBToHex = ConvertRGBToHex
     pChat.ConvertHexToRGBA = ConvertHexToRGBA
     pChat.GetChannelColors = GetChannelColors
+    pChat.DarkenRGBColor = DarkenRGBColor
+    pChat.LightenRGBColor = LightenRGBColor
     -- For compatibility. Called by others addons.
     pChat_GetChannelColors = GetChannelColors
 end

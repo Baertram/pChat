@@ -1,4 +1,10 @@
-function pChat.InitializeChatHistory(pChatData, db, PCHAT_CHANNEL_SAY, PCHAT_CHANNEL_NONE, logger)
+local CONSTANTS = pChat.CONSTANTS
+local ADDON_NAME = CONSTANTS.ADDON_NAME
+
+function pChat.InitializeChatHistory()
+    local pChatData = pChat.pChatData
+    local db = pChat.db
+    local logger = pChat.logger
 
     local function StripLinesFromLineStrings(typeOfExit)
 
@@ -138,7 +144,7 @@ function pChat.InitializeChatHistory(pChatData, db, PCHAT_CHANNEL_SAY, PCHAT_CHA
             while historyIndex <= #db.LineStrings do
                 if db.LineStrings[historyIndex] then
                     local channelToRestore = db.LineStrings[historyIndex].channel
-                    if channelToRestore == PCHAT_CHANNEL_SAY then channelToRestore = 0 end
+                    if channelToRestore == CONSTANTS.PCHAT_CHANNEL_SAY then channelToRestore = 0 end
 
                     if channelToRestore == CHAT_CHANNEL_SYSTEM and not db.restoreSystem then
                         table.remove(db.LineStrings, historyIndex)
@@ -279,7 +285,7 @@ function pChat.InitializeChatHistory(pChatData, db, PCHAT_CHANNEL_SAY, PCHAT_CHA
             if db.lastWasReloadUI and db.restoreOnReloadUI then
 
                 -- RestoreChannel
-                if db.defaultchannel ~= PCHAT_CHANNEL_NONE then
+                if db.defaultchannel ~= CONSTANTS.PCHAT_CHANNEL_NONE then
                     CHAT_SYSTEM:SetChannel(db.history.currentChannel, db.history.currentTarget)
                 end
 
@@ -352,7 +358,7 @@ function pChat.InitializeChatHistory(pChatData, db, PCHAT_CHANNEL_SAY, PCHAT_CHA
 
         -- Store CopyMessage / Used for SpamFiltering. Due to lua 0 == nil in arrays, set value to 98
         if chanCode == CHAT_CHANNEL_SAY then
-            db.LineStrings[db.lineNumber].channel = PCHAT_CHANNEL_SAY
+            db.LineStrings[db.lineNumber].channel = CONSTANTS.PCHAT_CHANNEL_SAY
         else
             db.LineStrings[db.lineNumber].channel = chanCode
         end

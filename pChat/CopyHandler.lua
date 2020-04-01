@@ -1,5 +1,9 @@
-function pChat.InitializeCopyHandler(pChatData, db, PCHAT_URL_CHAN, PCHAT_LINK)
+local CONSTANTS = pChat.CONSTANTS
+local ADDON_NAME = CONSTANTS.ADDON_NAME
 
+function pChat.InitializeCopyHandler()
+    local pChatData = pChat.pChatData
+    local db = pChat.db
 
     -- Set copied text into text entry, if possible
     local function CopyToTextEntry(message)
@@ -149,7 +153,7 @@ function pChat.InitializeCopyHandler(pChatData, db, PCHAT_URL_CHAN, PCHAT_LINK)
         -- Whispers sent and received together
         if numChanCode == CHAT_CHANNEL_WHISPER_SENT then
             numChanCode = CHAT_CHANNEL_WHISPER
-        elseif numChanCode == PCHAT_URL_CHAN then
+        elseif numChanCode == CONSTANTS.PCHAT_URL_CHAN then
             numChanCode = db.LineStrings[numLine].channel
         end
 
@@ -240,12 +244,12 @@ function pChat.InitializeCopyHandler(pChatData, db, PCHAT_URL_CHAN, PCHAT_LINK)
     -- Triggers when right clicking on a LinkHandler
     local function OnLinkClicked(rawLink, mouseButton, linkText, color, linkType, lineNumber, chanCode)
 
-        -- Only executed on LinkType = PCHAT_LINK
-        if linkType == PCHAT_LINK then
+        -- Only executed on LinkType = CONSTANTS.PCHAT_LINK
+        if linkType == CONSTANTS.PCHAT_LINK then
 
             local chanNumber = tonumber(chanCode)
             local numLine = tonumber(lineNumber)
-            -- PCHAT_LINK also handle a linkable channel feature for linkable channels
+            -- CONSTANTS.PCHAT_LINK also handle a linkable channel feature for linkable channels
 
             -- Context Menu
             if chanCode and mouseButton == MOUSE_BUTTON_INDEX_LEFT then
@@ -267,7 +271,7 @@ function pChat.InitializeCopyHandler(pChatData, db, PCHAT_URL_CHAN, PCHAT_LINK)
                     local target = zo_strformat(SI_UNIT_NAME, db.LineStrings[numLine].rawFrom)
                     IgnoreMouseDownEditFocusLoss()
                     CHAT_SYSTEM:StartTextEntry(nil, chanNumber, target)
-                elseif chanNumber == PCHAT_URL_CHAN then
+                elseif chanNumber == CONSTANTS.PCHAT_URL_CHAN then
                     RequestOpenUnsafeURL(linkText)
                 end
 

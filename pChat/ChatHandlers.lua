@@ -1,3 +1,6 @@
+local CONSTANTS = pChat.CONSTANTS
+local ADDON_NAME = CONSTANTS.ADDON_NAME
+
 function pChat.InitializeChatHandlers(FormatMessage, FormatSysMessage, logger)
 
     -- Executed when EVENT_IGNORE_ADDED triggers

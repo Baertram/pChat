@@ -1,4 +1,11 @@
-function pChat.InitializeMessageFormatters(pChatData, db, PCHAT_LINK, PCHAT_URL_CHAN, SpamFilter, logger)
+local CONSTANTS = pChat.CONSTANTS
+local ADDON_NAME = CONSTANTS.ADDON_NAME
+
+function pChat.InitializeMessageFormatters()
+    local pChatData = pChat.pChatData
+    local db = pChat.db
+    local logger = pChat.logger
+    local SpamFilter = pChat.SpamFilter
 
     local chatStrings = {
         standard = "%s%s: |r%s%s%s|r", -- standard format: say, yell, group, npc, npc yell, npc whisper, zone
@@ -55,7 +62,7 @@ function pChat.InitializeMessageFormatters(pChatData, db, PCHAT_LINK, PCHAT_URL_
                 and (pChatData.tlds[tld:lower()] or tld:find("^%d+$") and subd:find("^%d+%.%d+%.%d+%.$") and math.max(tld, subd:match("^(%d+)%.(%d+)%.(%d+)%.$")) < 256)
                 and not subd:find("%W%W")
             then
-                local urlHandled = string.format("|H1:%s:%s:%s|h%s|h", PCHAT_LINK, db.lineNumber, PCHAT_URL_CHAN, url)
+                local urlHandled = string.format("|H1:%s:%s:%s|h%s|h", CONSTANTS.PCHAT_LINK, db.lineNumber, CONSTANTS.PCHAT_URL_CHAN, url)
                 url = url:gsub("([?+-])", "%%%1") -- don't understand why, 1st arg of gsub must be escaped and 2nd not.
                 text = text:gsub(url, urlHandled)
             end
@@ -269,14 +276,14 @@ function pChat.InitializeMessageFormatters(pChatData, db, PCHAT_LINK, PCHAT_URL_
                     end
 
                     splittedStart = splittedEnd + 1
-                    newText = newText .. string.format("|H1:%s:%s:%s|h%s|h", PCHAT_LINK, numLine, chanCode, splittedString)
+                    newText = newText .. string.format("|H1:%s:%s:%s|h%s|h", CONSTANTS.PCHAT_LINK, numLine, chanCode, splittedString)
                     splits = splits + 1
 
                 else
                     splittedString = text:sub(splittedStart)
                     local textSplittedlen = splittedString:len()
                     if textSplittedlen > 0 then
-                        newText = newText .. string.format("|H1:%s:%s:%s|h%s|h", PCHAT_LINK, numLine, chanCode, splittedString)
+                        newText = newText .. string.format("|H1:%s:%s:%s|h%s|h", CONSTANTS.PCHAT_LINK, numLine, chanCode, splittedString)
                     end
                     needToSplit = false
                 end
@@ -285,7 +292,7 @@ function pChat.InitializeMessageFormatters(pChatData, db, PCHAT_LINK, PCHAT_URL_
         else
             -- When dumping back, the "from" section is sent here. It will add handler to spaces. prevent it to avoid an uneeded increase of the message.
             if not (text == " " or text == ": ") then
-                newText = string.format("|H1:%s:%s:%s|h%s|h", PCHAT_LINK, numLine, chanCode, text)
+                newText = string.format("|H1:%s:%s:%s|h%s|h", CONSTANTS.PCHAT_LINK, numLine, chanCode, text)
             else
                 newText = text
             end
@@ -801,7 +808,7 @@ function pChat.InitializeMessageFormatters(pChatData, db, PCHAT_LINK, PCHAT_URL_
 
             -- Message is timestamp for now
             -- Add PCHAT_HANDLER for display
-            local timestamp = ZO_LinkHandler_CreateLink(pChat.CreateTimestamp(GetTimeString()), nil, PCHAT_LINK, db.lineNumber .. ":" .. chanCode) .. " "
+            local timestamp = ZO_LinkHandler_CreateLink(pChat.CreateTimestamp(GetTimeString()), nil, CONSTANTS.PCHAT_LINK, db.lineNumber .. ":" .. chanCode) .. " "
 
             -- Timestamp color
             message = message .. string.format("%s%s|r", timecol, timestamp)
@@ -884,16 +891,11 @@ function pChat.InitializeMessageFormatters(pChatData, db, PCHAT_LINK, PCHAT_URL_
         elseif chanCode == CHAT_CHANNEL_WHISPER then
 
             --PlaySound
-            -- TODO why is this commented out?
-            --            if db.soundforincwhisps then
-            --                PlaySound(db.soundforincwhisps)
-            --            end
-
             local notifyImSoundIndex = db.notifyIMIndex
             if SOUNDS and PlaySound and notifyImSoundIndex and pChat.sounds then
                 local soundName = pChat.sounds[notifyImSoundIndex]
                 if soundName and SOUNDS[soundName] then
-                    PlaySound(soundName)
+                    PlaySound(SOUNDS[soundName])
                 end
             end
 

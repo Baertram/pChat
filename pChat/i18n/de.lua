@@ -41,18 +41,21 @@ SafeAddString(PCHAT_enableWhisperTabT							,"Flüster Nachrichten werden zu ein
 
 -- New Need Translations
 
-SafeAddString(PCHAT_OPTIONSH											, "Nachrichtenoptionen", 1)
+SafeAddString(PCHAT_OPTIONSH											, "Chat Optionen", 1)
+SafeAddString(PCHAT_MESSAGEOPTIONSH										, "Nachrichten Optionen", 1)
+SafeAddString(PCHAT_MESSAGEOPTIONSNAMEH                                 , "Name in Nachrichten", 1)
+SafeAddString(PCHAT_MESSAGEOPTIONSCOLORH                                , "Farbe von Nachrichten", 1)
 
 SafeAddString(PCHAT_GUILDNUMBERS										, "Gildennummer", 1)
-SafeAddString(PCHAT_GUILDNUMBERSTT									, "Zeigt die Gildennummer neben dem Gildenkürzel an.", 1)
+SafeAddString(PCHAT_GUILDNUMBERSTT									, "Zeigt die Gildennummer neben dem Gilden Spitznamen an.", 1)
 
-SafeAddString(PCHAT_ALLGUILDSSAMECOLOUR							, "Nutze eine Farbe für alle Gilden", 1)
-SafeAddString(PCHAT_ALLGUILDSSAMECOLOURTT							, "Für alle 'Gildenchats' gilt die gleiche Farbeinstellung wie für die erste Gilde (/g1).", 1)
+SafeAddString(PCHAT_ALLGUILDSSAMECOLOUR							    , "Eine Farbe für alle Gilden", 1)
+SafeAddString(PCHAT_ALLGUILDSSAMECOLOURTT							, "Für alle 'Gildenchats' gilt die gleiche Farbeinstellung wie für die erste Gilde \'%s\'", 1)
 
-SafeAddString(PCHAT_ALLZONESSAMECOLOUR								, "Nutze eine Farbe für alle 'Zonenchats'", 1)
+SafeAddString(PCHAT_ALLZONESSAMECOLOUR								, "Eine Farbe für alle 'Zonen'", 1)
 SafeAddString(PCHAT_ALLZONESSAMECOLOURTT							, "Für alle 'Zonenchats' gilt die gleiche Farbeinstellung wie für (/zone).", 1)
 
-SafeAddString(PCHAT_ALLNPCSAMECOLOUR								, "Nutze eine Farbe für alle NSCs", 1)
+SafeAddString(PCHAT_ALLNPCSAMECOLOUR								, "Eine Farbe für alle NSCs", 1)
 SafeAddString(PCHAT_ALLNPCSAMECOLOURTT								, "Füe alle Texte von Nicht-Spieler-Charakteren (NSCs / NPCs) gilt die Farbeinstellung für 'NSC Sagen'.", 1)
 
 SafeAddString(PCHAT_DELZONETAGS										, "Bezeichnung entfernen", 1)
@@ -63,14 +66,18 @@ SafeAddString(PCHAT_ZONETAGYELL										, "Schreien", 1)
 SafeAddString(PCHAT_ZONETAGPARTY										, "Gruppe", 1)
 SafeAddString(PCHAT_ZONETAGZONE										, "Zone", 1)
 
-SafeAddString(PCHAT_CARRIAGERETURN									, "Spielernamen und Chattexte in eigenen Zeilen", 1)
+SafeAddString(PCHAT_CARRIAGERETURN									, "Namen & Text in separate Zeilen", 1)
 SafeAddString(PCHAT_CARRIAGERETURNTT								, "Spielernamen und Chattexte werden durch einen Zeilenvorschub getrennt.", 1)
 
-SafeAddString(PCHAT_USEESOCOLORS										, "ESO Standardfarben", 1)
-SafeAddString(PCHAT_USEESOCOLORSTT									, "Verwendet statt der pChat Vorgabe die The Elder Scrolls Online Standard-Chat-Farben.", 1)
+SafeAddString(PCHAT_USEESOCOLORS									, "ESO Standardfarben", 1)
+SafeAddString(PCHAT_USEESOCOLORSTT									, "Verwendet statt der pChat Vorgabe die \'The Elder Scrolls Online\' Standard-Chat-Farben.\nMit dieser Option aktiviert sind die Farbeinstellungen für Chat Kanal Farben nicht aktiviert!", 1)
 
-SafeAddString(PCHAT_DIFFFORESOCOLORS								, "Namen farbig absetzen", 1)
-SafeAddString(PCHAT_DIFFFORESOCOLORSTT								, "Bestimmt den Helligkeitsunterschied zwischen Charakternamen / Chat-Kanal und Nachrichtentext.", 1)
+SafeAddString(PCHAT_DIFFFORESOCOLORS								, "Aktiviere Helligkeitsunterschied", 1)
+SafeAddString(PCHAT_DIFFFORESOCOLORSTT								, "Bestimmt den Helligkeitsunterschied zwischen Charakternamen/Chat-Kanal und Nachrichtentext. Der Name wird dunkler, der Text wird heller.\nDiese Option ist nicht verwendbar, wenn die Option \'Einfarbige Zeilen\' aktiviert wurde!\nSetze den Regler auf 0, um den Helligkeitsunterschied zu deaktivieren.", 1)
+SafeAddString(PCHAT_DIFFFORESOCOLORSDARKEN                          , "Helligkeitsunt.: Verdunkeln um", 1)
+SafeAddString(PCHAT_DIFFFORESOCOLORSDARKENTT                        , "Verdunkle den Chat Namen um diesen Wert.", 1)
+SafeAddString(PCHAT_DIFFFORESOCOLORSLIGHTEN                         , "Helligkeitsunt.: Aufhellen um", 1)
+SafeAddString(PCHAT_DIFFFORESOCOLORSLIGHTENTT                       , "Helle den Chat Text um diesen Wert auf.", 1)
 
 SafeAddString(PCHAT_REMOVECOLORSFROMMESSAGES						, "Entferne Farbe aus Nachrichten", 1)
 SafeAddString(PCHAT_REMOVECOLORSFROMMESSAGESTT					, "Verhindert die Anzeige von Farben in Nachrichten (z.B. Regenbogentext von Mitspielern).", 1)
@@ -82,10 +89,10 @@ SafeAddString(PCHAT_PREVENTCHATTEXTFADING							, "Textausblenden unterbinden", 
 SafeAddString(PCHAT_PREVENTCHATTEXTFADINGTT						, "Verhindert,daß der Chat-Text ausgeblendet wird (Einstellungen zum Chat-Hintergrund finden sich unter Einstellungen: Soziales - Minimale Transparenz)", 1)
 
 SafeAddString(PCHAT_USEONECOLORFORLINES							, "Einfarbige Zeilen", 1)
-SafeAddString(PCHAT_USEONECOLORFORLINESTT							, "Verwendet nur eine Farbe pro Chat-Kanal, anstatt zwei Farben (Nur die Erste wird verwendet).", 1)
+SafeAddString(PCHAT_USEONECOLORFORLINESTT							, "Verwendet nur eine Farbe pro Chat-Kanal, anstatt zwei Farben (Nur die Erste, für den Spieler, wird verwendet)", 1)
 
-SafeAddString(PCHAT_GUILDTAGSNEXTTOENTRYBOX						, "Gildenkürzel neben der Eingabe", 1)
-SafeAddString(PCHAT_GUILDTAGSNEXTTOENTRYBOXTT					, "Zeigt das Gildenkürzel anstelle des Gildennamens neben der Eingabezeile an.", 1)
+SafeAddString(PCHAT_GUILDTAGSNEXTTOENTRYBOX						, "Gilden Spitzname neben Textfeld", 1)
+SafeAddString(PCHAT_GUILDTAGSNEXTTOENTRYBOXTT					, "Zeigt den Gilden Spitznamen anstelle des Gildennamens links neben der Text-Eingabezeile an.", 1)
 
 SafeAddString(PCHAT_DISABLEBRACKETS									, "Klammern um Namen entfernen", 1)
 SafeAddString(PCHAT_DISABLEBRACKETSTT								, "Entfernt Klammern [] um die Namen der Spieler", 1)
@@ -113,30 +120,34 @@ SafeAddString(PCHAT_GEOCHANNELSFORMATTT							, "Darstellung der Namensanzeige f
 SafeAddString(PCHAT_DEFAULTTAB										, "Standard Reiter nach Anmeldung", 1)
 SafeAddString(PCHAT_DEFAULTTABTT										, "Bestimmt welcher Chat Reiter automatisch als Standard nach der Anmeldung ausgewählt wird.", 1)
 
-SafeAddString(PCHAT_ADDCHANNELANDTARGETTOHISTORY				, "Kanal wechseln beim Benutzen der Pfeiltasten Historie", 1)
-SafeAddString(PCHAT_ADDCHANNELANDTARGETTOHISTORYTT				, "Der Chat Kanal wird beim Verwenden der Tastatur Pfeiltasten Historie (Hoch/Runter) zum zuletzt gewählten Chat Kanal wechseln.", 1)
+SafeAddString(PCHAT_ADDCHANNELANDTARGETTOHISTORY				, "Kanal wechseln durch Pfeiltasten", 1)
+SafeAddString(PCHAT_ADDCHANNELANDTARGETTOHISTORYTT				, "Der Chat Kanal wird beim Verwenden der Tastatur Pfeiltasten zum davor gewählten Chat Kanal wechseln.", 1)
 
-SafeAddString(PCHAT_URLHANDLING										, "Erkenne URL\'s und mache sie verwendbar", 1)
-SafeAddString(PCHAT_URLHANDLINGTT									, "Wenn eine URL mit http(s):// anfängt, wird pChat diese Links erkennen. Klicke auf diese Links um die Adresse in deinem Browser aufzurufen.\nAchtung: Es wird von ESO eine Sicherheitsabfrage angezeigt, ob Sie die Webseite aufrufen möchten.", 1)
+SafeAddString(PCHAT_URLHANDLING										, "URL\'s/Links erkennen", 1)
+SafeAddString(PCHAT_URLHANDLINGTT									, "Wenn eine URL mit http(s):// anfängt, wird pChat diese Links erkennen. Klicke auf diese Links um die Adresse in deinem im System eingestellten Standard Web Browser aufzurufen.\nAchtung: Es wird von ESO immer eine Sicherheitsabfrage angezeigt, ob die Webseite extern angezeigt werden soll.", 1)
 
 SafeAddString(PCHAT_ENABLECOPY										, "Kopie/Chat Kanal Wechsel aktivieren", 1)
 SafeAddString(PCHAT_ENABLECOPYTT										, "Aktivieren Sie das Kopieren von Text mit einem Rechtsklick.\nDies ermöglicht ebenfalls den Chat Kanal-Wechsel mit einem Linksklick.\n\nDeaktivieren Sie diese Option, wenn Sie Probleme mit der Anzeige von Links im Chat haben.", 1)
 
 -- Group Settings
 
-SafeAddString(PCHAT_GROUPH												, "Gruppen Kanal Einstellungen", 1)
+SafeAddString(PCHAT_GROUPH												, "Gruppen Einstellungen", 1)
 
-SafeAddString(PCHAT_ENABLEPARTYSWITCH								, "Automatischer Gruppen Kanal Wechsel", 1)
+SafeAddString(PCHAT_ENABLEPARTYSWITCH								, "Autom. Kanalwechsel: Gruppe", 1)
 SafeAddString(PCHAT_ENABLEPARTYSWITCHTT							    , "Wenn du einer Gruppe beitrittst, wechselt der Chat Kanal automatisch zur Gruppe. Beim Verlassen der Gruppe entsprechend zurück zum zuletzt verwendeten Kanal.", 1)
 
+SafeAddString(PCHAT_ENABLEPARTYSWITCHPORTTODUNGEON,                 "Autom. Wechsel: Verlies", 1)
+SafeAddString(PCHAT_ENABLEPARTYSWITCHPORTTODUNGEONTT, 	            "Der oben genannte automatische Gruppen Kanal Wechsel wird auch beim Reisen in ein Verlies/Benutzeroberfläche neuladen im Verlies ausgeführt, wenn du in einer Gruppe bist.\nDiese Option ist nur dann aktiv, wenn der automatische Gruppen Kanel Wechsel aktiviert wurde!", 1)
+
+
 SafeAddString(PCHAT_GROUPLEADER										, "Sonderfarben für Gruppenleiter", 1)
-SafeAddString(PCHAT_GROUPLEADERTT									, "Die Gruppenleiter werden mit einer speziellen Farbe im Gruppenchat scheiben.", 1)
+SafeAddString(PCHAT_GROUPLEADERTT									, "Die Gruppenleiter werden mit einer speziellen Farbe im Gruppenchat schreiben.", 1)
 
-SafeAddString(PCHAT_GROUPLEADERCOLOR								, "Sonderfarbe Name des Gruppenleiters", 1)
-SafeAddString(PCHAT_GROUPLEADERCOLORTT								, "Farbe des Gruppenleiters. Diese Farbe ist nur aktiv, wenn \"ESO Standardfarben\" deaktiviert ist.", 1)
+SafeAddString(PCHAT_GROUPLEADERCOLOR								, "Gruppenleiter Name Farbe", 1)
+SafeAddString(PCHAT_GROUPLEADERCOLORTT								, "Farbe des Gruppenleiters im Gruppenchat.", 1)
 
-SafeAddString(PCHAT_GROUPLEADERCOLOR1								, "Sonderfarbe Nachricht des Gruppenleiters", 1)
-SafeAddString(PCHAT_GROUPLEADERCOLOR1TT							    , "Farbe der Nachrichten des Gruppenleiters. Wenn \"ESO Standardfarben\" deaktiviert ist, ist entsprechend diese Funktion auch deaktiviert. Es wird entsprechend die obere Farbe des Gruppenleiters gewählt.", 1)
+SafeAddString(PCHAT_GROUPLEADERCOLOR1								, "Gruppenleiter Nachricht Farbe", 1)
+SafeAddString(PCHAT_GROUPLEADERCOLOR1TT							    , "Farbe der Nachrichten des Gruppenleiters. Wenn \"ESO Standardfarben\" aktiviert wurde ist diese Funktion deaktiviert.", 1)
 
 SafeAddString(PCHAT_GROUPNAMES										, "Namen Darstellung in Gruppen", 1)
 SafeAddString(PCHAT_GROUPNAMESTT									, "Darstellung der Namen in Gruppen.", 1)
@@ -255,7 +266,7 @@ SafeAddString(PCHAT_TIMESTAMPH										, "Zeitstempel & Zwischenablage", 1)
 SafeAddString(PCHAT_ENABLETIMESTAMP									, "Aktiviere Zeitstempel", 1)
 SafeAddString(PCHAT_ENABLETIMESTAMPTT								, "Fügt Chat-Nachrichten einen Zeitstempel hinzu.", 1)
 
-SafeAddString(PCHAT_TIMESTAMPCOLORISLCOL							, "Zeitstempel und Spielernamen gleich färben", 1)
+SafeAddString(PCHAT_TIMESTAMPCOLORISLCOL							, "Zeitstempel und Namen gleich färben", 1)
 SafeAddString(PCHAT_TIMESTAMPCOLORISLCOLTT						, "Für den Zeitstempel gilt die gleiche Farbeinstellung wie für den Spielernamen, oder Nicht-Spieler-Charakter (NSC / NPC)", 1)
 
 SafeAddString(PCHAT_TIMESTAMPFORMAT									, "Zeitstempelformat", 1)
@@ -265,6 +276,9 @@ SafeAddString(PCHAT_TIMESTAMP											, "Zeitstempel", 1)
 SafeAddString(PCHAT_TIMESTAMPTT										, "Legt die Farbe des Zeitstempels fest.", 1)
 
 -- Guild settings
+SafeAddString(PCHAT_GUILDH,                                         "Gilden Einstellungen", 1)
+
+SafeAddString(PCHAT_CHATCHANNELSH,                                  "Chat Kanäle", 1)
 
 SafeAddString(PCHAT_NICKNAMEFOR										, "Spitzname", 1)
 SafeAddString(PCHAT_NICKNAMEFORTT									, "Spitzname für ", 1)
@@ -292,107 +306,107 @@ SafeAddString(PCHAT_SETCOLORSFORCHATTT								, "Farbe für Nachrichten von <<1>
 SafeAddString(PCHAT_SETCOLORSFOROFFICIERSTT						, "Farbe für Mitglieder des 'Offiziers-Chats' von <<1>>", 1)
 SafeAddString(PCHAT_SETCOLORSFOROFFICIERSCHATTT					, "Farbe für Nachrichten des 'Offiziers-Chats' von <<1>>", 1)
 
-SafeAddString(PCHAT_MEMBERS											, "<<1>> - Spieler", 1)
-SafeAddString(PCHAT_CHAT												, "<<1>> - Nachrichten", 1)
+SafeAddString(PCHAT_MEMBERS											, "Spielername", 1)
+SafeAddString(PCHAT_CHAT												, "Nachrichten", 1)
 
 SafeAddString(PCHAT_OFFICERSTT										, " Offiziere", 1)
 
 -- Channel colors settings
 
-SafeAddString(PCHAT_CHATCOLORSH										, "Chat-Farben", 1)
+SafeAddString(PCHAT_CHATCOLORSH										, "Chat Kanal Farben", 1)
 
 SafeAddString(PCHAT_SAY													, "Sagen - Spieler", 1)
-SafeAddString(PCHAT_SAYTT												, "Legt die Farbe für vom Spieler verfasste Nachrichten im Chat-Kanal: Sagen fest.", 1)
+SafeAddString(PCHAT_SAYTT												, "Legt die Farbe für Spieler Namen im Chat-Kanal: Sagen fest.", 1)
 
-SafeAddString(PCHAT_SAYCHAT											, "Sagen - Chat", 1)
+SafeAddString(PCHAT_SAYCHAT											, "Sagen - Nachricht", 1)
 SafeAddString(PCHAT_SAYCHATTT											, "Legt die Farbe der Nachrichten im Chat-Kanal: Sagen fest.", 1)
 
 SafeAddString(PCHAT_ZONE												, "Zone - Spieler", 1)
-SafeAddString(PCHAT_ZONETT												, "Legt die Farbe für vom Spieler verfasste Nachrichten im Chat-Kanal: Zone fest.", 1)
+SafeAddString(PCHAT_ZONETT												, "Legt die Farbe für Spieler Namen im Chat-Kanal: Zone fest.", 1)
 
-SafeAddString(PCHAT_ZONECHAT											, "Zone - Chat", 1)
+SafeAddString(PCHAT_ZONECHAT											, "Zone - Nachricht", 1)
 SafeAddString(PCHAT_ZONECHATTT										, "Legt die Farbe der Nachrichten im Chat-Kanal: Zone fest.", 1)
 
 SafeAddString(PCHAT_YELL												, "Schreien - Spieler", 1)
-SafeAddString(PCHAT_YELLTT												, "Legt die Farbe für vom Spieler verfasste Nachrichten im Chat-Kanal: Schreien fest.", 1)
+SafeAddString(PCHAT_YELLTT												, "Legt die Farbe für Spieler Namen im Chat-Kanal: Schreien fest.", 1)
 
-SafeAddString(PCHAT_YELLCHAT											, "Schreien - Chat", 1)
+SafeAddString(PCHAT_YELLCHAT											, "Schreien - Nachricht", 1)
 SafeAddString(PCHAT_YELLCHATTT										, "Legt die Farbe der Nachrichten im Chat-Kanal: Schreien fest.", 1)
 
 SafeAddString(PCHAT_INCOMINGWHISPERS								, "Eingehendes Flüstern - Spieler", 1)
-SafeAddString(PCHAT_INCOMINGWHISPERSTT								, "Legt die Farbe für vom Spieler verfasste Nachrichten im Chat-Kanal: eingehendes Flüstern fest.", 1)
+SafeAddString(PCHAT_INCOMINGWHISPERSTT								, "Legt die Farbe für Spieler Namen im Chat-Kanal: eingehendes Flüstern fest.", 1)
 
-SafeAddString(PCHAT_INCOMINGWHISPERSCHAT							, "Eingehendes Flüstern - Chat", 1)
-SafeAddString(PCHAT_INCOMINGWHISPERSCHATTT						, "Legt die Farbe der Nachrichten im Chat-Kanal: eingehendes Flüstern fest.", 1)
+SafeAddString(PCHAT_INCOMINGWHISPERSCHAT							, "Eingehendes Flüstern - Nachricht", 1)
+SafeAddString(PCHAT_INCOMINGWHISPERSCHATTT						    , "Legt die Farbe der Nachrichten im Chat-Kanal: eingehendes Flüstern fest.", 1)
 
 SafeAddString(PCHAT_OUTGOINGWHISPERS								, "Ausgehendes Flüstern - Spieler", 1)
-SafeAddString(PCHAT_OUTGOINGWHISPERSTT								, "Legt die Farbe für vom Spieler verfasste Nachrichten im Chat-Kanal: ausgehendes Flüstern fest.", 1)
+SafeAddString(PCHAT_OUTGOINGWHISPERSTT								, "Legt die Farbe für Spieler Namen im Chat-Kanal: ausgehendes Flüstern fest.", 1)
 
-SafeAddString(PCHAT_OUTGOINGWHISPERSCHAT							, "Ausgehendes Flüstern - Chat", 1)
-SafeAddString(PCHAT_OUTGOINGWHISPERSCHATTT						, "Legt die Farbe der Nachrichten im Chat-Kanal: ausgehendes Flüstern fest.", 1)
+SafeAddString(PCHAT_OUTGOINGWHISPERSCHAT							, "Ausgehendes Flüstern - Nachricht", 1)
+SafeAddString(PCHAT_OUTGOINGWHISPERSCHATTT						    , "Legt die Farbe der Nachrichten im Chat-Kanal: ausgehendes Flüstern fest.", 1)
 
 SafeAddString(PCHAT_GROUP												, "Gruppe - Spieler", 1)
-SafeAddString(PCHAT_GROUPTT											, "Legt die Farbe für vom Spieler verfasste Nachrichten im Chat-Kanal: Gruppe fest.", 1)
+SafeAddString(PCHAT_GROUPTT											, "Legt die Farbe für Spieler Namen im Chat-Kanal: Gruppe fest.", 1)
 
-SafeAddString(PCHAT_GROUPCHAT											, "Gruppe - Chat", 1)
+SafeAddString(PCHAT_GROUPCHAT											, "Gruppe - Nachricht", 1)
 SafeAddString(PCHAT_GROUPCHATTT										, "Legt die Farbe der Nachrichten im Chat-Kanal: Gruppe fest.", 1)
 
 -- Other colors
 
 SafeAddString(PCHAT_OTHERCOLORSH										, "Sonstige Farben", 1)
 
-SafeAddString(PCHAT_EMOTES												, "'Emotes' - Spieler", 1)
-SafeAddString(PCHAT_EMOTESTT											, "Legt die Farbe für vom Spieler ausgeführte 'Emotes' fest.", 1)
+SafeAddString(PCHAT_EMOTES												, "'Emotes' - Name", 1)
+SafeAddString(PCHAT_EMOTESTT											, "Legt die Farbe für den Spieler Namen bei ausgeführten 'Emotes' fest.", 1)
 
-SafeAddString(PCHAT_EMOTESCHAT										, "Emotes - Chat", 1)
+SafeAddString(PCHAT_EMOTESCHAT										    , "Emotes - Nachricht", 1)
 SafeAddString(PCHAT_EMOTESCHATTT										, "Legt die Farbe von 'Emotes' im Chat fest.", 1)
 
-SafeAddString(PCHAT_ENZONE												, "EN Zone - Spieler", 1)
-SafeAddString(PCHAT_ENZONETT											, "Legt die Farbe für vom Spieler verfasste Nachrichten im englischsprachigen Chat-Kanal fest.", 1)
+SafeAddString(PCHAT_ENZONE												, "EN Zone - Name", 1)
+SafeAddString(PCHAT_ENZONETT											, "Legt die Farbe für Spieler Namen im englischsprachigen Chat-Kanal fest.", 1)
 
-SafeAddString(PCHAT_ENZONECHAT										, "EN Zone - Chat", 1)
+SafeAddString(PCHAT_ENZONECHAT										, "EN Zone - Nachricht", 1)
 SafeAddString(PCHAT_ENZONECHATTT										, "Legt die Farbe der Nachrichten im englischsprachigen Chat-Kanal fest.", 1)
 
-SafeAddString(PCHAT_FRZONE												, "FR Zone - Spieler", 1)
-SafeAddString(PCHAT_FRZONETT											, "Legt die Farbe für vom Spieler verfasste Nachrichten im französischsprachigen Chat-Kanal fest.", 1)
+SafeAddString(PCHAT_FRZONE												, "FR Zone - Name", 1)
+SafeAddString(PCHAT_FRZONETT											, "Legt die Farbe für Spieler Namen im französischsprachigen Chat-Kanal fest.", 1)
 
-SafeAddString(PCHAT_FRZONECHAT										, "FR Zone - Chat", 1)
+SafeAddString(PCHAT_FRZONECHAT										, "FR Zone - Nachricht", 1)
 SafeAddString(PCHAT_FRZONECHATTT										, "Legt die Farbe der Nachrichten im französischsprachigen Chat-Kanal fest.", 1)
 
-SafeAddString(PCHAT_DEZONE												, "DE Zone - Spieler", 1)
-SafeAddString(PCHAT_DEZONETT											, "Legt die Farbe für vom Spieler verfasste Nachrichten im deutschsprachigen Chat-Kanal fest.", 1)
+SafeAddString(PCHAT_DEZONE												, "DE Zone - Name", 1)
+SafeAddString(PCHAT_DEZONETT											, "Legt die Farbe für Spieler Namen im deutschsprachigen Chat-Kanal fest.", 1)
 
-SafeAddString(PCHAT_DEZONECHAT										, "DE Zone - Chat", 1)
+SafeAddString(PCHAT_DEZONECHAT										, "DE Zone - Nachricht", 1)
 SafeAddString(PCHAT_DEZONECHATTT										, "Legt die Farbe der Nachrichten im deutschsprachigen Chat-Kanal fest.", 1)
 
-SafeAddString(PCHAT_JPZONE												, "JP Zone - Spieler", 1)
-SafeAddString(PCHAT_JPZONETT											, "Legt die Farbe für vom Spieler verfasste Nachrichten im japanisch Chat-Kanal fest.", 1)
+SafeAddString(PCHAT_JPZONE												, "JP Zone - Name", 1)
+SafeAddString(PCHAT_JPZONETT											, "Legt die Farbe für Spieler Namen im japanisch Chat-Kanal fest.", 1)
 
-SafeAddString(PCHAT_JPZONECHAT										, "JP Zone - Chat", 1)
+SafeAddString(PCHAT_JPZONECHAT										, "JP Zone - Nachricht", 1)
 SafeAddString(PCHAT_JPZONECHATTT										, "Legt die Farbe der Nachrichten im japanisch Chat-Kanal fest.", 1)
 
 SafeAddString(PCHAT_NPCSAY												, "NSC Sagen - NSC Name", 1)
 SafeAddString(PCHAT_NPCSAYTT											, "Legt die Farbe des Namens des Nicht-Spieler-Charakters (NSC - NPC) in NSC-Texten fest.", 1)
 
-SafeAddString(PCHAT_NPCSAYCHAT										, "NSC Sagen - Chat", 1)
+SafeAddString(PCHAT_NPCSAYCHAT										, "NSC Sagen - Nachricht", 1)
 SafeAddString(PCHAT_NPCSAYCHATTT										, "Legt die Farbe für Nicht-Spieler-Charaktertexte fest.", 1)
 
 SafeAddString(PCHAT_NPCYELL											, "NSC Schreien - NSC Name", 1)
 SafeAddString(PCHAT_NPCYELLTT											, "Legt die Farbe des Namens des Nicht-Spieler-Charakters (NSC - NPC) in geschrienen NSC-Texten fest.", 1)
 
-SafeAddString(PCHAT_NPCYELLCHAT										, "NSC Schreien - Chat", 1)
+SafeAddString(PCHAT_NPCYELLCHAT										, "NSC Schreien - Nachricht", 1)
 SafeAddString(PCHAT_NPCYELLCHATTT									, "Legt die Farbe für geschriene Nicht-Spieler-Charaktertexte fest.", 1)
 
 SafeAddString(PCHAT_NPCWHISPER										, "NSC Flüstern - NSC Name", 1)
 SafeAddString(PCHAT_NPCWHISPERTT										, "Legt die Farbe des Namens des Nicht-Spieler-Charakters (NSC - NPC) in geflüsterten NSC-Texten fest.", 1)
 
-SafeAddString(PCHAT_NPCWHISPERCHAT									, "NSC Flüstern - Chat", 1)
+SafeAddString(PCHAT_NPCWHISPERCHAT									, "NSC Flüstern - Nachricht", 1)
 SafeAddString(PCHAT_NPCWHISPERCHATTT								, "Legt die Farbe für geflüsterte Nicht-Spieler-Charaktertexte fest.", 1)
 
 SafeAddString(PCHAT_NPCEMOTES											, "NSC 'Emote' - NSC Name", 1)
 SafeAddString(PCHAT_NPCEMOTESTT										, "Legt die Farbe des Namens des Nicht-Spieler-Charakters (NSC - NPC) der ein 'Emote' ausführt fest.", 1)
 
-SafeAddString(PCHAT_NPCEMOTESCHAT									, "NSC 'Emote' - Chat", 1)
+SafeAddString(PCHAT_NPCEMOTESCHAT									, "NSC 'Emote' - Nachricht", 1)
 SafeAddString(PCHAT_NPCEMOTESCHATTT									, "Legt die Farbe für 'Nicht-Spieler-Charakter-Emotes' im Chat fest.", 1)
 
 -- Debug settings

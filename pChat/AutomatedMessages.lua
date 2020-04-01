@@ -1,4 +1,9 @@
-function pChat.InitializeAutomatedMessages(pChatData, db, ADDON_NAME)
+local ADDON_NAME = pChat.CONSTANTS.ADDON_NAME
+
+function pChat.InitializeAutomatedMessages()
+    local pChatData = pChat.pChatData
+    local db = pChat.db
+
     local MENU_CATEGORY_PCHAT
 
     -- Init Automated Messages
