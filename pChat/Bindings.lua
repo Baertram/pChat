@@ -56,6 +56,10 @@ local ADDON_NAME    = CONSTANTS.ADDON_NAME
     end
 
 
+    ---------------------------------
+    -- Whisper --
+    ---------------------------------
+
     --[GLOBAL functions for pChat keybinds]--
     -- Called by bindings
     function pChat_WhispMyTarget()
@@ -63,6 +67,11 @@ local ADDON_NAME    = CONSTANTS.ADDON_NAME
             CHAT_SYSTEM:StartTextEntry(nil, CHAT_CHANNEL_WHISPER, targetToWhisp)
         end
     end
+
+
+    ---------------------------------
+    -- Chat window --
+    ---------------------------------
 
     --Toggle the chat window
     function pChat_ToggleChat()
@@ -73,6 +82,11 @@ local ADDON_NAME    = CONSTANTS.ADDON_NAME
             CHAT_SYSTEM:Minimize()
         end
     end
+
+
+    ---------------------------------
+    --Chat tabs--
+    ---------------------------------
 
     -- Can be called by Bindings
     function pChat_SwitchToNextTab()
@@ -132,4 +146,16 @@ local ADDON_NAME    = CONSTANTS.ADDON_NAME
         if not container then return end
         tabToSet=container.currentBuffer:GetParent().tab.tabToSet
         ]]
+    end
+
+
+    ---------------------------------
+    --Automated messages--
+    ---------------------------------
+
+    -- Also called by bindings
+    function pChat_ShowAutoMsg()
+        if LibMainMenu and MENU_CATEGORY_PCHAT then
+            LibMainMenu:ToggleCategory(MENU_CATEGORY_PCHAT)
+        end
     end

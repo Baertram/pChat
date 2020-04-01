@@ -9,12 +9,6 @@ function pChat.InitializeAutomatedMessages()
     -- Init Automated Messages
     local automatedMessagesList = ZO_SortFilterList:Subclass()
 
-    -- Also called by bindings
-    function pChat_ShowAutoMsg()
-        if LibMainMenu and MENU_CATEGORY_PCHAT then
-            LibMainMenu:ToggleCategory(MENU_CATEGORY_PCHAT)
-        end
-    end
 
     function automatedMessagesList:New(control)
         ZO_SortFilterList.InitializeSortFilterList(self, control)
