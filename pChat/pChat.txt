@@ -37,6 +37,6 @@ ChatConfig.lua
 ChatHistory.lua
 ChatTabs.lua
 
-pChat.xml
 copyDialog.xml
+pChat.xml
 bindings.xml

@@ -144,7 +144,7 @@ function pChat.InitializeChatHistory()
             while historyIndex <= #db.LineStrings do
                 if db.LineStrings[historyIndex] then
                     local channelToRestore = db.LineStrings[historyIndex].channel
-                    if channelToRestore == CONSTANTS.PCHAT_CHANNEL_SAY then channelToRestore = 0 end
+                    if channelToRestore == CONSTANTS.PCHAT_CHANNEL_SAY then channelToRestore = CHAT_CHANNEL_SAY end
 
                     if channelToRestore == CHAT_CHANNEL_SYSTEM and not db.restoreSystem then
                         table.remove(db.LineStrings, historyIndex)

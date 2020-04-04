@@ -425,8 +425,10 @@ SafeAddString(PCHAT_ALLCT												, "Ganzes Plaudern kopieren", 1)
 
 SafeAddString(PCHAT_COPYXMLTITLE										, "Kopiere Text mit STRG+C", 1)
 SafeAddString(PCHAT_COPYXMLLABEL										, "Kopiere Text mit STRG+C", 1)
-SafeAddString(PCHAT_COPYXMLTOOLONG									, "Text ist uzu lang und wurde aufgeteilt", 1)
-SafeAddString(PCHAT_COPYXMLNEXT										, "Nächster", 1)
+SafeAddString(PCHAT_COPYXMLTOOLONG									, "Aufgeteilter Text:", 1)
+SafeAddString(PCHAT_COPYXMLPREV										, "Vorherige", 1)
+SafeAddString(PCHAT_COPYXMLNEXT										, "Nächste", 1)
+SafeAddString(PCHAT_COPYXMLAPPLY                                    , "Filter anwenden", 1)
 
 SafeAddString(PCHAT_SWITCHTONEXTTABBINDING						, "Zur nächsten Registerkarte", 1)
 SafeAddString(PCHAT_TOGGLECHATBINDING								, "Toggle Chat-Fenster", 1)

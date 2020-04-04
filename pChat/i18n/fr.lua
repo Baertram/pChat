@@ -400,7 +400,7 @@ SafeAddString(PCHAT_ALLCT												, "Copier tout le chat", 1)
 
 SafeAddString(PCHAT_COPYXMLTITLE										, "Copier le texte avec Ctrl+C", 1)
 SafeAddString(PCHAT_COPYXMLLABEL										, "Copier le texte avec Ctrl+C", 1)
-SafeAddString(PCHAT_COPYXMLTOOLONG									, "Le texte est trop long et à été découpé", 1)
+SafeAddString(PCHAT_COPYXMLTOOLONG									, "Texte découpé", 1)
 SafeAddString(PCHAT_COPYXMLNEXT										, "Suivant", 1)
 
 SafeAddString(PCHAT_SWITCHTONEXTTABBINDING						, "Passer à l'onglet suivant", 1)

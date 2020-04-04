@@ -323,7 +323,7 @@ local function OnPlayerActivated()
             --Update the guilds custom tags (next to entry box): Add them to the chat channels of table ChannelInfo
             UpdateCharCorrespondanceTableChannelNames()
 
-            --Update teh guild's custom channel switches: Add them to the chat switches of table ZO_ChatSystem_GetChannelSwitchLookupTable
+            --Update the guild's custom channel switches: Add them to the chat switches of table ZO_ChatSystem_GetChannelSwitchLookupTable
             UpdateGuildCorrespondanceTableSwitches()
 
             -- Handle Copy text

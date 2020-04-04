@@ -407,8 +407,10 @@ local strings = {
 
 	PCHAT_COPYXMLTITLE = "Copy text with Ctrl+C",
 	PCHAT_COPYXMLLABEL = "Copy text with Ctrl+C",
-	PCHAT_COPYXMLTOOLONG = "Text is too long and is splitted",
+	PCHAT_COPYXMLTOOLONG = "Splitted text",
+	PCHAT_COPYXMLPREV = "Prev",
 	PCHAT_COPYXMLNEXT = "Next",
+	PCHAT_COPYXMLAPPLY = "Apply filter",
 
 	PCHAT_COPYMESSAGECT = "Copy message",
 	PCHAT_COPYLINECT = "Copy line",
@@ -443,7 +445,7 @@ local strings = {
 	PCHAT_RESTOREPREFIXTT = "Add a prefix \'[H]\' to restored messages in order to easily see they were restored.\nThis will affect the current chat only after a reloadUI!\nThe color of the prefix will be shown with the standard ESO chat channel colors.",
 
 	PCHAT_BUILT_IN_CHANNEL_SWITCH_WARNING = "Cannot use existing built-in switch '%s'",
-	PCHAT_DUPLICATE_CHANNEL_SWITCH_WARNING = "Tried to replace already existing switch '%s'"
+	PCHAT_DUPLICATE_CHANNEL_SWITCH_WARNING = "Tried to replace already existing switch '%s'",
 }
 
 for stringId, stringValue in pairs(strings) do
