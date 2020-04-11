@@ -1121,5 +1121,10 @@ function pChat.InitializeMessageFormatters()
 
     end
 
+    -- For compatibility. Called by others addons.
+    pChat.FormatMessage = FormatMessage
+    pChat.formatSysMessage = FormatSysMessage
+    pChat_FormatSysMessage = FormatSysMessage
+
     return FormatMessage, FormatSysMessage
 end

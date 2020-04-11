@@ -279,7 +279,7 @@ local function OnPlayerActivated()
     if pChatData.isAddonLoaded and not eventPlayerActivatedCheckRunning then
         pChatData.sceneFirst = false
 
-        pChat.InitializeChatHandlers(pChat.FormatMessage, pChat.formatSysMessage, logger)
+        pChat.InitializeChatHandlers()
     end
 
     --Test if the chat_system containers are given already or wait until they are.
@@ -456,11 +456,6 @@ local function OnAddonLoaded(_, addonName)
 
         pChat.SpamFilter = pChat.InitializeSpamFilter()
         local FormatMessage, FormatSysMessage = pChat.InitializeMessageFormatters()
-
-        -- For compatibility. Called by others addons.
-        pChat.FormatMessage = FormatMessage
-        pChat.formatSysMessage = FormatSysMessage
-        pChat_FormatSysMessage = FormatSysMessage
 
         --EVENTS--
         -- Because ChatSystem is loaded after EVENT_ADDON_LOADED triggers, we use 1st EVENT_PLAYER_ACTIVATED wich is run bit after

@@ -1,7 +1,10 @@
 local CONSTANTS = pChat.CONSTANTS
 local ADDON_NAME = CONSTANTS.ADDON_NAME
 
-function pChat.InitializeChatHandlers(FormatMessage, FormatSysMessage, logger)
+function pChat.InitializeChatHandlers()
+    local FormatMessage= pChat.FormatMessage
+    local FormatSysMessage = pChat.formatSysMessage
+    local logger = pChat.logger
 
     -- Executed when EVENT_IGNORE_ADDED triggers
     local function OnIgnoreAdded(displayName)
@@ -122,6 +125,7 @@ function pChat.InitializeChatHandlers(FormatMessage, FormatSysMessage, logger)
         return message, info.saveTarget
 
     end
+    pChat.MessageChannelReceiver = pChatChatHandlersMessageChannelReceiver
 
     --Set the chat handlers for the chat/friend/group events
     CHAT_ROUTER:RegisterMessageFormatter(EVENT_CHAT_MESSAGE_CHANNEL, pChatChatHandlersMessageChannelReceiver)
