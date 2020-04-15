@@ -121,8 +121,8 @@ local strings = {
 	PCHAT_ENABLEPARTYSWITCH = "Auto channel switch: party",
 	PCHAT_ENABLEPARTYSWITCHTT = "Enabling Party switch will switch your current channel to party when joining a party and  switch back to your default channel when leaving a party",
 
-	PCHAT_ENABLEPARTYSWITCHPORTTODUNGEON 	= "Auto switch: dungeon",
-	PCHAT_ENABLEPARTYSWITCHPORTTODUNGEONTT 	= "The above mentioned party switch will also change the chat channel to /party if you port into a dungeon/do a reloadui in a dungeon + your are grouped.\nThis setting will be only available if the party switch is enabled!",
+	PCHAT_ENABLEPARTYSWITCHPORTTODUNGEON 	= "Auto switch: dungeon/reloadui",
+	PCHAT_ENABLEPARTYSWITCHPORTTODUNGEONTT 	= "The above mentioned party switch will also change the chat channel to /party if you port into a dungeon/do a reloadui/login + your are grouped.\nThis setting will be only available if the party switch is enabled!",
 
 	PCHAT_GROUPLEADER = "Special color for party leader",
 	PCHAT_GROUPLEADERTT = "Enabling this feature will let you set a special color for party leader messages",

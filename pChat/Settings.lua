@@ -17,9 +17,10 @@ CONSTANTS[ADDON_SV_NAME] 	= ADDON_SV_NAME
 CONSTANTS[ADDON_SV_VERSION] = ADDON_SV_VERSION
 
 --Initialize the SavedVariables and LAM settings menu
-function pChat.InitializeSettings(UpdateCharCorrespondanceTableChannelNames)
+function pChat.InitializeSettings()
     local pChatData = pChat.pChatData
     local logger = pChat.logger
+	local UpdateCharCorrespondanceTableChannelNames = pChat.UpdateCharCorrespondanceTableChannelNames
 
     local ConvertRGBToHex = pChat.ConvertRGBToHex
     local ConvertHexToRGBA = pChat.ConvertHexToRGBA
@@ -57,6 +58,7 @@ function pChat.InitializeSettings(UpdateCharCorrespondanceTableChannelNames)
         enablecopy = true,
         enableChatTabChannel = true,
         enablepartyswitch = true,
+		enablepartyswitchPortToDungeon = false,
         enableWhisperTab = false,
         groupLeader = false,
         disableBrackets = true,

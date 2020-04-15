@@ -442,30 +442,26 @@ function pChat.InitializeChatConfig()
     end
 
     local function SwitchToParty(characterName)
-
         zo_callLater(function(characterName) -- characterName = avoid ZOS bug
             -- If "me" join group
-            if(GetRawUnitName("player") == characterName) then
+            if(characterName and GetRawUnitName("player") == characterName) then
 
-                -- Switch to party channel when joining a group
-                if db.enablepartyswitch then
-                    CHAT_SYSTEM:SetChannel(CHAT_CHANNEL_PARTY)
+                    -- Switch to party channel when joining a group
+                    if db.enablepartyswitch then
+                        CHAT_SYSTEM:SetChannel(CHAT_CHANNEL_PARTY)
+                    end
+            else
+                -- Someone else joined group
+                -- If GetGroupSize() == 2 : Means "me" just created a group and "someone" just joining
+                if GetGroupSize() == 2 then
+                    -- Switch to party channel when joinin a group
+                    if db.enablepartyswitch then
+                        CHAT_SYSTEM:SetChannel(CHAT_CHANNEL_PARTY)
+                    end
                 end
 
-        else
-
-            -- Someone else joined group
-            -- If GetGroupSize() == 2 : Means "me" just created a group and "someone" just joining
-            if GetGroupSize() == 2 then
-                -- Switch to party channel when joinin a group
-                if db.enablepartyswitch then
-                    CHAT_SYSTEM:SetChannel(CHAT_CHANNEL_PARTY)
-                end
             end
-
-        end
         end, 200)
-
     end
 
     -- Triggers when EVENT_GROUP_MEMBER_JOINED

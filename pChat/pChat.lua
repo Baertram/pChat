@@ -218,6 +218,7 @@ local function UpdateCharCorrespondanceTableChannelNames()
         end
     end
 end
+pChat.UpdateCharCorrespondanceTableChannelNames = UpdateCharCorrespondanceTableChannelNames
 
 local function UpdateGuildCorrespondanceTableSwitches()
     -- Update custom guild switches
@@ -236,6 +237,7 @@ local function UpdateGuildCorrespondanceTableSwitches()
         end
     end
 end
+pChat.UpdateGuildCorrespondanceTableSwitches = UpdateGuildCorrespondanceTableSwitches
 
 
 -- Rewrite of core function
@@ -270,6 +272,17 @@ do
     ChannelInfo[CHAT_CHANNEL_ZONE_LANGUAGE_4].channelLinkable = true
 end
 
+--Do some checks after the EVENT_PLAYER_ACTIVATED task was done
+local function DoPostEventPlayerActivatedChecks()
+    --Check for settings -> auto group channel switch
+    if db and db.enablepartyswitch == true and db.enablepartyswitchPortToDungeon == true then
+        --Check if in group
+        if IsUnitGrouped("player") == true then
+            -- Switch to party channel when joinin a group
+            CHAT_SYSTEM:SetChannel(CHAT_CHANNEL_PARTY)
+        end
+    end
+end
 
 -- Registers the formatMessage function.
 -- Unregisters itself from the player activation event with the event manager.
@@ -331,6 +344,9 @@ local function OnPlayerActivated()
 
             -- Restore History if needed
             pChat.RestoreChatHistory()
+
+            --Do some other checks
+            DoPostEventPlayerActivatedChecks()
 
             pChatData.isAddonInitialized = true
 
@@ -437,7 +453,7 @@ local function OnAddonLoaded(_, addonName)
         pChat.InitializeChatTabs()
 
         --Load the SV and LAM panel
-        db = pChat.InitializeSettings(UpdateCharCorrespondanceTableChannelNames)
+        db = pChat.InitializeSettings()
 
         -- set up channel names
         UpdateCharCorrespondanceTableChannelNames()

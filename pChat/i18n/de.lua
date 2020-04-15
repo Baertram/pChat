@@ -136,8 +136,8 @@ SafeAddString(PCHAT_GROUPH												, "Gruppen Einstellungen", 1)
 SafeAddString(PCHAT_ENABLEPARTYSWITCH								, "Autom. Kanalwechsel: Gruppe", 1)
 SafeAddString(PCHAT_ENABLEPARTYSWITCHTT							    , "Wenn du einer Gruppe beitrittst, wechselt der Chat Kanal automatisch zur Gruppe. Beim Verlassen der Gruppe entsprechend zurück zum zuletzt verwendeten Kanal.", 1)
 
-SafeAddString(PCHAT_ENABLEPARTYSWITCHPORTTODUNGEON,                 "Autom. Wechsel: Verlies", 1)
-SafeAddString(PCHAT_ENABLEPARTYSWITCHPORTTODUNGEONTT, 	            "Der oben genannte automatische Gruppen Kanal Wechsel wird auch beim Reisen in ein Verlies/Benutzeroberfläche neuladen im Verlies ausgeführt, wenn du in einer Gruppe bist.\nDiese Option ist nur dann aktiv, wenn der automatische Gruppen Kanel Wechsel aktiviert wurde!", 1)
+SafeAddString(PCHAT_ENABLEPARTYSWITCHPORTTODUNGEON,                 "Autom. Wechsel: Verlies/ReloadUI", 1)
+SafeAddString(PCHAT_ENABLEPARTYSWITCHPORTTODUNGEONTT, 	            "Der oben genannte automatische Gruppen Kanal Wechsel wird auch beim Reisen in ein Verlies/Benutzeroberfläche neuladen/Login ausgeführt, wenn du in einer Gruppe bist.\nDiese Option ist nur dann aktiv, wenn der automatische Gruppen Kanel Wechsel aktiviert wurde!", 1)
 
 
 SafeAddString(PCHAT_GROUPLEADER										, "Sonderfarben für Gruppenleiter", 1)
