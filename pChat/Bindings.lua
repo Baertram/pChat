@@ -51,9 +51,12 @@ local ADDON_NAME    = CONSTANTS.ADDON_NAME
 
     --[GLOBAL functions of ESOUI keybinds]--
     -- Needed to bind Shift+Tab in SetSwitchToNextBinding, called in EVENT_PLAYER_ACTIVATED -> pChat.SetupChatTabs
+    --[[
     function KEYBINDING_MANAGER:IsChordingAlwaysEnabled()
         return true
     end
+    ]]
+    KEYBINDING_MANAGER:SetChordingAlwaysEnabled(true)
 
 
     ---------------------------------
