@@ -369,6 +369,12 @@ local strings = {
 	PCHAT_JPZONECHAT = "JP Zone - message",
 	PCHAT_JPZONECHATTT = "Set chat message color for Japanese zone channel",
 
+	PCHAT_RUZONE = "RU Zone - name",
+	PCHAT_RUZONETT = "Set player name color for Russian zone channel",
+
+	PCHAT_RUZONECHAT = "RU Zone - message",
+	PCHAT_RUZONECHATTT = "Set chat message color for Russian zone channel",
+
 	PCHAT_NPCSAY = "NPC Say - name",
 	PCHAT_NPCSAYTT = "Set NPC name color for NPC say",
 

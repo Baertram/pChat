@@ -157,7 +157,7 @@ do
                 pChatColor = db.colours[2 * CHAT_CHANNEL_GUILD_1]
             elseif db.allGuildsSameColour and (channelId >= CHAT_CHANNEL_OFFICER_1 and channelId <= CHAT_CHANNEL_OFFICER_5) then
                 pChatColor = db.colours[2 * CHAT_CHANNEL_OFFICER_1]
-            elseif db.allZonesSameColour and (channelId >= CHAT_CHANNEL_ZONE_LANGUAGE_1 and channelId <= CHAT_CHANNEL_ZONE_LANGUAGE_4) then
+            elseif db.allZonesSameColour and (channelId >= CHAT_CHANNEL_ZONE_LANGUAGE_1 and channelId <= CHAT_CHANNEL_ZONE_LANGUAGE_5) then
                 pChatColor = db.colours[2 * CHAT_CHANNEL_ZONE]
             else
                 pChatColor = db.colours[2 * channelId]
@@ -270,6 +270,7 @@ do
     ChannelInfo[CHAT_CHANNEL_ZONE_LANGUAGE_2].channelLinkable = true
     ChannelInfo[CHAT_CHANNEL_ZONE_LANGUAGE_3].channelLinkable = true
     ChannelInfo[CHAT_CHANNEL_ZONE_LANGUAGE_4].channelLinkable = true
+    ChannelInfo[CHAT_CHANNEL_ZONE_LANGUAGE_5].channelLinkable = true
 end
 
 --Do some checks after the EVENT_PLAYER_ACTIVATED task was done

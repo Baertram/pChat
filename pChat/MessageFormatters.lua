@@ -990,12 +990,13 @@ function pChat.InitializeMessageFormatters()
             db.LineStrings[db.lineNumber].rawValue = db.LineStrings[db.lineNumber].rawValue .. string.format(chatStrings.emote, lcol, new_from, rcol, text)
 
             -- Language zones
-        elseif chanCode >= CHAT_CHANNEL_ZONE_LANGUAGE_1 and chanCode <= CHAT_CHANNEL_ZONE_LANGUAGE_4 then
+        elseif chanCode >= CHAT_CHANNEL_ZONE_LANGUAGE_1 and chanCode <= CHAT_CHANNEL_ZONE_LANGUAGE_5 then
             local lang
             if chanCode == CHAT_CHANNEL_ZONE_LANGUAGE_1 then lang = "EN"
             elseif chanCode == CHAT_CHANNEL_ZONE_LANGUAGE_2 then lang = "FR"
             elseif chanCode == CHAT_CHANNEL_ZONE_LANGUAGE_3 then lang = "DE"
             elseif chanCode == CHAT_CHANNEL_ZONE_LANGUAGE_4 then lang = "JP"
+            elseif chanCode == CHAT_CHANNEL_ZONE_LANGUAGE_5 then lang = "RU"
             end
 
             -- Used for Copy

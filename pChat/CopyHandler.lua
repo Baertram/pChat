@@ -274,6 +274,7 @@ local chatChannelsToMap = {
     CHAT_CHANNEL_ZONE_LANGUAGE_2,
     CHAT_CHANNEL_ZONE_LANGUAGE_3,
     CHAT_CHANNEL_ZONE_LANGUAGE_4,
+    CHAT_CHANNEL_ZONE_LANGUAGE_5,
     CHAT_CHANNEL_WHISPER,
     CHAT_CHANNEL_WHISPER_SENT,
     CHAT_CHANNEL_PARTY,
@@ -801,6 +802,7 @@ function pChat.InitializeCopyHandler(control)
                         or chanNumber == CHAT_CHANNEL_ZONE_LANGUAGE_2
                         or chanNumber == CHAT_CHANNEL_ZONE_LANGUAGE_3
                         or chanNumber == CHAT_CHANNEL_ZONE_LANGUAGE_4
+                        or chanNumber == CHAT_CHANNEL_ZONE_LANGUAGE_5
                         or (chanNumber >= CHAT_CHANNEL_GUILD_1 and chanNumber <= CHAT_CHANNEL_GUILD_5)
                         or (chanNumber >= CHAT_CHANNEL_OFFICER_1 and chanNumber <= CHAT_CHANNEL_OFFICER_5) then
                     IgnoreMouseDownEditFocusLoss()

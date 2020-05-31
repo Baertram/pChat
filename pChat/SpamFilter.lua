@@ -43,6 +43,7 @@ function pChat.InitializeSpamFilter()
                                         spammableChannels[CHAT_CHANNEL_ZONE_LANGUAGE_2] = true
                                         spammableChannels[CHAT_CHANNEL_ZONE_LANGUAGE_3] = true
                                         spammableChannels[CHAT_CHANNEL_ZONE_LANGUAGE_4] = true
+                                        spammableChannels[CHAT_CHANNEL_ZONE_LANGUAGE_5] = true
                                         spammableChannels[CONSTANTS.PCHAT_CHANNEL_SAY] = true
                                         spammableChannels[CHAT_CHANNEL_YELL] = true
                                         spammableChannels[CHAT_CHANNEL_ZONE] = true
