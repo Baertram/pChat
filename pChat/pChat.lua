@@ -23,6 +23,7 @@
 --=======================================================================================================================================
 --Fixed:
 --#4 Sound notifications for incoming whispers were not played
+--#5 Changing the slider for the chat background "flickers" sometimes (resets the color to black and then to the chosen one)
 --Updated and corrected settings menu texts and tooltips
 
 --Changed:
