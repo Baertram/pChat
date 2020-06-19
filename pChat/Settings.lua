@@ -517,7 +517,9 @@ function pChat.InitializeSettings()
 							setFunc = function(newValue)
 								db.windowDarkness = newValue
 								pChat.ChangeChatWindowDarkness()
-								CHAT_SYSTEM:Maximize()
+								if CHAT_SYSTEM.isMinimized == true then
+									CHAT_SYSTEM:Maximize()
+								end
 							end,
 							width = "full",
 							default = defaults.windowDarkness,

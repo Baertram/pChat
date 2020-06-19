@@ -106,8 +106,6 @@ function pChat.InitializeChatConfig()
             ZO_ChatWindowBg:SetCenterColor(0, 0, 0, 0)
             ZO_ChatWindowBg:SetEdgeColor(0, 0, 0, 0)
         elseif chatWindowDarknesssSetting > 1 then
-            ZO_ChatWindowBg:SetCenterColor(0, 0, 0, 1)
-            ZO_ChatWindowBg:SetEdgeColor(0, 0, 0, 1)
             local textureStringMultiValue = tonumber((chatWindowDarknesssSetting - 1) * 10)
             if textureStringMultiValue == nil or textureStringMultiValue > 100 then return end
             local texturePathCenterDependingOnWindowDarknessTemplate = "pChat/dds/chat_bg_center_%d.dds"

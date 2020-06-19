@@ -1,12 +1,20 @@
 --=======================================================================================================================================
 --Known problems/bugs:
---Last updated: 2020-03-27
---Total number: 4
+--Last updated: 2020-06-19
+--Total number: 5
 ------------------------------------------------------------------------------------------------------------------------
 --#2	2020-02-28 Baetram, bug: New selection for @accountName/character chat prefix will only show /charactername (@accountName is missing) during whispers,
 --		if clicked on a character in the chat to whisper him/her
 ------------------------------------------------------------------------------------------------------------------------
 --#3	2020-03-27 Baetram, bug: Enter into a group with the dungeon finder will not change to the group chat channel /group automatically, if setting is enabled
+------------------------------------------------------------------------------------------------------------------------
+--#5	2020-05-22 Baetram, bug: Changing the slider for the chat background behaves weird
+--Using the beta version now, and still running into the same problem. Changing the slider for the chat background transparency doesn't actually change it.
+--I currently have it set to 10 and it's completely see-through.
+--Screenshot: https://gyazo.com/61e2effb4b3837d25c6299edd794808a
+--And.... apparently there's the issue. Setting to 9.
+--After fully restarting game again, setting 9 is coming up as transparency 0, and a few other numbers are out of wack.
+-->Possible cross-addon problem named was: "Social Indicator" with setting "Social indicator on UI" enabled
 ------------------------------------------------------------------------------------------------------------------------
 --=======================================================================================================================================
 
@@ -15,16 +23,19 @@
 --=======================================================================================================================================
 --Fixed:
 --#4 Sound notifications for incoming whispers were not played
-
+--Updated and corrected settings menu texts and tooltips
 
 --Changed:
---Split pChat.lua into several files -> Thanks to sirinsidiator!
+--Cleanup by sirinsidiator: Rewrite of some functions and removed overwritten ZOs function code + split into several files
+--Removed redundant/non working/not needed code
+--Many code improvements
 --Settings menu totally changed to use less space on main menu page but use mroe submenus; moved related settings together into the same submenus
---Updated and corrected settings menu texts and tooltips
 
 --Added:
 --Description and tooltip to eso standard color and pChat color settings menu
---Option "Enable brightness difference" affects NonESO colors as well now
+--Added chat color darkening/lightening for NON ESO colors as well + added new sliders to change the values
+--Added chat channel filter checkboxes to the copy chat dialog
+--Added support for /zoneru chat
 
 --Added on request:
 --New setting: Chat channel will be automatically changed to /party if you port/reloadui to/in a dungeon, and if you are grouped. This is a new sub-setting of the "Enable Party Switch" setting.
