@@ -349,7 +349,7 @@ function ChatCopyOptions:UpdateEditAndButtons()
     local control = self.control
     local pChatData = pChat.pChatData
     local message = self.message
-d("pChat ChatCopyOptions:UpdateEditAndButtons, message: " ..tostring(message))
+--d("pChat ChatCopyOptions:UpdateEditAndButtons, message: " ..tostring(message))
     if not message then return end
 
     -- editbox is 20000 chars max

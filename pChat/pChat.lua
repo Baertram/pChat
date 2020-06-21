@@ -1,6 +1,6 @@
 --=======================================================================================================================================
 --Known problems/bugs:
---Last updated: 2020-06-19
+--Last updated: 2020-06-21
 --Total number: 5
 ------------------------------------------------------------------------------------------------------------------------
 --#2	2020-02-28 Baetram, bug: New selection for @accountName/character chat prefix will only show /charactername (@accountName is missing) during whispers,
@@ -19,27 +19,17 @@
 --=======================================================================================================================================
 
 --=======================================================================================================================================
--- Changelog version: 10.0.0.0 (last version 9.4.1.4)
+-- Changelog version: 10.0.0.1 (last version 10.0.0.0)
 --=======================================================================================================================================
 --Fixed:
---#4 Sound notifications for incoming whispers were not played
---#5 Changing the slider for the chat background "flickers" sometimes (resets the color to black and then to the chosen one)
---Updated and corrected settings menu texts and tooltips
+--Removed debug messages
+--Fixed timestamp of system messages
 
 --Changed:
---Cleanup by sirinsidiator: Rewrite of some functions and removed overwritten ZOs function code + split into several files
---Removed redundant/non working/not needed code
---Many code improvements
---Settings menu totally changed to use less space on main menu page but use mroe submenus; moved related settings together into the same submenus
 
 --Added:
---Description and tooltip to eso standard color and pChat color settings menu
---Added chat color darkening/lightening for NON ESO colors as well + added new sliders to change the values
---Added chat channel filter checkboxes to the copy chat dialog
---Added support for /zoneru chat
 
 --Added on request:
---New setting: Chat channel will be automatically changed to /party if you port/reloadui to/in a dungeon, and if you are grouped. This is a new sub-setting of the "Enable Party Switch" setting.
 --=======================================================================================================================================
 
 --  pChat object

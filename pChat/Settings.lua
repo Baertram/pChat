@@ -1,14 +1,13 @@
 local CONSTANTS = pChat.CONSTANTS
 local ADDON_NAME = CONSTANTS.ADDON_NAME
+local ADDON_VERSION			= CONSTANTS.ADDON_VERSION
 
 --AddOn settings constants
 --LibAddonMenu-2.0 panel info constants
-local ADDON_VERSION       = "10.0.0.0"
-local ADDON_AUTHOR        = "Ayantir, DesertDwellers, |cFFFF00Baertram|r, Sirinsidiator"
-local ADDON_WEBSITE       = "http://www.esoui.com/downloads/info93-pChat.html"
-local ADDON_FEEDBACK      = "https://www.esoui.com/forums/private.php?do=newpm&u=2028"
-local ADDON_DONATION      = "https://www.esoui.com/portal.php?id=136&a=faq&faqid=131"
-CONSTANTS[ADDON_VERSION] 	= ADDON_VERSION
+local ADDON_AUTHOR        	= "Ayantir, DesertDwellers, Baertram & Sirinsidiator"
+local ADDON_WEBSITE       	= "http://www.esoui.com/downloads/info93-pChat.html"
+local ADDON_FEEDBACK      	= "https://www.esoui.com/forums/private.php?do=newpm&u=2028"
+local ADDON_DONATION      	= "https://www.esoui.com/portal.php?id=136&a=faq&faqid=131"
 
 --SavedVariables constants
 local ADDON_SV_VERSION    = 0.9 -- ATTENTION: Changing this will reset the SavedVariables!

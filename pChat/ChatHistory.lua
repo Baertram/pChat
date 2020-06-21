@@ -329,14 +329,15 @@ function pChat.InitializeChatHistory()
         local formattedMessage = ""
         local rawText = text
 
+        -- Timestamp cannot be nil anymore with SpamFilter, so use the option itself
+        if db.showTimestamp then
+            -- Format for Copy
+            formattedMessage = "[" .. pChat.CreateTimestamp(GetTimeString()) .. "] "
+        end
+
         -- SysMessages does not have a from
         if chanCode ~= CHAT_CHANNEL_SYSTEM then
 
-            -- Timestamp cannot be nil anymore with SpamFilter, so use the option itself
-            if db.showTimestamp then
-                -- Format for Copy
-                formattedMessage = "[" .. pChat.CreateTimestamp(GetTimeString()) .. "] "
-            end
 
             -- Strip DDS tags for GM
             rawFrom = StripDDStags(rawFrom)
