@@ -810,6 +810,8 @@ function pChat.InitializeMessageFormatters()
             -- Add PCHAT_HANDLER for display
             local timestamp = ZO_LinkHandler_CreateLink(pChat.CreateTimestamp(GetTimeString()), nil, CONSTANTS.PCHAT_LINK, db.lineNumber .. ":" .. chanCode) .. " "
 
+            logger:Debug(">showTimestamp:", string.format("timecol: %s, timestamp: %s", tostring(timecol), tostring(timestamp)))
+
             -- Timestamp color
             message = message .. string.format("%s%s|r", timecol, timestamp)
             db.LineStrings[db.lineNumber].rawValue = string.format("%s[%s] |r", timecol, pChat.CreateTimestamp(GetTimeString()))
@@ -1032,6 +1034,7 @@ function pChat.InitializeMessageFormatters()
     end
 
     local function FormatSysMessage(statusMessage)
+        logger.verbose:Debug("FormatSysMessage:", statusMessage)
 
         -- Display Timestamp if needed
         local function ShowTimestamp()
@@ -1056,6 +1059,8 @@ function pChat.InitializeMessageFormatters()
                     -- Show Message
                     timestamp = string.format("%s[%s] |r", timecol, timestamp)
                 end
+
+                logger.verbose:Debug(">SystemMessage showTimestamp:", timestamp)
             else
                 --timestamp = "" -- original lines of Ayantir
                 --Fixed lines by Maggi (pChat comments on 2019-10-13 -> https://www.esoui.com/downloads/fileinfo.php?id=93&so=DESC)
@@ -1083,9 +1088,9 @@ function pChat.InitializeMessageFormatters()
 
                 -- Some addons are quicker than pChat
                 if db then
-
                     -- Show Message
                     statusMessage = ShowTimestamp() .. statusMessage
+                    logger.verbose:Debug(">statusMessage after:", statusMessage)
 
                     if not db.lineNumber then
                         db.lineNumber = 1
@@ -1095,12 +1100,12 @@ function pChat.InitializeMessageFormatters()
                     db.LineStrings[db.lineNumber] = {}
 
                     -- Make it Linkable
-
                     if db.enablecopy then
                         sysMessage = AddLinkHandler(statusMessage, CHAT_CHANNEL_SYSTEM, db.lineNumber)
                     else
                         sysMessage = statusMessage
                     end
+                    logger.verbose:Debug(">sysMessage:", sysMessage)
 
                     if not db.LineStrings[db.lineNumber].rawFrom then db.LineStrings[db.lineNumber].rawFrom = "" end
                     if not db.LineStrings[db.lineNumber].rawMessage then db.LineStrings[db.lineNumber].rawMessage = "" end
@@ -1125,6 +1130,7 @@ function pChat.InitializeMessageFormatters()
     -- For compatibility. Called by others addons.
     pChat.FormatMessage = FormatMessage
     pChat.formatSysMessage = FormatSysMessage
+    --For other addon compatibility: Keep the old name of the global function
     pChat_FormatSysMessage = FormatSysMessage
 
     return FormatMessage, FormatSysMessage

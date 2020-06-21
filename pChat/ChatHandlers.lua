@@ -2,12 +2,15 @@ local CONSTANTS = pChat.CONSTANTS
 local ADDON_NAME = CONSTANTS.ADDON_NAME
 
 function pChat.InitializeChatHandlers()
-    local FormatMessage= pChat.FormatMessage
-    local FormatSysMessage = pChat.formatSysMessage
     local logger = pChat.logger
+    logger:Debug("InitializeChatHandlers", "Start")
+
+    local FormatMessage = pChat.FormatMessage
+    local FormatSysMessage = pChat.formatSysMessage
 
     -- Executed when EVENT_IGNORE_ADDED triggers
     local function OnIgnoreAdded(displayName)
+        logger:Debug("OnIgnoreAdded: ", displayName)
 
         -- DisplayName is linkable
         local displayNameLink = ZO_LinkHandler_CreateDisplayNameLink(displayName)
@@ -22,6 +25,7 @@ function pChat.InitializeChatHandlers()
 
     -- Executed when EVENT_IGNORE_REMOVED triggers
     local function OnIgnoreRemoved(displayName)
+        logger:Debug("OnIgnoreRemoved: ", displayName)
 
         -- DisplayName is linkable
         local displayNameLink = ZO_LinkHandler_CreateDisplayNameLink(displayName)
@@ -36,6 +40,7 @@ function pChat.InitializeChatHandlers()
 
     -- triggers when EVENT_FRIEND_PLAYER_STATUS_CHANGED
     local function OnFriendPlayerStatusChanged(displayName, characterName, oldStatus, newStatus)
+        logger:Debug("OnFriendPlayerStatusChanged: ", string.format("Account: %s, character: %s, oldStatus: %s, newStatus: %s", displayName, characterName, tostring(oldStatus), tostring(newStatus)))
 
         local statusMessage
 
@@ -65,6 +70,7 @@ function pChat.InitializeChatHandlers()
 
     -- Executed when EVENT_GROUP_TYPE_CHANGED triggers
     local function OnGroupTypeChanged(largeGroup)
+        logger:Debug("OnGroupTypeChanged: ", string.format("largeGroup: %s", tostring(largeGroup)))
 
         if largeGroup then
             return FormatSysMessage(GetString(SI_CHAT_ANNOUNCEMENT_IN_LARGE_GROUP))
@@ -75,6 +81,8 @@ function pChat.InitializeChatHandlers()
     end
 
     local function OnGroupMemberLeft(_, reason, isLocalPlayer, _, _, actionRequiredVote)
+        logger:Debug("OnGroupMemberLeft: ", string.format("reason: %s, isLocalPlayer: %s, actionRequiredVote: %s", tostring(reason), tostring(isLocalPlayer), tostring(actionRequiredVote)))
+
         if reason == GROUP_LEAVE_REASON_KICKED and isLocalPlayer and actionRequiredVote then
             return GetString(SI_GROUP_ELECTION_KICK_PLAYER_PASSED)
         end
@@ -127,8 +135,20 @@ function pChat.InitializeChatHandlers()
     end
     pChat.MessageChannelReceiver = pChatChatHandlersMessageChannelReceiver
 
+    --For chat messages send to the system channel CHAT_CHANNEL_SYSTEM
+    local function pChatOnSystemMessage(statusMessage)
+        logger:Debug("pChatOnSystemMessage, message: " ..tostring(statusMessage))
+        -- Function to format system messages (add timestamp e.g.)
+        local message = FormatSysMessage(statusMessage)
+        if not message then return end
+
+        return statusMessage
+    end
+    pChat.OnSystemMessage = pChatOnSystemMessage
+
     --Set the chat handlers for the chat/friend/group events
     CHAT_ROUTER:RegisterMessageFormatter(EVENT_CHAT_MESSAGE_CHANNEL, pChatChatHandlersMessageChannelReceiver)
+    CHAT_ROUTER:RegisterMessageFormatter("AddSystemMessage", pChatOnSystemMessage)
     CHAT_ROUTER:RegisterMessageFormatter(EVENT_FRIEND_PLAYER_STATUS_CHANGED, OnFriendPlayerStatusChanged)
     CHAT_ROUTER:RegisterMessageFormatter(EVENT_IGNORE_ADDED, OnIgnoreAdded)
     CHAT_ROUTER:RegisterMessageFormatter(EVENT_IGNORE_REMOVED, OnIgnoreRemoved)

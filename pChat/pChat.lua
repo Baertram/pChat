@@ -73,7 +73,7 @@ local function LoadLibraries()
         logger = LibDebugLogger(ADDON_NAME)
         logger:Debug("AddOn loaded")
         logger.verbose = logger:Create("Verbose")
-        logger.verbose:SetEnabled(false)
+        logger.verbose:SetEnabled(true)
         pChat.logger = logger
     end
     --LibChatMessage
@@ -474,7 +474,8 @@ local function OnAddonLoaded(_, addonName)
         pChat.InitializeChatConfig()
 
         pChat.SpamFilter = pChat.InitializeSpamFilter()
-        local FormatMessage, FormatSysMessage = pChat.InitializeMessageFormatters()
+        --local FormatMessage, FormatSysMessage = pChat.InitializeMessageFormatters()
+        pChat.InitializeMessageFormatters()
 
         --EVENTS--
         -- Because ChatSystem is loaded after EVENT_ADDON_LOADED triggers, we use 1st EVENT_PLAYER_ACTIVATED wich is run bit after
