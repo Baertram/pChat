@@ -454,7 +454,8 @@ local strings = {
 	PCHAT_DUPLICATE_CHANNEL_SWITCH_WARNING = "Tried to replace already existing switch '%s'",
 
 	PCHAT_CHATHANDLERS = "Chat format handlers",
-	PCHAT_CHATHANDLER_TEMPLATETT = "Format the chat messages of the event \'%s\'",
+	PCHAT_CHATHANDLER_TEMPLATETT = "Format the chat messages of the event \'%s\'.\n\nIf this setting is disabled the chat messages won't be changed with the different pChat formatting options (e.g. colors, timestamps, names, etc.)",
+	PCHAT_CHATHANDLER_SYSTEMMESSAGES = "System messages",
 	PCHAT_CHATHANDLER_PLAYERSTATUS = "Player status changed",
 	PCHAT_CHATHANDLER_IGNORE_ADDED = "Ignore list added",
 	PCHAT_CHATHANDLER_IGNORE_REMOVED = "Ignore list removed",

@@ -148,7 +148,19 @@ function pChat.InitializeChatHandlers()
 
     --Set the chat handlers for the chat/friend/group events
     CHAT_ROUTER:RegisterMessageFormatter(EVENT_CHAT_MESSAGE_CHANNEL, pChatChatHandlersMessageChannelReceiver)
-    CHAT_ROUTER:RegisterMessageFormatter("AddSystemMessage", pChatOnSystemMessage)
+    if db.useSystemMessageChatHandler == true then
+        if LibChatMessage then
+            local formatters = CHAT_ROUTER:GetRegisteredMessageFormatters()
+            local originalLCMFormatter = formatters["LibChatMessage"]
+            if originalLCMFormatter then
+                logger:Debug("pChatMessageFormatter", "Re-registered \'LibChatMessage\' system messages")
+                CHAT_ROUTER:RegisterMessageFormatter("LibChatMessage", function(...)
+                    return pChatOnSystemMessage(originalLCMFormatter(...))
+                end)
+            end
+        end
+        CHAT_ROUTER:RegisterMessageFormatter("AddSystemMessage", pChatOnSystemMessage)
+    end
     if db.usePlayerStatusChangedChatHandler == true then
         CHAT_ROUTER:RegisterMessageFormatter(EVENT_FRIEND_PLAYER_STATUS_CHANGED, OnFriendPlayerStatusChanged)
     end

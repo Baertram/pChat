@@ -153,6 +153,7 @@ function pChat.InitializeSettings()
         -- Not LAM
         chatConfSync = {},
 		--Chat handlers
+		useSystemMessageChatHandler = true,
 		usePlayerStatusChangedChatHandler = true,
 		useIgnoreAddedChatHandler = true,
 		useIgnoreRemovedChatHandler = true,
@@ -587,6 +588,16 @@ function pChat.InitializeSettings()
 					type = "submenu",
 					name = GetString(PCHAT_CHATHANDLERS),
 					controls = {
+						{-- LAM Option enable player status changed chat message handler
+							type = "checkbox",
+							name = GetString(PCHAT_CHATHANDLER_SYSTEMMESSAGES),
+							tooltip = string.format(GetString(PCHAT_CHATHANDLER_TEMPLATETT), GetString(PCHAT_CHATHANDLER_SYSTEMMESSAGES)),
+							getFunc = function() return db.useSystemMessageChatHandler end,
+							setFunc = function(newValue) db.useSystemMessageChatHandler = newValue end,
+							width = "full",
+							requiresReload = true,
+							default = defaults.useSystemMessageChatHandler,
+						},
 						{-- LAM Option enable player status changed chat message handler
 							type = "checkbox",
 							name = GetString(PCHAT_CHATHANDLER_PLAYERSTATUS),

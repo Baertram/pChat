@@ -21,7 +21,7 @@
 --and in again it goes back to the first tab, which is zone chat.
 --In settings the 2nd tab ist selected, I double checked.
 ------------------------------------------------------------------------------------------------------------------------
---#7    2020-06-20 Mikikatze, bug: Time stamps ar enot shown with system messages anymore
+--#7    2020-06-20 Mikikatze, bug: Time stamps are not shown with system messages anymore
 --      TODO: Chat handler for AddSystemMessage needs to be added, but does not work yet!
 
 --=======================================================================================================================================

@@ -463,7 +463,8 @@ SafeAddString(PCHAT_RESTOREPREFIX                           , "Prefix vor wieder
 SafeAddString(PCHAT_RESTOREPREFIXTT                         , "Zeigt den Prefix \'[H]\' vor wiederhergestellten Nachrichten an, damit man diese einfach erkennen kann.\nDies wirkt sich erst nach einem ReloadUI auf den aktuellen Chat aus!\nDie Farbe des Prefix wird mit den ESO Standard Farben der Chat Kanäle angezeigt.", 1)
 
 SafeAddString(PCHAT_CHATHANDLERS                            , "Chat Formatierungs Handler", 1)
-SafeAddString(PCHAT_CHATHANDLER_TEMPLATETT                  , "Formatiere die Chat Nachrichten für das Event \'%s\'", 1)
+SafeAddString(PCHAT_CHATHANDLER_TEMPLATETT                  , "Formatiere die Chat Nachrichten für das Event \'%s\'\n\nIst diese Einstellung deaktiviert, so werden die entsprechenden Chat Nachrichten durch die pChat Formatierungs Einstellungen nicht verändert (z.B. Farben, Zeitstempel, Namen, etc.)", 1)
+SafeAddString(PCHAT_CHATHANDLER_SYSTEMMESSAGES              , "System Nachrichten", 1)
 SafeAddString(PCHAT_CHATHANDLER_PLAYERSTATUS                , "Spieler Status geändert", 1)
 SafeAddString(PCHAT_CHATHANDLER_IGNORE_ADDED                , "Ignorierte Spieler hinzugefügt", 1)
 SafeAddString(PCHAT_CHATHANDLER_IGNORE_REMOVED              , "Ignorierte Spieler entfernt", 1)
