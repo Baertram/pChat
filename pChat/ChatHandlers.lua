@@ -2,6 +2,7 @@ local CONSTANTS = pChat.CONSTANTS
 local ADDON_NAME = CONSTANTS.ADDON_NAME
 
 function pChat.InitializeChatHandlers()
+    local db = pChat.db
     local logger = pChat.logger
     logger:Debug("InitializeChatHandlers", "Start")
 
@@ -149,9 +150,19 @@ function pChat.InitializeChatHandlers()
     --Set the chat handlers for the chat/friend/group events
     CHAT_ROUTER:RegisterMessageFormatter(EVENT_CHAT_MESSAGE_CHANNEL, pChatChatHandlersMessageChannelReceiver)
     CHAT_ROUTER:RegisterMessageFormatter("AddSystemMessage", pChatOnSystemMessage)
-    CHAT_ROUTER:RegisterMessageFormatter(EVENT_FRIEND_PLAYER_STATUS_CHANGED, OnFriendPlayerStatusChanged)
-    CHAT_ROUTER:RegisterMessageFormatter(EVENT_IGNORE_ADDED, OnIgnoreAdded)
-    CHAT_ROUTER:RegisterMessageFormatter(EVENT_IGNORE_REMOVED, OnIgnoreRemoved)
-    CHAT_ROUTER:RegisterMessageFormatter(EVENT_GROUP_MEMBER_LEFT, OnGroupMemberLeft)
-    CHAT_ROUTER:RegisterMessageFormatter(EVENT_GROUP_TYPE_CHANGED, OnGroupTypeChanged)
+    if db.usePlayerStatusChangedChatHandler == true then
+        CHAT_ROUTER:RegisterMessageFormatter(EVENT_FRIEND_PLAYER_STATUS_CHANGED, OnFriendPlayerStatusChanged)
+    end
+    if db.useIgnoreAddedChatHandler == true then
+        CHAT_ROUTER:RegisterMessageFormatter(EVENT_IGNORE_ADDED, OnIgnoreAdded)
+    end
+    if db.useIgnoreRemovedChatHandler == true then
+        CHAT_ROUTER:RegisterMessageFormatter(EVENT_IGNORE_REMOVED, OnIgnoreRemoved)
+    end
+    if db.useGroupMemberLeftChatHandler == true then
+        CHAT_ROUTER:RegisterMessageFormatter(EVENT_GROUP_MEMBER_LEFT, OnGroupMemberLeft)
+    end
+    if db.useGroupTypeChangedChatHandler == true then
+        CHAT_ROUTER:RegisterMessageFormatter(EVENT_GROUP_TYPE_CHANGED, OnGroupTypeChanged)
+    end
 end

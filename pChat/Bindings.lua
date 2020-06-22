@@ -70,6 +70,7 @@ local ADDON_NAME    = CONSTANTS.ADDON_NAME
             CHAT_SYSTEM:StartTextEntry(nil, CHAT_CHANNEL_WHISPER, targetToWhisp)
         end
     end
+    pChat.WhispMyTarget = pChat_WhispMyTarget
 
 
     ---------------------------------
@@ -85,7 +86,7 @@ local ADDON_NAME    = CONSTANTS.ADDON_NAME
             CHAT_SYSTEM:Minimize()
         end
     end
-
+    pChat.ToggleChat = pChat_ToggleChat
 
     ---------------------------------
     --Chat tabs--
@@ -93,6 +94,8 @@ local ADDON_NAME    = CONSTANTS.ADDON_NAME
 
     -- Can be called by Bindings
     function pChat_SwitchToNextTab()
+        local logger = pChat.logger
+        logger:Debug("pChat_SwitchToNextTab")
         local pChatData = pChat.pChatData
 
         local hasSwitched
@@ -134,8 +137,11 @@ local ADDON_NAME    = CONSTANTS.ADDON_NAME
         end
 
     end
+    pChat.SwitchToNextTab = pChat_SwitchToNextTab
 
     function pChat_ChangeTab(tabToSet)
+        local logger = pChat.logger
+        logger:Debug("pChat_ChangeTab", "To tab: " ..tostring(tabToSet))
         if type(tabToSet)~="number" then return end
         local container=CHAT_SYSTEM.primaryContainer if not container then return end
         if tabToSet<1 or tabToSet>#container.windows then return end
@@ -150,6 +156,7 @@ local ADDON_NAME    = CONSTANTS.ADDON_NAME
         tabToSet=container.currentBuffer:GetParent().tab.tabToSet
         ]]
     end
+    pChat.ChangeTab = pChat_ChangeTab
 
 
     ---------------------------------
@@ -162,3 +169,4 @@ local ADDON_NAME    = CONSTANTS.ADDON_NAME
             LibMainMenu:ToggleCategory(MENU_CATEGORY_PCHAT)
         end
     end
+    pChat.ShowAutoMsg = pChat_ShowAutoMsg

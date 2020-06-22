@@ -1,7 +1,7 @@
 --=======================================================================================================================================
 --Known problems/bugs:
 --Last updated: 2020-06-21
---Total number: 5
+--Total number: 6
 ------------------------------------------------------------------------------------------------------------------------
 --#2	2020-02-28 Baetram, bug: New selection for @accountName/character chat prefix will only show /charactername (@accountName is missing) during whispers,
 --		if clicked on a character in the chat to whisper him/her
@@ -16,6 +16,14 @@
 --After fully restarting game again, setting 9 is coming up as transparency 0, and a few other numbers are out of wack.
 -->Possible cross-addon problem named was: "Social Indicator" with setting "Social indicator on UI" enabled
 ------------------------------------------------------------------------------------------------------------------------
+--#6    2020-06-20 Mikikatze, bug: Setting for automatic selected chat tab does not work
+--I turned off all other addons and libs, same problem. Even when I switch into another chat tab, as soon as I log out
+--and in again it goes back to the first tab, which is zone chat.
+--In settings the 2nd tab ist selected, I double checked.
+------------------------------------------------------------------------------------------------------------------------
+--#7    2020-06-20 Mikikatze, bug: Time stamps ar enot shown with system messages anymore
+--      TODO: Chat handler for AddSystemMessage needs to be added, but does not work yet!
+
 --=======================================================================================================================================
 
 --=======================================================================================================================================
@@ -23,11 +31,12 @@
 --=======================================================================================================================================
 --Fixed:
 --Removed debug messages
---Fixed timestamp of system messages
+--#6 Default chat tab not switching properly
 
 --Changed:
 
 --Added:
+-- Added settings for chat format message handlers (group, friends, ignore lists)
 
 --Added on request:
 --=======================================================================================================================================
@@ -351,9 +360,13 @@ local function OnPlayerActivated()
             --Do some other checks
             DoPostEventPlayerActivatedChecks()
 
+            -- Set default tab at login
+            pChat.SetDefaultTab(db.defaultTab)
+
             pChatData.isAddonInitialized = true
 
             EVENT_MANAGER:UnregisterForEvent(ADDON_NAME, EVENT_PLAYER_ACTIVATED)
+
             logger:Debug("EVENT_PLAYER_ACTIVATED - End: Addon was initialized")
         end
     end

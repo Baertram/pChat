@@ -452,6 +452,14 @@ local strings = {
 
 	PCHAT_BUILT_IN_CHANNEL_SWITCH_WARNING = "Cannot use existing built-in switch '%s'",
 	PCHAT_DUPLICATE_CHANNEL_SWITCH_WARNING = "Tried to replace already existing switch '%s'",
+
+	PCHAT_CHATHANDLERS = "Chat format handlers",
+	PCHAT_CHATHANDLER_TEMPLATETT = "Format the chat messages of the event \'%s\'",
+	PCHAT_CHATHANDLER_PLAYERSTATUS = "Player status changed",
+	PCHAT_CHATHANDLER_IGNORE_ADDED = "Ignore list added",
+	PCHAT_CHATHANDLER_IGNORE_REMOVED = "Ignore list removed",
+	PCHAT_CHATHANDLER_GROUP_MEMBER_LEFT = "Group member left",
+	PCHAT_CHATHANDLER_GROUP_TYPE_CHANGED = "Group type changed",
 }
 
 for stringId, stringValue in pairs(strings) do

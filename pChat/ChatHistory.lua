@@ -261,7 +261,10 @@ function pChat.InitializeChatHistory()
 
     --**** Issue
     local function SetDefaultTab(tabToSet)
+        logger:Debug("DefaultTab", "START, tabToSet: " ..tostring(tabToSet))
         if not CHAT_SYSTEM or not CHAT_SYSTEM.primaryContainer or not CHAT_SYSTEM.primaryContainer.windows then return end
+        --OLD CODE
+        --[[
         -- Search in all tabs the good name
         for numTab in ipairs(CHAT_SYSTEM.primaryContainer.windows) do
             -- Not this one, try the next one, if tab is not found (newly added, removed), pChat_SwitchToNextTab() will go back to tab 1
@@ -269,16 +272,21 @@ function pChat.InitializeChatHistory()
                 pChat_SwitchToNextTab()
             else
                 -- Found it, stop
+                logger.verbose:Debug(">DefaultTab", "was set")
                 return
             end
         end
+        ]]
+        --NEW CODE
+        pChat_ChangeTab(tabToSet)
     end
+    pChat.SetDefaultTab = SetDefaultTab
 
     -- Restore History from SavedVars
     local function RestoreChatHistory()
+        -- Set default tab at login -> Moved to event_player_activated
+        --SetDefaultTab(db.defaultTab)
 
-        -- Set default tab at login
-        SetDefaultTab(db.defaultTab)
         -- Restore History
         if db.history then
 
