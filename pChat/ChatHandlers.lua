@@ -141,9 +141,8 @@ function pChat.InitializeChatHandlers()
         logger:Debug("pChatOnSystemMessage, message: " ..tostring(statusMessage))
         -- Function to format system messages (add timestamp e.g.)
         local message = FormatSysMessage(statusMessage)
-        if not message then return end
-
-        return statusMessage
+        if not message then return statusMessage end
+        return message
     end
     pChat.OnSystemMessage = pChatOnSystemMessage
 
