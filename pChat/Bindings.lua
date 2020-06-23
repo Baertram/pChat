@@ -165,8 +165,8 @@ local ADDON_NAME    = CONSTANTS.ADDON_NAME
 
     -- Also called by bindings
     function pChat_ShowAutoMsg()
-        if LibMainMenu and MENU_CATEGORY_PCHAT then
-            LibMainMenu:ToggleCategory(MENU_CATEGORY_PCHAT)
+        if LibMainMenu and pChat and pChat.MENU_CATEGORY_PCHAT then
+            LibMainMenu:ToggleCategory(pChat.MENU_CATEGORY_PCHAT)
         end
     end
     pChat.ShowAutoMsg = pChat_ShowAutoMsg

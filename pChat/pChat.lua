@@ -1,7 +1,7 @@
 --=======================================================================================================================================
 --Known problems/bugs:
---Last updated: 2020-06-21
---Total number: 6
+--Last updated: 2020-06-23
+--Total number: 8
 ------------------------------------------------------------------------------------------------------------------------
 --#2	2020-02-28 Baetram, bug: New selection for @accountName/character chat prefix will only show /charactername (@accountName is missing) during whispers,
 --		if clicked on a character in the chat to whisper him/her
@@ -22,21 +22,20 @@
 --In settings the 2nd tab ist selected, I double checked.
 ------------------------------------------------------------------------------------------------------------------------
 --#7    2020-06-20 Mikikatze, bug: Time stamps are not shown with system messages anymore
---      TODO: Chat handler for AddSystemMessage needs to be added, but does not work yet!
+------------------------------------------------------------------------------------------------------------------------
+--#8    2020-06-21 sindradottir, bug: /msg and keybind for automated messages do not always work
 
 --=======================================================================================================================================
 
 --=======================================================================================================================================
--- Changelog version: 10.0.0.1 (last version 10.0.0.0)
+-- Changelog version: 10.0.0.2 (last version 10.0.0.1)
 --=======================================================================================================================================
 --Fixed:
---Removed debug messages
---#6 Default chat tab not switching properly
+--#8 /msg and keybind for automated messages do not always work
 
 --Changed:
 
 --Added:
--- Added settings for chat format message handlers (group, friends, ignore lists)
 
 --Added on request:
 --=======================================================================================================================================

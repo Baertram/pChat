@@ -4,6 +4,7 @@ function pChat.InitializeAutomatedMessages()
     local pChatData = pChat.pChatData
     local db = pChat.db
 
+    pChat.MENU_CATEGORY_PCHAT = nil
     local MENU_CATEGORY_PCHAT
 
     -- Init Automated Messages
@@ -285,6 +286,7 @@ function pChat.InitializeAutomatedMessages()
         -- Register the group and add the buttons (we cannot all AddRawScene, only AddSceneGroup, so we emulate both functions).
         if MENU_CATEGORY_PCHAT then
             LibMainMenu:AddSceneGroup(MENU_CATEGORY_PCHAT, "pChatSceneGroup", iconData)
+            pChat.MENU_CATEGORY_PCHAT = MENU_CATEGORY_PCHAT
         end
 
         pChatData.autoMsgDescriptor = {
