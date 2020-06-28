@@ -318,6 +318,8 @@ function pChat.InitializeSettings()
 				default = defaults.allGuildsSameColour,
 			},
 		}
+		--For the chat message name format
+		local controlsForGuildSubmenu2 = {}
 
 		--Now add a submenu for each of the 5 guilds
 		for guild = 1, GetNumGuilds() do
@@ -458,6 +460,29 @@ function pChat.InitializeSettings()
 						default = ConvertHexToRGBAPacked(defaults.colours[2*(CHAT_CHANNEL_OFFICER_1 + guild - 1) + 1]),
 						disabled = function() return db.useESOcolors or (guild~=1 and db.allGuildsSameColour) or db.oneColour end,
 						width = "half",
+					},
+				},
+			}
+			--Name format for guild messages
+			controlsForGuildSubmenu2[#controlsForGuildSubmenu2+1] = {
+				type = "submenu",
+				name = guildName,
+				controls = {
+					{
+						type          = "dropdown",
+						name          = GetString(PCHAT_NAMEFORMAT),
+						tooltip       = GetString(PCHAT_NAMEFORMATTT),
+						choices       = { GetString(PCHAT_FORMATCHOICE1), GetString(PCHAT_FORMATCHOICE2), GetString(PCHAT_FORMATCHOICE3), GetString(PCHAT_FORMATCHOICE4) },
+						choicesValues = { 1, 2, 3, 4 },
+						getFunc       = function()
+							-- Config per guild
+							return db.formatguild[guildId]
+						end,
+						setFunc       = function(value)
+							db.formatguild[guildId] = value
+						end,
+						width         = "half",
+						default       = 2,
 					},
 				},
 			}
@@ -716,27 +741,12 @@ function pChat.InitializeSettings()
 						},
 					},
 				},
-				--Playername in chat message
+				--Chat messages
 				{
 					type     = "submenu",
 					name     = GetString(PCHAT_MESSAGEOPTIONSNAMEH),
+					--helpUrl = "https://www.esoui.com/downloads/info93-pChat.html#comments",
 					controls = {
-						{-- LAM Option Names Format
-							type          = "dropdown",
-							name          = GetString(PCHAT_GEOCHANNELSFORMAT),
-							tooltip       = GetString(PCHAT_GEOCHANNELSFORMATTT),
-							choices       = { GetString(PCHAT_FORMATCHOICE1), GetString(PCHAT_FORMATCHOICE2), GetString(PCHAT_FORMATCHOICE3), GetString(PCHAT_FORMATCHOICE4) },
-							choicesValues = { 1, 2, 3, 4 },
-							getFunc       = function()
-								return db.geoChannelsFormat
-							end,
-							setFunc       = function(value)
-								db.geoChannelsFormat = value
-							end,
-							default       = defaults.geoChannelsFormat,
-							width         = "half",
-
-						},
 						{-- LAM Option Newline between name and message
 							type    = "checkbox",
 							name    = GetString(PCHAT_CARRIAGERETURN),
@@ -763,8 +773,62 @@ function pChat.InitializeSettings()
 							default = defaults.disableBrackets,
 							width   = "half",
 						},
-					},
-				},
+
+
+						-- Group Submenu
+						{
+							type = "submenu",
+							name = GetString(PCHAT_GROUPH),
+							controls = {
+								{-- Group Names
+									type = "dropdown",
+									name = GetString(PCHAT_GROUPNAMES),
+									tooltip = GetString(PCHAT_GROUPNAMESTT),
+									choices = {GetString(PCHAT_FORMATCHOICE1), GetString(PCHAT_FORMATCHOICE2), GetString(PCHAT_FORMATCHOICE3), GetString(PCHAT_FORMATCHOICE4)},
+									choicesValues = {1, 2, 3, 4},
+									getFunc = function() return db.groupNames end,
+									setFunc = function(value)
+										db.groupNames = value
+									end,
+									default = defaults.groupNames,
+									width = "half",
+								},
+							},
+						},
+
+						-- Guild Submenu
+						{
+							type = "submenu",
+							name = GetString(PCHAT_GUILDH),
+							controls = controlsForGuildSubmenu2,
+						},
+
+						--All other chat messages
+						{
+							type     = "submenu",
+							name     = GetString(PCHAT_MESSAGEOPTIONSNAME_ALLOTHERH),
+							controls = {
+								{-- LAM Option Names Format
+									type          = "dropdown",
+									name          = GetString(PCHAT_GEOCHANNELSFORMAT),
+									tooltip       = GetString(PCHAT_GEOCHANNELSFORMATTT),
+									choices       = { GetString(PCHAT_FORMATCHOICE1), GetString(PCHAT_FORMATCHOICE2), GetString(PCHAT_FORMATCHOICE3), GetString(PCHAT_FORMATCHOICE4) },
+									choicesValues = { 1, 2, 3, 4 },
+									getFunc       = function()
+										return db.geoChannelsFormat
+									end,
+									setFunc       = function(value)
+										db.geoChannelsFormat = value
+									end,
+									default       = defaults.geoChannelsFormat,
+									width         = "half",
+
+								},
+							},
+						},
+
+					}, --controls PCHAT_MESSAGEOPTIONSNAMEH
+				}, --submenu Chat messages
 				--Colors in chat messages
 				{
 					type = "submenu",
@@ -1299,19 +1363,6 @@ function pChat.InitializeSettings()
 					type = "submenu",
 					name = GetString(PCHAT_GROUPH),
 					controls = {
-						{-- Group Names
-							type = "dropdown",
-							name = GetString(PCHAT_GROUPNAMES),
-							tooltip = GetString(PCHAT_GROUPNAMESTT),
-							choices = {GetString(PCHAT_FORMATCHOICE1), GetString(PCHAT_FORMATCHOICE2), GetString(PCHAT_FORMATCHOICE3), GetString(PCHAT_FORMATCHOICE4)},
-							choicesValues = {1, 2, 3, 4},
-							getFunc = function() return db.groupNames end,
-							setFunc = function(value)
-								db.groupNames = value
-							end,
-							default = defaults.groupNames,
-							width = "full",
-						},
 						{-- Enable Party Switch
 							type = "checkbox",
 							name = GetString(PCHAT_ENABLEPARTYSWITCH),

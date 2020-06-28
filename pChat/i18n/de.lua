@@ -44,6 +44,8 @@ SafeAddString(PCHAT_enableWhisperTabT							,"Flüster Nachrichten werden zu ein
 SafeAddString(PCHAT_OPTIONSH											, "Chat Optionen", 1)
 SafeAddString(PCHAT_MESSAGEOPTIONSH										, "Nachrichten Optionen", 1)
 SafeAddString(PCHAT_MESSAGEOPTIONSNAMEH                                 , "Name in Nachrichten", 1)
+SafeAddString(PCHAT_MESSAGEOPTIONSNAME_ALLOTHERH                        , "Alle anderen Chat Nachrichten", 1)
+
 SafeAddString(PCHAT_MESSAGEOPTIONSCOLORH                                , "Farbe von Nachrichten", 1)
 
 SafeAddString(PCHAT_GUILDNUMBERS										, "Gildennummer", 1)

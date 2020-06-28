@@ -29,6 +29,7 @@ local strings = {
 	PCHAT_OPTIONSH = "Chat settings",
 	PCHAT_MESSAGEOPTIONSH = "Message settings",
 	PCHAT_MESSAGEOPTIONSNAMEH = "Name in messages",
+	PCHAT_MESSAGEOPTIONSNAME_ALLOTHERH = "All other chat messages",
 	PCHAT_MESSAGEOPTIONSCOLORH = "Color of messages",
 
 	PCHAT_GUILDNUMBERS = "Guild numbers",
