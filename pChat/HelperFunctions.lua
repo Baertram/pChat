@@ -217,6 +217,11 @@ do
     local ChannelInfo = ZO_ChatSystem_GetChannelInfo()
     local g_switchLookup = ZO_ChatSystem_GetChannelSwitchLookupTable()
 
+    if GetDisplayName() == "@Baertram" then
+        pChat._ChannelInfo = ChannelInfo
+        pChat._g_switchLookup = g_switchLookup
+    end
+
     -- store all built-in switches so we can prevent accidents
     local isBuiltIn = {}
     for channelId, data in pairs(ChannelInfo) do
