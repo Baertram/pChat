@@ -820,6 +820,9 @@ function pChat.InitializeMessageFormatters()
             db.LineStrings[db.lineNumber].rawValue = ""
         end
 
+        -- Chat Mentions: username highlighting, audible ding, exclamation icon, etc.
+        text = pChat.cm_format(text, fromDisplayName, isCS)
+
         local linkedText = text
 
         -- Add URL Handling

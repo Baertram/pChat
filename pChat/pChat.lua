@@ -439,6 +439,10 @@ end
 local function LoadSlashCommands()
     -- Register Slash commands
     SLASH_COMMANDS["/msg"] = pChat_ShowAutoMsg
+    SLASH_COMMANDS["/cmadd"] = pChat.cm_add
+	SLASH_COMMANDS["/cmdel"] = pChat.cm_del
+	SLASH_COMMANDS["/cmlist"] = pChat.cm_print_list
+	SLASH_COMMANDS["/cmwatch"] = pChat.cm_watch_toggle
 end
 
 -- Please note that some things are delayed in OnPlayerActivated() because Chat isn't ready when this function triggers
@@ -483,6 +487,10 @@ local function OnAddonLoaded(_, addonName)
 
         --Load some hooks
         LoadHooks()
+
+        -- Initialize Chat Mentions
+        pChat.cm_initChatMentionsEngine()
+        pChat.cm_loadRegexes()
 
         -- Initialize Chat Config features
         pChat.InitializeChatConfig()

@@ -462,6 +462,29 @@ local strings = {
 	PCHAT_CHATHANDLER_IGNORE_REMOVED = "Ignore list removed",
 	PCHAT_CHATHANDLER_GROUP_MEMBER_LEFT = "Group member left",
 	PCHAT_CHATHANDLER_GROUP_TYPE_CHANGED = "Group type changed",
+
+	--Added by Coorbin for Chat Mentions functionality
+	PCHAT_MENTIONSH = "Mentions",
+	PCHAT_MENTIONS_TEXT_COLOR_CHECKBOX_NAME = "Change color of text when your name is mentioned?",
+	PCHAT_MENTIONS_TEXT_COLOR_CHECKBOX_TOOLTIP = "Whether or not to change the text color when your name is mentioned.",
+	PCHAT_MENTIONS_TEXT_COLOR_PICKER_NAME = "Color of your name when mentioned",
+	PCHAT_MENTIONS_ADD_EXCL_ICON_NAME = "Add exclamation icon?",
+	PCHAT_MENTIONS_ADD_EXCL_ICON_TOOLTIP = "Whether or not to add an exclamation point icon at the beginning when your name is mentioned.",
+	PCHAT_MENTIONS_ALLCAPS_NAME = "ALL CAPS your name?",
+	PCHAT_MENTIONS_ALLCAPS_TOOLTIP = "Whether or not to ALL CAPS your name when your name is mentioned.",
+	PCHAT_MENTIONS_EXTRA_NAMES_NAME = "Extra names to ping on (newline per name)",
+	PCHAT_MENTIONS_EXTRA_NAMES_TOOLTIP = "A newline-separated list of additional names to ping you on. Press ENTER to make new lines. If you put an `!` (exclamation mark) in front of a custom name you'd like to monitor, it will only notify you if that name occurs on a word boundary. For example, if you add '!de' to your Extras list, you'd be notified for 'de nada' but not 'delicatessen'. If you just added 'de' to your Extras list, you'd be notified for 'delicatessen' also.",
+	PCHAT_MENTIONS_SELFSEND_NAME = "Apply to messages YOU send?",
+	PCHAT_MENTIONS_SELFSEND_TOOLTIP = "Whether or not to apply formatting to messages YOU send.",
+	PCHAT_MENTIONS_DING_NAME = "Ding sound?",
+	PCHAT_MENTIONS_DING_TOOLTIP = "Whether or not to play a ding sound when your name is mentioned.",
+	PCHAT_MENTIONS_APPLYNAME_NAME = "Apply to your character names?",
+	PCHAT_MENTIONS_APPLYNAME_TOOLTIP = "Whether or not to apply formatting to each name (separated by spaces) in your character name. Disable if you use a very common name like 'Me' in your character name.",
+	PCHAT_MENTIONS_WHOLEWORD_NAME = "Match your names as whole words only?",
+	PCHAT_MENTIONS_WHOLEWORD_TOOLTIP = "Whether or not to match your character names as whole words only. If you have a very short name in your character name, you may want to turn this on.",
+
+
+
 }
 
 for stringId, stringValue in pairs(strings) do
