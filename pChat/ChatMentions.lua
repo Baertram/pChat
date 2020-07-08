@@ -1,3 +1,6 @@
+-- Coorbin20200708
+-- This is most of the Chat Mentions "engine".
+-- Other places in the codebase where Chat Mentions functionality was introduced have the "Coorbin20200708" comment above them.
 local db = {}
 
 function pChat.cm_initChatMentionsEngine()

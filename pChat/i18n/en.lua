@@ -463,7 +463,8 @@ local strings = {
 	PCHAT_CHATHANDLER_GROUP_MEMBER_LEFT = "Group member left",
 	PCHAT_CHATHANDLER_GROUP_TYPE_CHANGED = "Group type changed",
 
-	--Added by Coorbin for Chat Mentions functionality
+	-- Coorbin20200708
+	-- Chat Mentions settings strings
 	PCHAT_MENTIONSH = "Mentions",
 	PCHAT_MENTIONS_TEXT_COLOR_CHECKBOX_NAME = "Change color of text when your name is mentioned?",
 	PCHAT_MENTIONS_TEXT_COLOR_CHECKBOX_TOOLTIP = "Whether or not to change the text color when your name is mentioned.",

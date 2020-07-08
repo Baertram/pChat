@@ -160,6 +160,7 @@ function pChat.InitializeSettings()
 		useGroupMemberLeftChatHandler = true,
 		useGroupTypeChangedChatHandler = true,
 
+		-- Coorbin20200708
 		-- Chat Mentions
 		excl = false,
 		changeColor = false,
@@ -1700,6 +1701,7 @@ function pChat.InitializeSettings()
 			},
 		}
 
+		-- Coorbin20200708
 		------------------------------------------------------------------------------------------------------------------------
 		--Chat Mentions
 
@@ -1792,6 +1794,7 @@ function pChat.InitializeSettings()
 			pChat.cm_loadRegexes()
 		end
 
+		-- Coorbin20200708
 		-- Chat Mentions Data
 		optionsData[#optionsData + 1] = {
 			type = "submenu",
