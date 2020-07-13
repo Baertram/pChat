@@ -159,6 +159,18 @@ function pChat.InitializeSettings()
 		useIgnoreRemovedChatHandler = true,
 		useGroupMemberLeftChatHandler = true,
 		useGroupTypeChangedChatHandler = true,
+
+		-- Coorbin20200708
+		-- Chat Mentions
+		excl = false,
+		changeColor = false,
+		color = "3af47e",
+		capitalize = false,
+		extras = "",
+		selfsend = false,
+		ding = false,
+		selfchar = false,
+		wholenames = false,
     }
 
     --Load the nicknames defined in the settings and build the pChatData nicknames table with them
@@ -1689,6 +1701,190 @@ function pChat.InitializeSettings()
 			},
 		}
 
+		-- Coorbin20200708
+		------------------------------------------------------------------------------------------------------------------------
+		--Chat Mentions
+
+		--------------------Chat Mentions Settings getter/setter functions
+
+		local function cm_setMentionColorOption(var) 
+			db.changeColor = var
+			pChat.cm_loadRegexes()
+		end
+
+		local function cm_getMentionColorOption()
+			return db.changeColor
+		end
+
+		local function cm_setMentionColorPickerOption(r, g, b)
+			db.color = pChat.cm_convertRGBToHex(r, g, b) 
+			pChat.cm_loadRegexes()
+		end
+
+		local function cm_getMentionColorPickerOption()
+			return pChat.cm_convertHexToRGBA(db.color) 
+		end
+
+		local function cm_getMentionColorPickerDefault()
+			return pChat.cm_convertHexToRGBAPacked(defaults.color)
+		end
+
+		local function cm_getMentionColorPickerDisabled()
+			return not db.changeColor
+		end
+
+		local function cm_getMentionExclamationOption() 
+			return db.excl
+		end
+
+		local function cm_setMentionExclamationOption(var) 
+			db.excl = var
+			pChat.cm_loadRegexes()
+		end
+
+		local function cm_getMentionAllCapsOption() 
+			return db.capitalize
+		end
+
+		local function cm_setMentionAllCapsOption(var) 
+			db.capitalize = var
+			pChat.cm_loadRegexes()
+		end
+
+		local function cm_getMentionExtraNamesOption()
+			return db.extras
+		end
+
+		local function cm_setMentionExtraNamesOption(var)
+			db.extras = var
+			pChat.cm_loadRegexes()
+		end
+
+		local function cm_getMentionSelfSendOption() 
+			return db.selfsend
+		end
+
+		local function cm_setMentionSelfSendOption(var)
+			db.selfsend = var
+		end
+
+		local function cm_getMentionDingOption()
+			return db.ding
+		end
+
+		local function cm_setMentionDingOption(var) 
+			db.ding = var
+		end
+
+		local function cm_getMentionApplyNameOption() 
+			return db.selfchar
+		end
+
+		local function cm_setMentionApplyNameOption(var) 
+			db.selfchar = var
+			pChat.cm_loadRegexes()
+		end
+
+		local function cm_getMentionWholeWordOption() 
+			return db.wholenames
+		end
+
+		local function cm_setMentionWholeWordOption(var) 
+			db.wholenames = var
+			pChat.cm_loadRegexes()
+		end
+
+		-- Coorbin20200708
+		-- Chat Mentions Data
+		optionsData[#optionsData + 1] = {
+			type = "submenu",
+			name = GetString(PCHAT_MENTIONSH),
+			controls = {
+				{
+					type = "checkbox",
+					name = GetString(PCHAT_MENTIONS_TEXT_COLOR_CHECKBOX_NAME),
+					getFunc = cm_getMentionColorOption,
+					setFunc = cm_setMentionColorOption,
+					tooltip = GetString(PCHAT_MENTIONS_TEXT_COLOR_CHECKBOX_TOOLTIP),
+					default = false,
+					width = "full",
+				},
+				{
+					type = "colorpicker",
+					name = GetString(PCHAT_MENTIONS_TEXT_COLOR_PICKER_NAME),
+					getFunc = cm_getMentionColorPickerOption,
+					setFunc = cm_setMentionColorPickerOption,
+					disabled = cm_getMentionColorPickerDisabled,
+					default = cm_getMentionColorPickerDefault,
+				},
+				{
+					type = "checkbox",
+					name = GetString(PCHAT_MENTIONS_ADD_EXCL_ICON_NAME),
+					getFunc = cm_getMentionExclamationOption,
+					setFunc = cm_setMentionExclamationOption,
+					tooltip = GetString(PCHAT_MENTIONS_ADD_EXCL_ICON_TOOLTIP),
+					default = false,
+					width = "full",
+				},
+				{
+					type = "checkbox",
+					name = GetString(PCHAT_MENTIONS_ALLCAPS_NAME),
+					getFunc = cm_getMentionAllCapsOption,
+					setFunc = cm_setMentionAllCapsOption,
+					tooltip = GetString(PCHAT_MENTIONS_ALLCAPS_TOOLTIP),
+					default = false,
+					width = "full",
+				},
+				{
+					type = "editbox",
+					name = GetString(PCHAT_MENTIONS_EXTRA_NAMES_NAME),
+					tooltip = GetString(PCHAT_MENTIONS_EXTRA_NAMES_TOOLTIP),
+					getFunc = cm_getMentionExtraNamesOption,
+					setFunc = cm_setMentionExtraNamesOption,
+					isMultiline = true,
+					isExtraWide = true,
+					width = "full",
+					default = "",
+				},
+				{
+					type = "checkbox",
+					name = GetString(PCHAT_MENTIONS_SELFSEND_NAME),
+					getFunc = cm_getMentionSelfSendOption,
+					setFunc = cm_setMentionSelfSendOption,
+					tooltip = GetString(PCHAT_MENTIONS_SELFSEND_TOOLTIP),
+					default = false,
+					width = "full",
+				},
+				{
+					type = "checkbox",
+					name = GetString(PCHAT_MENTIONS_DING_NAME),
+					getFunc = cm_getMentionDingOption,
+					setFunc = cm_setMentionDingOption,
+					tooltip = GetString(PCHAT_MENTIONS_DING_TOOLTIP),
+					default = false,
+					width = "full",
+				},
+				{
+					type = "checkbox",
+					name = GetString(PCHAT_MENTIONS_APPLYNAME_NAME),
+					getFunc = cm_getMentionApplyNameOption,
+					setFunc = cm_setMentionApplyNameOption,
+					tooltip = GetString(PCHAT_MENTIONS_APPLYNAME_TOOLTIP),
+					default = false,
+					width = "full",
+				},
+				{
+					type = "checkbox",
+					name = GetString(PCHAT_MENTIONS_WHOLEWORD_NAME),
+					getFunc = cm_getMentionWholeWordOption,
+					setFunc = cm_setMentionWholeWordOption,
+					tooltip = GetString(PCHAT_MENTIONS_WHOLEWORD_TOOLTIP),
+					default = false,
+					width = "full",
+				},
+			},
+		}
+
 		--[[
 		index = index + 1
 		optionsTable[index] = {
@@ -1888,7 +2084,7 @@ function pChat.InitializeSettings()
                 db.formatguild[guildName] = nil
             end
         end
-    end
+	end
 
     --Load the SavedVariables
     db = ZO_SavedVars:NewAccountWide(ADDON_SV_NAME, ADDON_SV_VERSION, nil, defaults)
