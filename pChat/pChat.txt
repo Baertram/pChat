@@ -10,7 +10,7 @@
 ## AddOnVersion: 10000010
 ## Version: 10.0.0.6
 ## APIVersion: 100031 100032
-## Author: Ayantir, DesertDwellers, Baertram, sirinsidiator, Coorbin
+## Author: Ayantir, DesertDwellers, Baertram
 ## SavedVariables: PCHAT_OPTS
 ## DependsOn: LibAddonMenu-2.0>=30 LibMainMenu>=8 LibCustomMenu>=692 LibDebugLogger>=196 LibMediaProvider-1.0>=13
 ## OptionalDependsOn: LibAnnyoingUpdateNotificationInGame LibCustomTitles LibChatMessage>=100

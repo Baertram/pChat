@@ -6,9 +6,9 @@
             <Controls>
                 <Button name="$(parent)Check" inherits="ZO_CheckButton">
                     <Anchor point="LEFT" />
-                    <OnInitialized>
+                    <!-- <OnInitialized>
                         ZO_CheckButton_SetToggleFunction(self, pChat_ChatCopyOptionsOnCheckboxToggled)
-                    </OnInitialized>
+                    </OnInitialized> -->
                 </Button>
             </Controls>
         </Control>
@@ -23,15 +23,15 @@
                 </Label>
                 <Button name="$(parent)Guild" inherits="ZO_CheckButton" >
                     <Anchor point ="TOPLEFT" relativeTo="$(parent)GuildName" relativePoint="BOTTOMLEFT" offsetY="5" />
-                    <OnInitialized>
+                     <!-- <OnInitialized>
                         ZO_CheckButton_SetToggleFunction(self, pChat_ChatCopyOptionsOnCheckboxToggled)
-                    </OnInitialized>
+                    </OnInitialized> -->
                 </Button>
                 <Button name="$(parent)Officer" inherits="ZO_CheckButton" >
                     <Anchor point ="TOPLEFT" relativeTo="$(parent)Guild" relativePoint="BOTTOMLEFT" offsetY="5" />
-                    <OnInitialized>
+                     <!-- <OnInitialized>
                         ZO_CheckButton_SetToggleFunction(self, pChat_ChatCopyOptionsOnCheckboxToggled)
-                    </OnInitialized>
+                    </OnInitialized> -->
                 </Button>
             </Controls>
         </Control>
