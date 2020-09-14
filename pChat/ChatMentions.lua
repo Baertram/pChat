@@ -221,10 +221,36 @@ function pChat.cm_decorateText(origText, useRegSyntax)
 	return retval
 end
 
+function pChat.alreadyHasColorize(regex, origColor)
+	local keyBuild = {}
+	table.insert(keyBuild, "|r")
+	table.insert(keyBuild, regex)
+	table.insert(origColor)
+	return table.concat(keyBuild, "")
+end
+
+function pChat.doAppendColor(text, v, k, appendColor)
+	k = k .. appendColor
+	text = string.gsub(text, v, k)
+	if string.sub(text, -#appendColor) == appendColor then
+		-- The string ends with the appendColor so we need to remove it
+		text = string.sub(text, 1, #text - #appendColor)
+	end
+	return text
+end
+
 -- The main formatting routine that gets called inside FormatMessage.
-function pChat.cm_format(text, fromDisplayName, isCS)
+function pChat.cm_format(text, fromDisplayName, isCS, appendColor)
     local lfrom = string.lower(fromDisplayName)
     local cm_lplayerAt = string.lower(GetUnitDisplayName("player"))
+	
+	-- Support custom colors already in the text
+	local alreadyHasColor, lastColorValue = string.find(text, "|c[%d%a][%d%a][%d%a][%d%a][%d%a][%d%a]")
+	local origColor = ""
+	if alreadyHasColor then
+		origColor = string.sub(text, alreadyHasColor, lastColorValue)
+	end
+	
     if isCS == false then
         if db.selfsend == true or (lfrom ~= "" and lfrom ~= nil and lfrom ~= cm_lplayerAt) then
             local origtext = text
@@ -233,7 +259,16 @@ function pChat.cm_format(text, fromDisplayName, isCS)
                 if pChat.cm_startsWith(v, "!") then
                     v = string.sub(v,2)
                     if pChat.cm_containsWholeWord(text, v) then
-                        text = string.gsub(text, v, k)
+                        if alreadyHasColor then
+							text = string.gsub(text, v, pChat.alreadyHasColorize(k, origColor))
+						else
+							if appendColor ~= nil then
+								text = pChat.doAppendColor(text, v, k, appendColor)
+							else
+								text = string.gsub(text, v, k)
+							end
+						end
+						
                         if origtext ~= text then
                             text = pChat.cm_correctCase(origtext, text, v, db["capitalize"])
                             matched = true
@@ -244,7 +279,16 @@ function pChat.cm_format(text, fromDisplayName, isCS)
                         end
                     end
                 else
-                    text = string.gsub(text, v, k)
+					if alreadyHasColor then
+						text = string.gsub(text, v, pChat.alreadyHasColorize(k, origColor))
+					else
+						if appendColor ~= nil then
+							text = pChat.doAppendColor(text, v, k, appendColor)
+						else
+							text = string.gsub(text, v, k)
+						end
+					end
+					
                     if origtext ~= text then
                         text = pChat.cm_correctCase(origtext, text, v, db["capitalize"])
                         matched = true
