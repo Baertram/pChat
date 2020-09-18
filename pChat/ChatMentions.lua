@@ -3,6 +3,19 @@
 -- Other places in the codebase where Chat Mentions functionality was introduced have the "Coorbin20200708" comment above them.
 local db = {}
 
+function pChat.getAllLetters(charClass)
+	local chars = "%aáéíóúýàèìòùâêîôûäëïöüÿâêîôûãñõçßøÀÈÌÒÙÁÉÍÓÚÝÂÊÎÔÛÃÑÕÄËÏÖÜŸ"
+	local retval = ""
+	if charClass == true then
+		retval = "[" .. chars .. "]"
+	else
+		retval = chars
+	end
+	return retval
+end
+
+local allLettersCharClass = pChat.getAllLetters(true)
+
 function pChat.cm_initChatMentionsEngine()
     db = pChat.db
     pChat.cm_watches = {}
@@ -75,10 +88,13 @@ function pChat.cm_onWatchToggle(playerName, rawName)
 end
 
 function pChat.cm_nocase (s)
-	s = string.gsub(s, "%a", function (c)
+	news = string.gsub(string.gsub(s, "!", ""), utf8.charpattern, function (c)
 		  return string.format("[%s%s]", string.lower(c), string.upper(c))
 		end)
-	return s
+	if string.sub(s, 1, 1) == "!" then
+		news = "!" .. news
+	end
+	return news
 end
 
 -- Turn a ([0,1])^3 RGB colour to "ABCDEF" form. We could use ZO_ColorDef, but we have so many colors so we don't do it.
@@ -87,7 +103,25 @@ function pChat.cm_convertRGBToHex(r, g, b)
 end
 
 function pChat.cm_containsWholeWord(input, word)
-	return input:gsub('%a+', ' %1 '):match(' (' .. word .. ') ') ~= nil
+	local rxWord = "^" .. word .. "$"
+	local words = pChat.cm_dumbSplit(input)
+	for k,v in ipairs(words) do
+		if string.match(v, rxWord) ~= nil then
+			return true
+		end
+	end
+	return false
+	-- return input:gsub('%a+', ' %1 '):match(' (' .. word .. ') ') ~= nil
+end
+
+function pChat.cm_dumbSplit(input)
+	local sep = "%s"
+	local t = {}
+	
+	for str in string.gmatch(input, "([^"..sep.."]+)") do
+			table.insert(t, str)
+	end
+	return t
 end
 
 -- Convert a colour from "ABCDEF" form to [0,1] RGB form.
@@ -221,19 +255,55 @@ function pChat.cm_decorateText(origText, useRegSyntax)
 	return retval
 end
 
+function pChat.alreadyHasColorize(regex, origColor)
+	local keyBuild = {}
+	table.insert(keyBuild, "|r")
+	table.insert(keyBuild, regex)
+	table.insert(origColor)
+	return table.concat(keyBuild, "")
+end
+
+function pChat.doAppendColor(text, v, k, appendColor)
+	k = k .. appendColor
+	text = string.gsub(text, v, k)
+	if string.sub(text, -#appendColor) == appendColor then
+		-- The string ends with the appendColor so we need to remove it
+		text = string.sub(text, 1, #text - #appendColor)
+	end
+	return text
+end
+
 -- The main formatting routine that gets called inside FormatMessage.
-function pChat.cm_format(text, fromDisplayName, isCS)
+function pChat.cm_format(text, fromDisplayName, isCS, appendColor)
     local lfrom = string.lower(fromDisplayName)
     local cm_lplayerAt = string.lower(GetUnitDisplayName("player"))
+	
+	-- Support custom colors already in the text
+	local alreadyHasColor, lastColorValue = string.find(text, "|c[%d%a][%d%a][%d%a][%d%a][%d%a][%d%a]")
+	local origColor = ""
+	if alreadyHasColor then
+		origColor = string.sub(text, alreadyHasColor, lastColorValue)
+	end
+	
     if isCS == false then
         if db.selfsend == true or (lfrom ~= "" and lfrom ~= nil and lfrom ~= cm_lplayerAt) then
             local origtext = text
             local matched = false
             for k,v in pairs(pChat.cm_regexes) do
+				-- For debugging regexes: d("v = " .. v)
                 if pChat.cm_startsWith(v, "!") then
                     v = string.sub(v,2)
                     if pChat.cm_containsWholeWord(text, v) then
-                        text = string.gsub(text, v, k)
+                        if alreadyHasColor then
+							text = string.gsub(text, v, pChat.alreadyHasColorize(k, origColor))
+						else
+							if appendColor ~= nil then
+								text = pChat.doAppendColor(text, v, k, appendColor)
+							else
+								text = string.gsub(text, v, k)
+							end
+						end
+						
                         if origtext ~= text then
                             text = pChat.cm_correctCase(origtext, text, v, db["capitalize"])
                             matched = true
@@ -244,7 +314,16 @@ function pChat.cm_format(text, fromDisplayName, isCS)
                         end
                     end
                 else
-                    text = string.gsub(text, v, k)
+					if alreadyHasColor then
+						text = string.gsub(text, v, pChat.alreadyHasColorize(k, origColor))
+					else
+						if appendColor ~= nil then
+							text = pChat.doAppendColor(text, v, k, appendColor)
+						else
+							text = string.gsub(text, v, k)
+						end
+					end
+					
                     if origtext ~= text then
                         text = pChat.cm_correctCase(origtext, text, v, db["capitalize"])
                         matched = true
