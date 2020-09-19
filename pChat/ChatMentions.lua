@@ -103,7 +103,7 @@ function pChat.cm_convertRGBToHex(r, g, b)
 end
 
 function pChat.cm_containsWholeWord(input, word)
-	local rxWord = "^" .. word .. "$"
+	local rxWord = "^%p*" .. word .. "%p*$"
 	local words = pChat.cm_dumbSplit(input)
 	for k,v in ipairs(words) do
 		if string.match(v, rxWord) ~= nil then
