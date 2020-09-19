@@ -1,5 +1,6 @@
 local CONSTANTS = pChat.CONSTANTS
 local ADDON_NAME = CONSTANTS.ADDON_NAME
+local mapChatChannelToPChatChannel = pChat.mapChatChannelToPChatChannel
 
 function pChat.InitializeSpamFilter()
     local pChatData = pChat.pChatData
@@ -33,10 +34,12 @@ function pChat.InitializeSpamFilter()
                                         -- TODO: Find a characterchannel func
 
                                         -- CHAT_CHANNEL_SAY = 0 == nil in lua, will broke the array, so use CONSTANTS.PCHAT_CHANNEL_SAY
-                                        local spamChanCode = chanCode
+                                        local spamChanCode = mapChatChannelToPChatChannel(chanCode)
+                                        --[[
                                         if spamChanCode == CHAT_CHANNEL_SAY then
                                             spamChanCode = CONSTANTS.PCHAT_CHANNEL_SAY
                                         end
+                                        ]]
 
                                         local spammableChannels = {}
                                         spammableChannels[CHAT_CHANNEL_ZONE_LANGUAGE_1] = true
@@ -132,10 +135,12 @@ function pChat.InitializeSpamFilter()
 
         --logger:Debug("GR analizis")
 
-        local spamChanCode = chanCode
+        local spamChanCode = mapChatChannelToPChatChannel(chanCode)
+        --[[
         if spamChanCode == CHAT_CHANNEL_SAY then
             spamChanCode = CONSTANTS.PCHAT_CHANNEL_SAY
         end
+        ]]
 
         local spammableChannels = {}
         spammableChannels[CHAT_CHANNEL_ZONE_LANGUAGE_1] = true

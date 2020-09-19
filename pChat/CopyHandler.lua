@@ -3,6 +3,7 @@ local ADDON_NAME = CONSTANTS.ADDON_NAME
 
 -- pChat Chat Copy Options OBJKCT
 pChat.ChatCopyOptions = nil
+local mapChatChannelToPChatChannel = pChat.mapChatChannelToPChatChannel
 
 -------------------------------------------------------------
 -- Helper functions --
@@ -123,6 +124,9 @@ local function CopyDiscussion(chanNumber, numLine)
         numChanCode = CHAT_CHANNEL_WHISPER
     elseif numChanCode == CONSTANTS.PCHAT_URL_CHAN then
         numChanCode = db.LineStrings[numLine].channel
+    --CHAT_CHANNEL_SAY = 0, does not work properly in tables so pChat internally uses an alternative value 98 for it!
+    else
+        numChanCode = mapChatChannelToPChatChannel(numChanCode)
     end
 
     local stringToCopy = ""
@@ -146,6 +150,7 @@ local function CopyDiscussion(chanNumber, numLine)
             end
         end
     end
+--d(">stringToCopy: " ..tostring(stringToCopy))
     pChat_ShowCopyDialog(stringToCopy, numChanCode)
 end
 
@@ -173,7 +178,10 @@ end
 
 -- Copy Whole chat (not tab)
 -- Filter it by the channelIds from the pchat copy options dialog
+--> Special treatment for CHAT_CHANNEL_SAY (0) -> Is stored internally with CONSTANTS.PCHAT_CHANNEL_SAY (98), so needs
+--> to be read from there in the lines!
 local function CopyWholeChat(updateShownDialog)
+--d("[pChat]CopyWholeChat-updateShownDialog: " ..tostring(updateShownDialog))
     updateShownDialog = updateShownDialog or false
     local db = pChat.db
     chatCatgoriesEnabledTable = {}
@@ -186,6 +194,7 @@ local function CopyWholeChat(updateShownDialog)
         if updateShownDialog == true and chatChannelsToFilter then
             doAddLine = false
             local lineDataChannel = lineData.channel
+--d(">lineDataChannel: " ..tostring(lineDataChannel))
             for chatChannelToFilter, isActive in pairs(chatChannelsToFilter) do
                 if chatChannelToFilter == lineDataChannel and isActive == true then
                     doAddLine = true
@@ -302,6 +311,7 @@ for _, chatChannelId in pairs(chatChannelsToMap) do
         ChatCategory2ChatChannel[chatCat] = chatChannelId
     end
 end
+pChat.ChatCategory2ChatChannel = ChatCategory2ChatChannel
 
 --[[ ChatCopyOptions Panel ]]--
 local ChatCopyOptions = ZO_Object:Subclass()
@@ -422,6 +432,8 @@ function ChatCopyOptions:Initialize(control)
     if not message or message == "" then return end
     --Get the selected chatChannel (via ShowDiscussion)
     local chatChannel = self.chatChannel
+    --ShowDiscussion was called?
+    local applyFilterEnabled = (chatChannel==nil) or false
 
     --Uncheck all checkboxes and enable them again
     self:ResetFilterCheckBoxes()
@@ -434,7 +446,7 @@ function ChatCopyOptions:Initialize(control)
         local chatContainer = CHAT_SYSTEM.primaryContainer
         if chatContainer then
             for chatTabIndex, _ in ipairs(pChat.tabIndices) do
-                self:SetCurrentChannelSelections(chatContainer, chatTabIndex, chatChannel)
+                self:SetCurrentChannelSelections(chatContainer, chatTabIndex, chatChannel, applyFilterEnabled)
             end
         end
     end
@@ -444,7 +456,6 @@ function ChatCopyOptions:Initialize(control)
     --Do not allow more filters if we only show one chatChannel
     local applyFilter = GetControl(control, "ApplyFilter")
     applyFilter:SetText(GetString(PCHAT_COPYXMLAPPLY))
-    local applyFilterEnabled = chatChannel==nil or false
     applyFilter:SetEnabled(applyFilterEnabled)
     applyFilter:SetMouseEnabled(applyFilterEnabled)
     applyFilter:SetHidden(not applyFilterEnabled)
@@ -591,27 +602,33 @@ function ChatCopyOptions:UpdateGuildNames()
 end
 
 function ChatCopyOptions:ResetFilterCheckBoxes()
+d("[pChat]ResetFilterCheckBoxes")
     if not self.filterButtons then return end
     for _, button in ipairs(self.filterButtons) do
         ZO_CheckButton_SetCheckState(button, false)
         button:SetEnabled(true)
         button:SetMouseEnabled(true)
+        button:SetHidden(false)
     end
 end
 
-function ChatCopyOptions:SetCurrentChannelSelections(container, chatTabIndex, chatChannel)
+function ChatCopyOptions:SetCurrentChannelSelections(container, chatTabIndex, chatChannel, isShowDiscussion)
     if not self.filterButtons then return end
+    isShowDiscussion = isShowDiscussion or false
     -- Iterate each button's channel list and check just the first entry in each as they are all toggled together
     -- e.g. NPC got more than 1 chatChannel below the NPC checkBox
     --Attention: button.channels are the chatCategories not the chatChannels!
     --> As multiple chat tabs are checked: Keep the already checked checkboxes enabled!
     -- If a chatChannel is given as 3rd parameter, only use this one but check all channels assigned to the buttons instead of only the first
---d("pChat SetCurrentChannelSelections, chatChannel: " ..tostring(chatChannel))
+d("pChat SetCurrentChannelSelections-chatTabIndex: " ..tostring(chatTabIndex) ..", chatChannel: " ..tostring(chatChannel) .. ", isShowDiscussion: " ..tostring(isShowDiscussion))
     for _, button in ipairs(self.filterButtons) do
         if not ZO_CheckButton_IsChecked(button) then
             if chatChannel == nil then
                 local chatChannelIsEnabeldAtChatTab = IsChatContainerTabCategoryEnabled(container.id, chatTabIndex, button.channels[1]) or false
                 ZO_CheckButton_SetCheckState(button, chatChannelIsEnabeldAtChatTab)
+                if isShowDiscussion == true then
+                    button:SetHidden(not chatChannelIsEnabeldAtChatTab)
+                end
             else
                 local chatCategoryToCheck = GetChannelCategoryFromChannel(chatChannel)
                 if not chatCategoryToCheck then return end
@@ -620,9 +637,12 @@ function ChatCopyOptions:SetCurrentChannelSelections(container, chatTabIndex, ch
                     if chatCategoryToCheck == chatCategoryAtCheckbox then
                         chatChannelCategoryIsEnabledAtChatTab = IsChatContainerTabCategoryEnabled(container.id, chatTabIndex, chatCategoryToCheck) or false
                     end
---d(">[Tab: " .. tostring(chatTabIndex) .. "]catCheck/catBox: " ..tostring(chatCategoryToCheck) .. "/" ..tostring(chatCategoryAtCheckbox) .."->" ..tostring(chatChannelCategoryIsEnabledAtChatTab))
+--d(">category: toCompare/WithCheckBox: " ..tostring(chatCategoryToCheck) .. "/" ..tostring(chatCategoryAtCheckbox) .."->" ..tostring(chatChannelCategoryIsEnabledAtChatTab))
                     --Update their checked state
                     ZO_CheckButton_SetCheckState(button, chatChannelCategoryIsEnabledAtChatTab)
+                    if isShowDiscussion == true then
+                        button:SetHidden(not chatChannelCategoryIsEnabledAtChatTab)
+                    end
                 end
             end
         end
@@ -630,6 +650,7 @@ function ChatCopyOptions:SetCurrentChannelSelections(container, chatTabIndex, ch
 end
 
 function ChatCopyOptions:ApplyFilters()
+--d("[pChat]CopyDialog-ApplyFilters")
     pChat.pChatData.chatChannelsToFilter = nil
     --Filter the entries in the list now according to selected checkboxes!
     --Get the selected checkboxes
@@ -645,6 +666,9 @@ function ChatCopyOptions:ApplyFilters()
                 --Get the relating chatChannels of the categories
                 local chatChannel = ChatCategory2ChatChannel[chatCat]
                 if chatChannel then
+                    --pChat internally uses CONSTANTS.PCHAT_CHANNEL_SAY (98) instead of CHAT_CHANNEL_SAY (0)
+                    chatChannel = mapChatChannelToPChatChannel(chatChannel)
+
                     chatChannelsToFilter[chatChannel] = true
                     chatChannelsToFilterAdded = true
                 end
@@ -684,8 +708,8 @@ function pChat_ChatCopyOptions_OnHide()
     pChat.ChatCopyOptions:Hide()
 end
 
+--[[
 function pChat_ChatCopyOptionsOnCheckboxToggled(buttonControl, checked)
-    --[[
     if not buttonControl then return end
     d("pChat, changed checkbox: " ..tostring(buttonControl:GetName() .. ", state: " ..tostring(checked)))
     local channels = buttonControl.channels
@@ -693,8 +717,8 @@ function pChat_ChatCopyOptionsOnCheckboxToggled(buttonControl, checked)
     for i,channel in ipairs(channels) do
         d(">>"..tostring(channel))
     end
-    ]]
 end
+]]
 ----------------------------------------------------------------------------------------------
 
 -- Create the controls and the dialog
@@ -806,11 +830,13 @@ function pChat.InitializeCopyHandler(control)
                         or (chanNumber >= CHAT_CHANNEL_GUILD_1 and chanNumber <= CHAT_CHANNEL_GUILD_5)
                         or (chanNumber >= CHAT_CHANNEL_OFFICER_1 and chanNumber <= CHAT_CHANNEL_OFFICER_5) then
                     IgnoreMouseDownEditFocusLoss()
-                    CHAT_SYSTEM:StartTextEntry(nil, chanNumber)
+                    --CHAT_SYSTEM:StartTextEntry(nil, chanNumber)
+                    StartChatInput(nil, chanNumber, nil)
                 elseif chanNumber == CHAT_CHANNEL_WHISPER then
                     local target = zo_strformat(SI_UNIT_NAME, db.LineStrings[numLine].rawFrom)
                     IgnoreMouseDownEditFocusLoss()
-                    CHAT_SYSTEM:StartTextEntry(nil, chanNumber, target)
+                    --CHAT_SYSTEM:StartTextEntry(nil, chanNumber, target)
+                    StartChatInput(nil, chanNumber, target)
                 elseif chanNumber == CONSTANTS.PCHAT_URL_CHAN then
                     RequestOpenUnsafeURL(linkText)
                 end

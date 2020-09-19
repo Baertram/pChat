@@ -1,6 +1,9 @@
 local CONSTANTS = pChat.CONSTANTS
 local ADDON_NAME = CONSTANTS.ADDON_NAME
 
+local mapChatChannelToPChatChannel = pChat.mapChatChannelToPChatChannel
+local mapPChatChannelToChatChannel = pChat.mapPChatChannelToChatChannel
+
 function pChat.InitializeChatHistory()
     local pChatData = pChat.pChatData
     local db = pChat.db
@@ -144,7 +147,8 @@ function pChat.InitializeChatHistory()
             while historyIndex <= #db.LineStrings do
                 if db.LineStrings[historyIndex] then
                     local channelToRestore = db.LineStrings[historyIndex].channel
-                    if channelToRestore == CONSTANTS.PCHAT_CHANNEL_SAY then channelToRestore = CHAT_CHANNEL_SAY end
+                    --if channelToRestore == CONSTANTS.PCHAT_CHANNEL_SAY then channelToRestore = CHAT_CHANNEL_SAY end
+                    channelToRestore = mapPChatChannelToChatChannel(channelToRestore)
 
                     if channelToRestore == CHAT_CHANNEL_SYSTEM and not db.restoreSystem then
                         table.remove(db.LineStrings, historyIndex)
@@ -366,11 +370,14 @@ function pChat.InitializeChatHistory()
         db.LineStrings[db.lineNumber].rawTimestamp = rawTimestamp
 
         -- Store CopyMessage / Used for SpamFiltering. Due to lua 0 == nil in arrays, set value to 98
+        chanCode = mapChatChannelToPChatChannel(chanCode)
+        --[[
         if chanCode == CHAT_CHANNEL_SAY then
             db.LineStrings[db.lineNumber].channel = CONSTANTS.PCHAT_CHANNEL_SAY
         else
+        ]]
             db.LineStrings[db.lineNumber].channel = chanCode
-        end
+        --end
 
         -- Store CopyMessage
         db.LineStrings[db.lineNumber].rawText = rawText
