@@ -472,3 +472,25 @@ SafeAddString(PCHAT_CHATHANDLER_IGNORE_ADDED                , "Ignorierte Spiele
 SafeAddString(PCHAT_CHATHANDLER_IGNORE_REMOVED              , "Ignorierte Spieler entfernt", 1)
 SafeAddString(PCHAT_CHATHANDLER_GROUP_MEMBER_LEFT           , "Gruppen Mitglied verlassen", 1)
 SafeAddString(PCHAT_CHATHANDLER_GROUP_TYPE_CHANGED          , "Gruppen Typ geändert", 1)
+
+
+	-- Coorbin20200708
+	-- Chat Mentions settings strings
+SafeAddString(PCHAT_MENTIONSH, "Erwähnungen", 1)
+SafeAddString(PCHAT_MENTIONS_TEXT_COLOR_CHECKBOX_NAME, "Verändere Schriftfarbe bei einer Erwähnung: Name",1)
+SafeAddString(PCHAT_MENTIONS_TEXT_COLOR_CHECKBOX_TOOLTIP, "Soll die Chat Schriftfarbe verändert werden, wenn dein Name genannt wird, oder nicht?",1)
+SafeAddString(PCHAT_MENTIONS_TEXT_COLOR_PICKER_NAME, "Farbe bei Erwähnung: Name",1)
+SafeAddString(PCHAT_MENTIONS_ADD_EXCL_ICON_NAME, "Fühe Ausrufezeichen hinzu",1)
+SafeAddString(PCHAT_MENTIONS_ADD_EXCL_ICON_TOOLTIP, "Soll dem Chat Text ein Ausrufezeichen Symbol am Anfang zugefügt werden, wenn dein Name erwähnt wird?",1)
+SafeAddString(PCHAT_MENTIONS_ALLCAPS_NAME, "Alles in GROßBUCHSTABEN: Name",1)
+SafeAddString(PCHAT_MENTIONS_ALLCAPS_TOOLTIP, "Soll der Name im Chat Text in Großbuchstaben dargestellt werden, wenn dein Name erwähnt wird?",1)
+SafeAddString(PCHAT_MENTIONS_EXTRA_NAMES_NAME, "Andere Namen um dich zu benachrichtigen (1 Zeile je Name)",1)
+SafeAddString(PCHAT_MENTIONS_EXTRA_NAMES_TOOLTIP, "Eine Liste mit 1 Namen je Zeile bei welchen du auch informiert wirst. Drücke die ENTER Taste um eine neue Zeile zu beginnen. Wenn du ein \'!\' vor den Namen schreibst, wirst du nur informiert, wenn der Name ein eigenes Wort ist. Zum Beispiel: Wenn du \'!de\' einträgst wirst du bei \'de nada\' informiert aber nicht bei \'Delikatessen\'. Wenn du nur \'de\' einträgst wirst du auch bei \'Delikatessen\' informiert.",1)
+SafeAddString(PCHAT_MENTIONS_SELFSEND_NAME, "Auch bei deinen gesendeten Nachrichten?",1)
+SafeAddString(PCHAT_MENTIONS_SELFSEND_TOOLTIP, "Sollen die eingestellten Formatierungen auch auf Nachrichten angewendet werden, welche du versendest?",1)
+SafeAddString(PCHAT_MENTIONS_DING_NAME, "Ding Geräusch?",1)
+SafeAddString(PCHAT_MENTIONS_DING_TOOLTIP, "Spiele ein Ding Geräusch ab wenn dein Name erwähnt wird.",1)
+SafeAddString(PCHAT_MENTIONS_APPLYNAME_NAME, "Alle Charakter Namen berücksichtigen",1)
+SafeAddString(PCHAT_MENTIONS_APPLYNAME_TOOLTIP, "Formatierungen auf alle Bestandteile deines Namens anwenden (durch Leerzeichen getrennt). Deaktiviere diese Option, wenn du einen gewöhnlichen Namen wie z.B. \'Me\' in deinem Namen verwendest",1)
+SafeAddString(PCHAT_MENTIONS_WHOLEWORD_NAME, "Charakter Namen nur als Gesamtes Wort",1)
+SafeAddString(PCHAT_MENTIONS_WHOLEWORD_TOOLTIP, "Sollen die Charakter Namen nur als Gesamtes Wort erkannt werden? Wenn du einen sehr kurzen Namen innerhalb deines mit Leerzeichen getrennten Charakter Namen verwendest, willst du diese Option ggf. anschalten.",1)
