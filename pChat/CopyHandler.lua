@@ -469,13 +469,13 @@ function ChatCopyOptions:Initialize(control)
         for button, isFilterEnabled in pairs(self.filteredChannels) do
             if isFilterEnabled == true then
                 --Update their checked state
-                ZO_CheckButton_SetCheckState(button, isFilterEnabled)
                 button:SetEnabled(isFilterEnabled)
                 button:SetMouseEnabled(isFilterEnabled)
                 local label = GetControl(button, "Label")
                 if label then
                     label:SetMouseEnabled(isFilterEnabled)
                 end
+                ZO_CheckButton_SetCheckState(button, isFilterEnabled)
             end
         end
     end
@@ -662,11 +662,6 @@ function ChatCopyOptions:SetCurrentChannelSelections(container, chatTabIndex, ch
                 local chatChannelIsEnabeldAtChatTab = IsChatContainerTabCategoryEnabled(container.id, chatTabIndex, button.channels[1]) or false
 --d(">chatTabIndex: " ..tostring(chatTabIndex) .. ", chatChannel1AtTab: " ..tostring(button.channels[1]) .."->" ..tostring(chatChannelIsEnabeldAtChatTab))
                 self.filteredChannels[button] = self.filteredChannels[button] or chatChannelIsEnabeldAtChatTab
-                --[[
-                ZO_CheckButton_SetCheckState(button, chatChannelIsEnabeldAtChatTab)
-                button:SetEnabled(chatChannelIsEnabeldAtChatTab)
-                button:SetMouseEnabled(chatChannelIsEnabeldAtChatTab)
-                ]]
             else
                 local chatCategoryToCheck = GetChannelCategoryFromChannel(chatChannel)
                 if not chatCategoryToCheck then return end
@@ -678,12 +673,6 @@ function ChatCopyOptions:SetCurrentChannelSelections(container, chatTabIndex, ch
                     end
 --d(">category: toCompare/WithCheckBox: " ..tostring(chatCategoryToCheck) .. "/" ..tostring(chatCategoryAtCheckbox) .."->" ..tostring(chatChannelCategoryIsEnabledAtChatTab))
                     self.filteredChannels[button] = self.filteredChannels[button] or chatChannelCategoryIsEnabledAtChatTab
-                    --Update their checked state
-                    --[[
-                    ZO_CheckButton_SetCheckState(button, chatChannelCategoryIsEnabledAtChatTab)
-                    button:SetEnabled(chatChannelCategoryIsEnabledAtChatTab)
-                    button:SetMouseEnabled(chatChannelCategoryIsEnabledAtChatTab)
-                    ]]
                 end
             end
         end
