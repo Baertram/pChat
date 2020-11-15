@@ -352,31 +352,10 @@ local function SetupChatCopyOptionsDialog(control)
                         keybind =   "DIALOG_NEGATIVE",
                     },
                 },
+                --[[
                 finishedCallback = function()
-                    --d("PCHAT_CHAT_COPY_DIALOG > FinishedCallback")
-                    --Check if we are in HUD_UI and change the scene to HUD so we can move and fight again.
-                    --Somehow opening the pChatCopyChatDialog will trigger the input mode (cursor = arrow) and opening
-                    --e.g. the map afterwards disturbed the scene so that closing the map will still show the arrow mode
-                    --The following does not help:
-                    --SCENE_MANAGER:RestoreHUDScene()
-                    --The following will change the cursor to reticle mode but still does not help with the next opened
-                    --and closed scene like the map -> it will stay in huidUI mode after clsoing :-(
-                    --ZO_SceneManager_ToggleHUDUIBinding()
-                    --Maybe this helps? NO it doesn't :-(
-                    --[[
-                    local function IsSafeForSystemToCaptureMouseCursor()
-                        return IsMouseWithinClientArea() and not IsUserAdjustingClientWindow()
-                    end
-                    local isInUIMode = SCENE_MANAGER:IsInUIMode()
-                    local isShowingBaseScene = SCENE_MANAGER:IsShowingBaseScene()
-d("[pChat]isInUIMode: " ..tostring(isInUIMode) .. ", isShowingBaseScene: " ..tostring(isShowingBaseScene) ..", IsSafeForSystemToCaptureMouseCursor: " ..tostring(IsSafeForSystemToCaptureMouseCursor()))
-                    if isInUIMode and IsSafeForSystemToCaptureMouseCursor() then
-                        SCENE_MANAGER:SetInUIMode(false)
-                    end
-                    ]]
-                    --This will only change the crosshair but not repair the standard behaviour at new opened scenes like the menu or inventory or map :-(
-                    --SCENE_MANAGER:ClearActionRequiredTutorialBlockers()
                 end,
+                ]]
             })
 end
 
@@ -396,7 +375,7 @@ function ChatCopyOptions:UpdateEditAndButtons()
 
     if string.len(message) < maxChars then
         label:SetText(GetString(PCHAT_COPYXMLLABEL))
-        --noteEdit:SetText(message)
+        noteEdit:SetText(message)
         noteNext:SetHidden(true)
         notePrev:SetHidden(true)
         --DO not use or the scenes with HUDUI and hud will stay switched after closing the dialog
@@ -451,6 +430,7 @@ function ChatCopyOptions:Initialize(control)
         self.guildNameLabels = {}
         self:InitializeFilterButtons(control)
         self:InitializeGuildFilters(control)
+        self.filteredChannels = {}
         self.initialized = true
     end
 
@@ -461,9 +441,9 @@ function ChatCopyOptions:Initialize(control)
     if not message or message == "" then return end
     --Get the selected chatChannel (via ShowDiscussion)
     local chatChannel = self.chatChannel
-    --ShowDiscussion was called?
-    local applyFilterEnabled = (chatChannel==nil) or false
-
+    --ShowDiscussion (a specific chat channel only) was called?
+    local isShowDiscussion = chatChannel ~= nil
+--d("[pChat]ChatCopyOptions:Initialize - chatChannel: " ..tostring(chatChannel))
     --Uncheck all checkboxes and enable them again
     self:ResetFilterCheckBoxes()
 
@@ -474,8 +454,28 @@ function ChatCopyOptions:Initialize(control)
     if pChat.tabIndices and #pChat.tabIndices > 0 then
         local chatContainer = CHAT_SYSTEM.primaryContainer
         if chatContainer then
-            for chatTabIndex, _ in ipairs(pChat.tabIndices) do
-                self:SetCurrentChannelSelections(chatContainer, chatTabIndex, chatChannel, applyFilterEnabled)
+            if isShowDiscussion == true then
+                local pChatData = pChat.pChatData
+                local activeTab = pChatData.activeTab
+                self:SetCurrentChannelSelections(chatContainer, activeTab, chatChannel, isShowDiscussion)
+            else
+                for chatTabIndex, _ in ipairs(pChat.tabIndices) do
+                    self:SetCurrentChannelSelections(chatContainer, chatTabIndex, chatChannel, isShowDiscussion)
+                end
+            end
+        end
+        --Update the button checked state and enabled state to true for the filtered ones.
+        --All non-filtered were disabled via self:ResetFilterCheckBoxes()
+        for button, isFilterEnabled in pairs(self.filteredChannels) do
+            if isFilterEnabled == true then
+                --Update their checked state
+                ZO_CheckButton_SetCheckState(button, isFilterEnabled)
+                button:SetEnabled(isFilterEnabled)
+                button:SetMouseEnabled(isFilterEnabled)
+                local label = GetControl(button, "Label")
+                if label then
+                    label:SetMouseEnabled(isFilterEnabled)
+                end
             end
         end
     end
@@ -485,9 +485,9 @@ function ChatCopyOptions:Initialize(control)
     --Do not allow more filters if we only show one chatChannel
     local applyFilter = GetControl(control, "ApplyFilter")
     applyFilter:SetText(GetString(PCHAT_COPYXMLAPPLY))
-    applyFilter:SetEnabled(applyFilterEnabled)
-    applyFilter:SetMouseEnabled(applyFilterEnabled)
-    applyFilter:SetHidden(not applyFilterEnabled)
+    applyFilter:SetEnabled(not isShowDiscussion)
+    applyFilter:SetMouseEnabled(not isShowDiscussion)
+    applyFilter:SetHidden(isShowDiscussion)
 
     --Update the edit box and the buttons + labels
     self:UpdateEditAndButtons()
@@ -635,10 +635,15 @@ function ChatCopyOptions:ResetFilterCheckBoxes()
     if not self.filterButtons then return end
     for _, button in ipairs(self.filterButtons) do
         ZO_CheckButton_SetCheckState(button, false)
-        button:SetEnabled(true)
-        button:SetMouseEnabled(true)
+        button:SetEnabled(false)
+        button:SetMouseEnabled(false)
         button:SetHidden(false)
+        local label = GetControl(button, "Label")
+        if label then
+            label:SetMouseEnabled(false)
+        end
     end
+    self.filteredChannels = {}
 end
 
 function ChatCopyOptions:SetCurrentChannelSelections(container, chatTabIndex, chatChannel, isShowDiscussion)
@@ -651,13 +656,17 @@ function ChatCopyOptions:SetCurrentChannelSelections(container, chatTabIndex, ch
     -- If a chatChannel is given as 3rd parameter, only use this one but check all channels assigned to the buttons instead of only the first
 --d("pChat SetCurrentChannelSelections-chatTabIndex: " ..tostring(chatTabIndex) ..", chatChannel: " ..tostring(chatChannel) .. ", isShowDiscussion: " ..tostring(isShowDiscussion))
     for _, button in ipairs(self.filterButtons) do
+--d(">button: " ..tostring(button:GetName()))
         if not ZO_CheckButton_IsChecked(button) then
             if chatChannel == nil then
                 local chatChannelIsEnabeldAtChatTab = IsChatContainerTabCategoryEnabled(container.id, chatTabIndex, button.channels[1]) or false
+--d(">chatTabIndex: " ..tostring(chatTabIndex) .. ", chatChannel1AtTab: " ..tostring(button.channels[1]) .."->" ..tostring(chatChannelIsEnabeldAtChatTab))
+                self.filteredChannels[button] = self.filteredChannels[button] or chatChannelIsEnabeldAtChatTab
+                --[[
                 ZO_CheckButton_SetCheckState(button, chatChannelIsEnabeldAtChatTab)
-                if isShowDiscussion == true then
-                    button:SetHidden(not chatChannelIsEnabeldAtChatTab)
-                end
+                button:SetEnabled(chatChannelIsEnabeldAtChatTab)
+                button:SetMouseEnabled(chatChannelIsEnabeldAtChatTab)
+                ]]
             else
                 local chatCategoryToCheck = GetChannelCategoryFromChannel(chatChannel)
                 if not chatCategoryToCheck then return end
@@ -665,13 +674,16 @@ function ChatCopyOptions:SetCurrentChannelSelections(container, chatTabIndex, ch
                     local chatChannelCategoryIsEnabledAtChatTab = false
                     if chatCategoryToCheck == chatCategoryAtCheckbox then
                         chatChannelCategoryIsEnabledAtChatTab = IsChatContainerTabCategoryEnabled(container.id, chatTabIndex, chatCategoryToCheck) or false
+--d(">category equals cboxCategory ->" ..tostring(chatChannelCategoryIsEnabledAtChatTab))
                     end
 --d(">category: toCompare/WithCheckBox: " ..tostring(chatCategoryToCheck) .. "/" ..tostring(chatCategoryAtCheckbox) .."->" ..tostring(chatChannelCategoryIsEnabledAtChatTab))
+                    self.filteredChannels[button] = self.filteredChannels[button] or chatChannelCategoryIsEnabledAtChatTab
                     --Update their checked state
+                    --[[
                     ZO_CheckButton_SetCheckState(button, chatChannelCategoryIsEnabledAtChatTab)
-                    if isShowDiscussion == true then
-                        button:SetHidden(not chatChannelCategoryIsEnabledAtChatTab)
-                    end
+                    button:SetEnabled(chatChannelCategoryIsEnabledAtChatTab)
+                    button:SetMouseEnabled(chatChannelCategoryIsEnabledAtChatTab)
+                    ]]
                 end
             end
         end
@@ -714,7 +726,6 @@ function ChatCopyOptions:ApplyFilters()
 end
 
 function ChatCopyOptions:Show()
---d("[pChat]ChatCopyOptions:Show - SCENE_MANAGER.exitUIModeOnChatFocusLost: " ..tostring(SCENE_MANAGER.exitUIModeOnChatFocusLost))
     ZO_Dialogs_ShowDialog("PCHAT_CHAT_COPY_DIALOG")
 end
 
