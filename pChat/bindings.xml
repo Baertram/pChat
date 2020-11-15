@@ -7,6 +7,9 @@
 			<Action name="PCHAT_TOGGLE_CHAT_WINDOW">
 				<Down>pChat_ToggleChat()</Down>
 			</Action>
+			<Action name="PCHAT_COPY_WHOLE_CHAT">
+				<Down>pChat_CopyWholeChat()</Down>
+			</Action>
 			<Action name="PCHAT_SHOW_AUTO_MSG">
 				<Down>pChat_ShowAutoMsg()</Down>
 			</Action>

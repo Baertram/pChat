@@ -323,36 +323,61 @@ end
 
 local function SetupChatCopyOptionsDialog(control)
     ZO_Dialogs_RegisterCustomDialog("PCHAT_CHAT_COPY_DIALOG",
-    {
-        customControl = control,
-        title =
-        {
-            text = PCHAT_COPYXMLTITLE,
-        },
-        setup = function(self)
-            pChat.ChatCopyOptions:Initialize(control)
-        end,
-        buttons =
-        {
-            --[[
-            --Using the button here will always close the dialog :-(
             {
+                customControl = control,
+                title =
+                {
+                    text = PCHAT_COPYXMLTITLE,
+                },
+                setup = function(self)
+                    pChat.ChatCopyOptions:Initialize(control)
+                end,
+                buttons =
+                {
+                    --[[
+                    --Using the button here will always close the dialog :-(
+                    {
 
-                control =   GetControl(control, "ApplyFilter"),
-                text =      PCHAT_COPYXMLAPPLY,
-                keybind =   "DIALOG_PRIMARY",
-                callback =  function(dialog)
-                                pChat_ChatCopyOptions_OnCommitClicked(control)
-                            end,
-            },
-            ]]
-            {
-                control =   GetControl(control, "Close"),
-                text =      SI_DIALOG_EXIT,
-                keybind =   "DIALOG_NEGATIVE",
-            },
-        }
-    })
+                        control =   GetControl(control, "ApplyFilter"),
+                        text =      PCHAT_COPYXMLAPPLY,
+                        keybind =   "DIALOG_PRIMARY",
+                        callback =  function(dialog)
+                                        pChat_ChatCopyOptions_OnCommitClicked(control)
+                                    end,
+                    },
+                    ]]
+                    {
+                        control =   GetControl(control, "Close"),
+                        text =      SI_DIALOG_EXIT,
+                        keybind =   "DIALOG_NEGATIVE",
+                    },
+                },
+                finishedCallback = function()
+                    --d("PCHAT_CHAT_COPY_DIALOG > FinishedCallback")
+                    --Check if we are in HUD_UI and change the scene to HUD so we can move and fight again.
+                    --Somehow opening the pChatCopyChatDialog will trigger the input mode (cursor = arrow) and opening
+                    --e.g. the map afterwards disturbed the scene so that closing the map will still show the arrow mode
+                    --The following does not help:
+                    --SCENE_MANAGER:RestoreHUDScene()
+                    --The following will change the cursor to reticle mode but still does not help with the next opened
+                    --and closed scene like the map -> it will stay in huidUI mode after clsoing :-(
+                    --ZO_SceneManager_ToggleHUDUIBinding()
+                    --Maybe this helps? NO it doesn't :-(
+                    --[[
+                    local function IsSafeForSystemToCaptureMouseCursor()
+                        return IsMouseWithinClientArea() and not IsUserAdjustingClientWindow()
+                    end
+                    local isInUIMode = SCENE_MANAGER:IsInUIMode()
+                    local isShowingBaseScene = SCENE_MANAGER:IsShowingBaseScene()
+d("[pChat]isInUIMode: " ..tostring(isInUIMode) .. ", isShowingBaseScene: " ..tostring(isShowingBaseScene) ..", IsSafeForSystemToCaptureMouseCursor: " ..tostring(IsSafeForSystemToCaptureMouseCursor()))
+                    if isInUIMode and IsSafeForSystemToCaptureMouseCursor() then
+                        SCENE_MANAGER:SetInUIMode(false)
+                    end
+                    ]]
+                    --This will only change the crosshair but not repair the standard behaviour at new opened scenes like the menu or inventory or map :-(
+                    --SCENE_MANAGER:ClearActionRequiredTutorialBlockers()
+                end,
+            })
 end
 
 function ChatCopyOptions:UpdateEditAndButtons()
@@ -364,20 +389,23 @@ function ChatCopyOptions:UpdateEditAndButtons()
 
     -- editbox is 20000 chars max
     local maxChars      = 20000
-    local label = GetControl(control, "Label")
-    local notePrev = GetControl(control, "NotePrev")
-    local noteNext = GetControl(control, "NoteNext")
-    local noteEdit = GetControl(control, "NoteEdit")
+    local label     = GetControl(control, "Label")
+    local notePrev  = GetControl(control, "NotePrev")
+    local noteNext  = GetControl(control, "NoteNext")
+    local noteEdit  = GetControl(control, "NoteEdit")
 
     if string.len(message) < maxChars then
         label:SetText(GetString(PCHAT_COPYXMLLABEL))
-        noteEdit:SetText(message)
+        --noteEdit:SetText(message)
         noteNext:SetHidden(true)
         notePrev:SetHidden(true)
-        control:SetHidden(false)
+        --DO not use or the scenes with HUDUI and hud will stay switched after closing the dialog
+        --control:SetHidden(false)
 
         noteEdit:SetEditEnabled(false)
         noteEdit:SelectAll()
+
+
     else
         label:SetText(GetString(PCHAT_COPYXMLTOOLONG))
         pChatData.messageTableId = 1
@@ -388,7 +416,8 @@ function ChatCopyOptions:UpdateEditAndButtons()
         noteEdit:SetEditEnabled(false)
         noteEdit:SelectAll()
 
-        control:SetHidden(false)
+        --DO not use or the scenes with HUDUI and hud will stay switched after closing the dialog
+        --control:SetHidden(false)
 
         noteNext:SetHidden(false)
         notePrev:SetHidden(true)
@@ -403,8 +432,8 @@ function ChatCopyOptions:Initialize(control)
         self.filterSection = control:GetNamedChild("FilterSection")
         self.guildSection = control:GetNamedChild("GuildSection")
 
-        local function Reset(control)
-            control:SetHidden(true)
+        local function Reset(p_control)
+            p_control:SetHidden(true)
         end
 
         local function FilterFactory(pool)
@@ -602,7 +631,7 @@ function ChatCopyOptions:UpdateGuildNames()
 end
 
 function ChatCopyOptions:ResetFilterCheckBoxes()
-d("[pChat]ResetFilterCheckBoxes")
+--d("[pChat]ResetFilterCheckBoxes")
     if not self.filterButtons then return end
     for _, button in ipairs(self.filterButtons) do
         ZO_CheckButton_SetCheckState(button, false)
@@ -620,7 +649,7 @@ function ChatCopyOptions:SetCurrentChannelSelections(container, chatTabIndex, ch
     --Attention: button.channels are the chatCategories not the chatChannels!
     --> As multiple chat tabs are checked: Keep the already checked checkboxes enabled!
     -- If a chatChannel is given as 3rd parameter, only use this one but check all channels assigned to the buttons instead of only the first
-d("pChat SetCurrentChannelSelections-chatTabIndex: " ..tostring(chatTabIndex) ..", chatChannel: " ..tostring(chatChannel) .. ", isShowDiscussion: " ..tostring(isShowDiscussion))
+--d("pChat SetCurrentChannelSelections-chatTabIndex: " ..tostring(chatTabIndex) ..", chatChannel: " ..tostring(chatChannel) .. ", isShowDiscussion: " ..tostring(isShowDiscussion))
     for _, button in ipairs(self.filterButtons) do
         if not ZO_CheckButton_IsChecked(button) then
             if chatChannel == nil then
@@ -685,6 +714,7 @@ function ChatCopyOptions:ApplyFilters()
 end
 
 function ChatCopyOptions:Show()
+--d("[pChat]ChatCopyOptions:Show - SCENE_MANAGER.exitUIModeOnChatFocusLost: " ..tostring(SCENE_MANAGER.exitUIModeOnChatFocusLost))
     ZO_Dialogs_ShowDialog("PCHAT_CHAT_COPY_DIALOG")
 end
 
@@ -705,6 +735,8 @@ function  pChat_ChatCopyOptions_OnCommitClicked()
 end
 
 function pChat_ChatCopyOptions_OnHide()
+--d("pChat_ChatCopyOptions_OnHide")
+    ZO_Dialogs_ReleaseDialog("PCHAT_CHAT_COPY_DIALOG")
     pChat.ChatCopyOptions:Hide()
 end
 
@@ -721,6 +753,11 @@ end
 ]]
 ----------------------------------------------------------------------------------------------
 
+--Keybidning function
+function pChat_CopyWholeChat()
+    CopyWholeChat(false)
+end
+
 -- Create the controls and the dialog
 -- & transfer the message to the dialog (for the setup function)
 -- then show the dialog
@@ -730,6 +767,7 @@ function pChat_ShowCopyDialog(messageText, chatChannel)
     if pChatChatCopyOptions ~= nil and pChatChatCopyOptions.Show then
         pChatChatCopyOptions.message = messageText
         pChatChatCopyOptions.chatChannel = chatChannel
+        --Show the dialog now
         pChatChatCopyOptions:Show()
     end
 end
@@ -784,9 +822,12 @@ function pChat.InitializeCopyHandler(control)
     local db = pChat.db
 
     --Initialize the chat copy options dialog
+    -->Will be done via the XML's OnInitialized at TLC "pChatCopyOptionsDialog" as the dialog is shown
+    --[[
     if pChatCopyOptionsDialog then
         pChat_ChatCopyOptions_OnInitialized(pChatCopyOptionsDialog)
     end
+    ]]
 
     -- Show contextualMenu when clicking on a pChatLink
     local function ShowContextMenuOnHandlers(numLine, chanNumber)

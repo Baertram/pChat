@@ -427,6 +427,7 @@ local strings = {
 	PCHAT_SWITCHTONEXTTABBINDING = "Switch to next tab",
 	PCHAT_TOGGLECHATBINDING = "Toggle Chat Window",
 	PCHAT_WHISPMYTARGETBINDING = "Whisper my target",
+	PCHAT_COPYWHOLECHATBINDING = "Copy whole chat (dialog)",
 
 	PCHAT_SAVMSGERRALREADYEXISTS = "Cannot save your message, this one already exists",
 	PCHAT_AUTOMSG_NAME_DEFAULT_TEXT = "Example : ts3",
@@ -474,15 +475,17 @@ local strings = {
 	PCHAT_MENTIONS_ALLCAPS_NAME = "ALL CAPS your name?",
 	PCHAT_MENTIONS_ALLCAPS_TOOLTIP = "Whether or not to ALL CAPS your name when your name is mentioned.",
 	PCHAT_MENTIONS_EXTRA_NAMES_NAME = "Extra names to ping on (newline per name)",
-	PCHAT_MENTIONS_EXTRA_NAMES_TOOLTIP = "A newline-separated list of additional names to ping you on. Press ENTER to make new lines. If you put an \'!\' (exclamation mark) in front of a custom name you\'d like to monitor, it will only notify you if that name occurs on a word boundary. For example, if you add \'!de\' to your Extras list, you\'d be notified for \'de nada\' but not \'delicatessen\'. If you just added \'de\' to your Extras list, you\'d be notified for \'delicatessen\' also.",
+	PCHAT_MENTIONS_EXTRA_NAMES_TOOLTIP = "A newline-separated list of additional names to ping you on. Press ENTER to make new lines. If you put an `!` (exclamation mark) in front of a custom name you'd like to monitor, it will only notify you if that name occurs on a word boundary. For example, if you add '!de' to your Extras list, you'd be notified for 'de nada' but not 'delicatessen'. If you just added 'de' to your Extras list, you'd be notified for 'delicatessen' also.",
 	PCHAT_MENTIONS_SELFSEND_NAME = "Apply to messages YOU send?",
 	PCHAT_MENTIONS_SELFSEND_TOOLTIP = "Whether or not to apply formatting to messages YOU send.",
 	PCHAT_MENTIONS_DING_NAME = "Ding sound?",
 	PCHAT_MENTIONS_DING_TOOLTIP = "Whether or not to play a ding sound when your name is mentioned.",
 	PCHAT_MENTIONS_APPLYNAME_NAME = "Apply to your character names?",
-	PCHAT_MENTIONS_APPLYNAME_TOOLTIP = "Whether or not to apply formatting to each name (separated by spaces) in your character name. Disable if you use a very common name like \'Me\' in your character name.",
+	PCHAT_MENTIONS_APPLYNAME_TOOLTIP = "Whether or not to apply formatting to each name (separated by spaces) in your character name. Disable if you use a very common name like 'Me' in your character name.",
 	PCHAT_MENTIONS_WHOLEWORD_NAME = "Match your names as whole words only?",
 	PCHAT_MENTIONS_WHOLEWORD_TOOLTIP = "Whether or not to match your character names as whole words only. If you have a very short name in your character name, you may want to turn this on.",
+
+
 
 }
 
