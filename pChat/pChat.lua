@@ -309,10 +309,38 @@ local function DoPostEventPlayerActivatedChecks()
     end
 end
 
+--Any tasks open after a SavedVariables migration was done?
+local function checkSavedVariablesMigrationTasks()
+    logger:Debug("SV Migration - Event_Player_Activated -> checkSavedVariablesMigrationTasks")
+    --Were SavedVariables migrated from non-server dependent ones?
+    --And do we need a reloadui here?
+    if pChat.migrationReloadUI ~= nil then
+        if pChat.migrationReloadUI == 1 then
+            pChat.migrationReloadUI = nil
+            logger:Debug("SV Migration - Migration done! RELOADUI1 RELOADUI1 RELOADUI1 RELOADUI1 RELOADUI1")
+            ReloadUI()
+
+        elseif pChat.migrationReloadUI == 2 then
+            pChat.migrationReloadUI = nil
+            logger:Debug("SV Migration - Nothing migrated! RELOADUI1 RELOADUI1 RELOADUI1 RELOADUI1 RELOADUI1")
+            ReloadUI()
+
+        elseif pChat.migrationReloadUI == 3 then
+            pChat.migrationReloadUI = nil
+            logger:Debug("SV Migration - Migration finished! RELOADUI2 RELOADUI2 RELOADUI2 RELOADUI2 RELOADUI2 RELOADUI2 RELOADUI2 RELOADUI2 RELOADUI2")
+            ReloadUI()
+        end
+    end
+end
+
 -- Registers the formatMessage function.
 -- Unregisters itself from the player activation event with the event manager.
 local function OnPlayerActivated()
     logger:Debug("EVENT_PLAYER_ACTIVATED - Start")
+    --Were SavedVariables migrated from non-server dependent ones?
+    --And do we need a reloadui here?
+    checkSavedVariablesMigrationTasks()
+
     --Addon was loaded via EVENT_ADD_ON_LOADED and we are not already doing some EVENT_PLAYER_ACTIVATED tasks
     if pChatData.isAddonLoaded and not eventPlayerActivatedCheckRunning then
         pChatData.sceneFirst = false
@@ -468,7 +496,7 @@ local function LoadSlashCommands()
         local dbOld = ZO_SavedVars:NewAccountWide(ADDON_SV_NAME, ADDON_SV_VERSION, nil, nil, nil, nil)
 --pChat._dbOld = dbOld
         --Do the old SV exist with recently new pChat data?
-        if dbOld ~= nil and dbOld["colours"] ~= nil then
+        if dbOld ~= nil and dbOld.colours ~= nil then
             local dbOldNonServerDependent = _G[ADDON_SV_NAME]["Default"][displayName]["$AccountWide"]
 --pChat._dbOldNonServerDependent = dbOldNonServerDependent
             if dbOldNonServerDependent ~= nil then
@@ -476,6 +504,7 @@ local function LoadSlashCommands()
                 dbOldNonServerDependent = nil
                 logger:Info("Successfully deleted the old, non-server dependent SavedVariables for your account \'"..displayName.."\'.")
                 logger:Info(">A reload of the UI will save the changes to the disk now!")
+				logger:Debug("SV Delete - Old non-server data deleted! RELOADUI1 RELOADUI1 RELOADUI1 RELOADUI1 RELOADUI1")
                 ReloadUI("ingame")
             end
         else

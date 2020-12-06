@@ -11,9 +11,11 @@ local ADDON_DONATION      	= "https://www.esoui.com/portal.php?id=136&a=faq&faqi
 
 --SavedVariables constants
 local ADDON_SV_VERSION    = 0.9 -- ATTENTION: Changing this will reset the SavedVariables!
-local ADDON_SV_NAME       = "PCHAT_OPTS"
-CONSTANTS["ADDON_SV_NAME"] 		= ADDON_SV_NAME
-CONSTANTS["ADDON_SV_VERSION"] 	= ADDON_SV_VERSION
+local ADDON_SV_NAME       		= "PCHAT_OPTS"
+local ADDON_SV_SERVER_PROFILE	= "SERVER_DEPENDENT"
+CONSTANTS["ADDON_SV_NAME"] 				= ADDON_SV_NAME
+CONSTANTS["ADDON_SV_SERVER_PROFILE"]	= ADDON_SV_SERVER_PROFILE
+CONSTANTS["ADDON_SV_VERSION"] 			= ADDON_SV_VERSION
 
 --Initialize the SavedVariables and LAM settings menu
 function pChat.InitializeSettings()
@@ -28,7 +30,7 @@ function pChat.InitializeSettings()
 	local db
 	-- Default variables to push in SavedVars
 	local defaults = {
-		migratedSVToServer = true,
+		--migratedSVToServer = true,
 		-- LAM handled
 		showGuildNumbers = false,
 		allGuildsSameColour = false,
@@ -2087,41 +2089,49 @@ function pChat.InitializeSettings()
 		end
 	end
 
-	--Load the SavedVariables
-	local worldName = GetWorldName()
-	--savedVariableTable, version, namespace, defaults, profile, displayName
-	db = ZO_SavedVars:NewAccountWide(ADDON_SV_NAME, ADDON_SV_VERSION, nil, defaults, worldName, nil)
+	local function MigrateSavedVarsToServerDependent()
+		--Variable for EVENT_PLAYER_ACTIVATED
+		pChat.migrationReloadUI = nil
 
-	--Migrate the SV from non-server to server SV
-	if db.migratedSVToServer == nil then
-		logger:Info("Migrating the SavedVariables to the server \'" ..tostring(worldName) .. "\' now...")
-		local displayName = GetDisplayName()
-		local dbOld = _G[ADDON_SV_NAME] and _G[ADDON_SV_NAME]["Default"] and _G[ADDON_SV_NAME]["Default"][displayName] and _G[ADDON_SV_NAME]["Default"][displayName]["$AccountWide"]
-		--Do the old SV exist with recently new pChat data?
-		if dbOld and dbOld.useSystemMessageChatHandler ~= nil then
-			local dbOldCopy = ZO_ShallowTableCopy(dbOld)
-			db = ZO_SavedVars:NewAccountWide(ADDON_SV_NAME, ADDON_SV_VERSION, nil, dbOldCopy, worldName, nil)
-			db.migratedSVToServer = false
-			logger:Info("Migration of the SavedVariables to the server \'" ..tostring(worldName) .. "\' done.\nReloading the UI now to save the data to the disk.")
-			logger:Debug("SV Migration - RELOADUI1 RELOADUI1 RELOADUI1 RELOADUI1 RELOADUI1 RELOADUI1 RELOADUI1 RELOADUI1 RELOADUI1")
-			ReloadUI("ingame")
+		--Load the SavedVariables
+		local worldName = GetWorldName()
+		--savedVariableTable, version, namespace, defaults, profile, displayName
+		db = ZO_SavedVars:NewAccountWide(ADDON_SV_NAME, ADDON_SV_VERSION, nil, defaults, worldName, nil)
+
+		--Migrate the SV from non-server to server SV
+		if db.migratedSVToServer == nil then
+			logger:Info("Migrating the SavedVariables to the server \'" ..tostring(worldName) .. "\' now...")
+			local displayName = GetDisplayName()
+			local dbOld = _G[ADDON_SV_NAME]["Default"][displayName]["$AccountWide"]
+			--Do the old SV exist with recently new pChat data?
+			if dbOld and dbOld.colours ~= nil then
+				local dbOldCopy = ZO_ShallowTableCopy(dbOld)
+				_G[ADDON_SV_NAME][worldName][displayName]["$AccountWide"] = nil
+				db = ZO_SavedVars:NewAccountWide(ADDON_SV_NAME, ADDON_SV_VERSION, nil, dbOldCopy, worldName, nil)
+				db.migratedSVToServer = false
+				logger:Info("Migration of the SavedVariables to the server \'" ..tostring(worldName) .. "\' done.\nReloading the UI now to save the data to the disk.")
+				pChat.migrationReloadUI = 1
+			else
+				logger:Info("Migration of the SavedVariables to the server \'" ..tostring(worldName) .. "\' not started as there is no non-server SV data available to migrate!")
+				logger:Info(">Using default values for the server dependent SavedVariables.")
+				db.migratedSVToServer = true
+				pChat.migrationReloadUI = 2
+			end
 		else
-			logger:Info("Migration of the SavedVariables to the server \'" ..tostring(worldName) .. "\' not started as there is no non-server SV data available to migrate!")
-			logger:Info(">Using default values for the server dependent SavedVariables.")
-			db.migratedSVToServer = true
-		end
-	else
-		logger:Debug(">db.migratedSVToServer: " ..tostring(db.migratedSVToServer))
+			logger:Debug("[SavedVariables migration] db.migratedSVToServer: " ..tostring(db.migratedSVToServer))
 
-		--SV were migrated already
-		if db.migratedSVToServer == false then
-			logger:Info("Successfully migrated the SavedVariables to the server \'" ..tostring(worldName) .. "\'")
-			logger:Info(">Non-server dependent SavedVariables for your account \'"..GetDisplayName().."\' can be deleted via the slash command \'/pchatdeleteoldsv\'!")
-			db.migratedSVToServer = true
-			logger:Debug("SV Migration - RELOADUI2 RELOADUI2 RELOADUI2 RELOADUI2 RELOADUI2 RELOADUI2 RELOADUI2 RELOADUI2 RELOADUI2")
-			ReloadUI("ingame")
+			--SV were migrated already
+			if db.migratedSVToServer == false then
+				logger:Info("Successfully migrated the SavedVariables to the server \'" ..tostring(worldName) .. "\'")
+				logger:Info(">Non-server dependent SavedVariables for your account \'"..GetDisplayName().."\' can be deleted via the slash command \'/pchatdeleteoldsv\'!")
+				db.migratedSVToServer = true
+				pChat.migrationReloadUI = 3
+			end
 		end
 	end
+
+	--Migrate old non-server dependent SavedVariables to new server dependent ones
+	MigrateSavedVarsToServerDependent()
 
 	pChat.db = db
 
