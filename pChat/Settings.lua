@@ -12,146 +12,147 @@ local ADDON_DONATION      	= "https://www.esoui.com/portal.php?id=136&a=faq&faqi
 --SavedVariables constants
 local ADDON_SV_VERSION    = 0.9 -- ATTENTION: Changing this will reset the SavedVariables!
 local ADDON_SV_NAME       = "PCHAT_OPTS"
-CONSTANTS[ADDON_SV_NAME] 	= ADDON_SV_NAME
-CONSTANTS[ADDON_SV_VERSION] = ADDON_SV_VERSION
+CONSTANTS["ADDON_SV_NAME"] 		= ADDON_SV_NAME
+CONSTANTS["ADDON_SV_VERSION"] 	= ADDON_SV_VERSION
 
 --Initialize the SavedVariables and LAM settings menu
 function pChat.InitializeSettings()
-    local pChatData = pChat.pChatData
-    local logger = pChat.logger
+	local pChatData = pChat.pChatData
+	local logger = pChat.logger
 	local UpdateCharCorrespondanceTableChannelNames = pChat.UpdateCharCorrespondanceTableChannelNames
 
-    local ConvertRGBToHex = pChat.ConvertRGBToHex
-    local ConvertHexToRGBA = pChat.ConvertHexToRGBA
+	local ConvertRGBToHex = pChat.ConvertRGBToHex
+	local ConvertHexToRGBA = pChat.ConvertHexToRGBA
 
 	--The SavedVariables table
-    local db
-    -- Default variables to push in SavedVars
-    local defaults = {
-        -- LAM handled
-        showGuildNumbers = false,
-        allGuildsSameColour = false,
-        allZonesSameColour = true,
-        allNPCSameColour = true,
-        delzonetags = true,
-        carriageReturn = false,
-        alwaysShowChat = false,
-        augmentHistoryBuffer = true,
-        oneColour = false,
-        showTagInEntry = true,
-        showTimestamp = true,
-        timestampcolorislcol = false,
-        useESOcolors = true,
-        diffforESOcolors = 40,
-        diffChatColorsDarkenValue = 50,
+	local db
+	-- Default variables to push in SavedVars
+	local defaults = {
+		migratedSVToServer = true,
+		-- LAM handled
+		showGuildNumbers = false,
+		allGuildsSameColour = false,
+		allZonesSameColour = true,
+		allNPCSameColour = true,
+		delzonetags = true,
+		carriageReturn = false,
+		alwaysShowChat = false,
+		augmentHistoryBuffer = true,
+		oneColour = false,
+		showTagInEntry = true,
+		showTimestamp = true,
+		timestampcolorislcol = false,
+		useESOcolors = true,
+		diffforESOcolors = 40,
+		diffChatColorsDarkenValue = 50,
 		diffChatColorsLightenValue = 30,
-        timestampFormat = "HH:m",
-        guildTags = {},
-        officertag = {},
-        switchFor = {},
-        officerSwitchFor = {},
-        formatguild = {},
-        defaultchannel = CHAT_CHANNEL_GUILD_1,
-        soundforincwhisps = SOUNDS.NEW_NOTIFICATION,
-        notifyIMIndex = 1, -- SOUNDS.NONE
-        enablecopy = true,
-        enableChatTabChannel = true,
-        enablepartyswitch = true,
+		timestampFormat = "HH:m",
+		guildTags = {},
+		officertag = {},
+		switchFor = {},
+		officerSwitchFor = {},
+		formatguild = {},
+		defaultchannel = CHAT_CHANNEL_GUILD_1,
+		soundforincwhisps = SOUNDS.NEW_NOTIFICATION,
+		notifyIMIndex = 1, -- SOUNDS.NONE
+		enablecopy = true,
+		enableChatTabChannel = true,
+		enablepartyswitch = true,
 		enablepartyswitchPortToDungeon = false,
-        enableWhisperTab = false,
-        groupLeader = false,
-        disableBrackets = true,
-        chatMinimizedAtLaunch = false,
-        chatMinimizedInMenus = false,
-        chatMaximizedAfterMenus = false,
-        windowDarkness = 6,
-        chatSyncConfig = true,
-        floodProtect = true,
-        floodGracePeriod = 30,
-        lookingForProtect = false,
-        wantToProtect = false,
-        restoreOnReloadUI = true,
-        restoreOnLogOut = true,
-        restoreOnQuit = false,
-        restoreOnAFK = true,
-        restoreSystem = true,
-        restoreSystemOnly = false,
-        restoreWhisps = true,
-        restoreTextEntryHistoryAtLogOutQuit = false,
-        addChannelAndTargetToHistory = true,
-        timeBeforeRestore = 2,
-        notifyIM = false,
-        nicknames = "",
-        defaultTab = 1,
-        groupNames = 1,
-        geoChannelsFormat = 2,
-        urlHandling = true,
-        -- guildRecruitProtect = false,
-        spamGracePeriod = 5,
-        fonts = "ESO Standard Font",
-        colours =
-        {
-            [2*CHAT_CHANNEL_SAY] = "|cFFFFFF", -- say Left
-            [2*CHAT_CHANNEL_SAY + 1] = "|cFFFFFF", -- say Right
-            [2*CHAT_CHANNEL_YELL] = "|cE974D8", -- yell Left
-            [2*CHAT_CHANNEL_YELL + 1] = "|cFFB5F4", -- yell Right
-            [2*CHAT_CHANNEL_WHISPER] = "|cB27BFF", -- tell in Left
-            [2*CHAT_CHANNEL_WHISPER + 1] = "|cB27BFF", -- tell in Right
-            [2*CHAT_CHANNEL_PARTY] = "|c6EABCA", -- group Left
-            [2*CHAT_CHANNEL_PARTY + 1] = "|cA1DAF7", -- group Right
-            [2*CHAT_CHANNEL_WHISPER_SENT] = "|c7E57B5", -- tell out Left
-            [2*CHAT_CHANNEL_WHISPER_SENT + 1] = "|c7E57B5", -- tell out Right
-            [2*CHAT_CHANNEL_EMOTE] = "|cA5A5A5", -- emote Left
-            [2*CHAT_CHANNEL_EMOTE + 1] = "|cA5A5A5", -- emote Right
-            [2*CHAT_CHANNEL_MONSTER_SAY] = "|c879B7D", -- npc Left
-            [2*CHAT_CHANNEL_MONSTER_SAY + 1] = "|c879B7D", -- npc Right
-            [2*CHAT_CHANNEL_MONSTER_YELL] = "|c879B7D", -- npc yell Left
-            [2*CHAT_CHANNEL_MONSTER_YELL + 1] = "|c879B7D", -- npc yell Right
-            [2*CHAT_CHANNEL_MONSTER_WHISPER] = "|c879B7D", -- npc whisper Left
-            [2*CHAT_CHANNEL_MONSTER_WHISPER + 1] = "|c879B7D", -- npc whisper Right
-            [2*CHAT_CHANNEL_MONSTER_EMOTE] = "|c879B7D", -- npc emote Left
-            [2*CHAT_CHANNEL_MONSTER_EMOTE + 1] = "|c879B7D", -- npc emote Right
-            [2*CHAT_CHANNEL_GUILD_1] = "|c94E193", -- guild Left
-            [2*CHAT_CHANNEL_GUILD_1 + 1] = "|cC3F0C2", -- guild Right
-            [2*CHAT_CHANNEL_GUILD_2] = "|c94E193",
-            [2*CHAT_CHANNEL_GUILD_2 + 1] = "|cC3F0C2",
-            [2*CHAT_CHANNEL_GUILD_3] = "|c94E193",
-            [2*CHAT_CHANNEL_GUILD_3 + 1] = "|cC3F0C2",
-            [2*CHAT_CHANNEL_GUILD_4] = "|c94E193",
-            [2*CHAT_CHANNEL_GUILD_4 + 1] = "|cC3F0C2",
-            [2*CHAT_CHANNEL_GUILD_5] = "|c94E193",
-            [2*CHAT_CHANNEL_GUILD_5 + 1] = "|cC3F0C2",
-            [2*CHAT_CHANNEL_OFFICER_1] = "|cC3F0C2", -- guild officers Left
-            [2*CHAT_CHANNEL_OFFICER_1 + 1] = "|cC3F0C2", -- guild officers Right
-            [2*CHAT_CHANNEL_OFFICER_2] = "|cC3F0C2",
-            [2*CHAT_CHANNEL_OFFICER_2 + 1] = "|cC3F0C2",
-            [2*CHAT_CHANNEL_OFFICER_3] = "|cC3F0C2",
-            [2*CHAT_CHANNEL_OFFICER_3 + 1] = "|cC3F0C2",
-            [2*CHAT_CHANNEL_OFFICER_4] = "|cC3F0C2",
-            [2*CHAT_CHANNEL_OFFICER_4 + 1] = "|cC3F0C2",
-            [2*CHAT_CHANNEL_OFFICER_5] = "|cC3F0C2",
-            [2*CHAT_CHANNEL_OFFICER_5 + 1] = "|cC3F0C2",
-            [2*CHAT_CHANNEL_ZONE] = "|cCEB36F", -- zone Left
-            [2*CHAT_CHANNEL_ZONE + 1] = "|cB0A074", -- zone Right
-            [2*CHAT_CHANNEL_ZONE_LANGUAGE_1] = "|cCEB36F", -- EN zone Left
-            [2*CHAT_CHANNEL_ZONE_LANGUAGE_1 + 1] = "|cB0A074", -- EN zone Right
-            [2*CHAT_CHANNEL_ZONE_LANGUAGE_2] = "|cCEB36F", -- FR zone Left
-            [2*CHAT_CHANNEL_ZONE_LANGUAGE_2 + 1] = "|cB0A074", -- FR zone Right
-            [2*CHAT_CHANNEL_ZONE_LANGUAGE_3] = "|cCEB36F", -- DE zone Left
-            [2*CHAT_CHANNEL_ZONE_LANGUAGE_3 + 1] = "|cB0A074", -- DE zone Right
-            [2*CHAT_CHANNEL_ZONE_LANGUAGE_4] = "|cCEB36F", -- JP zone Left
-            [2*CHAT_CHANNEL_ZONE_LANGUAGE_4 + 1] = "|cB0A074", -- JP zone Right
-            [2*CHAT_CHANNEL_ZONE_LANGUAGE_5] = "|cCEB36F", -- RU zone Left
-            [2*CHAT_CHANNEL_ZONE_LANGUAGE_5 + 1] = "|cB0A074", -- RU zone Right
-            ["timestamp"] = "|c8F8F8F", -- timestamp
-            ["tabwarning"] = "|c76BCC3", -- tab Warning ~ "Azure" (ZOS default)
-            ["groupleader"] = "|cC35582", --
-            ["groupleader1"] = "|c76BCC3", --
-        },
-        doNotNotifyOnRestoredWhisperFromHistory = false,
-        addHistoryRestoredPrefix = false,
-        -- Not LAM
-        chatConfSync = {},
+		enableWhisperTab = false,
+		groupLeader = false,
+		disableBrackets = true,
+		chatMinimizedAtLaunch = false,
+		chatMinimizedInMenus = false,
+		chatMaximizedAfterMenus = false,
+		windowDarkness = 6,
+		chatSyncConfig = true,
+		floodProtect = true,
+		floodGracePeriod = 30,
+		lookingForProtect = false,
+		wantToProtect = false,
+		restoreOnReloadUI = true,
+		restoreOnLogOut = true,
+		restoreOnQuit = false,
+		restoreOnAFK = true,
+		restoreSystem = true,
+		restoreSystemOnly = false,
+		restoreWhisps = true,
+		restoreTextEntryHistoryAtLogOutQuit = false,
+		addChannelAndTargetToHistory = true,
+		timeBeforeRestore = 2,
+		notifyIM = false,
+		nicknames = "",
+		defaultTab = 1,
+		groupNames = 1,
+		geoChannelsFormat = 2,
+		urlHandling = true,
+		-- guildRecruitProtect = false,
+		spamGracePeriod = 5,
+		fonts = "ESO Standard Font",
+		colours =
+		{
+			[2*CHAT_CHANNEL_SAY] = "|cFFFFFF", -- say Left
+			[2*CHAT_CHANNEL_SAY + 1] = "|cFFFFFF", -- say Right
+			[2*CHAT_CHANNEL_YELL] = "|cE974D8", -- yell Left
+			[2*CHAT_CHANNEL_YELL + 1] = "|cFFB5F4", -- yell Right
+			[2*CHAT_CHANNEL_WHISPER] = "|cB27BFF", -- tell in Left
+			[2*CHAT_CHANNEL_WHISPER + 1] = "|cB27BFF", -- tell in Right
+			[2*CHAT_CHANNEL_PARTY] = "|c6EABCA", -- group Left
+			[2*CHAT_CHANNEL_PARTY + 1] = "|cA1DAF7", -- group Right
+			[2*CHAT_CHANNEL_WHISPER_SENT] = "|c7E57B5", -- tell out Left
+			[2*CHAT_CHANNEL_WHISPER_SENT + 1] = "|c7E57B5", -- tell out Right
+			[2*CHAT_CHANNEL_EMOTE] = "|cA5A5A5", -- emote Left
+			[2*CHAT_CHANNEL_EMOTE + 1] = "|cA5A5A5", -- emote Right
+			[2*CHAT_CHANNEL_MONSTER_SAY] = "|c879B7D", -- npc Left
+			[2*CHAT_CHANNEL_MONSTER_SAY + 1] = "|c879B7D", -- npc Right
+			[2*CHAT_CHANNEL_MONSTER_YELL] = "|c879B7D", -- npc yell Left
+			[2*CHAT_CHANNEL_MONSTER_YELL + 1] = "|c879B7D", -- npc yell Right
+			[2*CHAT_CHANNEL_MONSTER_WHISPER] = "|c879B7D", -- npc whisper Left
+			[2*CHAT_CHANNEL_MONSTER_WHISPER + 1] = "|c879B7D", -- npc whisper Right
+			[2*CHAT_CHANNEL_MONSTER_EMOTE] = "|c879B7D", -- npc emote Left
+			[2*CHAT_CHANNEL_MONSTER_EMOTE + 1] = "|c879B7D", -- npc emote Right
+			[2*CHAT_CHANNEL_GUILD_1] = "|c94E193", -- guild Left
+			[2*CHAT_CHANNEL_GUILD_1 + 1] = "|cC3F0C2", -- guild Right
+			[2*CHAT_CHANNEL_GUILD_2] = "|c94E193",
+			[2*CHAT_CHANNEL_GUILD_2 + 1] = "|cC3F0C2",
+			[2*CHAT_CHANNEL_GUILD_3] = "|c94E193",
+			[2*CHAT_CHANNEL_GUILD_3 + 1] = "|cC3F0C2",
+			[2*CHAT_CHANNEL_GUILD_4] = "|c94E193",
+			[2*CHAT_CHANNEL_GUILD_4 + 1] = "|cC3F0C2",
+			[2*CHAT_CHANNEL_GUILD_5] = "|c94E193",
+			[2*CHAT_CHANNEL_GUILD_5 + 1] = "|cC3F0C2",
+			[2*CHAT_CHANNEL_OFFICER_1] = "|cC3F0C2", -- guild officers Left
+			[2*CHAT_CHANNEL_OFFICER_1 + 1] = "|cC3F0C2", -- guild officers Right
+			[2*CHAT_CHANNEL_OFFICER_2] = "|cC3F0C2",
+			[2*CHAT_CHANNEL_OFFICER_2 + 1] = "|cC3F0C2",
+			[2*CHAT_CHANNEL_OFFICER_3] = "|cC3F0C2",
+			[2*CHAT_CHANNEL_OFFICER_3 + 1] = "|cC3F0C2",
+			[2*CHAT_CHANNEL_OFFICER_4] = "|cC3F0C2",
+			[2*CHAT_CHANNEL_OFFICER_4 + 1] = "|cC3F0C2",
+			[2*CHAT_CHANNEL_OFFICER_5] = "|cC3F0C2",
+			[2*CHAT_CHANNEL_OFFICER_5 + 1] = "|cC3F0C2",
+			[2*CHAT_CHANNEL_ZONE] = "|cCEB36F", -- zone Left
+			[2*CHAT_CHANNEL_ZONE + 1] = "|cB0A074", -- zone Right
+			[2*CHAT_CHANNEL_ZONE_LANGUAGE_1] = "|cCEB36F", -- EN zone Left
+			[2*CHAT_CHANNEL_ZONE_LANGUAGE_1 + 1] = "|cB0A074", -- EN zone Right
+			[2*CHAT_CHANNEL_ZONE_LANGUAGE_2] = "|cCEB36F", -- FR zone Left
+			[2*CHAT_CHANNEL_ZONE_LANGUAGE_2 + 1] = "|cB0A074", -- FR zone Right
+			[2*CHAT_CHANNEL_ZONE_LANGUAGE_3] = "|cCEB36F", -- DE zone Left
+			[2*CHAT_CHANNEL_ZONE_LANGUAGE_3 + 1] = "|cB0A074", -- DE zone Right
+			[2*CHAT_CHANNEL_ZONE_LANGUAGE_4] = "|cCEB36F", -- JP zone Left
+			[2*CHAT_CHANNEL_ZONE_LANGUAGE_4 + 1] = "|cB0A074", -- JP zone Right
+			[2*CHAT_CHANNEL_ZONE_LANGUAGE_5] = "|cCEB36F", -- RU zone Left
+			[2*CHAT_CHANNEL_ZONE_LANGUAGE_5 + 1] = "|cB0A074", -- RU zone Right
+			["timestamp"] = "|c8F8F8F", -- timestamp
+			["tabwarning"] = "|c76BCC3", -- tab Warning ~ "Azure" (ZOS default)
+			["groupleader"] = "|cC35582", --
+			["groupleader1"] = "|c76BCC3", --
+		},
+		doNotNotifyOnRestoredWhisperFromHistory = false,
+		addHistoryRestoredPrefix = false,
+		-- Not LAM
+		chatConfSync = {},
 		--Chat handlers
 		useSystemMessageChatHandler = true,
 		usePlayerStatusChangedChatHandler = true,
@@ -171,111 +172,111 @@ function pChat.InitializeSettings()
 		ding = false,
 		selfchar = false,
 		wholenames = false,
-    }
+	}
 
-    --Load the nicknames defined in the settings and build the pChatData nicknames table with them
-    local function BuildNicknames(lamCall)
+	--Load the nicknames defined in the settings and build the pChatData nicknames table with them
+	local function BuildNicknames(lamCall)
 
-        local function Explode(div, str)
-            if (div=='') then return false end
-            local pos,arr = 0,{}
-            for st,sp in function() return string.find(str,div,pos,true) end do
-                table.insert(arr,string.sub(str,pos,st-1))
-                pos = sp + 1
-            end
-            table.insert(arr,string.sub(str,pos))
-            return arr
-        end
+		local function Explode(div, str)
+			if (div=='') then return false end
+			local pos,arr = 0,{}
+			for st,sp in function() return string.find(str,div,pos,true) end do
+				table.insert(arr,string.sub(str,pos,st-1))
+				pos = sp + 1
+			end
+			table.insert(arr,string.sub(str,pos))
+			return arr
+		end
 
-        pChatData.nicknames = {}
+		pChatData.nicknames = {}
 
-        if db.nicknames ~= "" then
-            local lines = Explode("\n", db.nicknames)
+		if db.nicknames ~= "" then
+			local lines = Explode("\n", db.nicknames)
 
-            for lineIndex=#lines, 1, -1 do
-                local oldName, newName = string.match(lines[lineIndex], "(@?[%w_-]+) ?= ?([%w- ]+)")
-                if not (oldName and newName) then
-                    table.remove(lines, lineIndex)
-                else
-                    pChatData.nicknames[oldName] = newName
-                end
-            end
+			for lineIndex=#lines, 1, -1 do
+				local oldName, newName = string.match(lines[lineIndex], "(@?[%w_-]+) ?= ?([%w- ]+)")
+				if not (oldName and newName) then
+					table.remove(lines, lineIndex)
+				else
+					pChatData.nicknames[oldName] = newName
+				end
+			end
 
-            db.nicknames = table.concat(lines, "\n")
+			db.nicknames = table.concat(lines, "\n")
 
-            if lamCall then
-                CALLBACK_MANAGER:FireCallbacks("LAM-RefreshPanel", pChat.LAMPanel)
-            end
+			if lamCall then
+				CALLBACK_MANAGER:FireCallbacks("LAM-RefreshPanel", pChat.LAMPanel)
+			end
 
-        end
+		end
 
-    end
+	end
 
-    -- Character Sync
-    local function SyncCharacterSelectChoices()
-        -- Sync Character Select
-        pChatData.chatConfSyncChoices = {}
-        pChatData.chatConfSyncChoicesCharIds = {}
-        if db.chatConfSync then
-            for charId, _ in pairs (db.chatConfSync) do
-                if charId ~= "lastChar" then
-                    local nameOfCharId = pChat.characterId2Name[charId]
-                    if charId and nameOfCharId then
-                        table.insert(pChatData.chatConfSyncChoices, nameOfCharId)
-                        table.insert(pChatData.chatConfSyncChoicesCharIds, charId)
-                    end
-                end
-            end
-        else
-            table.insert(pChatData.chatConfSyncChoices, pChatData.localPlayer)
-            table.insert(pChatData.chatConfSyncChoicesCharIds, GetCurrentCharacterId())
-        end
-    end
+	-- Character Sync
+	local function SyncCharacterSelectChoices()
+		-- Sync Character Select
+		pChatData.chatConfSyncChoices = {}
+		pChatData.chatConfSyncChoicesCharIds = {}
+		if db.chatConfSync then
+			for charId, _ in pairs (db.chatConfSync) do
+				if charId ~= "lastChar" then
+					local nameOfCharId = pChat.characterId2Name[charId]
+					if charId and nameOfCharId then
+						table.insert(pChatData.chatConfSyncChoices, nameOfCharId)
+						table.insert(pChatData.chatConfSyncChoicesCharIds, charId)
+					end
+				end
+			end
+		else
+			table.insert(pChatData.chatConfSyncChoices, pChatData.localPlayer)
+			table.insert(pChatData.chatConfSyncChoicesCharIds, GetCurrentCharacterId())
+		end
+	end
 
-    -- Build LAM Option Table, used when AddonLoads or when a player join/leave a guild
-    local function BuildLAMPanel()
+	-- Build LAM Option Table, used when AddonLoads or when a player join/leave a guild
+	local function BuildLAMPanel()
 
-        local function UpdateSoundDescription(soundType, newSoundIndex)
-            --Whisper sound
-            if soundType == "whisper" then
-                newSoundIndex = newSoundIndex or db.notifyIMIndex
-                pChatLAMWhisperSoundSlider.label:SetText(GetString(PCHAT_SOUNDFORINCWHISPS) .. ": " .. tostring(pChat.sounds[newSoundIndex]))
-            end
-        end
+		local function UpdateSoundDescription(soundType, newSoundIndex)
+			--Whisper sound
+			if soundType == "whisper" then
+				newSoundIndex = newSoundIndex or db.notifyIMIndex
+				pChatLAMWhisperSoundSlider.label:SetText(GetString(PCHAT_SOUNDFORINCWHISPS) .. ": " .. tostring(pChat.sounds[newSoundIndex]))
+			end
+		end
 
-        --LAM 2.0 callback function if the panel was created
-        local pChatLAMPanelCreated = function(panel)
-            if panel == pChat.LAMPanel then
-                UpdateSoundDescription("whisper")
-            end
-        end
-        CALLBACK_MANAGER:RegisterCallback("LAM-PanelControlsCreated", pChatLAMPanelCreated)
+		--LAM 2.0 callback function if the panel was created
+		local pChatLAMPanelCreated = function(panel)
+			if panel == pChat.LAMPanel then
+				UpdateSoundDescription("whisper")
+			end
+		end
+		CALLBACK_MANAGER:RegisterCallback("LAM-PanelControlsCreated", pChatLAMPanelCreated)
 
 
-        -- Used to reset colors to default value, lam need a formatted array
-        -- LAM Message Settings
-        local charId = GetCurrentCharacterId()
+		-- Used to reset colors to default value, lam need a formatted array
+		-- LAM Message Settings
+		local charId = GetCurrentCharacterId()
 
-        local fontsDefined = LibMediaProvider:List('font')
+		local fontsDefined = LibMediaProvider:List('font')
 
-        local function ConvertHexToRGBAPacked(colourString)
-            local r, g, b, a = ConvertHexToRGBA(colourString)
-            return {r = r, g = g, b = b, a = a}
-        end
+		local function ConvertHexToRGBAPacked(colourString)
+			local r, g, b, a = ConvertHexToRGBA(colourString)
+			return {r = r, g = g, b = b, a = a}
+		end
 
-        SyncCharacterSelectChoices()
+		SyncCharacterSelectChoices()
 
-        -- CHAT_SYSTEM.primaryContainer.windows doesn't exists yet at OnAddonLoaded. So using the pChat reference.
-        local arrayTab = {}
-        if db.chatConfSync and db.chatConfSync[charId] and db.chatConfSync[charId].tabs then
-            for numTab, data in pairs (db.chatConfSync[charId].tabs) do
-                table.insert(arrayTab, numTab)
-            end
-        else
-            table.insert(arrayTab, 1)
-        end
+		-- CHAT_SYSTEM.primaryContainer.windows doesn't exists yet at OnAddonLoaded. So using the pChat reference.
+		local arrayTab = {}
+		if db.chatConfSync and db.chatConfSync[charId] and db.chatConfSync[charId].tabs then
+			for numTab, data in pairs (db.chatConfSync[charId].tabs) do
+				table.insert(arrayTab, numTab)
+			end
+		else
+			table.insert(arrayTab, 1)
+		end
 
-        --Get the tab names and indices
+		--Get the tab names and indices
 		pChat.getTabNames()
 		--No default tab chosen in SavedVariables yet? Use the first tab	--Update the available sounds from the game
 		if not db.defaultTab then
@@ -1707,7 +1708,7 @@ function pChat.InitializeSettings()
 
 		--------------------Chat Mentions Settings getter/setter functions
 
-		local function cm_setMentionColorOption(var) 
+		local function cm_setMentionColorOption(var)
 			db.changeColor = var
 			pChat.cm_loadRegexes()
 		end
@@ -1717,12 +1718,12 @@ function pChat.InitializeSettings()
 		end
 
 		local function cm_setMentionColorPickerOption(r, g, b)
-			db.color = pChat.cm_convertRGBToHex(r, g, b) 
+			db.color = pChat.cm_convertRGBToHex(r, g, b)
 			pChat.cm_loadRegexes()
 		end
 
 		local function cm_getMentionColorPickerOption()
-			return pChat.cm_convertHexToRGBA(db.color) 
+			return pChat.cm_convertHexToRGBA(db.color)
 		end
 
 		local function cm_getMentionColorPickerDefault()
@@ -1733,20 +1734,20 @@ function pChat.InitializeSettings()
 			return not db.changeColor
 		end
 
-		local function cm_getMentionExclamationOption() 
+		local function cm_getMentionExclamationOption()
 			return db.excl
 		end
 
-		local function cm_setMentionExclamationOption(var) 
+		local function cm_setMentionExclamationOption(var)
 			db.excl = var
 			pChat.cm_loadRegexes()
 		end
 
-		local function cm_getMentionAllCapsOption() 
+		local function cm_getMentionAllCapsOption()
 			return db.capitalize
 		end
 
-		local function cm_setMentionAllCapsOption(var) 
+		local function cm_setMentionAllCapsOption(var)
 			db.capitalize = var
 			pChat.cm_loadRegexes()
 		end
@@ -1760,7 +1761,7 @@ function pChat.InitializeSettings()
 			pChat.cm_loadRegexes()
 		end
 
-		local function cm_getMentionSelfSendOption() 
+		local function cm_getMentionSelfSendOption()
 			return db.selfsend
 		end
 
@@ -1772,24 +1773,24 @@ function pChat.InitializeSettings()
 			return db.ding
 		end
 
-		local function cm_setMentionDingOption(var) 
+		local function cm_setMentionDingOption(var)
 			db.ding = var
 		end
 
-		local function cm_getMentionApplyNameOption() 
+		local function cm_getMentionApplyNameOption()
 			return db.selfchar
 		end
 
-		local function cm_setMentionApplyNameOption(var) 
+		local function cm_setMentionApplyNameOption(var)
 			db.selfchar = var
 			pChat.cm_loadRegexes()
 		end
 
-		local function cm_getMentionWholeWordOption() 
+		local function cm_getMentionWholeWordOption()
 			return db.wholenames
 		end
 
-		local function cm_setMentionWholeWordOption(var) 
+		local function cm_setMentionWholeWordOption(var)
 			db.wholenames = var
 			pChat.cm_loadRegexes()
 		end
@@ -1908,205 +1909,239 @@ function pChat.InitializeSettings()
 		--Create the LibAdonMenu2 settings panel now
 		LibAddonMenu2:RegisterOptionControls("pChatOptions", optionsData)
 
-    end
-    pChat.BuildLAMPanel = BuildLAMPanel
+	end
+	pChat.BuildLAMPanel = BuildLAMPanel
 
-    -- Initialises the settings and settings menu
-    local function GetDBAndBuildLAM()
+	-- Initialises the settings and settings menu
+	local function GetDBAndBuildLAM()
 
-        local panelData = {
-            type = "panel",
-            name = ADDON_NAME,
-            displayName = ZO_HIGHLIGHT_TEXT:Colorize(ADDON_NAME),
-            author = ADDON_AUTHOR,
-            version = ADDON_VERSION,
-            slashCommand = "/pchat",
-            website = ADDON_WEBSITE,
-            feedback = ADDON_FEEDBACK,
-            donation = ADDON_DONATION,
-            registerForRefresh = true,
-            registerForDefaults = true,
-        }
+		local panelData = {
+			type = "panel",
+			name = ADDON_NAME,
+			displayName = ZO_HIGHLIGHT_TEXT:Colorize(ADDON_NAME),
+			author = ADDON_AUTHOR,
+			version = ADDON_VERSION,
+			slashCommand = "/pchat",
+			website = ADDON_WEBSITE,
+			feedback = ADDON_FEEDBACK,
+			donation = ADDON_DONATION,
+			registerForRefresh = true,
+			registerForDefaults = true,
+		}
 
-        pChat.LAMPanel = LibAddonMenu2:RegisterAddonPanel("pChatOptions", panelData)
+		pChat.LAMPanel = LibAddonMenu2:RegisterAddonPanel("pChatOptions", panelData)
 
-        -- Build OptionTable. In a separate func in order to rebuild it in case of Guild Reorg.
-        SyncCharacterSelectChoices()
-        BuildLAMPanel()
+		-- Build OptionTable. In a separate func in order to rebuild it in case of Guild Reorg.
+		SyncCharacterSelectChoices()
+		BuildLAMPanel()
 
-    end
-
-    -- Revert category settings
-    local function RevertCategories(guildId)
-
-        -- Old GuildId
-        local oldIndex = pChatData.guildIndexes[guildId].num
-        -- old Total Guilds
-        local totGuilds = GetNumGuilds() + 1
-
-        if oldIndex and oldIndex < totGuilds then
-            local charId = GetCurrentCharacterId()
-
-            -- If our guild was not the last one, need to revert colors
-            --logger:Debug("pChat will revert starting from %d to %d", oldIndex, totGuilds)
-
-            -- Does not need to reset chat settings for first guild if the 2nd has been left, same for 1-2/3 and 1-2-3/4
-            for iGuilds=oldIndex, (totGuilds - 1) do
-
-                -- If default channel was g1, keep it g1
-                if not (db.defaultchannel == CHAT_CATEGORY_GUILD_1 or db.defaultchannel == CHAT_CATEGORY_OFFICER_1) then
-
-                    if db.defaultchannel == (CHAT_CATEGORY_GUILD_1 + iGuilds) then
-                        db.defaultchannel = (CHAT_CATEGORY_GUILD_1 + iGuilds - 1)
-                    elseif db.defaultchannel == (CHAT_CATEGORY_OFFICER_1 + iGuilds) then
-                        db.defaultchannel = (CHAT_CATEGORY_OFFICER_1 + iGuilds - 1)
-                    end
-
-                end
-
-                -- New Guild color for Guild #X is the old #X+1
-                SetChatCategoryColor(CHAT_CATEGORY_GUILD_1 + iGuilds - 1, db.chatConfSync[charId].colors[CHAT_CATEGORY_GUILD_1 + iGuilds].red, db.chatConfSync[charId].colors[CHAT_CATEGORY_GUILD_1 + iGuilds].green, db.chatConfSync[charId].colors[CHAT_CATEGORY_GUILD_1 + iGuilds].blue)
-                -- New Officer color for Guild #X is the old #X+1
-                SetChatCategoryColor(CHAT_CATEGORY_OFFICER_1 + iGuilds - 1, db.chatConfSync[charId].colors[CHAT_CATEGORY_OFFICER_1 + iGuilds].red, db.chatConfSync[charId].colors[CHAT_CATEGORY_OFFICER_1 + iGuilds].green, db.chatConfSync[charId].colors[CHAT_CATEGORY_OFFICER_1 + iGuilds].blue)
-
-                -- Restore tab config previously set.
-                for numTab in ipairs (CHAT_SYSTEM.primaryContainer.windows) do
-                    if db.chatConfSync[charId].tabs[numTab] then
-                        SetChatContainerTabCategoryEnabled(1, numTab, (CHAT_CATEGORY_GUILD_1 + iGuilds - 1), db.chatConfSync[charId].tabs[numTab].enabledCategories[CHAT_CATEGORY_GUILD_1 + iGuilds])
-                        SetChatContainerTabCategoryEnabled(1, numTab, (CHAT_CATEGORY_OFFICER_1 + iGuilds - 1), db.chatConfSync[charId].tabs[numTab].enabledCategories[CHAT_CATEGORY_OFFICER_1 + iGuilds])
-                    end
-                end
-
-            end
-        end
-
-    end
-
-    local function SaveGuildIndexes()
-        pChatData.guildIndexes = {}
-        --For each guild get the unique serverGuildId
-        for guildNum = 1, GetNumGuilds() do
-            -- Guildname
-            local guildId = GetGuildId(guildNum)
-            local guildName = GetGuildName(guildId)
-            -- Occurs sometimes
-            if(not guildName or (guildName):len() < 1) then
-                guildName = "Guild " .. guildNum
-            end
-            pChatData.guildIndexes[guildId] = {
-                num     = guildNum,
-                id      = guildId,
-                name    = guildName,
-            }
-        end
-    end
-
-
-    -- Triggered by EVENT_GUILD_SELF_JOINED_GUILD
-    local function OnSelfJoinedGuild(_, guildServerId, _, _)
-
-        -- It will rebuild optionsTable and recreate tables if user didn't went in this section before
-        BuildLAMPanel()
-
-        -- If recently added to a new guild and never go in menu db.formatguild[guildName] won't exist, it won't create the value if joining an known guild
-        if not db.formatguild[guildServerId] then
-            -- 2 is default value
-            db.formatguild[guildServerId] = 2
-        end
-
-        -- Save Guild indexes for guild reorganization
-        SaveGuildIndexes()
-
-    end
-
-    -- Runs whenever "me" left a guild (or get kicked)
-    local function OnSelfLeftGuild(_, guildServerId, _, _)
-        -- It will rebuild optionsTable and recreate tables if user didn't went in this section before
-        BuildLAMPanel()
-
-        -- Revert category colors & options
-        RevertCategories(guildServerId)
-    end
-
-
-    --Migrate some SavedVariables to new structures
-    local function MigrateSavedVars()
-        logger:Debug("MigrateSavedVars")
-        --Chat configuration synchronization was moved from characterNames as table key in table db.chatConfSync
-        --to characterId -> Attention: The charId is a String as well so one needs to change it to a number
-        local newChatConfSync = {}
-        if db.chatConfSync ~= nil then
-            local charName2Id = pChat.characterNameRaw2Id
-            local charId2Name = pChat.characterId2NameRaw
-            for charName, charsChatConfSyncData in pairs(db.chatConfSync) do
-                --logger:Debug(">charName: %s, type: %s", charName, type(tonumber(charName)))
-                if charName and charName ~= "" and charName ~= "lastChar" and type(tonumber(charName)) ~= "number" then
-                    --Migrate the old charName to it's charId
-                    local charId = charName2Id[charName]
-                    --CharId exists? If not the char is not existing anymore at this account and will be removed!
-                    if charId ~= nil then
-                        newChatConfSync[charId] = ZO_DeepTableCopy(charsChatConfSyncData)
-                        newChatConfSync[charId].charName = charName
-                    end
-                else
-                    --charName is the charId already!
-                    newChatConfSync[charName] = ZO_DeepTableCopy(charsChatConfSyncData)
-                    newChatConfSync[charName].charName = charId2Name[charName]
-                end
-            end
-            db.chatConfSync = {}
-            db.chatConfSync = newChatConfSync
-        end
-
-        --Migrate the old guild settings from guildName to guildId
-        for guild = 1, GetNumGuilds() do
-            -- Guildname
-            local guildId = GetGuildId(guild)
-            local guildName = GetGuildName(guildId)
-            if db.guildTags and db.guildTags[guildName] then
-                db.guildTags[guildId] = db.guildTags[guildName]
-                db.guildTags[guildName] = nil
-            end
-            if db.officertag and db.officertag[guildName] then
-                db.officertag[guildId] = db.officertag[guildName]
-                db.officertag[guildName] = nil
-            end
-            if db.switchFor and db.switchFor[guildName] then
-                db.switchFor[guildId] = db.switchFor[guildName]
-                db.switchFor[guildName] = nil
-            end
-            if db.officerSwitchFor and db.officerSwitchFor[guildName] then
-                db.officerSwitchFor[guildId] = db.officerSwitchFor[guildName]
-                db.officerSwitchFor[guildName] = nil
-            end
-            if db.formatguild and db.formatguild[guildName] then
-                db.formatguild[guildId] = db.formatguild[guildName]
-                db.formatguild[guildName] = nil
-            end
-        end
 	end
 
-    --Load the SavedVariables
-    db = ZO_SavedVars:NewAccountWide(ADDON_SV_NAME, ADDON_SV_VERSION, nil, defaults)
-    pChat.db = db
+	-- Revert category settings
+	local function RevertCategories(guildId)
 
-    --Migrate old SavedVariables to new structures
-    MigrateSavedVars()
+		-- Old GuildId
+		local oldIndex = pChatData.guildIndexes[guildId].num
+		-- old Total Guilds
+		local totGuilds = GetNumGuilds() + 1
 
-    --LAM and db for saved vars
-    GetDBAndBuildLAM()
+		if oldIndex and oldIndex < totGuilds then
+			local charId = GetCurrentCharacterId()
 
-    --Load the nicknames from the settings
-    BuildNicknames()
+			-- If our guild was not the last one, need to revert colors
+			--logger:Debug("pChat will revert starting from %d to %d", oldIndex, totGuilds)
 
-    -- Save all guild indices
-    SaveGuildIndexes()
+			-- Does not need to reset chat settings for first guild if the 2nd has been left, same for 1-2/3 and 1-2-3/4
+			for iGuilds=oldIndex, (totGuilds - 1) do
 
-    -- Register OnSelfJoinedGuild with EVENT_GUILD_SELF_JOINED_GUILD
-    EVENT_MANAGER:RegisterForEvent(ADDON_NAME, EVENT_GUILD_SELF_JOINED_GUILD, OnSelfJoinedGuild)
+				-- If default channel was g1, keep it g1
+				if not (db.defaultchannel == CHAT_CATEGORY_GUILD_1 or db.defaultchannel == CHAT_CATEGORY_OFFICER_1) then
 
-    -- Register OnSelfLeftGuild with EVENT_GUILD_SELF_LEFT_GUILD
-    EVENT_MANAGER:RegisterForEvent(ADDON_NAME, EVENT_GUILD_SELF_LEFT_GUILD, OnSelfLeftGuild)
+					if db.defaultchannel == (CHAT_CATEGORY_GUILD_1 + iGuilds) then
+						db.defaultchannel = (CHAT_CATEGORY_GUILD_1 + iGuilds - 1)
+					elseif db.defaultchannel == (CHAT_CATEGORY_OFFICER_1 + iGuilds) then
+						db.defaultchannel = (CHAT_CATEGORY_OFFICER_1 + iGuilds - 1)
+					end
 
-    return db
+				end
+
+				-- New Guild color for Guild #X is the old #X+1
+				SetChatCategoryColor(CHAT_CATEGORY_GUILD_1 + iGuilds - 1, db.chatConfSync[charId].colors[CHAT_CATEGORY_GUILD_1 + iGuilds].red, db.chatConfSync[charId].colors[CHAT_CATEGORY_GUILD_1 + iGuilds].green, db.chatConfSync[charId].colors[CHAT_CATEGORY_GUILD_1 + iGuilds].blue)
+				-- New Officer color for Guild #X is the old #X+1
+				SetChatCategoryColor(CHAT_CATEGORY_OFFICER_1 + iGuilds - 1, db.chatConfSync[charId].colors[CHAT_CATEGORY_OFFICER_1 + iGuilds].red, db.chatConfSync[charId].colors[CHAT_CATEGORY_OFFICER_1 + iGuilds].green, db.chatConfSync[charId].colors[CHAT_CATEGORY_OFFICER_1 + iGuilds].blue)
+
+				-- Restore tab config previously set.
+				for numTab in ipairs (CHAT_SYSTEM.primaryContainer.windows) do
+					if db.chatConfSync[charId].tabs[numTab] then
+						SetChatContainerTabCategoryEnabled(1, numTab, (CHAT_CATEGORY_GUILD_1 + iGuilds - 1), db.chatConfSync[charId].tabs[numTab].enabledCategories[CHAT_CATEGORY_GUILD_1 + iGuilds])
+						SetChatContainerTabCategoryEnabled(1, numTab, (CHAT_CATEGORY_OFFICER_1 + iGuilds - 1), db.chatConfSync[charId].tabs[numTab].enabledCategories[CHAT_CATEGORY_OFFICER_1 + iGuilds])
+					end
+				end
+
+			end
+		end
+
+	end
+
+	local function SaveGuildIndexes()
+		pChatData.guildIndexes = {}
+		--For each guild get the unique serverGuildId
+		for guildNum = 1, GetNumGuilds() do
+			-- Guildname
+			local guildId = GetGuildId(guildNum)
+			local guildName = GetGuildName(guildId)
+			-- Occurs sometimes
+			if(not guildName or (guildName):len() < 1) then
+				guildName = "Guild " .. guildNum
+			end
+			pChatData.guildIndexes[guildId] = {
+				num     = guildNum,
+				id      = guildId,
+				name    = guildName,
+			}
+		end
+	end
+
+
+	-- Triggered by EVENT_GUILD_SELF_JOINED_GUILD
+	local function OnSelfJoinedGuild(_, guildServerId, _, _)
+
+		-- It will rebuild optionsTable and recreate tables if user didn't went in this section before
+		BuildLAMPanel()
+
+		-- If recently added to a new guild and never go in menu db.formatguild[guildName] won't exist, it won't create the value if joining an known guild
+		if not db.formatguild[guildServerId] then
+			-- 2 is default value
+			db.formatguild[guildServerId] = 2
+		end
+
+		-- Save Guild indexes for guild reorganization
+		SaveGuildIndexes()
+
+	end
+
+	-- Runs whenever "me" left a guild (or get kicked)
+	local function OnSelfLeftGuild(_, guildServerId, _, _)
+		-- It will rebuild optionsTable and recreate tables if user didn't went in this section before
+		BuildLAMPanel()
+
+		-- Revert category colors & options
+		RevertCategories(guildServerId)
+	end
+
+
+	--Migrate some SavedVariables to new structures
+	local function MigrateSavedVars()
+		logger:Debug("MigrateSavedVars - ChatConfSync")
+		--Chat configuration synchronization was moved from characterNames as table key in table db.chatConfSync
+		--to characterId -> Attention: The charId is a String as well so one needs to change it to a number
+		local newChatConfSync = {}
+		if db.chatConfSync ~= nil then
+			local charName2Id = pChat.characterNameRaw2Id
+			local charId2Name = pChat.characterId2NameRaw
+			for charName, charsChatConfSyncData in pairs(db.chatConfSync) do
+				--logger:Debug(">charName: %s, type: %s", charName, type(tonumber(charName)))
+				if charName and charName ~= "" and charName ~= "lastChar" and type(tonumber(charName)) ~= "number" then
+					--Migrate the old charName to it's charId
+					local charId = charName2Id[charName]
+					--CharId exists? If not the char is not existing anymore at this account and will be removed!
+					if charId ~= nil then
+						newChatConfSync[charId] = ZO_DeepTableCopy(charsChatConfSyncData)
+						newChatConfSync[charId].charName = charName
+					end
+				else
+					--charName is the charId already!
+					newChatConfSync[charName] = ZO_DeepTableCopy(charsChatConfSyncData)
+					newChatConfSync[charName].charName = charId2Name[charName]
+				end
+			end
+			db.chatConfSync = {}
+			db.chatConfSync = newChatConfSync
+		end
+
+		--Migrate the old guild settings from guildName to guildId
+		for guild = 1, GetNumGuilds() do
+			-- Guildname
+			local guildId = GetGuildId(guild)
+			local guildName = GetGuildName(guildId)
+			if db.guildTags and db.guildTags[guildName] then
+				db.guildTags[guildId] = db.guildTags[guildName]
+				db.guildTags[guildName] = nil
+			end
+			if db.officertag and db.officertag[guildName] then
+				db.officertag[guildId] = db.officertag[guildName]
+				db.officertag[guildName] = nil
+			end
+			if db.switchFor and db.switchFor[guildName] then
+				db.switchFor[guildId] = db.switchFor[guildName]
+				db.switchFor[guildName] = nil
+			end
+			if db.officerSwitchFor and db.officerSwitchFor[guildName] then
+				db.officerSwitchFor[guildId] = db.officerSwitchFor[guildName]
+				db.officerSwitchFor[guildName] = nil
+			end
+			if db.formatguild and db.formatguild[guildName] then
+				db.formatguild[guildId] = db.formatguild[guildName]
+				db.formatguild[guildName] = nil
+			end
+		end
+	end
+
+	--Load the SavedVariables
+	local worldName = GetWorldName()
+	--savedVariableTable, version, namespace, defaults, profile, displayName
+	db = ZO_SavedVars:NewAccountWide(ADDON_SV_NAME, ADDON_SV_VERSION, nil, defaults, worldName, nil)
+
+	--Migrate the SV from non-server to server SV
+	if db.migratedSVToServer == nil then
+		logger:Info("Migrating the SavedVariables to the server \'" ..tostring(worldName) .. "\' now...")
+		local displayName = GetDisplayName()
+		local dbOld = _G[ADDON_SV_NAME] and _G[ADDON_SV_NAME]["Default"] and _G[ADDON_SV_NAME]["Default"][displayName] and _G[ADDON_SV_NAME]["Default"][displayName]["$AccountWide"]
+		--Do the old SV exist with recently new pChat data?
+		if dbOld and dbOld.useSystemMessageChatHandler ~= nil then
+			local dbOldCopy = ZO_ShallowTableCopy(dbOld)
+			db = ZO_SavedVars:NewAccountWide(ADDON_SV_NAME, ADDON_SV_VERSION, nil, dbOldCopy, worldName, nil)
+			db.migratedSVToServer = false
+			logger:Info("Migration of the SavedVariables to the server \'" ..tostring(worldName) .. "\' done.\nReloading the UI now to save the data to the disk.")
+			logger:Debug("SV Migration - RELOADUI1 RELOADUI1 RELOADUI1 RELOADUI1 RELOADUI1 RELOADUI1 RELOADUI1 RELOADUI1 RELOADUI1")
+			ReloadUI("ingame")
+		else
+			logger:Info("Migration of the SavedVariables to the server \'" ..tostring(worldName) .. "\' not started as there is no non-server SV data available to migrate!")
+			logger:Info(">Using default values for the server dependent SavedVariables.")
+			db.migratedSVToServer = true
+		end
+	else
+		logger:Debug(">db.migratedSVToServer: " ..tostring(db.migratedSVToServer))
+
+		--SV were migrated already
+		if db.migratedSVToServer == false then
+			logger:Info("Successfully migrated the SavedVariables to the server \'" ..tostring(worldName) .. "\'")
+			logger:Info(">Non-server dependent SavedVariables for your account \'"..GetDisplayName().."\' can be deleted via the slash command \'/pchatdeleteoldsv\'!")
+			db.migratedSVToServer = true
+			logger:Debug("SV Migration - RELOADUI2 RELOADUI2 RELOADUI2 RELOADUI2 RELOADUI2 RELOADUI2 RELOADUI2 RELOADUI2 RELOADUI2")
+			ReloadUI("ingame")
+		end
+	end
+
+	pChat.db = db
+
+	--Migrate old SavedVariables to new structures
+	MigrateSavedVars()
+
+	--LAM and db for saved vars
+	GetDBAndBuildLAM()
+
+	--Load the nicknames from the settings
+	BuildNicknames()
+
+	-- Save all guild indices
+	SaveGuildIndexes()
+
+	-- Register OnSelfJoinedGuild with EVENT_GUILD_SELF_JOINED_GUILD
+	EVENT_MANAGER:RegisterForEvent(ADDON_NAME, EVENT_GUILD_SELF_JOINED_GUILD, OnSelfJoinedGuild)
+
+	-- Register OnSelfLeftGuild with EVENT_GUILD_SELF_LEFT_GUILD
+	EVENT_MANAGER:RegisterForEvent(ADDON_NAME, EVENT_GUILD_SELF_LEFT_GUILD, OnSelfLeftGuild)
+
+	return db
 end

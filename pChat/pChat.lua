@@ -40,13 +40,13 @@
 
 
 --=======================================================================================================================================
--- Changelog version: 10.0.1.1 (last version 10.0.1.2)
+-- Changelog version: 10.0.1.3 (last version 10.0.1.2)
 --=======================================================================================================================================
 --Fixed:
 --
 
 --Changed:
---
+--SavedVariables are now server dependent. "Non server dependent" SV will be copied to the first new logged in server "once". After that they will be removed!
 
 --Added:
 --
@@ -455,9 +455,34 @@ local function LoadSlashCommands()
     SLASH_COMMANDS["/msg"] = pChat_ShowAutoMsg
     -- Coorbin20200708
     SLASH_COMMANDS["/cmadd"] = pChat.cm_add
-	SLASH_COMMANDS["/cmdel"] = pChat.cm_del
-	SLASH_COMMANDS["/cmlist"] = pChat.cm_print_list
-	SLASH_COMMANDS["/cmwatch"] = pChat.cm_watch_toggle
+    SLASH_COMMANDS["/cmdel"] = pChat.cm_del
+    SLASH_COMMANDS["/cmlist"] = pChat.cm_print_list
+    SLASH_COMMANDS["/cmwatch"] = pChat.cm_watch_toggle
+
+    local function pChatDeleteOldNonServerDependentSVForAccount(argu)
+        local ADDON_SV_NAME     = CONSTANTS["ADDON_SV_NAME"]
+ 	    local ADDON_SV_VERSION  = CONSTANTS["ADDON_SV_VERSION"]
+
+        local displayName = GetDisplayName()
+        logger:Info("Looking for old non-server dependent SavedVariables for the account \'".. displayName .."\'....")
+        local dbOld = ZO_SavedVars:NewAccountWide(ADDON_SV_NAME, ADDON_SV_VERSION, nil, nil, nil, nil)
+--pChat._dbOld = dbOld
+        --Do the old SV exist with recently new pChat data?
+        if dbOld ~= nil and dbOld["colours"] ~= nil then
+            local dbOldNonServerDependent = _G[ADDON_SV_NAME]["Default"][displayName]["$AccountWide"]
+--pChat._dbOldNonServerDependent = dbOldNonServerDependent
+            if dbOldNonServerDependent ~= nil then
+                _G[ADDON_SV_NAME]["Default"][displayName]["$AccountWide"] = nil
+                dbOldNonServerDependent = nil
+                logger:Info("Successfully deleted the old, non-server dependent SavedVariables for your account \'"..displayName.."\'.")
+                logger:Info(">A reload of the UI will save the changes to the disk now!")
+                ReloadUI("ingame")
+            end
+        else
+            logger:Info("No old non-server dependent SavedVariables found for the account \'"..displayName.."\'!")
+        end
+    end
+    SLASH_COMMANDS["/pchatdeleteoldsv"] = pChatDeleteOldNonServerDependentSVForAccount
 end
 
 -- Please note that some things are delayed in OnPlayerActivated() because Chat isn't ready when this function triggers
