@@ -453,6 +453,21 @@ local function LoadHooks()
         pChat_RemoveIMNotification()
     end)
 
+    --Code by Dolgubon, 2020-12-25
+    ZO_PreHookHandler(ZO_ChatWindowTextEntryEditBox, "OnBackspace", function(self)
+        if not db.chatEditBoxOnBackspaceHook or not IsControlKeyDown() then return end
+        local text = self:GetText()
+        local position = self:GetCursorPosition()
+        local beforeCursor = string.sub(text, 1, position)
+        local space= #beforeCursor - (string.find(string.reverse(beforeCursor), "[% %(\"%']") or #beforeCursor)
+        local newText = string.sub(text, 0, space+1)..string.sub(text, #beforeCursor+1)
+        if space == 0 then
+            newText = ""..string.sub(text, #beforeCursor+1)
+        end
+        self:SetText(newText)
+        self:SetCursorPosition(space+1)
+    end)
+
 end
 
 --Load the string IDs for keybindings e.g.

@@ -464,6 +464,11 @@ local strings = {
 	PCHAT_CHATHANDLER_GROUP_MEMBER_LEFT = "Group member left",
 	PCHAT_CHATHANDLER_GROUP_TYPE_CHANGED = "Group type changed",
 
+	PCHAT_SETTINGS_EDITBOX_HOOKS 					= "Chat editbox",
+	PCHAT_SETTINGS_EDITBOX_HOOK_CTRL_BACKSPACE 		= "CTRL + backspace: Remove word",
+	PCHAT_SETTINGS_EDITBOX_HOOK_CTRL_BACKSPACETT 	= "Pressing the CTRL key + BACKSPACE key will remove the whole word left to the cursor.",
+
+
 	-- Coorbin20200708
 	-- Chat Mentions settings strings
 	PCHAT_MENTIONSH = "Mentions",

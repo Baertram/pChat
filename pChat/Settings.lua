@@ -162,6 +162,7 @@ function pChat.InitializeSettings()
 		useIgnoreRemovedChatHandler = true,
 		useGroupMemberLeftChatHandler = true,
 		useGroupTypeChangedChatHandler = true,
+		chatEditBoxOnBackspaceHook = true,
 
 		-- Coorbin20200708
 		-- Chat Mentions
@@ -537,13 +538,32 @@ function pChat.InitializeSettings()
 					setFunc = function(newValue) db.enablecopy = newValue end,
 					width = "full",
 					default = defaults.enablecopy,
-				},--
+				},
 
+------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------
 				-- Chat window
 				{
 					type = "submenu",
 					name = GetString(PCHAT_APPARENCEMH),
 					controls = {
+						{
+							type = "submenu",
+							name = GetString(PCHAT_SETTINGS_EDITBOX_HOOKS),
+							controls = {
+								{-- Copy Chat
+									type = "checkbox",
+									name = GetString(PCHAT_SETTINGS_EDITBOX_HOOK_CTRL_BACKSPACE),
+									tooltip = GetString(PCHAT_SETTINGS_EDITBOX_HOOK_CTRL_BACKSPACETT),
+									getFunc = function() return db.chatEditBoxOnBackspaceHook end,
+									setFunc = function(newValue) db.chatEditBoxOnBackspaceHook = newValue end,
+									width = "full",
+									default = defaults.chatEditBoxOnBackspaceHook,
+								},--
+							}, --controls submenu chat edit box
+
+						}, -- submenu chat edit box
+------------------------------------------------------------------------------------------------------------------------
 						{--	New Message Color
 							type = "colorpicker",
 							name = GetString(PCHAT_TABWARNING),
@@ -570,7 +590,7 @@ function pChat.InitializeSettings()
 							width = "full",
 							default = defaults.windowDarkness,
 						},
-						{-- Minimize at luanch
+						{-- Minimize at launch
 							type = "checkbox",
 							name = GetString(PCHAT_CHATMINIMIZEDATLAUNCH),
 							tooltip = GetString(PCHAT_CHATMINIMIZEDATLAUNCHTT),
@@ -588,7 +608,7 @@ function pChat.InitializeSettings()
 							width = "full",
 							default = defaults.chatMinimizedInMenus,
 						},
-						{ -- Mximize After Menus
+						{ -- Maximize After Menus
 							type = "checkbox",
 							name = GetString(PCHAT_CHATMAXIMIZEDAFTERMENUS),
 							tooltip = GetString(PCHAT_CHATMAXIMIZEDAFTERMENUSTT),
@@ -617,6 +637,8 @@ function pChat.InitializeSettings()
 			},
 		}
 
+------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------
 		-- Message settings
 		optionsData[#optionsData + 1] = {
 			type = "submenu",
@@ -692,7 +714,7 @@ function pChat.InitializeSettings()
 					}, --controls Chat message handlers
 
 				}, --submenu Chat message handlers
-
+------------------------------------------------------------------------------------------------------------------------
 				{-- LAM Option Remove Zone Tags
 					type = "checkbox",
 					name = GetString(PCHAT_DELZONETAGS),
@@ -711,6 +733,7 @@ function pChat.InitializeSettings()
 					width = "half",
 					default = defaults.urlHandling,
 				},
+------------------------------------------------------------------------------------------------------------------------
 				-- Timestamp options
 				{
 					type = "submenu",
@@ -756,6 +779,7 @@ function pChat.InitializeSettings()
 						},
 					},
 				},
+------------------------------------------------------------------------------------------------------------------------
 				--Chat messages
 				{
 					type     = "submenu",
@@ -788,8 +812,7 @@ function pChat.InitializeSettings()
 							default = defaults.disableBrackets,
 							width   = "half",
 						},
-
-
+------------------------------------------------------------------------------------------------------------------------
 						-- Group Submenu
 						{
 							type = "submenu",
@@ -810,14 +833,14 @@ function pChat.InitializeSettings()
 								},
 							},
 						},
-
+------------------------------------------------------------------------------------------------------------------------
 						-- Guild Submenu
 						{
 							type = "submenu",
 							name = GetString(PCHAT_GUILDH),
 							controls = controlsForGuildSubmenu2,
 						},
-
+------------------------------------------------------------------------------------------------------------------------
 						--All other chat messages
 						{
 							type     = "submenu",
@@ -841,9 +864,11 @@ function pChat.InitializeSettings()
 								},
 							},
 						},
+------------------------------------------------------------------------------------------------------------------------
 
 					}, --controls PCHAT_MESSAGEOPTIONSNAMEH
 				}, --submenu Chat messages
+------------------------------------------------------------------------------------------------------------------------
 				--Colors in chat messages
 				{
 					type = "submenu",
@@ -925,6 +950,7 @@ function pChat.InitializeSettings()
 							default = defaults.diffChatColorsLightenValue,
 							disabled = function() return db.diffforESOcolors == 0 or db.oneColour end,
 						},
+------------------------------------------------------------------------------------------------------------------------
 						-- Chat channel colors
 						{
 							type = "submenu",
@@ -1153,6 +1179,7 @@ function pChat.InitializeSettings()
 								},
 							},
 						},
+------------------------------------------------------------------------------------------------------------------------
 						--Other Colors
 						{
 							type = "submenu",
@@ -1263,12 +1290,17 @@ function pChat.InitializeSettings()
 									width = "half",
 								},
 							},
-						},
-					},
-				},
-			}
-		}
-
+						}, --other colors
+------------------------------------------------------------------------------------------------------------------------
+					}, --colors in chat messages
+------------------------------------------------------------------------------------------------------------------------
+				}, --colors in chat messages
+------------------------------------------------------------------------------------------------------------------------
+			} --pchat chat handlers
+------------------------------------------------------------------------------------------------------------------------
+		}--pchat message options
+------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------
 		------------------------------------------------------------------------------------------------------------------------
 		-- Chat Tabs
 		optionsData[#optionsData + 1] = {

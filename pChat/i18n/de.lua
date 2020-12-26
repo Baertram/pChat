@@ -473,3 +473,8 @@ SafeAddString(PCHAT_CHATHANDLER_IGNORE_ADDED                , "Ignorierte Spiele
 SafeAddString(PCHAT_CHATHANDLER_IGNORE_REMOVED              , "Ignorierte Spieler entfernt", 1)
 SafeAddString(PCHAT_CHATHANDLER_GROUP_MEMBER_LEFT           , "Gruppen Mitglied verlassen", 1)
 SafeAddString(PCHAT_CHATHANDLER_GROUP_TYPE_CHANGED          , "Gruppen Typ geändert", 1)
+
+SafeAddString(PCHAT_SETTINGS_EDITBOX_HOOKS 					, "Chat Text Eingabefeld", 1)
+SafeAddString(PCHAT_SETTINGS_EDITBOX_HOOK_CTRL_BACKSPACE 	, "STRG + <-: Wort löschen", 1)
+SafeAddString(PCHAT_SETTINGS_EDITBOX_HOOK_CTRL_BACKSPACETT 	, "Wenn die STRG + Zurück (<- Taste, auch BACKSPACE genannt) gedrückt wird, so wird das ganze Wort links vor dem Cursor gelöscht.", 1)
+
