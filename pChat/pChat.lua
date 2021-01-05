@@ -49,7 +49,8 @@
 --SavedVariables are now server dependent. "Non server dependent" SV will be copied to the first new logged in server "once". After that they will be removed!
 
 --Added:
---
+--Thanks to Dolgubon: New setting to enable the chat editbox backspace hook. If enbaled you are able to press the CTRL key + backspace to delete the whole
+--word left of the cursor
 
 --Added on request:
 --=======================================================================================================================================

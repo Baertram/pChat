@@ -496,14 +496,14 @@ function pChat.InitializeMessageFormatters()
         local rawSys = text
         local startColSys, endColSys
         local lastTag, lastR, findC, findR
-        local count, countR
+        local count, countR, notNeeded
         local firstIsR
 
         rawSys = rawSys:gsub("||([Cc])", "%1") -- | is the escape char for |, so if an user type |c it will be sent as ||c by the game which will lead to an infinite loading screen because xxxxx||xxxxxx is a lua pattern operator and few gsub will broke the code
 
         --Search for Color tags
         startColSys, endColSys = string.find(rawSys, "|[cC]%x%x%x%x%x%x", 1)
-        _, count = string.gsub(rawSys, "|[cC]%x%x%x%x%x%x", "")
+        notNeeded, count = string.gsub(rawSys, "|[cC]%x%x%x%x%x%x", "")
 
         -- No color tags in the SysMessage
         if startColSys then
@@ -513,7 +513,7 @@ function pChat.InitializeMessageFormatters()
             -- First destroy tags with nothing inside
             rawSys = string.gsub(rawSys, "|[cC]%x%x%x%x%x%x|[rR]", "")
 
-            _, countR = string.gsub(rawSys, "|[cC]%x%x%x%x%x%x(.-)|[rR]", "")
+            notNeeded, countR = string.gsub(rawSys, "|[cC]%x%x%x%x%x%x(.-)|[rR]", "")
 
             -- Start tag found but end tag ~= start tag
             if count ~= countR then
