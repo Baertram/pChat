@@ -2,20 +2,25 @@ local CONSTANTS = pChat.CONSTANTS
 local ADDON_NAME = CONSTANTS.ADDON_NAME
 local ADDON_VERSION			= CONSTANTS.ADDON_VERSION
 
+local CM = CALLBACK_MANAGER
+local EM = EVENT_MANAGER
+
 --AddOn settings constants
 --LibAddonMenu-2.0 panel info constants
-local ADDON_AUTHOR        	= "Ayantir, DesertDwellers, Baertram & Sirinsidiator"
+local ADDON_AUTHOR        	= "Ayantir, DesertDwellers, Baertram & sirinsidiator"
 local ADDON_WEBSITE       	= "http://www.esoui.com/downloads/info93-pChat.html"
 local ADDON_FEEDBACK      	= "https://www.esoui.com/forums/private.php?do=newpm&u=2028"
 local ADDON_DONATION      	= "https://www.esoui.com/portal.php?id=136&a=faq&faqid=131"
 
 --SavedVariables constants
 local ADDON_SV_VERSION    = 0.9 -- ATTENTION: Changing this will reset the SavedVariables!
-local ADDON_SV_NAME       		= "PCHAT_OPTS"
-local ADDON_SV_SERVER_PROFILE	= "SERVER_DEPENDENT"
-CONSTANTS["ADDON_SV_NAME"] 				= ADDON_SV_NAME
-CONSTANTS["ADDON_SV_SERVER_PROFILE"]	= ADDON_SV_SERVER_PROFILE
-CONSTANTS["ADDON_SV_VERSION"] 			= ADDON_SV_VERSION
+local ADDON_SV_NAME       = "PCHAT_OPTS"
+CONSTANTS[ADDON_SV_NAME] 	= ADDON_SV_NAME
+CONSTANTS[ADDON_SV_VERSION] = ADDON_SV_VERSION
+
+local apiVersion = CONSTANTS.API_VERSION
+
+local addonNamePrefix = "[" .. ADDON_NAME .. "] "
 
 --Initialize the SavedVariables and LAM settings menu
 function pChat.InitializeSettings()
@@ -163,6 +168,8 @@ function pChat.InitializeSettings()
 		useGroupMemberLeftChatHandler = true,
 		useGroupTypeChangedChatHandler = true,
 		chatEditBoxOnBackspaceHook = true,
+		backupYourSavedVariablesReminder = true,
+		backupYourSavedVariablesReminderDone = {},
 
 		-- Coorbin20200708
 		-- Chat Mentions
@@ -1925,6 +1932,30 @@ function pChat.InitializeSettings()
 			},
 		}
 
+
+		--
+		-- Baertram 2021-06-06
+		-- Backup SavedVariables reminder
+		optionsData[#optionsData + 1] = {
+			type = "submenu",
+			name = GetString(PCHAT_SETTINGS_BACKUP),
+			controls = {
+				{
+					type = "description",
+					text = string.format(GetString(PCHAT_SETTINGS_BACKUP_REMINDER_LAST_REMINDER), pChat.lastBackupReminderDoneStr),
+				},
+				{
+					type    = "checkbox",
+					name    = GetString(PCHAT_SETTINGS_BACKUP_REMINDER),
+					tooltip = GetString(PCHAT_SETTINGS_BACKUP_REMINDER_TT),
+					getFunc = function() return db.backupYourSavedVariablesReminder end,
+					setFunc = function(value) db.backupYourSavedVariablesReminder = value end,
+					default = defaults.backupYourSavedVariablesReminder,
+					width   = "full",
+				},
+			}
+		}
+
 		--[[
 		index = index + 1
 		optionsTable[index] = {
@@ -2070,7 +2101,7 @@ function pChat.InitializeSettings()
 
 
 	--Migrate some SavedVariables to new structures
-	local function MigrateSavedVars()
+	local function MigrateToCharacterIdSavedVars()
 		logger:Debug("MigrateSavedVars - ChatConfSync")
 		--Chat configuration synchronization was moved from characterNames as table key in table db.chatConfSync
 		--to characterId -> Attention: The charId is a String as well so one needs to change it to a number
@@ -2126,6 +2157,72 @@ function pChat.InitializeSettings()
 		end
 	end
 
+	local function getLastBackupSVReminderText()
+		local settings = pChat.db
+
+		pChat.lastBackupReminderWasFound = nil
+		pChat.lastBackupReminderDoneStr = ""
+
+		local function lastBackupReminderNotFound()
+			if not settings.backupYourSavedVariablesReminder then return end
+			local lastBackupReminderDateTime = GetTimeStamp()
+			pChat.lastBackupReminderDateTime = lastBackupReminderDateTime
+			pChat.lastBackupReminderDoneStr = os.date("%c", lastBackupReminderDateTime)
+		end
+
+		if settings.backupYourSavedVariablesReminderDone[apiVersion] == nil then
+			lastBackupReminderNotFound()
+		else
+			local lastRemindedApiVersion = apiVersion
+			if settings.backupYourSavedVariablesReminderDone[apiVersion].reminded == true then
+				if settings.backupYourSavedVariablesReminderDone[apiVersion].timestamp ~= nil then
+					pChat.lastBackupReminderWasFound = true
+				end
+			end
+			if not pChat.lastBackupReminderWasFound and lastRemindedApiVersion == apiVersion then
+				--No reminder at current API version found, maybe the last APIversion has shown a reminder?
+				--Check the last 3 APIversions and else show the reminder again
+				for i=1, 3, 1 do
+					lastRemindedApiVersion = lastRemindedApiVersion - 1
+					if not pChat.lastBackupReminderWasFound and
+							settings.backupYourSavedVariablesReminderDone[lastRemindedApiVersion] ~= nil and
+							settings.backupYourSavedVariablesReminderDone[lastRemindedApiVersion].reminded == true then
+						pChat.lastBackupReminderWasFound = true
+						break
+					end
+				end
+			end
+
+			--Any last reminder was found?
+			if pChat.lastBackupReminderWasFound == true then
+				local lastReminderData = settings.backupYourSavedVariablesReminderDone[lastRemindedApiVersion]
+				if lastReminderData.timestamp == nil then
+					pChat.lastBackupReminderDoneStr = "ESO API version \'" .. tostring(lastRemindedApiVersion) .. "\'"
+				else
+					pChat.lastBackupReminderDoneStr = os.date("%c", lastReminderData.timestamp)
+				end
+			else
+				lastBackupReminderNotFound()
+			end
+		end
+	end
+
+	local function migrationInfoOutput(strVar, toChatToo, asAlertToo)
+		toChatToo = toChatToo or false
+		asAlertToo = asAlertToo or false
+		local isLogerGiven = logger ~= nil
+		if isLogerGiven == true then
+			logger:Info(strVar)
+		end
+		if not isLogerGiven or toChatToo == true then
+			d(addonNamePrefix .. strVar)
+		end
+		if asAlertToo == true then
+			ZO_Alert(UI_ALERT_CATEGORY_ALERT, SOUNDS.AVA_GATE_OPENED, addonNamePrefix .. strVar)
+		end
+	end
+
+
 	local function MigrateSavedVarsToServerDependent()
 		--Variable for EVENT_PLAYER_ACTIVATED
 		pChat.migrationReloadUI = nil
@@ -2134,10 +2231,9 @@ function pChat.InitializeSettings()
 		local worldName = GetWorldName()
 		--savedVariableTable, version, namespace, defaults, profile, displayName
 		db = ZO_SavedVars:NewAccountWide(ADDON_SV_NAME, ADDON_SV_VERSION, nil, defaults, worldName, nil)
-
 		--Migrate the SV from non-server to server SV
 		if db.migratedSVToServer == nil then
-			logger:Info("Migrating the SavedVariables to the server \'" ..tostring(worldName) .. "\' now...")
+			migrationInfoOutput("Migrating the SavedVariables to the server \'" ..tostring(worldName) .. "\' now...", true, false)
 			local displayName = GetDisplayName()
 			local dbOld = _G[ADDON_SV_NAME]["Default"][displayName]["$AccountWide"]
 			--Do the old SV exist with recently new pChat data?
@@ -2146,11 +2242,11 @@ function pChat.InitializeSettings()
 				_G[ADDON_SV_NAME][worldName][displayName]["$AccountWide"] = nil
 				db = ZO_SavedVars:NewAccountWide(ADDON_SV_NAME, ADDON_SV_VERSION, nil, dbOldCopy, worldName, nil)
 				db.migratedSVToServer = false
-				logger:Info("Migration of the SavedVariables to the server \'" ..tostring(worldName) .. "\' done.\nReloading the UI now to save the data to the disk.")
+				migrationInfoOutput("Migration of the SavedVariables to the server \'" ..tostring(worldName) .. "\' done.\nReloading the UI now to save the data to the disk.", true, true)
 				pChat.migrationReloadUI = 1
 			else
-				logger:Info("Migration of the SavedVariables to the server \'" ..tostring(worldName) .. "\' not started as there is no non-server SV data available to migrate!")
-				logger:Info(">Using default values for the server dependent SavedVariables.")
+				migrationInfoOutput("Migration of the SavedVariables to the server \'" ..tostring(worldName) .. "\' not started as there is no non-server SV data available to migrate!", false, false)
+				migrationInfoOutput(">Using default values for the server dependent SavedVariables.", false, false)
 				db.migratedSVToServer = true
 				pChat.migrationReloadUI = 2
 			end
@@ -2159,12 +2255,17 @@ function pChat.InitializeSettings()
 
 			--SV were migrated already
 			if db.migratedSVToServer == false then
-				logger:Info("Successfully migrated the SavedVariables to the server \'" ..tostring(worldName) .. "\'")
-				logger:Info(">Non-server dependent SavedVariables for your account \'"..GetDisplayName().."\' can be deleted via the slash command \'/pchatdeleteoldsv\'!")
+				migrationInfoOutput("Successfully migrated the SavedVariables to the server \'" ..tostring(worldName) .. "\'", true, true)
+				migrationInfoOutput(">Non-server dependent SavedVariables for your account \'"..GetDisplayName().."\' can be deleted via the slash command \'/pchatdeleteoldsv\'!", true, true)
 				db.migratedSVToServer = true
 				pChat.migrationReloadUI = 3
 			end
 		end
+	end
+
+	--After loading the SavedVariables check some values, and update them
+	local function AfterSettings()
+		getLastBackupSVReminderText()
 	end
 
 	--Migrate old non-server dependent SavedVariables to new server dependent ones
@@ -2172,8 +2273,10 @@ function pChat.InitializeSettings()
 
 	pChat.db = db
 
-	--Migrate old SavedVariables to new structures
-	MigrateSavedVars()
+	AfterSettings()
+
+	--Migrate old character name SavedVariables to new unique characterId structures
+	MigrateToCharacterIdSavedVars()
 
 	--LAM and db for saved vars
 	GetDBAndBuildLAM()

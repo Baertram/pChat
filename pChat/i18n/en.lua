@@ -470,6 +470,12 @@ local strings = {
 	PCHAT_SETTINGS_EDITBOX_HOOK_CTRL_BACKSPACE 		= "CTRL + backspace: Remove word",
 	PCHAT_SETTINGS_EDITBOX_HOOK_CTRL_BACKSPACETT 	= "Pressing the CTRL key + BACKSPACE key will remove the whole word left to the cursor.",
 
+	PCHAT_SETTINGS_BACKUP 							= "Backup",
+	PCHAT_SETTINGS_BACKUP_REMINDER_LAST_REMINDER 	= "Last reminder: %s",
+	PCHAT_SETTINGS_BACKUP_REMINDER 					= "Backup reminder",
+	PCHAT_SETTINGS_BACKUP_REMINDER_TT 				= "Show a reminder to backup your SavedVariables once a week. It will automatically show if an APIversion increasement was detected (due to a game patch e.g.).\n\nYou always should do a backup of your whole SavedVariables folder after a game patch, BEFORE starting the game client!",
+	PCHAT_SETTINGS_BACKUP_REMINDER_DIALOG_TEXT		= "Please |cFF0000!logout!|r and backup your pChat SavedVariables!\nThe following link at www.esoui.com explains\nhow to do it:\n\nhttps://www.esoui.com/forums/showthread.php?t=9235\n\nJust press the confirm button and the next dialog\nshown will ask to open the website\n(if you need to learn how to backup your SavedVariables).",
+	PCHAT_SETTINGS_WARNING_REMINDER_LOGOUT_BEFORE	= "Remember to LOGOUT first!",
 
 	-- Coorbin20200708
 	-- Chat Mentions settings strings

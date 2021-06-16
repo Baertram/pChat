@@ -40,7 +40,7 @@
 
 
 --=======================================================================================================================================
--- Changelog version: 10.0.1.3 (last version 10.0.1.2)
+-- Changelog version: 10.0.2.0 (last version 10.0.1.4)
 --=======================================================================================================================================
 --Fixed:
 --
@@ -63,6 +63,8 @@ pChat = pChat or {}
 --======================================================================================================================
 local CONSTANTS = pChat.CONSTANTS
 local ADDON_NAME    = CONSTANTS.ADDON_NAME
+
+local EM = EVENT_MANAGER
 
 --======================================================================================================================
 --pChat Variables--
@@ -96,7 +98,7 @@ local function LoadLibraries()
         logger = LibDebugLogger(ADDON_NAME)
         logger:Debug("AddOn loaded")
         logger.verbose = logger:Create("Verbose")
-        logger.verbose:SetEnabled(true)
+        logger.verbose:SetEnabled(false)
         pChat.logger = logger
     end
     --LibChatMessage
@@ -407,7 +409,10 @@ local function OnPlayerActivated()
 
             pChatData.isAddonInitialized = true
 
-            EVENT_MANAGER:UnregisterForEvent(ADDON_NAME, EVENT_PLAYER_ACTIVATED)
+            EM:UnregisterForEvent(ADDON_NAME, EVENT_PLAYER_ACTIVATED)
+
+            --Show the backup reminder?
+            pChat.ShowBackupReminder()
 
             logger:Debug("EVENT_PLAYER_ACTIVATED - End: Addon was initialized")
         end
@@ -454,7 +459,7 @@ local function LoadHooks()
         pChat_RemoveIMNotification()
     end)
 
-    --Code by Dolgubon, 2020-12-25
+    --Code by Dolgubon, 2020-12-25 -- Delete whole word by using CTRL + backspace
     ZO_PreHookHandler(ZO_ChatWindowTextEntryEditBox, "OnBackspace", function(self)
         if not db.chatEditBoxOnBackspaceHook or not IsControlKeyDown() then return end
         local text = self:GetText()
@@ -560,6 +565,9 @@ local function OnAddonLoaded(_, addonName)
 
         --Load the SV and LAM panel
         db = pChat.InitializeSettings()
+
+        --Load the dialogs
+        pChat.LoadDialogs()
 
         -- set up channel names
         UpdateCharCorrespondanceTableChannelNames()

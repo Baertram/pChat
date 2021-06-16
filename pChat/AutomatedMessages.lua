@@ -271,7 +271,7 @@ function pChat.InitializeAutomatedMessages()
                 highlight = "EsoUI/Art/MainMenu/menuBar_champion_over.dds",
             }
 
-        MENU_CATEGORY_PCHAT = LibMainMenu:AddCategory(PCHAT_MAIN_MENU_CATEGORY_DATA)
+        MENU_CATEGORY_PCHAT = LibMainMenu2:AddCategory(PCHAT_MAIN_MENU_CATEGORY_DATA)
 
         local iconData = {
             {
@@ -285,7 +285,7 @@ function pChat.InitializeAutomatedMessages()
 
         -- Register the group and add the buttons (we cannot all AddRawScene, only AddSceneGroup, so we emulate both functions).
         if MENU_CATEGORY_PCHAT then
-            LibMainMenu:AddSceneGroup(MENU_CATEGORY_PCHAT, "pChatSceneGroup", iconData)
+            LibMainMenu2:AddSceneGroup(MENU_CATEGORY_PCHAT, "pChatSceneGroup", iconData)
             pChat.MENU_CATEGORY_PCHAT = MENU_CATEGORY_PCHAT
         end
 

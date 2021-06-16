@@ -1,4 +1,6 @@
 local CONSTANTS = pChat.CONSTANTS
+local apiVersion = CONSTANTS.API_VERSION
+
 do
     --Get the class's icon texture
     local function getClassIcon(classId)
@@ -336,4 +338,54 @@ do
         return pChatChannel
     end
     pChat.mapPChatChannelToChatChannel = mapPChatChannelToChatChannel
+end
+
+--Baertram, 2021-06-06
+do
+    local function showBackupReminder()
+        local doShowReminderDialog = false
+        local settings = pChat.db
+
+        if settings.backupYourSavedVariablesReminder == true then
+            local lastSevenDaysInMs = 604800000 --last 7 days in MS: 7 * 24 * 60 * 60 * 1000
+
+            local backupSvRemindersDoneTable = settings.backupYourSavedVariablesReminderDone[apiVersion]
+            if backupSvRemindersDoneTable ~= nil then
+                if not backupSvRemindersDoneTable.reminded then
+                    --Show the backup your SavedVariables reminder dialog now!
+                    doShowReminderDialog = true
+                else
+                    --Check if the last reminder was 1 week in the past
+                    if not backupSvRemindersDoneTable.timestamp then
+                        doShowReminderDialog = true
+                    else
+                        local nowMs = pChat.lastBackupReminderDateTime
+                        if nowMs == nil then nowMs = GetTimeStamp() end
+                        local lastApiReminder = backupSvRemindersDoneTable.timestamp
+                        if (nowMs - lastApiReminder) >= lastSevenDaysInMs then
+                            doShowReminderDialog = true
+                        end
+                    end
+                end
+            else
+                --APIversion was not reminded yet: Remind now
+                doShowReminderDialog = true
+            end
+
+            if doShowReminderDialog == true then
+                local lastBackupReminderDateTime = GetTimeStamp()
+                pChat.lastBackupReminderDateTime = lastBackupReminderDateTime
+			    pChat.lastBackupReminderDoneStr = os.date("%c", lastBackupReminderDateTime)
+--d("[pchat]Reminding you to backup your SavedVariables now! Last reminder done: " .. pChat.lastBackupReminderDoneStr)
+
+                --Update the settings "last reminded for APIversion"
+                pChat.db.backupYourSavedVariablesReminderDone[apiVersion] = {
+                    reminded = true,
+                    timestamp = lastBackupReminderDateTime,
+                }
+                ZO_Dialogs_ShowDialog("PCHAT_BACKUP_SV_REMINDER", nil, nil, nil)
+            end
+		end
+    end
+    pChat.ShowBackupReminder = showBackupReminder
 end
