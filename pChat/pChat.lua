@@ -63,6 +63,7 @@ pChat = pChat or {}
 --======================================================================================================================
 local CONSTANTS = pChat.CONSTANTS
 local ADDON_NAME    = CONSTANTS.ADDON_NAME
+local addonNamePrefix = "[" .. ADDON_NAME .. "] "
 
 local EM = EVENT_MANAGER
 
@@ -109,6 +110,19 @@ local function LoadLibraries()
 end
 --Early try to load libs (done again in EVENT_ADD_ON_LOADED)
 LoadLibraries()
+
+local function migrationInfoOutput(strVar, toChatToo, asAlertToo)
+    toChatToo = toChatToo or false
+    asAlertToo = asAlertToo or false
+    logger:Info(strVar)
+    if not logger or toChatToo == true then
+        d(addonNamePrefix .. strVar)
+    end
+    if asAlertToo == true then
+        ZO_Alert(UI_ALERT_CATEGORY_ALERT, SOUNDS.AVA_GATE_OPENED, addonNamePrefix .. strVar)
+    end
+end
+pChat.migrationInfoOutput = migrationInfoOutput
 
 --======================================================================================================================
 -- pChat functions
@@ -314,24 +328,38 @@ end
 
 --Any tasks open after a SavedVariables migration was done?
 local function checkSavedVariablesMigrationTasks()
+    local worldName = GetWorldName()
     logger:Debug("SV Migration - Event_Player_Activated -> checkSavedVariablesMigrationTasks")
     --Were SavedVariables migrated from non-server dependent ones?
     --And do we need a reloadui here?
     if pChat.migrationReloadUI ~= nil then
         if pChat.migrationReloadUI == 1 then
             pChat.migrationReloadUI = nil
+            db.migrationJustFinished = nil
             logger:Debug("SV Migration - Migration done! RELOADUI1 RELOADUI1 RELOADUI1 RELOADUI1 RELOADUI1")
             ReloadUI()
 
         elseif pChat.migrationReloadUI == 2 then
             pChat.migrationReloadUI = nil
+            db.migrationJustFinished = nil
             logger:Debug("SV Migration - Nothing migrated! RELOADUI1 RELOADUI1 RELOADUI1 RELOADUI1 RELOADUI1")
             ReloadUI()
 
         elseif pChat.migrationReloadUI == 3 then
             pChat.migrationReloadUI = nil
+            db.migrationJustFinished = true
             logger:Debug("SV Migration - Migration finished! RELOADUI2 RELOADUI2 RELOADUI2 RELOADUI2 RELOADUI2 RELOADUI2 RELOADUI2 RELOADUI2 RELOADUI2")
             ReloadUI()
+        end
+    else
+        if db.migratedSVToServer == true and db.migrationJustFinished == true  then
+            db.migrationJustFinished = nil
+
+            --Migration finished - Output info
+            logger:Debug("SV Migration - Wrote SV file to disk for server: \'" ..tostring(worldName) .."\'")
+            migrationInfoOutput("Successfully migrated the SavedVariables to the server \'" ..tostring(worldName) .. "\'", true, true)
+            migrationInfoOutput(">Non-server dependent SavedVariables for your account \'"..GetDisplayName().."\' can be deleted via the slash command \'/pchatdeleteoldsv\'!", true, false)
+            migrationInfoOutput(">Attention: If you want to copy the SVs to another server login to that other server first BEFORE deleting the non-server dependent SavedVariables, because they will be taken as the base to copy!", true, false)
         end
     end
 end

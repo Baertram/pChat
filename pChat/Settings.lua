@@ -20,8 +20,6 @@ CONSTANTS[ADDON_SV_VERSION] = ADDON_SV_VERSION
 
 local apiVersion = CONSTANTS.API_VERSION
 
-local addonNamePrefix = "[" .. ADDON_NAME .. "] "
-
 --Initialize the SavedVariables and LAM settings menu
 function pChat.InitializeSettings()
 	local pChatData = pChat.pChatData
@@ -2207,23 +2205,8 @@ function pChat.InitializeSettings()
 		end
 	end
 
-	local function migrationInfoOutput(strVar, toChatToo, asAlertToo)
-		toChatToo = toChatToo or false
-		asAlertToo = asAlertToo or false
-		local isLogerGiven = logger ~= nil
-		if isLogerGiven == true then
-			logger:Info(strVar)
-		end
-		if not isLogerGiven or toChatToo == true then
-			d(addonNamePrefix .. strVar)
-		end
-		if asAlertToo == true then
-			ZO_Alert(UI_ALERT_CATEGORY_ALERT, SOUNDS.AVA_GATE_OPENED, addonNamePrefix .. strVar)
-		end
-	end
-
-
 	local function MigrateSavedVarsToServerDependent()
+		local migrationInfoOutput = pChat.migrationInfoOutput
 		--Variable for EVENT_PLAYER_ACTIVATED
 		pChat.migrationReloadUI = nil
 
@@ -2256,7 +2239,8 @@ function pChat.InitializeSettings()
 			--SV were migrated already
 			if db.migratedSVToServer == false then
 				migrationInfoOutput("Successfully migrated the SavedVariables to the server \'" ..tostring(worldName) .. "\'", true, true)
-				migrationInfoOutput(">Non-server dependent SavedVariables for your account \'"..GetDisplayName().."\' can be deleted via the slash command \'/pchatdeleteoldsv\'!", true, true)
+				migrationInfoOutput(">Non-server dependent SavedVariables for your account \'"..GetDisplayName().."\' can be deleted via the slash command \'/pchatdeleteoldsv\'!", true, false)
+            	migrationInfoOutput(">Attention: If you want to copy the SVs to another server login to that other server first BEFORE deleting the non-server dependent SavedVariables, because they will be taken as the base to copy!", true, false)
 				db.migratedSVToServer = true
 				pChat.migrationReloadUI = 3
 			end
