@@ -27,6 +27,7 @@ local strings = {
 
 
 	PCHAT_ADDON_INFO = "pChat overhauls the way text is displayed in the chatbox.You are able to change colors, sizes, notifications, play sounds, etc.\nThe addon ChatMentions is integrated into pChat.\nUse the slashcommand /msg to define short chat commands which will write your longtext to the chat (guild welcome messages e.g.)",
+	PCHAT_ADDON_INFO_2 = "Use the slash command \'/pchatdeleteoldsv\' to delete old non-server dependent SavedVariables (shrink the SV file size).",
 
 	PCHAT_OPTIONSH = "Chat settings",
 	PCHAT_MESSAGEOPTIONSH = "Message settings",

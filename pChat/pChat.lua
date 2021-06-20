@@ -352,7 +352,7 @@ local function checkSavedVariablesMigrationTasks()
             ReloadUI()
         end
     else
-        if db.migratedSVToServer == true and db.migrationJustFinished == true  then
+        if db.migratedSVToServer == true and db.migrationJustFinished == true then
             db.migrationJustFinished = nil
 
             --Migration finished - Output info
@@ -530,34 +530,39 @@ end
 local function LoadSlashCommands()
     -- Register Slash commands
     SLASH_COMMANDS["/msg"] = pChat_ShowAutoMsg
-    -- Coorbin20200708
-    SLASH_COMMANDS["/cmadd"] = pChat.cm_add
-    SLASH_COMMANDS["/cmdel"] = pChat.cm_del
-    SLASH_COMMANDS["/cmlist"] = pChat.cm_print_list
-    SLASH_COMMANDS["/cmwatch"] = pChat.cm_watch_toggle
+
+    -- Coorbin20200708 Chat mentions
+    local cm = pChat.ChatMentions
+    SLASH_COMMANDS["/cmadd"] = cm.cm_add
+    SLASH_COMMANDS["/cmdel"] = cm.cm_del
+    SLASH_COMMANDS["/cmlist"] = cm.cm_print_list
+    SLASH_COMMANDS["/cmwatch"] = cm.cm_watch_toggle
 
     local function pChatDeleteOldNonServerDependentSVForAccount(argu)
         local ADDON_SV_NAME     = CONSTANTS["ADDON_SV_NAME"]
  	    local ADDON_SV_VERSION  = CONSTANTS["ADDON_SV_VERSION"]
 
         local displayName = GetDisplayName()
-        logger:Info("Looking for old non-server dependent SavedVariables for the account \'".. displayName .."\'....")
+        migrationInfoOutput("Looking for old non-server dependent SavedVariables of account \'".. displayName .."\'....", true, false)
         local dbOld = ZO_SavedVars:NewAccountWide(ADDON_SV_NAME, ADDON_SV_VERSION, nil, nil, nil, nil)
 --pChat._dbOld = dbOld
         --Do the old SV exist with recently new pChat data?
         if dbOld ~= nil and dbOld.colours ~= nil then
             local dbOldNonServerDependent = _G[ADDON_SV_NAME]["Default"][displayName]["$AccountWide"]
---pChat._dbOldNonServerDependent = dbOldNonServerDependent
+            --pChat._dbOldNonServerDependent = dbOldNonServerDependent
             if dbOldNonServerDependent ~= nil then
                 _G[ADDON_SV_NAME]["Default"][displayName]["$AccountWide"] = nil
                 dbOldNonServerDependent = nil
-                logger:Info("Successfully deleted the old, non-server dependent SavedVariables for your account \'"..displayName.."\'.")
-                logger:Info(">A reload of the UI will save the changes to the disk now!")
-				logger:Debug("SV Delete - Old non-server data deleted! RELOADUI1 RELOADUI1 RELOADUI1 RELOADUI1 RELOADUI1")
-                ReloadUI("ingame")
-            end
+                migrationInfoOutput("Successfully deleted the old, non-server dependent SavedVariables of account \'"..displayName.."\'.", true, true)
+                logger:Info()
+                migrationInfoOutput(">A reloadUI saves the changes to disk in 3 seconds...", true, true)
+                zo_callLater(function()
+                    ReloadUI("ingame")
+                    logger:Debug("SV Delete - Old non-server data deleted! RELOADUI1_old RELOADUI1a RELOADUI1_old RELOADUI1_old RELOADUI1_old")
+                end, 3000)
+        end
         else
-            logger:Info("No old non-server dependent SavedVariables found for the account \'"..displayName.."\'!")
+            migrationInfoOutput("No non-server dependent SavedVariables found for account \'"..displayName.."\'!", true, true)
         end
     end
     SLASH_COMMANDS["/pchatdeleteoldsv"] = pChatDeleteOldNonServerDependentSVForAccount
@@ -611,8 +616,9 @@ local function OnAddonLoaded(_, addonName)
 
         -- Coorbin20200708
         -- Initialize Chat Mentions
-        pChat.cm_initChatMentionsEngine()
-        pChat.cm_loadRegexes()
+        local cm = pChat.ChatMentions
+        cm.cm_initChatMentionsEngine()
+        cm.cm_loadRegexes()
 
         -- Initialize Chat Config features
         pChat.InitializeChatConfig()

@@ -41,6 +41,7 @@ SafeAddString(PCHAT_enableWhisperTabT							,"Flüster Nachrichten werden zu ein
 
 -- New Need Translations
 SafeAddString(PCHAT_ADDON_INFO                                  , "pChat überarbeitet alle möglichen Aspekte deines Chats. Du kannst Farben, Größe, Benachrichtigungen usw. anpassen, dich per Sound benachrichtigen lassen, und vieles mehr.\nDas Addon ChatMentions ist mittlerweile in pChat integriert.\nMit dem Befehl /msg im Chat kannst du die UI zum Definieren von Kürzeln öffnen, mit denen du deine Langtexte (Gilden Willkommens-Grüße z.B.) in den Chat senden kannst.", 1)
+SafeAddString(PCHAT_ADDON_INFO_2                                , "Benutze den Chat Befehl \'/pchatdeleteoldsv\' um alte, nicht-Server abhängige Einstellungen zu löschen (Dateigröße verringern).", 1)
 
 SafeAddString(PCHAT_OPTIONSH											, "Chat Optionen", 1)
 SafeAddString(PCHAT_MESSAGEOPTIONSH										, "Nachrichten Optionen", 1)

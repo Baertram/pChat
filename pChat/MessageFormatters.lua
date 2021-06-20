@@ -1,11 +1,14 @@
 local CONSTANTS = pChat.CONSTANTS
 local ADDON_NAME = CONSTANTS.ADDON_NAME
 
+
 function pChat.InitializeMessageFormatters()
     local pChatData = pChat.pChatData
     local db = pChat.db
     local logger = pChat.logger
     local SpamFilter = pChat.SpamFilter
+
+    local cm = pChat.ChatMentions
 
     local chatStrings = {
         standard = "%s%s: |r%s%s%s|r", -- standard format: say, yell, group, npc, npc yell, npc whisper, zone
@@ -822,7 +825,7 @@ function pChat.InitializeMessageFormatters()
 
 		-- Coorbin20200708
         -- Chat Mentions: username highlighting, audible ding, exclamation icon, etc.
-        text = pChat.cm_format(text, fromDisplayName, isCS, rcol)
+        text = cm.cm_format(text, fromDisplayName, isCS, rcol)
 
         local linkedText = text
 

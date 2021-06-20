@@ -13,10 +13,10 @@ local ADDON_FEEDBACK      	= "https://www.esoui.com/forums/private.php?do=newpm&
 local ADDON_DONATION      	= "https://www.esoui.com/portal.php?id=136&a=faq&faqid=131"
 
 --SavedVariables constants
-local ADDON_SV_VERSION    = 0.9 -- ATTENTION: Changing this will reset the SavedVariables!
-local ADDON_SV_NAME       = "PCHAT_OPTS"
-CONSTANTS[ADDON_SV_NAME] 	= ADDON_SV_NAME
-CONSTANTS[ADDON_SV_VERSION] = ADDON_SV_VERSION
+local ADDON_SV_VERSION    	= 0.9 -- ATTENTION: Changing this will reset the SavedVariables!
+local ADDON_SV_NAME       	= "PCHAT_OPTS"
+CONSTANTS.ADDON_SV_NAME		= ADDON_SV_NAME
+CONSTANTS.ADDON_SV_VERSION 	= ADDON_SV_VERSION
 
 local apiVersion = CONSTANTS.API_VERSION
 
@@ -1751,10 +1751,11 @@ function pChat.InitializeSettings()
 		--Chat Mentions
 
 		--------------------Chat Mentions Settings getter/setter functions
+    	local cm = pChat.ChatMentions
 
 		local function cm_setMentionColorOption(var)
 			db.changeColor = var
-			pChat.cm_loadRegexes()
+			cm.cm_loadRegexes()
 		end
 
 		local function cm_getMentionColorOption()
@@ -1762,16 +1763,16 @@ function pChat.InitializeSettings()
 		end
 
 		local function cm_setMentionColorPickerOption(r, g, b)
-			db.color = pChat.cm_convertRGBToHex(r, g, b)
-			pChat.cm_loadRegexes()
+			db.color = cm.cm_convertRGBToHex(r, g, b)
+			cm.cm_loadRegexes()
 		end
 
 		local function cm_getMentionColorPickerOption()
-			return pChat.cm_convertHexToRGBA(db.color)
+			return cm.cm_convertHexToRGBA(db.color)
 		end
 
 		local function cm_getMentionColorPickerDefault()
-			return pChat.cm_convertHexToRGBAPacked(defaults.color)
+			return cm.cm_convertHexToRGBAPacked(defaults.color)
 		end
 
 		local function cm_getMentionColorPickerDisabled()
@@ -1784,7 +1785,7 @@ function pChat.InitializeSettings()
 
 		local function cm_setMentionExclamationOption(var)
 			db.excl = var
-			pChat.cm_loadRegexes()
+			cm.cm_loadRegexes()
 		end
 
 		local function cm_getMentionAllCapsOption()
@@ -1793,7 +1794,7 @@ function pChat.InitializeSettings()
 
 		local function cm_setMentionAllCapsOption(var)
 			db.capitalize = var
-			pChat.cm_loadRegexes()
+			cm.cm_loadRegexes()
 		end
 
 		local function cm_getMentionExtraNamesOption()
@@ -1802,7 +1803,7 @@ function pChat.InitializeSettings()
 
 		local function cm_setMentionExtraNamesOption(var)
 			db.extras = var
-			pChat.cm_loadRegexes()
+			cm.cm_loadRegexes()
 		end
 
 		local function cm_getMentionSelfSendOption()
@@ -1827,7 +1828,7 @@ function pChat.InitializeSettings()
 
 		local function cm_setMentionApplyNameOption(var)
 			db.selfchar = var
-			pChat.cm_loadRegexes()
+			cm.cm_loadRegexes()
 		end
 
 		local function cm_getMentionWholeWordOption()
@@ -1836,7 +1837,7 @@ function pChat.InitializeSettings()
 
 		local function cm_setMentionWholeWordOption(var)
 			db.wholenames = var
-			pChat.cm_loadRegexes()
+			cm.cm_loadRegexes()
 		end
 
 		-- Coorbin20200708
@@ -1973,6 +1974,12 @@ function pChat.InitializeSettings()
 				default = defaults.debug,
 		},
 		]]--
+
+
+		optionsData[#optionsData + 1]  = {
+			type="description",
+			text = GetString(PCHAT_ADDON_INFO_2),
+		}
 
 		--Create the LibAdonMenu2 settings panel now
 		LibAddonMenu2:RegisterOptionControls("pChatOptions", optionsData)

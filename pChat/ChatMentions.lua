@@ -1,8 +1,12 @@
 -- Coorbin20200708
 -- This is most of the Chat Mentions "engine".
 -- Other places in the codebase where Chat Mentions functionality was introduced have the "Coorbin20200708" comment above them.
+pChat.ChatMentions = {}
+local cm = pChat.ChatMentions
+
 local db = {}
 
+--[[
 function pChat.getAllLetters(charClass)
 	local chars = "%aáéíóúýàèìòùâêîôûäëïöüÿâêîôûãñõçßøÀÈÌÒÙÁÉÍÓÚÝÂÊÎÔÛÃÑÕÄËÏÖÜŸ"
 	local retval = ""
@@ -13,33 +17,33 @@ function pChat.getAllLetters(charClass)
 	end
 	return retval
 end
-
 local allLettersCharClass = pChat.getAllLetters(true)
+]]
 
-function pChat.cm_initChatMentionsEngine()
+function cm.cm_initChatMentionsEngine()
     db = pChat.db
-    pChat.cm_watches = {}
-    pChat.cm_regexes = {}
-    pChat.cm_tempNames = {}
+    cm.cm_watches = {}
+    cm.cm_regexes = {}
+    cm.cm_tempNames = {}
 end
 
-function pChat.cm_loadRegexes()
-	local splitted = pChat.cm_list()
-	pChat.cm_regexes = {}
+function cm.cm_loadRegexes()
+	local splitted = cm.cm_list()
+	cm.cm_regexes = {}
 	for k,v in pairs(splitted) do
-		pChat.cm_regexes[pChat.cm_decorateText(v, true)] = pChat.cm_nocase(v)
+		cm.cm_regexes[cm.cm_decorateText(v, true)] = cm.cm_nocase(v)
 	end
 end
 
-function pChat.cm_isWatched(playerName, rawName)
+function cm.cm_isWatched(playerName, rawName)
 	playerName = string.lower(playerName)
 	rawName = string.lower(rawName)
-	return (pChat.cm_watches[playerName] ~= nil and pChat.cm_watches[playerName] == true) or (pChat.cm_watches[rawName] ~= nil and pChat.cm_watches[rawName] == true)
+	return (cm.cm_watches[playerName] ~= nil and cm.cm_watches[playerName] == true) or (cm.cm_watches[rawName] ~= nil and cm.cm_watches[rawName] == true)
 end
 
-function pChat.cm_watch_toggle(argu) 
-	pChat.cm_onWatchToggle(argu, argu)
-	local isWat = pChat.cm_isWatched(argu, argu)
+function cm.cm_watch_toggle(argu) 
+	cm.cm_onWatchToggle(argu, argu)
+	local isWat = cm.cm_isWatched(argu, argu)
 	if isWat then
 		d("Watch is ENABLED for " .. argu)
 	else
@@ -47,17 +51,17 @@ function pChat.cm_watch_toggle(argu)
 	end
 end
 
-function pChat.cm_add(argu)
-	table.insert(pChat.cm_tempNames, argu)
-	pChat.cm_loadRegexes()
+function cm.cm_add(argu)
+	table.insert(cm.cm_tempNames, argu)
+	cm.cm_loadRegexes()
 	d("ChatMentions added " .. argu .. " to temporary list of names to ping on.")
 end
 
-function pChat.cm_del(argu)
+function cm.cm_del(argu)
 	local keyToRemove = nil
 	local valueRemoved = nil
 	argu = string.lower(argu)
-	for k, v in pairs(pChat.cm_tempNames) do
+	for k, v in pairs(cm.cm_tempNames) do
 		local lcharName = string.lower(v)
 		if lcharName == argu then
 			valueRemoved = v
@@ -65,30 +69,30 @@ function pChat.cm_del(argu)
 		end
 	end
 	if keyToRemove ~= nil then
-		table.remove(pChat.cm_tempNames, keyToRemove)
-		pChat.cm_loadRegexes()
+		table.remove(cm.cm_tempNames, keyToRemove)
+		cm.cm_loadRegexes()
 		d("ChatMentions removed " .. argu .. " from temporary list of names to ping on.")
 	else
 		d("ChatMentions didn't find " .. argu .. " in the list of temporary names to ping on.")
 	end
 end
 
-function pChat.cm_onWatchToggle(playerName, rawName)
+function cm.cm_onWatchToggle(playerName, rawName)
 	playerName = string.lower(playerName)
 	rawName = string.lower(rawName)
-	local isWat = pChat.cm_isWatched(playerName, rawName)
+	local isWat = cm.cm_isWatched(playerName, rawName)
 
 	if isWat then
-		pChat.cm_watches[playerName] = false
-		pChat.cm_watches[rawName] = false
+		cm.cm_watches[playerName] = false
+		cm.cm_watches[rawName] = false
 	else
-		pChat.cm_watches[playerName] = true
-		pChat.cm_watches[rawName] = true
+		cm.cm_watches[playerName] = true
+		cm.cm_watches[rawName] = true
 	end
 end
 
-function pChat.cm_nocase (s)
-	news = string.gsub(string.gsub(s, "!", ""), utf8.charpattern, function (c)
+function cm.cm_nocase (s)
+	local news = string.gsub(string.gsub(s, "!", ""), utf8.charpattern, function (c)
 		  return string.format("[%s%s]", string.lower(c), string.upper(c))
 		end)
 	if string.sub(s, 1, 1) == "!" then
@@ -98,13 +102,13 @@ function pChat.cm_nocase (s)
 end
 
 -- Turn a ([0,1])^3 RGB colour to "ABCDEF" form. We could use ZO_ColorDef, but we have so many colors so we don't do it.
-function pChat.cm_convertRGBToHex(r, g, b)
+function cm.cm_convertRGBToHex(r, g, b)
 	return string.format("%.2x%.2x%.2x", zo_floor(r * 255), zo_floor(g * 255), zo_floor(b * 255))
 end
 
-function pChat.cm_containsWholeWord(input, word)
+function cm.cm_containsWholeWord(input, word)
 	local rxWord = "^%p*" .. word .. "%p*$"
-	local words = pChat.cm_dumbSplit(input)
+	local words = cm.cm_dumbSplit(input)
 	for k,v in ipairs(words) do
 		if string.match(v, rxWord) ~= nil then
 			return true
@@ -114,7 +118,7 @@ function pChat.cm_containsWholeWord(input, word)
 	-- return input:gsub('%a+', ' %1 '):match(' (' .. word .. ') ') ~= nil
 end
 
-function pChat.cm_dumbSplit(input)
+function cm.cm_dumbSplit(input)
 	local sep = "%s"
 	local t = {}
 	
@@ -125,23 +129,23 @@ function pChat.cm_dumbSplit(input)
 end
 
 -- Convert a colour from "ABCDEF" form to [0,1] RGB form.
-function pChat.cm_convertHexToRGBA(colourString)
+function cm.cm_convertHexToRGBA(colourString)
 	local r=tonumber(string.sub(colourString, 3-2, 4-2), 16) or 255
 	local g=tonumber(string.sub(colourString, 5-2, 6-2), 16) or 255
 	local b=tonumber(string.sub(colourString, 7-2, 8-2), 16) or 255
 	return r/255, g/255, b/255, 1
 end
 
-function pChat.cm_startsWith(str, start)
+function cm.cm_startsWith(str, start)
    return str:sub(1, #start) == start
 end
 
-function pChat.cm_convertHexToRGBAPacked(colourString)
-	local r, g, b, a = pChat.cm_convertHexToRGBA(colourString)
+function cm.cm_convertHexToRGBAPacked(colourString)
+	local r, g, b, a = cm.cm_convertHexToRGBA(colourString)
 	return {r = r, g = g, b = b, a = a}
 end
 
-function pChat.cm_split(text)
+function cm.cm_split(text)
 	local spat, epat, buf, quoted = [=[^(['"])]=], [=[(['"])$]=]
 	local retval = {}
 	for str in text:gmatch("%S+") do
@@ -164,10 +168,10 @@ function pChat.cm_split(text)
 	end
 end
 
-function pChat.cm_list()
+function cm.cm_list()
     local splitted = {}
     if db.selfchar == true then
-        splitted = pChat.cm_split(GetUnitName("player"))
+        splitted = cm.cm_split(GetUnitName("player"))
         if db.wholenames == true then
             for l,m in pairs(splitted) do
                 splitted[l] = "!" .. m
@@ -179,17 +183,17 @@ function pChat.cm_list()
             table.insert(splitted, line)
         end
     end
-    for p,q in pairs(pChat.cm_tempNames) do
+    for p,q in pairs(cm.cm_tempNames) do
         table.insert(splitted, q)
     end
     return splitted
 end
 
-function pChat.cm_print_list()
-	d(pChat.cm_list())
+function cm.cm_print_list()
+	d(cm.cm_list())
 end
 
-function pChat.cm_correctCase(origtext, text, v, capitalize)
+function cm.cm_correctCase(origtext, text, v, capitalize)
 	if capitalize ~= true then
 		local i, j, k, l
 		i = 0
@@ -224,7 +228,7 @@ function pChat.cm_correctCase(origtext, text, v, capitalize)
 	return text
 end
 
-function pChat.cm_decorateText(origText, useRegSyntax)
+function cm.cm_decorateText(origText, useRegSyntax)
 	local keyBuild = {}
 	if db["excl"] == true then
 		if useRegSyntax == true then
@@ -274,7 +278,7 @@ function pChat.doAppendColor(text, v, k, appendColor)
 end
 
 -- The main formatting routine that gets called inside FormatMessage.
-function pChat.cm_format(text, fromDisplayName, isCS, appendColor)
+function cm.cm_format(text, fromDisplayName, isCS, appendColor)
     local lfrom = string.lower(fromDisplayName)
     local cm_lplayerAt = string.lower(GetUnitDisplayName("player"))
 	
@@ -289,11 +293,11 @@ function pChat.cm_format(text, fromDisplayName, isCS, appendColor)
         if db.selfsend == true or (lfrom ~= "" and lfrom ~= nil and lfrom ~= cm_lplayerAt) then
             local origtext = text
             local matched = false
-            for k,v in pairs(pChat.cm_regexes) do
+            for k,v in pairs(cm.cm_regexes) do
 				-- For debugging regexes: d("v = " .. v)
-                if pChat.cm_startsWith(v, "!") then
+                if cm.cm_startsWith(v, "!") then
                     v = string.sub(v,2)
-                    if pChat.cm_containsWholeWord(text, v) then
+                    if cm.cm_containsWholeWord(text, v) then
                         if alreadyHasColor then
 							text = string.gsub(text, v, pChat.alreadyHasColorize(k, origColor))
 						else
@@ -305,7 +309,7 @@ function pChat.cm_format(text, fromDisplayName, isCS, appendColor)
 						end
 						
                         if origtext ~= text then
-                            text = pChat.cm_correctCase(origtext, text, v, db["capitalize"])
+                            text = cm.cm_correctCase(origtext, text, v, db["capitalize"])
                             matched = true
                             if db.ding == true then
                                 PlaySound(SOUNDS.NEW_NOTIFICATION)
@@ -325,7 +329,7 @@ function pChat.cm_format(text, fromDisplayName, isCS, appendColor)
 					end
 					
                     if origtext ~= text then
-                        text = pChat.cm_correctCase(origtext, text, v, db["capitalize"])
+                        text = cm.cm_correctCase(origtext, text, v, db["capitalize"])
                         matched = true
                         if db.ding == true then
                             PlaySound(SOUNDS.NEW_NOTIFICATION)
@@ -334,8 +338,8 @@ function pChat.cm_format(text, fromDisplayName, isCS, appendColor)
                     end
                 end
             end
-            if matched == false and pChat.cm_isWatched(lfrom, lfrom) then
-                text = pChat.cm_decorateText(origtext, false)
+            if matched == false and cm.cm_isWatched(lfrom, lfrom) then
+                text = cm.cm_decorateText(origtext, false)
             end
         end
     end
