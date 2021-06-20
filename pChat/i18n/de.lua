@@ -40,10 +40,14 @@ SafeAddString(PCHAT_enableWhisperTabT							,"Flüster Nachrichten werden zu ein
 
 
 -- New Need Translations
+SafeAddString(PCHAT_ADDON_INFO                                  , "pChat überarbeitet alle möglichen Aspekte deines Chats. Du kannst Farben, Größe, Benachrichtigungen usw. anpassen, dich per Sound benachrichtigen lassen, und vieles mehr.\nDas Addon ChatMentions ist mittlerweile in pChat integriert.\nMit dem Befehl /msg im Chat kannst du die UI zum Definieren von Kürzeln öffnen, mit denen du deine Langtexte (Gilden Willkommens-Grüße z.B.) in den Chat senden kannst.", 1)
+SafeAddString(PCHAT_ADDON_INFO_2                                , "Benutze den Chat Befehl \'/pchatdeleteoldsv\' um alte, nicht-Server abhängige Einstellungen zu löschen (Dateigröße verringern).", 1)
 
 SafeAddString(PCHAT_OPTIONSH											, "Chat Optionen", 1)
 SafeAddString(PCHAT_MESSAGEOPTIONSH										, "Nachrichten Optionen", 1)
 SafeAddString(PCHAT_MESSAGEOPTIONSNAMEH                                 , "Name in Nachrichten", 1)
+SafeAddString(PCHAT_MESSAGEOPTIONSNAME_ALLOTHERH                        , "Alle anderen Chat Nachrichten", 1)
+
 SafeAddString(PCHAT_MESSAGEOPTIONSCOLORH                                , "Farbe von Nachrichten", 1)
 
 SafeAddString(PCHAT_GUILDNUMBERS										, "Gildennummer", 1)
@@ -136,8 +140,8 @@ SafeAddString(PCHAT_GROUPH												, "Gruppen Einstellungen", 1)
 SafeAddString(PCHAT_ENABLEPARTYSWITCH								, "Autom. Kanalwechsel: Gruppe", 1)
 SafeAddString(PCHAT_ENABLEPARTYSWITCHTT							    , "Wenn du einer Gruppe beitrittst, wechselt der Chat Kanal automatisch zur Gruppe. Beim Verlassen der Gruppe entsprechend zurück zum zuletzt verwendeten Kanal.", 1)
 
-SafeAddString(PCHAT_ENABLEPARTYSWITCHPORTTODUNGEON,                 "Autom. Wechsel: Verlies", 1)
-SafeAddString(PCHAT_ENABLEPARTYSWITCHPORTTODUNGEONTT, 	            "Der oben genannte automatische Gruppen Kanal Wechsel wird auch beim Reisen in ein Verlies/Benutzeroberfläche neuladen im Verlies ausgeführt, wenn du in einer Gruppe bist.\nDiese Option ist nur dann aktiv, wenn der automatische Gruppen Kanel Wechsel aktiviert wurde!", 1)
+SafeAddString(PCHAT_ENABLEPARTYSWITCHPORTTODUNGEON,                 "Autom. Wechsel: Verlies/ReloadUI", 1)
+SafeAddString(PCHAT_ENABLEPARTYSWITCHPORTTODUNGEONTT, 	            "Der oben genannte automatische Gruppen Kanal Wechsel wird auch beim Reisen in ein Verlies/Benutzeroberfläche neuladen/Login ausgeführt, wenn du in einer Gruppe bist.\nDiese Option ist nur dann aktiv, wenn der automatische Gruppen Kanel Wechsel aktiviert wurde!", 1)
 
 
 SafeAddString(PCHAT_GROUPLEADER										, "Sonderfarben für Gruppenleiter", 1)
@@ -385,6 +389,12 @@ SafeAddString(PCHAT_JPZONETT											, "Legt die Farbe für Spieler Namen im j
 SafeAddString(PCHAT_JPZONECHAT										, "JP Zone - Nachricht", 1)
 SafeAddString(PCHAT_JPZONECHATTT										, "Legt die Farbe der Nachrichten im japanisch Chat-Kanal fest.", 1)
 
+SafeAddString(PCHAT_RUZONE                                          , "RU Zone - Name", 1)
+SafeAddString(PCHAT_RUZONETT                                        , "Legt die Farbe für Spieler Namen im russischen Chat-Kanal fest.", 1)
+
+SafeAddString(PCHAT_RUZONECHAT                                      , "RU Zone - Nachricht", 1)
+SafeAddString(PCHAT_RUZONECHATTT                                    , "Legt die Farbe der Nachrichten im russischen Chat-Kanal fest.", 1)
+
 SafeAddString(PCHAT_NPCSAY												, "NSC Sagen - NSC Name", 1)
 SafeAddString(PCHAT_NPCSAYTT											, "Legt die Farbe des Namens des Nicht-Spieler-Charakters (NSC - NPC) in NSC-Texten fest.", 1)
 
@@ -425,27 +435,30 @@ SafeAddString(PCHAT_ALLCT												, "Ganzes Plaudern kopieren", 1)
 
 SafeAddString(PCHAT_COPYXMLTITLE										, "Kopiere Text mit STRG+C", 1)
 SafeAddString(PCHAT_COPYXMLLABEL										, "Kopiere Text mit STRG+C", 1)
-SafeAddString(PCHAT_COPYXMLTOOLONG									, "Text ist uzu lang und wurde aufgeteilt", 1)
-SafeAddString(PCHAT_COPYXMLNEXT										, "Nächster", 1)
+SafeAddString(PCHAT_COPYXMLTOOLONG									, "Aufgeteilter Text:", 1)
+SafeAddString(PCHAT_COPYXMLPREV										, "Vorherige", 1)
+SafeAddString(PCHAT_COPYXMLNEXT										, "Nächste", 1)
+SafeAddString(PCHAT_COPYXMLAPPLY                                    , "Filter anwenden", 1)
 
 SafeAddString(PCHAT_SWITCHTONEXTTABBINDING						, "Zur nächsten Registerkarte", 1)
 SafeAddString(PCHAT_TOGGLECHATBINDING								, "Toggle Chat-Fenster", 1)
 SafeAddString(PCHAT_WHISPMYTARGETBINDING							, "Flüsternachricht an Zielperson", 1)
+SafeAddString(PCHAT_COPYWHOLECHATBINDING                        ,   "Kopiere den Chat (Dialog)", 1)
 
 SafeAddString(PCHAT_SAVMSGERRALREADYEXISTS						, "Kann die Nachricht nicht speichern, da sie schon existiert!", 1)
-SafeAddString(PCHAT_PCHAT_AUTOMSG_NAME_DEFAULT_TEXT			, "Beispiel: ts3", 1)
-SafeAddString(PCHAT_PCHAT_AUTOMSG_MESSAGE_DEFAULT_TEXT		, "Schreibe hier deine Nachricht, die bei der Sendefunktion geschickt werden sollte.", 1)
-SafeAddString(PCHAT_PCHAT_AUTOMSG_MESSAGE_TIP1_TEXT			, "Neue Zeilen werden automatisch gelöscht.", 1)
-SafeAddString(PCHAT_PCHAT_AUTOMSG_MESSAGE_TIP2_TEXT			, "Die Nachricht wird gesendet, sobald du sie bestätigt hast: \"!nameOfMessage\". (Bsp: |cFFFFFF!ts3|r)", 1)
-SafeAddString(PCHAT_PCHAT_AUTOMSG_MESSAGE_TIP3_TEXT			, "Um eine Nachricht in einem bestimmten Kanal zu senden, füge am Anfang der Nachricht den Kanal ein (Bsp: |cFFFFFF/g1|r)", 1)
-SafeAddString(PCHAT_PCHAT_AUTOMSG_NAME_HEADER					, "Akronym deiner Nachricht", 1)
-SafeAddString(PCHAT_PCHAT_AUTOMSG_MESSAGE_HEADER				, "Nachricht", 1)
-SafeAddString(PCHAT_PCHAT_AUTOMSG_ADD_TITLE_HEADER				, "Neue automatische Nachricht", 1)
-SafeAddString(PCHAT_PCHAT_AUTOMSG_EDIT_TITLE_HEADER			, "Ändere automatische Nachricht", 1)
-SafeAddString(PCHAT_PCHAT_AUTOMSG_ADD_AUTO_MSG					, "Hinzufügen", 1)
-SafeAddString(PCHAT_PCHAT_AUTOMSG_EDIT_AUTO_MSG					, "Ändern", 1)
+SafeAddString(PCHAT_AUTOMSG_NAME_DEFAULT_TEXT			, "Beispiel: ts3", 1)
+SafeAddString(PCHAT_AUTOMSG_MESSAGE_DEFAULT_TEXT		, "Schreibe hier deine Nachricht, die bei der Sendefunktion geschickt werden sollte.", 1)
+SafeAddString(PCHAT_AUTOMSG_MESSAGE_TIP1_TEXT			, "Leere Zeilen werden automatisch gelöscht.", 1)
+SafeAddString(PCHAT_AUTOMSG_MESSAGE_TIP2_TEXT			, "Die Nachricht wird gesendet, sobald du sie bestätigt hast: \"!nameOfMessage\". (Bsp: |cFFFFFF!ts3|r)", 1)
+SafeAddString(PCHAT_AUTOMSG_MESSAGE_TIP3_TEXT			, "Um eine Nachricht in einem bestimmten Kanal zu senden, füge am Anfang der Nachricht den Kanal ein (Bsp: |cFFFFFF/g1|r)", 1)
+SafeAddString(PCHAT_AUTOMSG_NAME_HEADER					, "Akronym deiner Nachricht", 1)
+SafeAddString(PCHAT_AUTOMSG_MESSAGE_HEADER				, "Nachricht", 1)
+SafeAddString(PCHAT_AUTOMSG_ADD_TITLE_HEADER				, "Neue automatische Nachricht", 1)
+SafeAddString(PCHAT_AUTOMSG_EDIT_TITLE_HEADER			, "Ändere automatische Nachricht", 1)
+SafeAddString(PCHAT_AUTOMSG_ADD_AUTO_MSG					, "Hinzufügen", 1)
+SafeAddString(PCHAT_AUTOMSG_EDIT_AUTO_MSG					, "Ändern", 1)
 SafeAddString(PCHAT_SI_BINDING_NAME_PCHAT_SHOW_AUTO_MSG		, "Automatische Nachricht", 1)
-SafeAddString(PCHAT_PCHAT_AUTOMSG_REMOVE_AUTO_MSG				, "Löschen", 1)
+SafeAddString(PCHAT_AUTOMSG_REMOVE_AUTO_MSG				, "Löschen", 1)
 
 SafeAddString(PCHAT_CLEARBUFFER								, "Chatverlauf löschen", 1)
 
@@ -453,3 +466,45 @@ SafeAddString(PCHAT_CLEARBUFFER								, "Chatverlauf löschen", 1)
 SafeAddString(PCHAT_RESTORED_PREFIX                         , "[H]", 1)
 SafeAddString(PCHAT_RESTOREPREFIX                           , "Prefix vor wiederherg. Nachrichten anzeigen", 1)
 SafeAddString(PCHAT_RESTOREPREFIXTT                         , "Zeigt den Prefix \'[H]\' vor wiederhergestellten Nachrichten an, damit man diese einfach erkennen kann.\nDies wirkt sich erst nach einem ReloadUI auf den aktuellen Chat aus!\nDie Farbe des Prefix wird mit den ESO Standard Farben der Chat Kanäle angezeigt.", 1)
+
+SafeAddString(PCHAT_CHATHANDLERS                            , "Chat Formatierungs Handler", 1)
+SafeAddString(PCHAT_CHATHANDLER_TEMPLATETT                  , "Formatiere die Chat Nachrichten für das Event \'%s\'\n\nIst diese Einstellung deaktiviert, so werden die entsprechenden Chat Nachrichten durch die pChat Formatierungs Einstellungen nicht verändert (z.B. Farben, Zeitstempel, Namen, etc.)", 1)
+SafeAddString(PCHAT_CHATHANDLER_SYSTEMMESSAGES              , "System Nachrichten", 1)
+SafeAddString(PCHAT_CHATHANDLER_PLAYERSTATUS                , "Spieler Status geändert", 1)
+SafeAddString(PCHAT_CHATHANDLER_IGNORE_ADDED                , "Ignorierte Spieler hinzugefügt", 1)
+SafeAddString(PCHAT_CHATHANDLER_IGNORE_REMOVED              , "Ignorierte Spieler entfernt", 1)
+SafeAddString(PCHAT_CHATHANDLER_GROUP_MEMBER_LEFT           , "Gruppen Mitglied verlassen", 1)
+SafeAddString(PCHAT_CHATHANDLER_GROUP_TYPE_CHANGED          , "Gruppen Typ geändert", 1)
+
+SafeAddString(PCHAT_SETTINGS_EDITBOX_HOOKS 					, "Chat Text Eingabefeld", 1)
+SafeAddString(PCHAT_SETTINGS_EDITBOX_HOOK_CTRL_BACKSPACE 	, "STRG + <-: Wort löschen", 1)
+SafeAddString(PCHAT_SETTINGS_EDITBOX_HOOK_CTRL_BACKSPACETT 	, "Wenn die STRG + Zurück (<- Taste, auch BACKSPACE genannt) gedrückt wird, so wird das ganze Wort links vor dem Cursor gelöscht.", 1)
+
+SafeAddString(PCHAT_SETTINGS_BACKUP 				        , "Backup", 1)
+SafeAddString(PCHAT_SETTINGS_BACKUP_REMINDER_LAST_REMINDER  , "Letzte Erinnerung: %s", 1)
+SafeAddString(PCHAT_SETTINGS_BACKUP_REMINDER 		        , "Backup Erinnerung", 1)
+SafeAddString(PCHAT_SETTINGS_BACKUP_REMINDER_TT 	        , "Zeige eine Erinnerung, dass du deine Einstellungen sichern sollst, jede Woche 1x an. Die Erinnerung wird auch angezeigt, wenn ein Wechsel der APIVersion festgestellt wird (durch einen Patch z.B.).\n\nDu solltest generell nach einem Spiel Patch, aber VOR dem Einloggen in das Spiel, ein Backup deines SavedVariables Verzeichnisses durchführen!", 1)
+SafeAddString(PCHAT_SETTINGS_BACKUP_REMINDER_DIALOG_TEXT	, "Bitte |cFF0000!logge dich aus!|r und sichere deine pChat SavedVariables!\nDer folgende Link auf www.esoui.com erklärt dir\nwie du dies tun kannst:\n\nhttps://www.esoui.com/forums/showthread.php?t=9235\n\nBestätige diesen Dialog und der nächste Dialog\nkann dir diese Webseite direkt öffnen\n(falls du noch lernen musst, wie man seine\nSavedVariables sichern kann).", 1)
+SafeAddString(PCHAT_SETTINGS_WARNING_REMINDER_LOGOUT_BEFORE	, "Denk daran dich zuerst AUSZULOGGEN!", 1)
+
+
+-- Coorbin20200708
+-- Chat Mentions settings strings
+SafeAddString(PCHAT_MENTIONSH ,  "Erwähnungen (Mentions)")
+SafeAddString(PCHAT_MENTIONS_TEXT_COLOR_CHECKBOX_NAME ,  "Text Farbe anpassen, wenn Name erwähnt wird?")
+SafeAddString(PCHAT_MENTIONS_TEXT_COLOR_CHECKBOX_TOOLTIP ,  "Soll die Text Farbe verändert werden, wenn dein Account Name (oder auch Charakter Name, sofern weiter unten in den Einstellungen aktiviert) erwähnt wird")
+SafeAddString(PCHAT_MENTIONS_TEXT_COLOR_PICKER_NAME ,  "Farbe des Namens, wenn du erwähnt wirst")
+SafeAddString(PCHAT_MENTIONS_ADD_EXCL_ICON_NAME ,  "Ausrufezeichen hinzufügen?")
+SafeAddString(PCHAT_MENTIONS_ADD_EXCL_ICON_TOOLTIP ,  "Soll ein ! (Ausrufzeichen) Symbol am Anfang des Namens hinzugefügt werden, wenn dein Name erwähnt wird?")
+SafeAddString(PCHAT_MENTIONS_ALLCAPS_NAME ,  "Den NAMEN GROß schreiben?")
+SafeAddString(PCHAT_MENTIONS_ALLCAPS_TOOLTIP ,  "Soll dein Name in großbuchstaben dargestellt werden, wenn er erwähnt wird?")
+SafeAddString(PCHAT_MENTIONS_EXTRA_NAMES_NAME ,  "Extra Namen, welche als Erwähnung gelten (je Zeile: 1 Name)")
+SafeAddString(PCHAT_MENTIONS_EXTRA_NAMES_TOOLTIP ,  "Eine Liste in welcher je Zeile ein weiterer Name eingetragen werden kann, welcher zu einer Erwähnunh führen wird. Drücke die ENTER Taste, um eine neue Zeile zu beginnen. Wenn du ein \'!\' (Ausrufezeichen) vor den Namen setzt, so wird dieser Name nur erwähnt, wenn dieser ein eigenständiges Wort (mt Leerzeichen davor und dahinter) darstellt!\n\nBeispiel: \'!de\' Du wirst bei \'de nada\' informiert, nicht jedoch bei \'Delikatessen\'. Wenn du nur z.B. \'de\' hinzufügst, werden alle Wörte mit den Buchstaben \'de\' zu einer Benachrichtigung führen (z.B. Hunde, Delikatessen, Deutschland, ...).")
+SafeAddString(PCHAT_MENTIONS_SELFSEND_NAME ,  "Auch für eigen-versendete Nachrichten?")
+SafeAddString(PCHAT_MENTIONS_SELFSEND_TOOLTIP ,  "Sollen die Benachrichtigungen auch für Nachrichten, welche du selbst versendest, aktiviert werden?")
+SafeAddString(PCHAT_MENTIONS_DING_NAME ,  "\'Ding\' Klang?")
+SafeAddString(PCHAT_MENTIONS_DING_TOOLTIP ,  "Soll ein Ding Klang ertönen, wenn eine Erwähnung vorliegt?")
+SafeAddString(PCHAT_MENTIONS_APPLYNAME_NAME ,  "Charakter Namen auch berücksichtigen?")
+SafeAddString(PCHAT_MENTIONS_APPLYNAME_TOOLTIP ,  "Soll nicht nicht der Account Name, sondern auch der Charakter Name, berücksichtigt werden?\nAchtung: Dies wird für jeden Bestandteil deines Charakter Namens (also jeden durch Leerzeichen getrennten Teil) angewandt! z.B. wird bei  \'Baertram der Bärenfreund\' dann benachrichtigt, wenn jemand \'Baertram\', \'der\' oder \'Bärenfreund\' schreibt.\nDeaktiviere diese Option, wenn du einen sehr gewöhnlichen Namensbestandteil wie z.B. \'der\' in deinem Charakternamen verwendest.")
+SafeAddString(PCHAT_MENTIONS_WHOLEWORD_NAME ,  "Namen nur als ganze Wörter prüfen?")
+SafeAddString(PCHAT_MENTIONS_WHOLEWORD_TOOLTIP ,  "Charakter Namen werden nur als ganze Wörter geprüft, und nicht jeder Charakternamen Bestandteil (durch Leerzeichen getrennt) einzeln. Wenn du einen kurzen Charakternamen Bestandteil verendest, z.B. \'der\' in \'Baertram der Bärenfreund\', dann sollte diese Option dir helfen .")

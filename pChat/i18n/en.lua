@@ -26,9 +26,13 @@ local strings = {
 -- New Need Translations
 
 
+	PCHAT_ADDON_INFO = "pChat overhauls the way text is displayed in the chatbox.You are able to change colors, sizes, notifications, play sounds, etc.\nThe addon ChatMentions is integrated into pChat.\nUse the slashcommand /msg to define short chat commands which will write your longtext to the chat (guild welcome messages e.g.)",
+	PCHAT_ADDON_INFO_2 = "Use the slash command \'/pchatdeleteoldsv\' to delete old non-server dependent SavedVariables (shrink the SV file size).",
+
 	PCHAT_OPTIONSH = "Chat settings",
 	PCHAT_MESSAGEOPTIONSH = "Message settings",
 	PCHAT_MESSAGEOPTIONSNAMEH = "Name in messages",
+	PCHAT_MESSAGEOPTIONSNAME_ALLOTHERH = "All other chat messages",
 	PCHAT_MESSAGEOPTIONSCOLORH = "Color of messages",
 
 	PCHAT_GUILDNUMBERS = "Guild numbers",
@@ -121,8 +125,8 @@ local strings = {
 	PCHAT_ENABLEPARTYSWITCH = "Auto channel switch: party",
 	PCHAT_ENABLEPARTYSWITCHTT = "Enabling Party switch will switch your current channel to party when joining a party and  switch back to your default channel when leaving a party",
 
-	PCHAT_ENABLEPARTYSWITCHPORTTODUNGEON 	= "Auto switch: dungeon",
-	PCHAT_ENABLEPARTYSWITCHPORTTODUNGEONTT 	= "The above mentioned party switch will also change the chat channel to /party if you port into a dungeon/do a reloadui in a dungeon + your are grouped.\nThis setting will be only available if the party switch is enabled!",
+	PCHAT_ENABLEPARTYSWITCHPORTTODUNGEON 	= "Auto switch: dungeon/reloadui",
+	PCHAT_ENABLEPARTYSWITCHPORTTODUNGEONTT 	= "The above mentioned party switch will also change the chat channel to /party if you port into a dungeon/do a reloadui/login + your are grouped.\nThis setting will be only available if the party switch is enabled!",
 
 	PCHAT_GROUPLEADER = "Special color for party leader",
 	PCHAT_GROUPLEADERTT = "Enabling this feature will let you set a special color for party leader messages",
@@ -369,6 +373,12 @@ local strings = {
 	PCHAT_JPZONECHAT = "JP Zone - message",
 	PCHAT_JPZONECHATTT = "Set chat message color for Japanese zone channel",
 
+	PCHAT_RUZONE = "RU Zone - name",
+	PCHAT_RUZONETT = "Set player name color for Russian zone channel",
+
+	PCHAT_RUZONECHAT = "RU Zone - message",
+	PCHAT_RUZONECHATTT = "Set chat message color for Russian zone channel",
+
 	PCHAT_NPCSAY = "NPC Say - name",
 	PCHAT_NPCSAYTT = "Set NPC name color for NPC say",
 
@@ -407,8 +417,10 @@ local strings = {
 
 	PCHAT_COPYXMLTITLE = "Copy text with Ctrl+C",
 	PCHAT_COPYXMLLABEL = "Copy text with Ctrl+C",
-	PCHAT_COPYXMLTOOLONG = "Text is too long and is splitted",
+	PCHAT_COPYXMLTOOLONG = "Splitted text",
+	PCHAT_COPYXMLPREV = "Prev",
 	PCHAT_COPYXMLNEXT = "Next",
+	PCHAT_COPYXMLAPPLY = "Apply filter",
 
 	PCHAT_COPYMESSAGECT = "Copy message",
 	PCHAT_COPYLINECT = "Copy line",
@@ -418,21 +430,22 @@ local strings = {
 	PCHAT_SWITCHTONEXTTABBINDING = "Switch to next tab",
 	PCHAT_TOGGLECHATBINDING = "Toggle Chat Window",
 	PCHAT_WHISPMYTARGETBINDING = "Whisper my target",
+	PCHAT_COPYWHOLECHATBINDING = "Copy whole chat (dialog)",
 
 	PCHAT_SAVMSGERRALREADYEXISTS = "Cannot save your message, this one already exists",
-	PCHAT_PCHAT_AUTOMSG_NAME_DEFAULT_TEXT = "Example : ts3",
-	PCHAT_PCHAT_AUTOMSG_MESSAGE_DEFAULT_TEXT = "Write here the text which will be sent when you'll be using the auto message function",
-	PCHAT_PCHAT_AUTOMSG_MESSAGE_TIP1_TEXT = "Newlines will be automatically deleted",
-	PCHAT_PCHAT_AUTOMSG_MESSAGE_TIP2_TEXT = "This message will be sent when you'll validate the message \"!nameOfMessage\". (ex: |cFFFFFF!ts3|r)",
-	PCHAT_PCHAT_AUTOMSG_MESSAGE_TIP3_TEXT = "To send a message in a specified channel, add its switch at the begenning of the message (ex: |cFFFFFF/g1|r)",
-	PCHAT_PCHAT_AUTOMSG_NAME_HEADER = "Abbreviation of your message",
-	PCHAT_PCHAT_AUTOMSG_MESSAGE_HEADER = "Substitution message",
-	PCHAT_PCHAT_AUTOMSG_ADD_TITLE_HEADER = "New automated message",
-	PCHAT_PCHAT_AUTOMSG_EDIT_TITLE_HEADER = "Modify automated message",
-	PCHAT_PCHAT_AUTOMSG_ADD_AUTO_MSG = "Add",
-	PCHAT_PCHAT_AUTOMSG_EDIT_AUTO_MSG = "Edit",
+	PCHAT_AUTOMSG_NAME_DEFAULT_TEXT = "Example : ts3",
+	PCHAT_AUTOMSG_MESSAGE_DEFAULT_TEXT = "Write here the text which will be sent when you'll be using the auto message function",
+	PCHAT_AUTOMSG_MESSAGE_TIP1_TEXT = "Newlines will be automatically deleted",
+	PCHAT_AUTOMSG_MESSAGE_TIP2_TEXT = "This message will be sent when you'll validate the message \"!nameOfMessage\". (ex: |cFFFFFF!ts3|r)",
+	PCHAT_AUTOMSG_MESSAGE_TIP3_TEXT = "To send a message in a specified channel, add its switch at the begenning of the message (ex: |cFFFFFF/g1|r)",
+	PCHAT_AUTOMSG_NAME_HEADER = "Abbreviation of your message",
+	PCHAT_AUTOMSG_MESSAGE_HEADER = "Substitution message",
+	PCHAT_AUTOMSG_ADD_TITLE_HEADER = "New automated message",
+	PCHAT_AUTOMSG_EDIT_TITLE_HEADER = "Modify automated message",
+	PCHAT_AUTOMSG_ADD_AUTO_MSG = "Add",
+	PCHAT_AUTOMSG_EDIT_AUTO_MSG = "Edit",
 	PCHAT_SI_BINDING_NAME_PCHAT_SHOW_AUTO_MSG = "Automated messages",
-	PCHAT_PCHAT_AUTOMSG_REMOVE_AUTO_MSG = "Remove",
+	PCHAT_AUTOMSG_REMOVE_AUTO_MSG = "Remove",
 
 	PCHAT_CLEARBUFFER = "Clear chat",
 
@@ -443,7 +456,51 @@ local strings = {
 	PCHAT_RESTOREPREFIXTT = "Add a prefix \'[H]\' to restored messages in order to easily see they were restored.\nThis will affect the current chat only after a reloadUI!\nThe color of the prefix will be shown with the standard ESO chat channel colors.",
 
 	PCHAT_BUILT_IN_CHANNEL_SWITCH_WARNING = "Cannot use existing built-in switch '%s'",
-	PCHAT_DUPLICATE_CHANNEL_SWITCH_WARNING = "Tried to replace already existing switch '%s'"
+	PCHAT_DUPLICATE_CHANNEL_SWITCH_WARNING = "Tried to replace already existing switch '%s'",
+
+	PCHAT_CHATHANDLERS = "Chat format handlers",
+	PCHAT_CHATHANDLER_TEMPLATETT = "Format the chat messages of the event \'%s\'.\n\nIf this setting is disabled the chat messages won't be changed with the different pChat formatting options (e.g. colors, timestamps, names, etc.)",
+	PCHAT_CHATHANDLER_SYSTEMMESSAGES = "System messages",
+	PCHAT_CHATHANDLER_PLAYERSTATUS = "Player status changed",
+	PCHAT_CHATHANDLER_IGNORE_ADDED = "Ignore list added",
+	PCHAT_CHATHANDLER_IGNORE_REMOVED = "Ignore list removed",
+	PCHAT_CHATHANDLER_GROUP_MEMBER_LEFT = "Group member left",
+	PCHAT_CHATHANDLER_GROUP_TYPE_CHANGED = "Group type changed",
+
+	PCHAT_SETTINGS_EDITBOX_HOOKS 					= "Chat editbox",
+	PCHAT_SETTINGS_EDITBOX_HOOK_CTRL_BACKSPACE 		= "CTRL + backspace: Remove word",
+	PCHAT_SETTINGS_EDITBOX_HOOK_CTRL_BACKSPACETT 	= "Pressing the CTRL key + BACKSPACE key will remove the whole word left to the cursor.",
+
+	PCHAT_SETTINGS_BACKUP 							= "Backup",
+	PCHAT_SETTINGS_BACKUP_REMINDER_LAST_REMINDER 	= "Last reminder: %s",
+	PCHAT_SETTINGS_BACKUP_REMINDER 					= "Backup reminder",
+	PCHAT_SETTINGS_BACKUP_REMINDER_TT 				= "Show a reminder to backup your SavedVariables once a week. It will automatically show if an APIversion increasement was detected (due to a game patch e.g.).\n\nYou always should do a backup of your whole SavedVariables folder after a game patch, BEFORE starting the game client!",
+	PCHAT_SETTINGS_BACKUP_REMINDER_DIALOG_TEXT		= "Please |cFF0000!logout!|r and backup your pChat SavedVariables!\nThe following link at www.esoui.com explains\nhow to do it:\n\nhttps://www.esoui.com/forums/showthread.php?t=9235\n\nJust press the confirm button and the next dialog\nshown will ask to open the website\n(if you need to learn how to backup your SavedVariables).",
+	PCHAT_SETTINGS_WARNING_REMINDER_LOGOUT_BEFORE	= "Remember to LOGOUT first!",
+
+	-- Coorbin20200708
+	-- Chat Mentions settings strings
+	PCHAT_MENTIONSH = "Mentions",
+	PCHAT_MENTIONS_TEXT_COLOR_CHECKBOX_NAME = "Change color of text when your name is mentioned?",
+	PCHAT_MENTIONS_TEXT_COLOR_CHECKBOX_TOOLTIP = "Whether or not to change the text color when your name is mentioned.",
+	PCHAT_MENTIONS_TEXT_COLOR_PICKER_NAME = "Color of your name when mentioned",
+	PCHAT_MENTIONS_ADD_EXCL_ICON_NAME = "Add exclamation icon?",
+	PCHAT_MENTIONS_ADD_EXCL_ICON_TOOLTIP = "Whether or not to add an exclamation point icon at the beginning when your name is mentioned.",
+	PCHAT_MENTIONS_ALLCAPS_NAME = "ALL CAPS your name?",
+	PCHAT_MENTIONS_ALLCAPS_TOOLTIP = "Whether or not to ALL CAPS your name when your name is mentioned.",
+	PCHAT_MENTIONS_EXTRA_NAMES_NAME = "Extra names to ping on (newline per name)",
+	PCHAT_MENTIONS_EXTRA_NAMES_TOOLTIP = "A newline-separated list of additional names to ping you on. Press ENTER to make new lines. If you put an `!` (exclamation mark) in front of a custom name you'd like to monitor, it will only notify you if that name occurs on a word boundary. For example, if you add '!de' to your Extras list, you'd be notified for 'de nada' but not 'delicatessen'. If you just added 'de' to your Extras list, you'd be notified for 'delicatessen' also.",
+	PCHAT_MENTIONS_SELFSEND_NAME = "Apply to messages YOU send?",
+	PCHAT_MENTIONS_SELFSEND_TOOLTIP = "Whether or not to apply formatting to messages YOU send.",
+	PCHAT_MENTIONS_DING_NAME = "Ding sound?",
+	PCHAT_MENTIONS_DING_TOOLTIP = "Whether or not to play a ding sound when your name is mentioned.",
+	PCHAT_MENTIONS_APPLYNAME_NAME = "Apply to your character names?",
+	PCHAT_MENTIONS_APPLYNAME_TOOLTIP = "Whether or not to apply formatting to each name (separated by spaces) in your character name. Disable if you use a very common name like 'Me' in your character name.",
+	PCHAT_MENTIONS_WHOLEWORD_NAME = "Match your names as whole words only?",
+	PCHAT_MENTIONS_WHOLEWORD_TOOLTIP = "Whether or not to match your character names as whole words only. If you have a very short name in your character name, you may want to turn this on.",
+
+
+
 }
 
 for stringId, stringValue in pairs(strings) do
