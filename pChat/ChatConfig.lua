@@ -440,7 +440,7 @@ function pChat.InitializeChatConfig()
     end
 
     local function SwitchToParty(characterName)
-        zo_callLater(function(characterName) -- characterName = avoid ZOS bug
+        zo_callLater(function() -- characterName = avoid ZOS bug
             -- If "me" join group
             if(characterName and GetRawUnitName("player") == characterName) then
 
