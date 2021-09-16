@@ -66,6 +66,9 @@ local ADDON_NAME    = CONSTANTS.ADDON_NAME
 local addonNamePrefix = "[" .. ADDON_NAME .. "] "
 
 local EM = EVENT_MANAGER
+local strlen = string.len
+local strfind = string.find
+local strsub = string.sub
 
 --======================================================================================================================
 --pChat Variables--
@@ -489,15 +492,22 @@ local function LoadHooks()
 
     --Code by Dolgubon, 2020-12-25 -- Delete whole word by using CTRL + backspace
     ZO_PreHookHandler(ZO_ChatWindowTextEntryEditBox, "OnBackspace", function(self)
-        if not db.chatEditBoxOnBackspaceHook or not IsControlKeyDown() then return end
+        if not db.chatEditBoxOnBackspaceHook then return end
+        local ctrlPressed = IsControlKeyDown()
+        --local deletePressed = IsKeyDown(KEY_DELETE)
+        if not ctrlPressed then return end --and not deletePressed then return end
+
         local text = self:GetText()
         local position = self:GetCursorPosition()
-        local beforeCursor = string.sub(text, 1, position)
-        local space= #beforeCursor - (string.find(string.reverse(beforeCursor), "[% %(\"%']") or #beforeCursor)
-        local newText = string.sub(text, 0, space+1)..string.sub(text, #beforeCursor+1)
+        local beforeOrAfterCursor = strsub(text, 1, position)
+
+        --TODO: Code update needed here to work with DELETE key
+        local space= #beforeOrAfterCursor - (strfind(string.reverse(beforeOrAfterCursor), "[% %(\"%']") or #beforeOrAfterCursor)
+        local newText = strsub(text, 0, space+1)..strsub(text, #beforeOrAfterCursor+1)
         if space == 0 then
-            newText = ""..string.sub(text, #beforeCursor+1)
+            newText = ""..strsub(text, #beforeOrAfterCursor+1)
         end
+
         self:SetText(newText)
         self:SetCursorPosition(space+1)
     end)
@@ -554,7 +564,6 @@ local function LoadSlashCommands()
                 _G[ADDON_SV_NAME]["Default"][displayName]["$AccountWide"] = nil
                 dbOldNonServerDependent = nil
                 migrationInfoOutput("Successfully deleted the old, non-server dependent SavedVariables of account \'"..displayName.."\'.", true, true)
-                logger:Info()
                 migrationInfoOutput(">A reloadUI saves the changes to disk in 3 seconds...", true, true)
                 zo_callLater(function()
                     ReloadUI("ingame")
