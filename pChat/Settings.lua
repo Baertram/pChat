@@ -2225,6 +2225,14 @@ function pChat.InitializeSettings()
 		if db.migratedSVToServer == nil then
 			migrationInfoOutput("Migrating the SavedVariables to the server \'" ..tostring(worldName) .. "\' now...", true, false)
 			local displayName = GetDisplayName()
+			if not _G[ADDON_SV_NAME] or not _G[ADDON_SV_NAME] ["Default"] or not _G[ADDON_SV_NAME]["Default"][displayName] or not _G[ADDON_SV_NAME]["Default"][displayName]["$AccountWide"] then
+				--New pChat user with no non-server SV created yet. No migration needed
+				migrationInfoOutput("Migration of the SavedVariables to the server \'" ..tostring(worldName) .. "\' not started as there is no non-server SV data available to migrate!", false, false)
+				migrationInfoOutput(">Using default values for the server dependent SavedVariables.", false, false)
+				db.migratedSVToServer = true
+				pChat.migrationReloadUI = 2
+				return
+			end
 			local dbOld = _G[ADDON_SV_NAME]["Default"][displayName]["$AccountWide"]
 			--Do the old SV exist with recently new pChat data?
 			if dbOld and dbOld.colours ~= nil then
