@@ -1,6 +1,6 @@
 --=======================================================================================================================================
 --Known problems/bugs:
---Last updated: 2020-09-18
+--Last updated: 2021-09-16
 --Total number: 11
 ------------------------------------------------------------------------------------------------------------------------
 --#2	2020-02-28 Baetram, bug: New selection for @accountName/character chat prefix will only show /charactername (@accountName is missing) during whispers,
@@ -36,21 +36,17 @@
 --=======================================================================================================================================
 
 --Working on:
---#11 Copy dialog problems
 
 
 --=======================================================================================================================================
--- Changelog version: 10.0.2.0 (last version 10.0.1.4)
+-- Changelog version: 10.0.2.3 (last version 10.0.2.2)
 --=======================================================================================================================================
 --Fixed:
---
+--Chat message channel switch to group channel
 
 --Changed:
---SavedVariables are now server dependent. "Non server dependent" SV will be copied to the first new logged in server "once". After that they will be removed!
 
 --Added:
---Thanks to Dolgubon: New setting to enable the chat editbox backspace hook. If enbaled you are able to press the CTRL key + backspace to delete the whole
---word left of the cursor
 
 --Added on request:
 --=======================================================================================================================================
