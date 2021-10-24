@@ -182,6 +182,10 @@ function pChat.InitializeSettings()
 		wholenames = false,
 	}
 
+	--Helper for the format of guilds
+	local formatGuildChoices =  {GetString(PCHAT_FORMATCHOICE1), GetString(PCHAT_FORMATCHOICE2), GetString(PCHAT_FORMATCHOICE3), GetString(PCHAT_FORMATCHOICE4)}
+	local formatGuildChoicesValues =  {1, 2, 3, 4 }
+
 	--Load the nicknames defined in the settings and build the pChatData nicknames table with them
 	local function BuildNicknames(lamCall)
 
@@ -430,8 +434,8 @@ function pChat.InitializeSettings()
 						type = "dropdown",
 						name = GetString(PCHAT_NAMEFORMAT),
 						tooltip = GetString(PCHAT_NAMEFORMATTT),
-						choices = {GetString(PCHAT_FORMATCHOICE1), GetString(PCHAT_FORMATCHOICE2), GetString(PCHAT_FORMATCHOICE3), GetString(PCHAT_FORMATCHOICE4)},
-						choicesValues = {1, 2, 3, 4},
+						choices = formatGuildChoices,
+						choicesValues = formatGuildChoicesValues,
 						getFunc = function()
 							-- Config per guild
 							return db.formatguild[guildId]
@@ -2084,7 +2088,7 @@ function pChat.InitializeSettings()
 		-- It will rebuild optionsTable and recreate tables if user didn't went in this section before
 		BuildLAMPanel()
 
-		-- If recently added to a new guild and never go in menu db.formatguild[guildName] won't exist, it won't create the value if joining an known guild
+		-- If recently added to a new guild and never go in menu db.formatguild[guildId] won't exist, it won't create the value if joining an known guild
 		if not db.formatguild[guildServerId] then
 			-- 2 is default value
 			db.formatguild[guildServerId] = 2
@@ -2156,7 +2160,18 @@ function pChat.InitializeSettings()
 				db.officerSwitchFor[guildName] = nil
 			end
 			if db.formatguild and db.formatguild[guildName] then
-				db.formatguild[guildId] = db.formatguild[guildName]
+				--Check if db.formatguild[guildName] is a number and if not change it to the appropriate number
+				--and do not copy over a text like "username@Account"
+				local formatValue
+				if type(db.formatguild[guildName]) == "number" then
+					formatValue = db.formatguild[guildName]
+				else
+					formatValue = ZO_IndexOfElementInNumericallyIndexedTable(formatGuildChoices, db.formatguild[guildName])
+				end
+				if formatValue == nil or type(formatValue) ~= "number" or formatValue <= 0 then
+					formatValue = 2 --default/fallback value
+				end
+				db.formatguild[guildId] = formatValue
 				db.formatguild[guildName] = nil
 			end
 		end

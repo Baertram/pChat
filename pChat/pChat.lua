@@ -36,13 +36,13 @@
 --=======================================================================================================================================
 
 --Working on:
+--formatValue at guild output format (charname@account) saves text instead of the number to SavedVariables -> During migration?
 
 
 --=======================================================================================================================================
--- Changelog version: 10.0.2.3 (last version 10.0.2.2)
+-- Changelog version: 10.0.2.4 (last version 10.0.2.3)
 --=======================================================================================================================================
 --Fixed:
---Chat message channel switch to group channel
 
 --Changed:
 
