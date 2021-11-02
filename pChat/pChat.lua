@@ -62,6 +62,7 @@ local ADDON_NAME    = CONSTANTS.ADDON_NAME
 local addonNamePrefix = "[" .. ADDON_NAME .. "] "
 
 local EM = EVENT_MANAGER
+
 local strlen = string.len
 local strfind = string.find
 local strsub = string.sub
@@ -383,7 +384,7 @@ local function OnPlayerActivated()
     if eventPlayerActivatedChecksDone <= 12 and (CHAT_SYSTEM == nil or CHAT_SYSTEM.primaryContainer == nil) then
         logger:Debug("EVENT_PLAYER_ACTIVATED: CHAT_SYSTEM.primaryContainer is missing!")
         if not eventPlayerActivatedCheckRunning then
-            EVENT_MANAGER:RegisterForUpdate(ADDON_NAME .. "Debug_Event_Player_Activated", 250, function()
+            EM:RegisterForUpdate(ADDON_NAME .. "Debug_Event_Player_Activated", 250, function()
                 eventPlayerActivatedChecksDone = eventPlayerActivatedChecksDone + 1
                 eventPlayerActivatedCheckRunning = true
                 OnPlayerActivated()
@@ -392,7 +393,7 @@ local function OnPlayerActivated()
     else
         logger:Debug("EVENT_PLAYER_ACTIVATED: Found CHAT_SYSTEM.primaryContainer!")
         eventPlayerActivatedCheckRunning = false
-        EVENT_MANAGER:UnregisterForUpdate(ADDON_NAME .. "Debug_Event_Player_Activated")
+        EM:UnregisterForUpdate(ADDON_NAME .. "Debug_Event_Player_Activated")
 
         if pChatData.isAddonLoaded then
 
@@ -634,11 +635,11 @@ local function OnAddonLoaded(_, addonName)
 
         --EVENTS--
         -- Because ChatSystem is loaded after EVENT_ADDON_LOADED triggers, we use 1st EVENT_PLAYER_ACTIVATED wich is run bit after
-        EVENT_MANAGER:RegisterForEvent(ADDON_NAME, EVENT_PLAYER_ACTIVATED, OnPlayerActivated)
-        EVENT_MANAGER:RegisterForEvent(ADDON_NAME, EVENT_RETICLE_TARGET_CHANGED, pChat.OnReticleTargetChanged)
+        EM:RegisterForEvent(ADDON_NAME, EVENT_PLAYER_ACTIVATED, OnPlayerActivated)
+        EM:RegisterForEvent(ADDON_NAME, EVENT_RETICLE_TARGET_CHANGED, pChat.OnReticleTargetChanged)
 
         -- EVENT Unregister
-        EVENT_MANAGER:UnregisterForEvent(ADDON_NAME, EVENT_ADD_ON_LOADED)
+        EM:UnregisterForEvent(ADDON_NAME, EVENT_ADD_ON_LOADED)
 
         --IM Features
         pChat.InitializeIncomingMessages()
@@ -649,5 +650,5 @@ local function OnAddonLoaded(_, addonName)
 
 end
 
-EVENT_MANAGER:RegisterForEvent(ADDON_NAME, EVENT_ADD_ON_LOADED, OnAddonLoaded)
+EM:RegisterForEvent(ADDON_NAME, EVENT_ADD_ON_LOADED, OnAddonLoaded)
 

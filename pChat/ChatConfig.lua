@@ -1,6 +1,9 @@
 local CONSTANTS = pChat.CONSTANTS
 local ADDON_NAME = CONSTANTS.ADDON_NAME
 
+local EM = EVENT_MANAGER
+local WM = WINDOW_MANAGER
+
 function pChat.InitializeChatConfig()
     local pChatData = pChat.pChatData
     local db = pChat.db
@@ -80,7 +83,7 @@ function pChat.InitializeChatConfig()
         ZO_ChatWindowTextEntry:SetDimensions(400, 27)
         ZO_ChatWindowTextEntry:SetMovable(false)
 
-        local undockedTexture = WINDOW_MANAGER:CreateControl("UndockedBackground", ZO_ChatWindowTextEntry, CT_TEXTURE)
+        local undockedTexture = WM:CreateControl("UndockedBackground", ZO_ChatWindowTextEntry, CT_TEXTURE)
         undockedTexture:SetTexture("EsoUI/Art/Performance/StatusMeterMunge.dds")
         undockedTexture:SetAnchor(CENTER, ZO_ChatWindowTextEntry, CENTER, 0, 0)
         undockedTexture:SetDimensions(800, 250)
@@ -589,8 +592,8 @@ function pChat.InitializeChatConfig()
     MinimizeChatInMenus()
 
     -- Party switches
-    EVENT_MANAGER:RegisterForEvent(ADDON_NAME, EVENT_GROUP_MEMBER_JOINED, OnGroupMemberJoined)
-    EVENT_MANAGER:RegisterForEvent(ADDON_NAME, EVENT_GROUP_MEMBER_LEFT, OnGroupMemberLeft)
+    EM:RegisterForEvent(ADDON_NAME, EVENT_GROUP_MEMBER_JOINED, OnGroupMemberJoined)
+    EM:RegisterForEvent(ADDON_NAME, EVENT_GROUP_MEMBER_LEFT, OnGroupMemberLeft)
 
     -- this is called during the first EVENT_PLAYER_ACTIVATED
     function pChat.ApplyChatConfig()

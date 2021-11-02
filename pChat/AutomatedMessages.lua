@@ -1,5 +1,7 @@
 local ADDON_NAME = pChat.CONSTANTS.ADDON_NAME
 
+--local WM = WINDOW_MANAGER
+
 function pChat.InitializeAutomatedMessages()
     local pChatData = pChat.pChatData
     local db = pChat.db
@@ -223,7 +225,7 @@ function pChat.InitializeAutomatedMessages()
 
     local function RemoveAutomatedMessage()
 
-        local data = ZO_ScrollList_GetData(WINDOW_MANAGER:GetMouseOverControl())
+        local data = ZO_ScrollList_GetData(moc()) --WM:GetMouseOverControl()
         local _, index = GetDataByNameInSavedAutomatedMessages(data.name)
         table.remove(db.automatedMessages, index)
         pChatData.automatedMessagesList:RefreshData()
@@ -406,7 +408,7 @@ function pChat.InitializeAutomatedMessages()
             })
 
         local function EditDialogSetup(dialog)
-            local data = ZO_ScrollList_GetData(WINDOW_MANAGER:GetMouseOverControl())
+            local data = ZO_ScrollList_GetData(moc()) --WM:GetMouseOverControl()
             local name = GetControl(dialog, "NameEdit")
             local edit = GetControl(dialog, "MessageEdit")
 

@@ -183,8 +183,8 @@ function pChat.InitializeSettings()
 	}
 
 	--Helper for the format of guilds
-	local formatGuildChoices =  {GetString(PCHAT_FORMATCHOICE1), GetString(PCHAT_FORMATCHOICE2), GetString(PCHAT_FORMATCHOICE3), GetString(PCHAT_FORMATCHOICE4)}
-	local formatGuildChoicesValues =  {1, 2, 3, 4 }
+	local formatNameChoices       =  { GetString(PCHAT_FORMATCHOICE1), GetString(PCHAT_FORMATCHOICE2), GetString(PCHAT_FORMATCHOICE3), GetString(PCHAT_FORMATCHOICE4)}
+	local formatNameChoicesValues =  { 1, 2, 3, 4}
 
 	--Load the nicknames defined in the settings and build the pChatData nicknames table with them
 	local function BuildNicknames(lamCall)
@@ -217,7 +217,7 @@ function pChat.InitializeSettings()
 			db.nicknames = table.concat(lines, "\n")
 
 			if lamCall then
-				CALLBACK_MANAGER:FireCallbacks("LAM-RefreshPanel", pChat.LAMPanel)
+				CM:FireCallbacks("LAM-RefreshPanel", pChat.LAMPanel)
 			end
 
 		end
@@ -262,7 +262,7 @@ function pChat.InitializeSettings()
 				UpdateSoundDescription("whisper")
 			end
 		end
-		CALLBACK_MANAGER:RegisterCallback("LAM-PanelControlsCreated", pChatLAMPanelCreated)
+		CM:RegisterCallback("LAM-PanelControlsCreated", pChatLAMPanelCreated)
 
 
 		-- Used to reset colors to default value, lam need a formatted array
@@ -356,7 +356,7 @@ function pChat.InitializeSettings()
 				guildName = "Guild " .. guild
 			end
 			-- If recently added to a new guild and never go in menu db.formatguild[guildName] won't exist
-			if not (db.formatguild[guildId]) then
+			if not db.formatguild[guildId] then
 				-- 2 is default value
 				db.formatguild[guildId] = 2
 			end
@@ -434,8 +434,8 @@ function pChat.InitializeSettings()
 						type = "dropdown",
 						name = GetString(PCHAT_NAMEFORMAT),
 						tooltip = GetString(PCHAT_NAMEFORMATTT),
-						choices = formatGuildChoices,
-						choicesValues = formatGuildChoicesValues,
+						choices = formatNameChoices,
+						choicesValues = formatNameChoicesValues,
 						getFunc = function()
 							-- Config per guild
 							return db.formatguild[guildId]
@@ -497,8 +497,8 @@ function pChat.InitializeSettings()
 						type          = "dropdown",
 						name          = GetString(PCHAT_NAMEFORMAT),
 						tooltip       = GetString(PCHAT_NAMEFORMATTT),
-						choices       = { GetString(PCHAT_FORMATCHOICE1), GetString(PCHAT_FORMATCHOICE2), GetString(PCHAT_FORMATCHOICE3), GetString(PCHAT_FORMATCHOICE4) },
-						choicesValues = { 1, 2, 3, 4 },
+						choices       = formatNameChoices,
+						choicesValues = formatNameChoicesValues,
 						getFunc       = function()
 							-- Config per guild
 							return db.formatguild[guildId]
@@ -836,8 +836,8 @@ function pChat.InitializeSettings()
 									type = "dropdown",
 									name = GetString(PCHAT_GROUPNAMES),
 									tooltip = GetString(PCHAT_GROUPNAMESTT),
-									choices = {GetString(PCHAT_FORMATCHOICE1), GetString(PCHAT_FORMATCHOICE2), GetString(PCHAT_FORMATCHOICE3), GetString(PCHAT_FORMATCHOICE4)},
-									choicesValues = {1, 2, 3, 4},
+									choices = formatNameChoices,
+									choicesValues = formatNameChoicesValues,
 									getFunc = function() return db.groupNames end,
 									setFunc = function(value)
 										db.groupNames = value
@@ -864,8 +864,8 @@ function pChat.InitializeSettings()
 									type          = "dropdown",
 									name          = GetString(PCHAT_GEOCHANNELSFORMAT),
 									tooltip       = GetString(PCHAT_GEOCHANNELSFORMATTT),
-									choices       = { GetString(PCHAT_FORMATCHOICE1), GetString(PCHAT_FORMATCHOICE2), GetString(PCHAT_FORMATCHOICE3), GetString(PCHAT_FORMATCHOICE4) },
-									choicesValues = { 1, 2, 3, 4 },
+									choices = formatNameChoices,
+									choicesValues = formatNameChoicesValues,
 									getFunc       = function()
 										return db.geoChannelsFormat
 									end,
@@ -2159,20 +2159,23 @@ function pChat.InitializeSettings()
 				db.officerSwitchFor[guildId] = db.officerSwitchFor[guildName]
 				db.officerSwitchFor[guildName] = nil
 			end
-			if db.formatguild and db.formatguild[guildName] then
+			if db.formatguild then
+				local formatguildWithGuildName = db.formatguild[guildName]
 				--Check if db.formatguild[guildName] is a number and if not change it to the appropriate number
 				--and do not copy over a text like "username@Account"
 				local formatValue
-				if type(db.formatguild[guildName]) == "number" then
-					formatValue = db.formatguild[guildName]
+				if type(formatguildWithGuildName) == "number" then
+					formatValue = formatguildWithGuildName
 				else
-					formatValue = ZO_IndexOfElementInNumericallyIndexedTable(formatGuildChoices, db.formatguild[guildName])
+					formatValue = ZO_IndexOfElementInNumericallyIndexedTable(formatNameChoices, formatguildWithGuildName)
 				end
-				if formatValue == nil or type(formatValue) ~= "number" or formatValue <= 0 then
+				if formatValue == nil or type(formatValue) ~= "number" or formatValue <= 0 or formatValue == "" then
 					formatValue = 2 --default/fallback value
 				end
-				db.formatguild[guildId] = formatValue
+				--Remove old guildName entry
 				db.formatguild[guildName] = nil
+				--Set new guildId value to guildformat
+				db.formatguild[guildId] = formatValue
 			end
 		end
 	end
@@ -2302,10 +2305,10 @@ function pChat.InitializeSettings()
 	SaveGuildIndexes()
 
 	-- Register OnSelfJoinedGuild with EVENT_GUILD_SELF_JOINED_GUILD
-	EVENT_MANAGER:RegisterForEvent(ADDON_NAME, EVENT_GUILD_SELF_JOINED_GUILD, OnSelfJoinedGuild)
+	EM:RegisterForEvent(ADDON_NAME, EVENT_GUILD_SELF_JOINED_GUILD, OnSelfJoinedGuild)
 
 	-- Register OnSelfLeftGuild with EVENT_GUILD_SELF_LEFT_GUILD
-	EVENT_MANAGER:RegisterForEvent(ADDON_NAME, EVENT_GUILD_SELF_LEFT_GUILD, OnSelfLeftGuild)
+	EM:RegisterForEvent(ADDON_NAME, EVENT_GUILD_SELF_LEFT_GUILD, OnSelfLeftGuild)
 
 	return db
 end
