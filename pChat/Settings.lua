@@ -247,7 +247,7 @@ function pChat.InitializeSettings()
 
 	-- Build LAM Option Table, used when AddonLoads or when a player join/leave a guild
 	local function BuildLAMPanel()
-
+--d("[pChat]Build LAM Panel")
 		local function UpdateSoundDescription(soundType, newSoundIndex)
 			--Whisper sound
 			if soundType == "whisper" then
@@ -281,7 +281,7 @@ function pChat.InitializeSettings()
 		-- CHAT_SYSTEM.primaryContainer.windows doesn't exists yet at OnAddonLoaded. So using the pChat reference.
 		local arrayTab = {}
 		if db.chatConfSync and db.chatConfSync[charId] and db.chatConfSync[charId].tabs then
-			for numTab, data in pairs (db.chatConfSync[charId].tabs) do
+			for numTab, _ in pairs (db.chatConfSync[charId].tabs) do
 				table.insert(arrayTab, numTab)
 			end
 		else
@@ -356,7 +356,8 @@ function pChat.InitializeSettings()
 				guildName = "Guild " .. guild
 			end
 			-- If recently added to a new guild and never go in menu db.formatguild[guildName] won't exist
-			if not db.formatguild[guildId] then
+			db.formatguild = db.formatguild or {}
+			if db.formatguild[guildId] == nil then
 				-- 2 is default value
 				db.formatguild[guildId] = 2
 			end
@@ -2011,7 +2012,6 @@ function pChat.InitializeSettings()
 		pChat.LAMPanel = LibAddonMenu2:RegisterAddonPanel("pChatOptions", panelData)
 
 		-- Build OptionTable. In a separate func in order to rebuild it in case of Guild Reorg.
-		SyncCharacterSelectChoices()
 		BuildLAMPanel()
 
 	end
@@ -2109,8 +2109,8 @@ function pChat.InitializeSettings()
 	end
 
 
-	--Migrate some SavedVariables to new structures
-	local function MigrateToCharacterIdSavedVars()
+	--Migrate old character name SavedVariables to new unique characterId structures
+	local function migrateToCharacterIdSavedVars()
 		logger:Debug("MigrateSavedVars - ChatConfSync")
 		--Chat configuration synchronization was moved from characterNames as table key in table db.chatConfSync
 		--to characterId -> Attention: The charId is a String as well so one needs to change it to a number
@@ -2136,47 +2136,6 @@ function pChat.InitializeSettings()
 			end
 			db.chatConfSync = {}
 			db.chatConfSync = newChatConfSync
-		end
-
-		--Migrate the old guild settings from guildName to guildId
-		for guild = 1, GetNumGuilds() do
-			-- Guildname
-			local guildId = GetGuildId(guild)
-			local guildName = GetGuildName(guildId)
-			if db.guildTags and db.guildTags[guildName] then
-				db.guildTags[guildId] = db.guildTags[guildName]
-				db.guildTags[guildName] = nil
-			end
-			if db.officertag and db.officertag[guildName] then
-				db.officertag[guildId] = db.officertag[guildName]
-				db.officertag[guildName] = nil
-			end
-			if db.switchFor and db.switchFor[guildName] then
-				db.switchFor[guildId] = db.switchFor[guildName]
-				db.switchFor[guildName] = nil
-			end
-			if db.officerSwitchFor and db.officerSwitchFor[guildName] then
-				db.officerSwitchFor[guildId] = db.officerSwitchFor[guildName]
-				db.officerSwitchFor[guildName] = nil
-			end
-			if db.formatguild then
-				local formatguildWithGuildName = db.formatguild[guildName]
-				--Check if db.formatguild[guildName] is a number and if not change it to the appropriate number
-				--and do not copy over a text like "username@Account"
-				local formatValue
-				if type(formatguildWithGuildName) == "number" then
-					formatValue = formatguildWithGuildName
-				else
-					formatValue = ZO_IndexOfElementInNumericallyIndexedTable(formatNameChoices, formatguildWithGuildName)
-				end
-				if formatValue == nil or type(formatValue) ~= "number" or formatValue <= 0 or formatValue == "" then
-					formatValue = 2 --default/fallback value
-				end
-				--Remove old guildName entry
-				db.formatguild[guildName] = nil
-				--Set new guildId value to guildformat
-				db.formatguild[guildId] = formatValue
-			end
 		end
 	end
 
@@ -2230,7 +2189,7 @@ function pChat.InitializeSettings()
 		end
 	end
 
-	local function MigrateSavedVarsToServerDependent()
+	local function migrateSavedVarsToServerDependent()
 		local migrationInfoOutput = pChat.migrationInfoOutput
 		--Variable for EVENT_PLAYER_ACTIVATED
 		pChat.migrationReloadUI = nil
@@ -2280,20 +2239,93 @@ function pChat.InitializeSettings()
 		end
 	end
 
+	--Check the name format (character, @account/character, ...) and migrate old "strings" / guild names to the new numbers / guildId
+	local function checkNameFormat()
+		--Migrate the old guild settings from guildName to guildId
+		for guildIndex = 1, GetNumGuilds() do
+			-- Guildname
+			local guildId = GetGuildId(guildIndex)
+			local guildName = GetGuildName(guildId)
+			if db.guildTags and db.guildTags[guildName] then
+				db.guildTags[guildId] = db.guildTags[guildName]
+				db.guildTags[guildName] = nil
+			end
+			if db.officertag and db.officertag[guildName] then
+				db.officertag[guildId] = db.officertag[guildName]
+				db.officertag[guildName] = nil
+			end
+			if db.switchFor and db.switchFor[guildName] then
+				db.switchFor[guildId] = db.switchFor[guildName]
+				db.switchFor[guildName] = nil
+			end
+			if db.officerSwitchFor and db.officerSwitchFor[guildName] then
+				db.officerSwitchFor[guildId] = db.officerSwitchFor[guildName]
+				db.officerSwitchFor[guildName] = nil
+			end
+
+			--Check the guild channel message format - formatGuild
+			if db.formatguild ~= nil then
+				local formatguildWithGuildName = db.formatguild[guildName]
+				--Check if db.formatguild[guildName] is not a number and then change it to the appropriate number
+				-->e.g. do not copy over old strings like "username@Account"
+				local formatValue
+				if formatguildWithGuildName ~= nil and type(formatguildWithGuildName) == "string" then
+					formatValue = ZO_IndexOfElementInNumericallyIndexedTable(formatNameChoices, formatguildWithGuildName)
+				else
+					formatValue = db.formatguild[guildId]
+				end
+				if formatValue == nil or type(formatValue) ~= "number" or formatValue <= 0 then
+--d(">resetting guildformat to character, for guild: " ..tostring(guildName))
+					formatValue = 2 --default/fallback value for guild messages: Character name
+				end
+				--Remove old guildName entry
+				db.formatguild[guildName] = nil
+				--Set new guildId value to guildformat
+				db.formatguild[guildId] = formatValue
+			end
+		end
+
+		--Check the group channel message format - groupName
+		local newFormatValue
+		local chosenGroupNameFormat = db.groupNames
+		newFormatValue = db.groupNames
+		if chosenGroupNameFormat and type(chosenGroupNameFormat) == "string" then
+			--Change to the relating "number" value, or the default number
+			newFormatValue = ZO_IndexOfElementInNumericallyIndexedTable(formatNameChoices, chosenGroupNameFormat)
+		end
+		if newFormatValue == nil or type(newFormatValue) ~= "number" or newFormatValue <= 0 then
+			newFormatValue = defaults.groupNames --default/fallback value
+		end
+		db.groupNames = newFormatValue
+
+		--Check the zone/other channel message format - geoChannels
+		local chosenGeoChannelsFormat = db.geoChannelsFormat
+		newFormatValue = db.geoChannelsFormat
+		if chosenGeoChannelsFormat and type(chosenGeoChannelsFormat) == "string" then
+			--Change to the relating "number" value, or the default number
+			newFormatValue = ZO_IndexOfElementInNumericallyIndexedTable(formatNameChoices, chosenGeoChannelsFormat)
+		end
+		if newFormatValue == nil or type(newFormatValue) ~= "number" or newFormatValue <= 0 then
+			newFormatValue = defaults.geoChannelsFormat --default/fallback value
+		end
+		db.geoChannelsFormat = newFormatValue
+	end
+
 	--After loading the SavedVariables check some values, and update them
 	local function AfterSettings()
+		migrateToCharacterIdSavedVars()
+		checkNameFormat()
 		getLastBackupSVReminderText()
 	end
 
+
 	--Migrate old non-server dependent SavedVariables to new server dependent ones
-	MigrateSavedVarsToServerDependent()
+	migrateSavedVarsToServerDependent()
 
 	pChat.db = db
 
+	--Change settings before optionsmenu etc.
 	AfterSettings()
-
-	--Migrate old character name SavedVariables to new unique characterId structures
-	MigrateToCharacterIdSavedVars()
 
 	--LAM and db for saved vars
 	GetDBAndBuildLAM()
