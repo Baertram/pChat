@@ -1,6 +1,6 @@
 --=======================================================================================================================================
 --Known problems/bugs:
---Last updated: 2020-09-18
+--Last updated: 2021-09-16
 --Total number: 11
 ------------------------------------------------------------------------------------------------------------------------
 --#2	2020-02-28 Baetram, bug: New selection for @accountName/character chat prefix will only show /charactername (@accountName is missing) during whispers,
@@ -36,21 +36,17 @@
 --=======================================================================================================================================
 
 --Working on:
---#11 Copy dialog problems
+--formatValue at guild output format (charname@account) saves text instead of the number to SavedVariables -> During migration?
 
 
 --=======================================================================================================================================
--- Changelog version: 10.0.2.0 (last version 10.0.1.4)
+-- Changelog version: 10.0.2.4 (last version 10.0.2.3)
 --=======================================================================================================================================
 --Fixed:
---
 
 --Changed:
---SavedVariables are now server dependent. "Non server dependent" SV will be copied to the first new logged in server "once". After that they will be removed!
 
 --Added:
---Thanks to Dolgubon: New setting to enable the chat editbox backspace hook. If enbaled you are able to press the CTRL key + backspace to delete the whole
---word left of the cursor
 
 --Added on request:
 --=======================================================================================================================================
@@ -66,6 +62,7 @@ local ADDON_NAME    = CONSTANTS.ADDON_NAME
 local addonNamePrefix = "[" .. ADDON_NAME .. "] "
 
 local EM = EVENT_MANAGER
+
 local strlen = string.len
 local strfind = string.find
 local strsub = string.sub
@@ -387,7 +384,7 @@ local function OnPlayerActivated()
     if eventPlayerActivatedChecksDone <= 12 and (CHAT_SYSTEM == nil or CHAT_SYSTEM.primaryContainer == nil) then
         logger:Debug("EVENT_PLAYER_ACTIVATED: CHAT_SYSTEM.primaryContainer is missing!")
         if not eventPlayerActivatedCheckRunning then
-            EVENT_MANAGER:RegisterForUpdate(ADDON_NAME .. "Debug_Event_Player_Activated", 250, function()
+            EM:RegisterForUpdate(ADDON_NAME .. "Debug_Event_Player_Activated", 250, function()
                 eventPlayerActivatedChecksDone = eventPlayerActivatedChecksDone + 1
                 eventPlayerActivatedCheckRunning = true
                 OnPlayerActivated()
@@ -396,7 +393,7 @@ local function OnPlayerActivated()
     else
         logger:Debug("EVENT_PLAYER_ACTIVATED: Found CHAT_SYSTEM.primaryContainer!")
         eventPlayerActivatedCheckRunning = false
-        EVENT_MANAGER:UnregisterForUpdate(ADDON_NAME .. "Debug_Event_Player_Activated")
+        EM:UnregisterForUpdate(ADDON_NAME .. "Debug_Event_Player_Activated")
 
         if pChatData.isAddonLoaded then
 
@@ -638,11 +635,11 @@ local function OnAddonLoaded(_, addonName)
 
         --EVENTS--
         -- Because ChatSystem is loaded after EVENT_ADDON_LOADED triggers, we use 1st EVENT_PLAYER_ACTIVATED wich is run bit after
-        EVENT_MANAGER:RegisterForEvent(ADDON_NAME, EVENT_PLAYER_ACTIVATED, OnPlayerActivated)
-        EVENT_MANAGER:RegisterForEvent(ADDON_NAME, EVENT_RETICLE_TARGET_CHANGED, pChat.OnReticleTargetChanged)
+        EM:RegisterForEvent(ADDON_NAME, EVENT_PLAYER_ACTIVATED, OnPlayerActivated)
+        EM:RegisterForEvent(ADDON_NAME, EVENT_RETICLE_TARGET_CHANGED, pChat.OnReticleTargetChanged)
 
         -- EVENT Unregister
-        EVENT_MANAGER:UnregisterForEvent(ADDON_NAME, EVENT_ADD_ON_LOADED)
+        EM:UnregisterForEvent(ADDON_NAME, EVENT_ADD_ON_LOADED)
 
         --IM Features
         pChat.InitializeIncomingMessages()
@@ -653,5 +650,5 @@ local function OnAddonLoaded(_, addonName)
 
 end
 
-EVENT_MANAGER:RegisterForEvent(ADDON_NAME, EVENT_ADD_ON_LOADED, OnAddonLoaded)
+EM:RegisterForEvent(ADDON_NAME, EVENT_ADD_ON_LOADED, OnAddonLoaded)
 
