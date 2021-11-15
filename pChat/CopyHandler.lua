@@ -313,7 +313,7 @@ for _, chatChannelId in pairs(chatChannelsToMap) do
 end
 pChat.ChatCategory2ChatChannel = ChatCategory2ChatChannel
 
---[[ ChatCopyOptions Panel ]]--
+--[[ ChatCopyOptions Class ]]--
 local ChatCopyOptions = ZO_Object:Subclass()
 
 function ChatCopyOptions:New(...)
@@ -715,6 +715,7 @@ function ChatCopyOptions:ApplyFilters()
 end
 
 function ChatCopyOptions:Show()
+d("[pChat]ChatCopyOptions:Show()")
     ZO_Dialogs_ShowDialog("PCHAT_CHAT_COPY_DIALOG")
 end
 

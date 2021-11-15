@@ -2,34 +2,42 @@ local CONSTANTS = pChat.CONSTANTS
 local ADDON_NAME = CONSTANTS.ADDON_NAME
 local mapChatChannelToPChatChannel = pChat.mapChatChannelToPChatChannel
 
+local gettim = GetTimeStamp
+local zocastrfor = ZO_CachedStrFormat
+
 function pChat.InitializeSpamFilter()
     local pChatData = pChat.pChatData
     local db = pChat.db
     local logger = pChat.logger
+    local localPlayer = pChatData.localPlayer
+    local localAccount = pChatData.localAccount
 
     -- Return true/false if text is a flood
     local function SpamFlood(from, text, chanCode)
         -- 2+ messages identiqual in less than 30 seconds on Character channels = spam
         -- Should not happen
-        if db.LineStrings then -- TODO the spam filter should keep its own history independently of other components
-
-            if db.lineNumber then
+        local lineStrings = db.LineStrings
+        if lineStrings then -- TODO the spam filter should keep its own history independently of other components
+            local lineNumber = db.lineNumber
+            if lineNumber then
                 -- 1st message cannot be a spam
-                if db.lineNumber > 1 then
+                if lineNumber > 1 then
 
                     local checkSpam = true
-                    local previousLine = db.lineNumber - 1
-                    local ourMessageTimestamp = GetTimeStamp()
+                    local previousLine = lineNumber - 1
+                    local ourMessageTimestamp = gettim()
+                    local previousLineString = lineStrings[previousLine]
+                    local previousLineStringChannel = previousLineString.channel
 
                     while checkSpam do
 
                         -- Previous line can be a ChanSystem one
-                        if db.LineStrings[previousLine].channel ~= CHAT_CHANNEL_SYSTEM then
-                            if (ourMessageTimestamp - db.LineStrings[previousLine].rawTimestamp) < db.floodGracePeriod then
+                        if previousLineStringChannel ~= CHAT_CHANNEL_SYSTEM then
+                            if (ourMessageTimestamp - previousLineString.rawTimestamp) < db.floodGracePeriod then
                                 -- if our message is sent by our chatter / will be break by "Character" channels and "UserID" Channels
-                                if from == db.LineStrings[previousLine].rawFrom then
+                                if from == previousLineString.rawFrom then
                                     -- if our message is eq of last message
-                                    if text == db.LineStrings[previousLine].rawText then
+                                    if text == previousLineString.rawText then
                                         -- Previous and current must be in zone(s), yell, say, emote (Character Channels except party)
                                         -- TODO: Find a characterchannel func
 
@@ -53,8 +61,8 @@ function pChat.InitializeSpamFilter()
                                         spammableChannels[CHAT_CHANNEL_EMOTE] = true
 
                                         -- spammableChannels[spamChanCode] = return true if our message was sent in a spammable channel
-                                        -- spammableChannels[db.LineStrings[previousLine].channel] = return true if previous message was sent in a spammable channel
-                                        if spammableChannels[spamChanCode] and spammableChannels[db.LineStrings[previousLine].channel] then
+                                        -- spammableChannels[previousLineStringChannel] = return true if previous message was sent in a spammable channel
+                                        if spammableChannels[spamChanCode] and spammableChannels[previousLineStringChannel] then
                                             -- Spam
                                             logger.verbose:Debug("Spam detected (%s)", text)
                                             return true
@@ -234,6 +242,7 @@ function pChat.InitializeSpamFilter()
     -- Return true/false if anti spam is enabled for a certain category
     -- Categories must be : Flood, LookingFor, WantTo, GuildRecruit
     local function IsSpamEnabledForCategory(category)
+        local spamGracePeriodInSeconds = db.spamGracePeriod * 60
         if category == "Flood" then
 
             -- Enabled in Options?
@@ -261,7 +270,8 @@ function pChat.InitializeSpamFilter()
                     --logger:Debug("lookingForProtect is temporary disabled since", pChat.spamTempLookingForStopTimestamp)
 
                     -- AntiSpam is disabled .. since -/+ grace time ?
-                    if GetTimeStamp() - pChatData.spamTempLookingForStopTimestamp > (db.spamGracePeriod * 60) then
+                    local comparisonTimeStamp = pChatData.spamTempLookingForStopTimestamp
+                    if comparisonTimeStamp and (gettim() - comparisonTimeStamp) > spamGracePeriodInSeconds then
                         --logger:Debug("lookingForProtect enabled again")
                         -- Grace period outdatted -> we need to re-enable it
                         pChatData.spamLookingForEnabled = true
@@ -285,7 +295,9 @@ function pChat.InitializeSpamFilter()
                     return true
                 else
                     -- AntiSpam is disabled .. since -/+ grace time ?
-                    if GetTimeStamp() - pChatData.spamTempWantToStopTimestamp > (db.spamGracePeriod * 60) then
+                    --2021-11-15 user:/AddOns/pChat/SpamFilter.lua:288: operator - is not supported for number - nil
+                    local comparisonTimeStamp = pChatData.spamTempWantToStopTimestamp
+                    if comparisonTimeStamp and (gettim() - comparisonTimeStamp) > spamGracePeriodInSeconds then
                         --logger:Debug("wantToProtect enabled again")
                         -- Grace period outdatted -> we need to re-enable it
                         pChatData.spamWantToEnabled = true
@@ -308,7 +320,8 @@ function pChat.InitializeSpamFilter()
                     return true
                 else
                     -- AntiSpam is disabled .. since -/+ grace time ?
-                    if GetTimeStamp() - pChatData.spamTempGuildRecruitStopTimestamp > (db.spamGracePeriod * 60) then
+                    local comparisonTimeStamp = pChatData.spamTempGuildRecruitStopTimestamp
+                    if comparisonTimeStamp and (gettim() - comparisonTimeStamp) > spamGracePeriodInSeconds then
                         -- Grace period outdatted -> we need to re-enable it
                         pChatData.spamGuildRecruitEnabled = true
                         return true
@@ -342,7 +355,7 @@ function pChat.InitializeSpamFilter()
         end
 
         -- But "I" can have exceptions
-        if zo_strformat(SI_UNIT_NAME, from) == pChatData.localPlayer or from == GetDisplayName() then
+        if from == localAccount or zocastrfor(SI_UNIT_NAME, from) == localPlayer then
 
             --logger:Debug("I say something (%s)", text)
 
@@ -353,7 +366,7 @@ function pChat.InitializeSpamFilter()
                     --logger:Debug("I say a LF Message (%s)", text)
 
                     -- If I break myself the rule, disable it few minutes
-                    pChatData.spamTempLookingForStopTimestamp = GetTimeStamp()
+                    pChatData.spamTempLookingForStopTimestamp = gettim()
                     pChatData.spamLookingForEnabled = false
 
                 end
@@ -366,7 +379,7 @@ function pChat.InitializeSpamFilter()
                     --logger:Debug("I say a WT Message (%s)", text)
 
                     -- If I break myself the rule, disable it few minutes
-                    pChatData.spamTempWantToStopTimestamp = GetTimeStamp()
+                    pChatData.spamTempWantToStopTimestamp = gettim()
                     pChatData.spamWantToStop = true
 
                 end
@@ -378,7 +391,7 @@ function pChat.InitializeSpamFilter()
             --            if SpamGuildRecruit(text, chanCode) then
             --                --logger:Debug("I say a GR Message (%s)", text)
             --                -- If I break myself the rule, disable it few minutes
-            --                pChatData.spamTempGuildRecruitStopTimestamp = GetTimeStamp()
+            --                pChatData.spamTempGuildRecruitStopTimestamp = gettim()
             --                pChatData.spamGuildRecruitStop = true
             --            end
             --        end

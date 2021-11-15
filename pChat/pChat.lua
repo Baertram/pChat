@@ -1,21 +1,15 @@
 --=======================================================================================================================================
 --Known problems/bugs:
---Last updated: 2021-09-16
---Total number: 11
+--Last updated: 2021-11-15
+--Total number: 12
 ------------------------------------------------------------------------------------------------------------------------
 --#2	2020-02-28 Baetram, bug: New selection for @accountName/character chat prefix will only show /charactername (@accountName is missing) during whispers,
 --		if clicked on a character in the chat to whisper him/her
 ------------------------------------------------------------------------------------------------------------------------
 --#3	2020-03-27 Baetram, bug: Enter into a group with the dungeon finder will not change to the group chat channel /group automatically, if setting is enabled
 ------------------------------------------------------------------------------------------------------------------------
---#6    2020-06-20 Mikikatze, bug: Setting for automatic selected chat tab does not work
---I turned off all other addons and libs, same problem. Even when I switch into another chat tab, as soon as I log out
---and in again it goes back to the first tab, which is zone chat.
---In settings the 2nd tab ist selected, I double checked.
---> 2020-09-18: Not reproducable at the moment, works fine for me wiht other addons disabled or enabled (FCO ChatTabBrain e.g.)
-------------------------------------------------------------------------------------------------------------------------
 --#7    2020-06-20 Cutholen, bug: Time stamps are not shown with system messages anymore
---> 2020-09-18: Not fixable at the moment as system message timestamps depend on the used libraries lik LibDebugLogger and LibChatMessage etc.
+--> 2020-09-18: Not fixable at the moment as system message timestamps depend on the used libraries like LibDebugLogger and LibChatMessage etc.
 --> Further tests needed
 ------------------------------------------------------------------------------------------------------------------------
 --#9    2020-07-20 Marazota Collectibles linked into chat will not show properly the collectible's link
@@ -23,32 +17,32 @@
 --Then right click the message and copy it. The link will be empty (only []shown)
 ------------------------------------------------------------------------------------------------------------------------
 -- #10  2020-07-10 ArtOfShred Message in chat editbox is cutoff if many itemlinks are posted AND the "Copy chat message" option in pChat is enabled.
---Ahah! If I turn of the ability to "enable copy" then it stops the string from being cutoff. What's funny too is with "enable copy" on, if I right click the message in chat that is displayed cut off, and copy the line, the full string is copied.
+--Ahah! If I turn of the ability to "enable copy" then it stops the string from being cutoff. What's funny too is with "enable copy" on, if I right click the message in chat
+--that is displayed cut off, and copy the line, the full string is copied.
 --Example if this displays in chat: <shortened text>
 --and then I copy the message and paste I get:
 --[19:40:15] You craft [Dwarven Ingot] x33, [Ebony Ingot] x232, [Orichalcum Ingot] x12, [Iron Ingot] x134, [Steel Ingot] x83, [Rubedite Ingot] x91, [Sanded Oak] x91, [Voidstone Ingot] x58, [Quicksilver Ingot] x44, [Galatite Ingot] x73.
 ------------------------------------------------------------------------------------------------------------------------
--- #11  2020-07-12 HowellQagan Using "Copy channel talk" or "Copy whole chat" will force the scene to stay on hudui sometimes
---When using "Copy channel talk" or "Copy whole chat" functions, after closing the window containing the chatlogs,
---if you open anything that switches the scene to hudui, it will stay on hudui when you close that.
---So if I open the map, or skills, or inventory etc, it will not go back to hud scene. Reloadui fixes it.
---Tested with only libs + pChat active.
 --=======================================================================================================================================
 
 --Working on:
---formatValue at guild output format (charname@account) saves text instead of the number to SavedVariables -> During migration?
-
+--#12
 
 --=======================================================================================================================================
--- Changelog version: 10.0.2.4 (last version 10.0.2.3)
+-- Changelog version: 10.0.2.6 (last version 10.0.2.5)
 --=======================================================================================================================================
 --Fixed:
+--#12 Fixed spam message checking for non-set (nil) timestamps of self send messages (e.g. WT messages)
 
 --Changed:
 
+
 --Added:
 
+
 --Added on request:
+
+
 --=======================================================================================================================================
 
 --  pChat object
@@ -74,6 +68,8 @@ local strsub = string.sub
 local pChatData = {}
 -- Logged in char name
 pChatData.localPlayer = GetUnitName("player")
+-- Logged in @Account name
+pChatData.localAccount = GetDisplayName()
 
 --LibDebugLogger objects
 local logger
