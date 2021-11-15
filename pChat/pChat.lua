@@ -1,7 +1,7 @@
 --=======================================================================================================================================
 --Known problems/bugs:
---Last updated: 2021-09-16
---Total number: 11
+--Last updated: 2021-11-15
+--Total number: 12
 ------------------------------------------------------------------------------------------------------------------------
 --#2	2020-02-28 Baetram, bug: New selection for @accountName/character chat prefix will only show /charactername (@accountName is missing) during whispers,
 --		if clicked on a character in the chat to whisper him/her
@@ -31,19 +31,23 @@
 --=======================================================================================================================================
 
 --Working on:
---formatValue at guild output format (charname@account) saves text instead of the number to SavedVariables -> During migration?
-
+--#12
 
 --=======================================================================================================================================
 -- Changelog version: 10.0.2.6 (last version 10.0.2.5)
 --=======================================================================================================================================
 --Fixed:
+--#12 Fixed spam message checking for non-set (nil) timestamps of self send messages (e.g. WT messages)
 
 --Changed:
 
+
 --Added:
 
+
 --Added on request:
+
+
 --=======================================================================================================================================
 
 --  pChat object
