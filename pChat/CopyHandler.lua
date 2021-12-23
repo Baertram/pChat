@@ -715,7 +715,7 @@ function ChatCopyOptions:ApplyFilters()
 end
 
 function ChatCopyOptions:Show()
-d("[pChat]ChatCopyOptions:Show()")
+--d("[pChat]ChatCopyOptions:Show()")
     ZO_Dialogs_ShowDialog("PCHAT_CHAT_COPY_DIALOG")
 end
 
