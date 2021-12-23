@@ -505,7 +505,7 @@ local strings = {
 	PCHAT_CHARCOUNT_ENABLE_CHECKBOX_NAME = "Show Character Count",
 	PCHAT_CHARCOUNT_ENABLE_CHECKBOX_TOOLTIP = "Displays the current number of characters typed into the chat text box out of the max limit of 350. It will appear at the top center position of the chat window.",
 	PCHAT_CHARCOUNT_ZONE_POST_TRACKER_NAME = "Show Zone Post Tracker",
-	PCHAT_CHARCOUNT_ZONE_POST_TRACKER_TOOLTIP = "Displays the timestamp of when you've last posted in zone chat in the current zone. The time resets when you change zone. Useful for posting announcements to zone chat."
+	PCHAT_CHARCOUNT_ZONE_POST_TRACKER_TOOLTIP = "Displays the timestamp of when you've last posted in zone chat in the current zone. The time resets when you change zone. Useful for posting announcements to zone chat. It will appear at the top center position of the chat window."
 
 }
 

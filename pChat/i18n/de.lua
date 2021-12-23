@@ -513,6 +513,6 @@ SafeAddString(PCHAT_MENTIONS_WHOLEWORD_TOOLTIP ,  "Charakter Namen werden nur al
 -- CharCount settings strings
 SafeAddString(PCHAT_CHARCOUNTH, "Chat Fenster Kopfbereich")
 SafeAddString(PCHAT_CHARCOUNT_ENABLE_CHECKBOX_NAME, "Zeige Anzahl getippter Zeichen")
-SafeAddString(PCHAT_CHARCOUNT_ENABLE_CHECKBOX_TOOLTIP, "Zeigt die Anzahl der aktuell getippten Zeichen des Text Eingabefeldes des Chats an, sowie die maximalen 350 Zeichen. Dies wird in der Kopfzeile des Chat Fensters angezeigt.")
+SafeAddString(PCHAT_CHARCOUNT_ENABLE_CHECKBOX_TOOLTIP, "Zeigt die Anzahl der aktuell getippten Zeichen des Text Eingabefeldes des Chats, sowie die maximalen 350 Zeichen an. Dies wird mittig in der Kopfzeile des Chat Fensters angezeigt.")
 SafeAddString(PCHAT_CHARCOUNT_ZONE_POST_TRACKER_NAME, "Zeige letzten ausgehenden Zonen-Chat Zeitpunkt")
-SafeAddString(PCHAT_CHARCOUNT_ZONE_POST_TRACKER_TOOLTIP, "Zeigt den Zeitpunkt der letzten ausgehenden (gesendeten) Zonen Chat Nachricht an (in der aktuellen Zone). Der Zeitpunkt wird zurückgesetzt, wenn du die Zone wechselst. Dies kann hilfreich sein wenn man Werbung oder Ankündigugen in mehreren Zonen versenden möchte. Dies wird in der Kopfzeile des Chat Fensters angezeigt.")
+SafeAddString(PCHAT_CHARCOUNT_ZONE_POST_TRACKER_TOOLTIP, "Zeigt den Zeitpunkt der letzten ausgehenden (gesendeten) Zonen Chat Nachricht an (in der aktuellen Zone). Der Zeitpunkt wird zurückgesetzt, wenn du die Zone wechselst. Dies kann hilfreich sein wenn man Werbung oder Ankündigugen in mehreren Zonen versenden möchte. Dies wird mittig in der Kopfzeile des Chat Fensters angezeigt.")

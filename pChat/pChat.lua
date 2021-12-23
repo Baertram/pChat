@@ -26,19 +26,20 @@
 --=======================================================================================================================================
 
 --Working on:
---#12
+--
 
 --=======================================================================================================================================
--- Changelog version: 10.0.2.6 (last version 10.0.2.5)
+-- Changelog version: 10.0.2.7 (last version 10.0.2.6)
 --=======================================================================================================================================
 --Fixed:
---#12 Fixed spam message checking for non-set (nil) timestamps of self send messages (e.g. WT messages)
+--Removed debug messages
 
 --Changed:
 
 
 --Added:
-
+--Show typed character count at top of chat window (and show max 350 chars info) -> Thanks Coorbin
+--Show date & time of last posted zone chat message (for recruiting e.g.) -> Thanks Coorbin
 
 --Added on request:
 
