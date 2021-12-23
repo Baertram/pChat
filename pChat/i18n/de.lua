@@ -508,3 +508,11 @@ SafeAddString(PCHAT_MENTIONS_APPLYNAME_NAME ,  "Charakter Namen auch berücksich
 SafeAddString(PCHAT_MENTIONS_APPLYNAME_TOOLTIP ,  "Soll nicht nicht der Account Name, sondern auch der Charakter Name, berücksichtigt werden?\nAchtung: Dies wird für jeden Bestandteil deines Charakter Namens (also jeden durch Leerzeichen getrennten Teil) angewandt! z.B. wird bei  \'Baertram der Bärenfreund\' dann benachrichtigt, wenn jemand \'Baertram\', \'der\' oder \'Bärenfreund\' schreibt.\nDeaktiviere diese Option, wenn du einen sehr gewöhnlichen Namensbestandteil wie z.B. \'der\' in deinem Charakternamen verwendest.")
 SafeAddString(PCHAT_MENTIONS_WHOLEWORD_NAME ,  "Namen nur als ganze Wörter prüfen?")
 SafeAddString(PCHAT_MENTIONS_WHOLEWORD_TOOLTIP ,  "Charakter Namen werden nur als ganze Wörter geprüft, und nicht jeder Charakternamen Bestandteil (durch Leerzeichen getrennt) einzeln. Wenn du einen kurzen Charakternamen Bestandteil verendest, z.B. \'der\' in \'Baertram der Bärenfreund\', dann sollte diese Option dir helfen .")
+
+-- Coorbin20211223
+-- CharCount settings strings
+SafeAddString(PCHAT_CHARCOUNTH, "Chat Fenster Kopfbereich")
+SafeAddString(PCHAT_CHARCOUNT_ENABLE_CHECKBOX_NAME, "Zeige Anzahl getippter Zeichen")
+SafeAddString(PCHAT_CHARCOUNT_ENABLE_CHECKBOX_TOOLTIP, "Zeigt die Anzahl der aktuell getippten Zeichen des Text Eingabefeldes des Chats an, sowie die maximalen 350 Zeichen. Dies wird in der Kopfzeile des Chat Fensters angezeigt.")
+SafeAddString(PCHAT_CHARCOUNT_ZONE_POST_TRACKER_NAME, "Zeige letzten ausgehenden Zonen-Chat Zeitpunkt")
+SafeAddString(PCHAT_CHARCOUNT_ZONE_POST_TRACKER_TOOLTIP, "Zeigt den Zeitpunkt der letzten ausgehenden (gesendeten) Zonen Chat Nachricht an (in der aktuellen Zone). Der Zeitpunkt wird zurückgesetzt, wenn du die Zone wechselst. Dies kann hilfreich sein wenn man Werbung oder Ankündigugen in mehreren Zonen versenden möchte. Dies wird in der Kopfzeile des Chat Fensters angezeigt.")

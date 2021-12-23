@@ -180,6 +180,11 @@ function pChat.InitializeSettings()
 		ding = false,
 		selfchar = false,
 		wholenames = false,
+		
+		-- @Coorbin 20211222
+		-- CharCount
+		useCharCount = false,
+		charCountZonePostTracker = false,
 	}
 
 	--Helper for the format of guilds
@@ -1930,6 +1935,57 @@ function pChat.InitializeSettings()
 					getFunc = cm_getMentionWholeWordOption,
 					setFunc = cm_setMentionWholeWordOption,
 					tooltip = GetString(PCHAT_MENTIONS_WHOLEWORD_TOOLTIP),
+					default = false,
+					width = "full",
+				},
+			},
+		}
+		
+		-- Coorbin20211222
+		------------------------------------------------------------------------------------------------------------------------
+		--CharCount
+		--------------------Char Count Settings getter/setter functions
+    	local cc = pChat.charCount
+
+		local function cc_setUseCharCount(var)
+			db.useCharCount = var
+			cc.setHandlers()
+		end
+
+		local function cc_getUseCharCount()
+			return db.useCharCount
+		end
+
+		local function cc_setCharCountZonePostTracker(var)
+			db.charCountZonePostTracker = var
+			cc.setHandlers()
+		end
+
+		local function cc_getCharCountZonePostTracker()
+			return db.charCountZonePostTracker
+		end
+
+		-- Coorbin20211222
+		-- Chat Mentions Data
+		optionsData[#optionsData + 1] = {
+			type = "submenu",
+			name = GetString(PCHAT_CHARCOUNTH),
+			controls = {
+				{
+					type = "checkbox",
+					name = GetString(PCHAT_CHARCOUNT_ENABLE_CHECKBOX_NAME),
+					getFunc = cc_getUseCharCount,
+					setFunc = cc_setUseCharCount,
+					tooltip = GetString(PCHAT_CHARCOUNT_ENABLE_CHECKBOX_TOOLTIP),
+					default = false,
+					width = "full",
+				},
+				{
+					type = "checkbox",
+					name = GetString(PCHAT_CHARCOUNT_ZONE_POST_TRACKER_NAME),
+					getFunc = cc_getCharCountZonePostTracker,
+					setFunc = cc_setCharCountZonePostTracker,
+					tooltip = GetString(PCHAT_CHARCOUNT_ZONE_POST_TRACKER_TOOLTIP),
 					default = false,
 					width = "full",
 				},

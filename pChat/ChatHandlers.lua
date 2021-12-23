@@ -130,6 +130,12 @@ function pChat.InitializeChatHandlers()
         -- Function to format message
         message = FormatMessage(channelID, from, text, isCustomerService, fromDisplayName, originalFrom, originalText, DDSBeforeAll, TextBeforeAll, DDSBeforeSender, TextBeforeSender, TextAfterSender, DDSAfterSender, DDSBeforeText, TextBeforeText, TextAfterText, DDSAfterText)
         if not message then return end
+		
+		--12/22/21 @Coorbin - CharCount handler
+		if (db.useCharCount == true or db.charCountZonePostTracker == true) and fromClean == pChat.pChatData.localPlayer and channelID == CHAT_CHANNEL_ZONE then
+				pChat.charCount.postedstr =  " Z@" .. pChat.CreateTimestamp(GetTimeString())
+				pChat.charCount.updateLabelText()
+		end
 
         return message, info.saveTarget
 
@@ -176,4 +182,72 @@ function pChat.InitializeChatHandlers()
     if db.useGroupTypeChangedChatHandler == true then
         CHAT_ROUTER:RegisterMessageFormatter(EVENT_GROUP_TYPE_CHANGED, OnGroupTypeChanged)
     end
+	
+	--20211222 @Coorbin - Init CharCount functionality
+	pChat.charCount = {
+		postedstr = "",
+		control = nil,
+		hookedOTC = false,
+		updateLabelText = function()
+			if pChat.charCount ~= nil and pChat.charCount.control ~= nil then
+				if db.useCharCount == true then
+					if db.charCountZonePostTracker == true then
+						pChat.charCount.control:SetText(tostring(string.len(ZO_ChatWindowTextEntryEditBox:GetText())) .. "/350" .. pChat.charCount.postedstr)
+					else
+						pChat.charCount.control:SetText(tostring(string.len(ZO_ChatWindowTextEntryEditBox:GetText())) .. "/350")
+					end
+				else
+					if db.charCountZonePostTracker == true then
+						pChat.charCount.control:SetText(pChat.charCount.postedstr)
+					else
+						pChat.charCount.control:SetText("")
+					end
+				end
+			end
+		end,
+		curr = ZO_ChatWindowTextEntryEditBox:GetHandler("OnTextChanged"),
+		createControl = function()
+			pChat.charCount.control = WINDOW_MANAGER:CreateControl("charcount", ZO_ChatWindow, CT_LABEL)
+			pChat.charCount.control:SetFont("ZoFontWinH4")
+			pChat.charCount.control:SetHeight(33)
+			pChat.charCount.control:SetWrapMode(TEXT_WRAP_MODE_ELLIPSIS)
+			pChat.charCount.control:SetAnchor(CENTER, ZO_ChatWindow, TOP, 0, 30)
+			pChat.charCount.updateLabelText()
+		end,
+		setHandlers = function()
+			if db.useCharCount == true then
+				if pChat.charCount.hookedOTC ~= true then
+					ZO_ChatWindowTextEntryEditBox:SetHandler("OnTextChanged", function(self)
+						pChat.charCount.updateLabelText()
+						if pChat.charCount.curr ~= nil then
+							pChat.charCount.curr(self)
+						end
+					end)
+					pChat.charCount.hookedOTC = true
+				end
+			else
+				if pChat.charCount.hookedOTC == true and pChat.charCount.curr ~= nil then
+					ZO_ChatWindowTextEntryEditBox:SetHandler("OnTextChanged", pChat.charCount.curr)
+				end
+				pChat.charCount.hookedOTC = false
+			end
+			if db.charCountZonePostTracker == true then
+				if pChat.charCount.hookedEPA ~= true then
+					EVENT_MANAGER:RegisterForEvent("pChat.charCount", EVENT_PLAYER_ACTIVATED, function()
+						pChat.charCount.postedstr = ""
+						pChat.charCount.updateLabelText()
+					end)
+					pChat.charCount.hookedEPA = true
+				end
+			else
+				if pChat.charCount.hookedEPA == true then
+					EVENT_MANAGER:UnregisterForEvent("pChat.charCount", EVENT_PLAYER_ACTIVATED)
+				end
+				pChat.charCount.hookedEPA = false
+			end
+			pChat.charCount.updateLabelText()
+		end,
+	}
+	pChat.charCount.createControl()
+	pChat.charCount.setHandlers()
 end
