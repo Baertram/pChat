@@ -1964,10 +1964,6 @@ function pChat.InitializeSettings()
 		local function cc_getCharCountZonePostTracker()
 			return db.charCountZonePostTracker
 		end
-		
-		local function cc_getCharCountZonePostTrackerEnabled()
-			return db.useCharCount == false
-		end
 
 		-- Coorbin20211222
 		-- Chat Mentions Data
