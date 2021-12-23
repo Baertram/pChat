@@ -300,6 +300,34 @@ function pChat.InitializeSettings()
 			db.defaultTab = 1
 		end
 
+
+		-- Coorbin20211222
+		------------------------------------------------------------------------------------------------------------------------
+		--CharCount
+		--------------------Char Count Settings getter/setter functions
+    	local cc = pChat.charCount
+
+		local function cc_setUseCharCount(var)
+			db.useCharCount = var
+			cc.setHandlers()
+		end
+
+		local function cc_getUseCharCount()
+			return db.useCharCount
+		end
+
+		local function cc_setCharCountZonePostTracker(var)
+			db.charCountZonePostTracker = var
+			cc.setHandlers()
+		end
+
+		local function cc_getCharCountZonePostTracker()
+			return db.charCountZonePostTracker
+		end
+		-- END Coorbin20211222 charCount
+		------------------------------------------------------------------------------------------------------------------------
+
+
 		--The LAM options data table
 		local optionsData = {}
 
@@ -567,6 +595,35 @@ function pChat.InitializeSettings()
 					type = "submenu",
 					name = GetString(PCHAT_APPARENCEMH),
 					controls = {
+						-- BEGIN - Coorbin20211222
+						-- BEGIN - Chat char count settings
+						{
+							type = "submenu",
+							name = GetString(PCHAT_CHARCOUNTH),
+							controls = {
+								{
+									type = "checkbox",
+									name = GetString(PCHAT_CHARCOUNT_ENABLE_CHECKBOX_NAME),
+									getFunc = cc_getUseCharCount,
+									setFunc = cc_setUseCharCount,
+									tooltip = GetString(PCHAT_CHARCOUNT_ENABLE_CHECKBOX_TOOLTIP),
+									default = false,
+									width = "full",
+								},
+								{
+									type = "checkbox",
+									name = GetString(PCHAT_CHARCOUNT_ZONE_POST_TRACKER_NAME),
+									getFunc = cc_getCharCountZonePostTracker,
+									setFunc = cc_setCharCountZonePostTracker,
+									tooltip = GetString(PCHAT_CHARCOUNT_ZONE_POST_TRACKER_TOOLTIP),
+									default = false,
+									width = "full",
+								},
+							},
+						},
+						-- END - Coorbin20211222
+						-- END - Chat char count settings
+------------------------------------------------------------------------------------------------------------------------
 						{
 							type = "submenu",
 							name = GetString(PCHAT_SETTINGS_EDITBOX_HOOKS),
@@ -1941,57 +1998,6 @@ function pChat.InitializeSettings()
 			},
 		}
 		
-		-- Coorbin20211222
-		------------------------------------------------------------------------------------------------------------------------
-		--CharCount
-		--------------------Char Count Settings getter/setter functions
-    	local cc = pChat.charCount
-
-		local function cc_setUseCharCount(var)
-			db.useCharCount = var
-			cc.setHandlers()
-		end
-
-		local function cc_getUseCharCount()
-			return db.useCharCount
-		end
-
-		local function cc_setCharCountZonePostTracker(var)
-			db.charCountZonePostTracker = var
-			cc.setHandlers()
-		end
-
-		local function cc_getCharCountZonePostTracker()
-			return db.charCountZonePostTracker
-		end
-
-		-- Coorbin20211222
-		-- Chat Mentions Data
-		optionsData[#optionsData + 1] = {
-			type = "submenu",
-			name = GetString(PCHAT_CHARCOUNTH),
-			controls = {
-				{
-					type = "checkbox",
-					name = GetString(PCHAT_CHARCOUNT_ENABLE_CHECKBOX_NAME),
-					getFunc = cc_getUseCharCount,
-					setFunc = cc_setUseCharCount,
-					tooltip = GetString(PCHAT_CHARCOUNT_ENABLE_CHECKBOX_TOOLTIP),
-					default = false,
-					width = "full",
-				},
-				{
-					type = "checkbox",
-					name = GetString(PCHAT_CHARCOUNT_ZONE_POST_TRACKER_NAME),
-					getFunc = cc_getCharCountZonePostTracker,
-					setFunc = cc_setCharCountZonePostTracker,
-					tooltip = GetString(PCHAT_CHARCOUNT_ZONE_POST_TRACKER_TOOLTIP),
-					default = false,
-					width = "full",
-				},
-			},
-		}
-
 
 		--
 		-- Baertram 2021-06-06
