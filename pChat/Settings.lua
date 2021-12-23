@@ -184,7 +184,7 @@ function pChat.InitializeSettings()
 		-- @Coorbin 20211222
 		-- CharCount
 		useCharCount = false,
-		charCountZonePostTracker
+		charCountZonePostTracker = false,
 	}
 
 	--Helper for the format of guilds
