@@ -9,7 +9,7 @@
 --#3	2020-03-27 Baetram, bug: Enter into a group with the dungeon finder will not change to the group chat channel /group automatically, if setting is enabled
 ------------------------------------------------------------------------------------------------------------------------
 --#7    2020-06-20 Cutholen, bug: Time stamps are not shown with system messages anymore
---> 2020-09-18: Not fixable at the moment as system message timestamps depend on the used libraries lik LibDebugLogger and LibChatMessage etc.
+--> 2020-09-18: Not fixable at the moment as system message timestamps depend on the used libraries like LibDebugLogger and LibChatMessage etc.
 --> Further tests needed
 ------------------------------------------------------------------------------------------------------------------------
 --#9    2020-07-20 Marazota Collectibles linked into chat will not show properly the collectible's link
@@ -23,27 +23,23 @@
 --and then I copy the message and paste I get:
 --[19:40:15] You craft [Dwarven Ingot] x33, [Ebony Ingot] x232, [Orichalcum Ingot] x12, [Iron Ingot] x134, [Steel Ingot] x83, [Rubedite Ingot] x91, [Sanded Oak] x91, [Voidstone Ingot] x58, [Quicksilver Ingot] x44, [Galatite Ingot] x73.
 ------------------------------------------------------------------------------------------------------------------------
--- #11  2020-07-12 HowellQagan Using "Copy channel talk" or "Copy whole chat" will force the scene to stay on hudui sometimes
---When using "Copy channel talk" or "Copy whole chat" functions, after closing the window containing the chatlogs,
---if you open anything that switches the scene to hudui, it will stay on hudui when you close that.
---So if I open the map, or skills, or inventory etc, it will not go back to hud scene. Reloadui fixes it.
---Tested with only libs + pChat active.
 --=======================================================================================================================================
 
 --Working on:
---#12
+--
 
 --=======================================================================================================================================
--- Changelog version: 10.0.2.6 (last version 10.0.2.5)
+-- Changelog version: 10.0.2.7 (last version 10.0.2.6)
 --=======================================================================================================================================
 --Fixed:
---#12 Fixed spam message checking for non-set (nil) timestamps of self send messages (e.g. WT messages)
+--Removed debug messages
 
 --Changed:
 
 
 --Added:
-
+--Show typed character count at top of chat window (and show max 350 chars info) -> Thanks Coorbin
+--Show date & time of last posted zone chat message (for recruiting e.g.) -> Thanks Coorbin
 
 --Added on request:
 
@@ -65,6 +61,9 @@ local EM = EVENT_MANAGER
 local strlen = string.len
 local strfind = string.find
 local strsub = string.sub
+
+local chatChannelLangToLangStr = CONSTANTS.chatChannelLangToLangStr
+
 
 --======================================================================================================================
 --pChat Variables--
@@ -199,7 +198,8 @@ do
                 pChatColor = db.colours[2 * CHAT_CHANNEL_GUILD_1]
             elseif db.allGuildsSameColour and (channelId >= CHAT_CHANNEL_OFFICER_1 and channelId <= CHAT_CHANNEL_OFFICER_5) then
                 pChatColor = db.colours[2 * CHAT_CHANNEL_OFFICER_1]
-            elseif db.allZonesSameColour and (channelId >= CHAT_CHANNEL_ZONE_LANGUAGE_1 and channelId <= CHAT_CHANNEL_ZONE_LANGUAGE_5) then
+            --elseif db.allZonesSameColour and (channelId >= CHAT_CHANNEL_ZONE_LANGUAGE_1 and channelId <= CHAT_CHANNEL_ZONE_LANGUAGE_5) then
+            elseif db.allZonesSameColour and chatChannelLangToLangStr[channelId] ~= nil then
                 pChatColor = db.colours[2 * CHAT_CHANNEL_ZONE]
             else
                 pChatColor = db.colours[2 * channelId]
@@ -313,6 +313,7 @@ do
     ChannelInfo[CHAT_CHANNEL_ZONE_LANGUAGE_3].channelLinkable = true
     ChannelInfo[CHAT_CHANNEL_ZONE_LANGUAGE_4].channelLinkable = true
     ChannelInfo[CHAT_CHANNEL_ZONE_LANGUAGE_5].channelLinkable = true
+    ChannelInfo[CHAT_CHANNEL_ZONE_LANGUAGE_6].channelLinkable = true
 end
 
 --Do some checks after the EVENT_PLAYER_ACTIVATED task was done

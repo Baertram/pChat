@@ -1,6 +1,9 @@
 local CONSTANTS = pChat.CONSTANTS
 local ADDON_NAME = CONSTANTS.ADDON_NAME
 
+local strfor                   = string.format
+local chatChannelLangToLangStr = CONSTANTS.chatChannelLangToLangStr
+
 
 function pChat.InitializeMessageFormatters()
     local pChatData = pChat.pChatData
@@ -65,7 +68,7 @@ function pChat.InitializeMessageFormatters()
                 and (pChatData.tlds[tld:lower()] or tld:find("^%d+$") and subd:find("^%d+%.%d+%.%d+%.$") and math.max(tld, subd:match("^(%d+)%.(%d+)%.(%d+)%.$")) < 256)
                 and not subd:find("%W%W")
             then
-                local urlHandled = string.format("|H1:%s:%s:%s|h%s|h", CONSTANTS.PCHAT_LINK, db.lineNumber, CONSTANTS.PCHAT_URL_CHAN, url)
+                local urlHandled = strfor("|H1:%s:%s:%s|h%s|h", CONSTANTS.PCHAT_LINK, db.lineNumber, CONSTANTS.PCHAT_URL_CHAN, url)
                 url = url:gsub("([?+-])", "%%%1") -- don't understand why, 1st arg of gsub must be escaped and 2nd not.
                 text = text:gsub(url, urlHandled)
             end
@@ -279,14 +282,14 @@ function pChat.InitializeMessageFormatters()
                     end
 
                     splittedStart = splittedEnd + 1
-                    newText = newText .. string.format("|H1:%s:%s:%s|h%s|h", CONSTANTS.PCHAT_LINK, numLine, chanCode, splittedString)
+                    newText = newText .. strfor("|H1:%s:%s:%s|h%s|h", CONSTANTS.PCHAT_LINK, numLine, chanCode, splittedString)
                     splits = splits + 1
 
                 else
                     splittedString = text:sub(splittedStart)
                     local textSplittedlen = splittedString:len()
                     if textSplittedlen > 0 then
-                        newText = newText .. string.format("|H1:%s:%s:%s|h%s|h", CONSTANTS.PCHAT_LINK, numLine, chanCode, splittedString)
+                        newText = newText .. strfor("|H1:%s:%s:%s|h%s|h", CONSTANTS.PCHAT_LINK, numLine, chanCode, splittedString)
                     end
                     needToSplit = false
                 end
@@ -295,7 +298,7 @@ function pChat.InitializeMessageFormatters()
         else
             -- When dumping back, the "from" section is sent here. It will add handler to spaces. prevent it to avoid an uneeded increase of the message.
             if not (text == " " or text == ": ") then
-                newText = string.format("|H1:%s:%s:%s|h%s|h", CONSTANTS.PCHAT_LINK, numLine, chanCode, text)
+                newText = strfor("|H1:%s:%s:%s|h%s|h", CONSTANTS.PCHAT_LINK, numLine, chanCode, text)
             else
                 newText = text
             end
@@ -711,7 +714,7 @@ function pChat.InitializeMessageFormatters()
     -- Executed when EVENT_CHAT_MESSAGE_CHANNEL triggers
     -- Formats the message
     local function FormatMessage(chanCode, from, text, isCS, fromDisplayName, originalFrom, originalText, DDSBeforeAll, TextBeforeAll, DDSBeforeSender, TextBeforeSender, TextAfterSender, DDSAfterSender, DDSBeforeText, TextBeforeText, TextAfterText, DDSAfterText)
-        logger.verbose:Debug(string.format("FormatMessage-Line#: %s, channel %s: %s(%s/%s) %s", tostring(db.lineNumber), tostring(chanCode), tostring(originalFrom), tostring(fromDisplayName), tostring(from), tostring(text)))
+        logger.verbose:Debug(strfor("FormatMessage-Line#: %s, channel %s: %s(%s/%s) %s", tostring(db.lineNumber), tostring(chanCode), tostring(originalFrom), tostring(fromDisplayName), tostring(from), tostring(text)))
         local notHandled = false
 
         -- Will calculate if this message is a spam
@@ -813,11 +816,11 @@ function pChat.InitializeMessageFormatters()
             -- Add PCHAT_HANDLER for display
             local timestamp = ZO_LinkHandler_CreateLink(pChat.CreateTimestamp(GetTimeString()), nil, CONSTANTS.PCHAT_LINK, db.lineNumber .. ":" .. chanCode) .. " "
 
-            logger:Debug(">showTimestamp:", string.format("timecol: %s, timestamp: %s", tostring(timecol), tostring(timestamp)))
+            logger:Debug(">showTimestamp:", strfor("timecol: %s, timestamp: %s", tostring(timecol), tostring(timestamp)))
 
             -- Timestamp color
-            message = message .. string.format("%s%s|r", timecol, timestamp)
-            db.LineStrings[db.lineNumber].rawValue = string.format("%s[%s] |r", timecol, pChat.CreateTimestamp(GetTimeString()))
+            message = message .. strfor("%s%s|r", timecol, timestamp)
+            db.LineStrings[db.lineNumber].rawValue = strfor("%s[%s] |r", timecol, pChat.CreateTimestamp(GetTimeString()))
         else
             --Fixed lines by Maggi (pChat PrivateMessage-> Pastebin link: https://pastebin.com/raw/dM7GQCsY)
             db.LineStrings[db.lineNumber].rawValue = ""
@@ -849,10 +852,10 @@ function pChat.InitializeMessageFormatters()
             if db.delzonetags then
 
                 -- Used for Copy
-                db.LineStrings[db.lineNumber].rawFrom = string.format(chatStrings.copystandard, db.LineStrings[db.lineNumber].rawFrom)
+                db.LineStrings[db.lineNumber].rawFrom = strfor(chatStrings.copystandard, db.LineStrings[db.lineNumber].rawFrom)
 
-                message = message .. string.format(chatStrings.standard, lcol, new_from, carriageReturn, rcol, linkedText)
-                db.LineStrings[db.lineNumber].rawValue = db.LineStrings[db.lineNumber].rawValue .. string.format(chatStrings.standard, lcol, new_from, carriageReturn, rcol, text)
+                message = message .. strfor(chatStrings.standard, lcol, new_from, carriageReturn, rcol, linkedText)
+                db.LineStrings[db.lineNumber].rawValue = db.LineStrings[db.lineNumber].rawValue .. strfor(chatStrings.standard, lcol, new_from, carriageReturn, rcol, text)
                 -- Keep them
             else
                 -- Init zonetag to keep the channel tag
@@ -862,13 +865,13 @@ function pChat.InitializeMessageFormatters()
                     zonetag = GetString(PCHAT_ZONETAGPARTY)
 
                     -- Used for Copy
-                    db.LineStrings[db.lineNumber].rawFrom = string.format(chatStrings.copyesoparty, zonetag, db.LineStrings[db.lineNumber].rawFrom)
+                    db.LineStrings[db.lineNumber].rawFrom = strfor(chatStrings.copyesoparty, zonetag, db.LineStrings[db.lineNumber].rawFrom)
 
                     -- PartyHandler
                     zonetag = ZO_LinkHandler_CreateLink(zonetag, nil, CHANNEL_LINK_TYPE, chanCode)
 
-                    message = message .. string.format(chatStrings.esoparty, lcol, zonetag, new_from, carriageReturn, rcol, linkedText)
-                    db.LineStrings[db.lineNumber].rawValue = db.LineStrings[db.lineNumber].rawValue .. string.format(chatStrings.esoparty, lcol, zonetag, new_from, carriageReturn, rcol, text)
+                    message = message .. strfor(chatStrings.esoparty, lcol, zonetag, new_from, carriageReturn, rcol, linkedText)
+                    db.LineStrings[db.lineNumber].rawValue = db.LineStrings[db.lineNumber].rawValue .. strfor(chatStrings.esoparty, lcol, zonetag, new_from, carriageReturn, rcol, text)
                 else
                     -- Pattern for say/yell/zone is "player says:" ..
                     if chanCode == CHAT_CHANNEL_SAY then zonetag = GetString(PCHAT_ZONETAGSAY)
@@ -877,13 +880,13 @@ function pChat.InitializeMessageFormatters()
                     end
 
                     -- Used for Copy
-                    db.LineStrings[db.lineNumber].rawFrom = string.format(chatStrings.copyesostandard, db.LineStrings[db.lineNumber].rawFrom, zonetag)
+                    db.LineStrings[db.lineNumber].rawFrom = strfor(chatStrings.copyesostandard, db.LineStrings[db.lineNumber].rawFrom, zonetag)
 
                     -- pChat Handler
-                    zonetag = string.format("|H1:p:%s|h%s|h", chanCode, zonetag)
+                    zonetag = strfor("|H1:p:%s|h%s|h", chanCode, zonetag)
 
-                    message = message .. string.format(chatStrings.esostandart, lcol, new_from, zonetag, carriageReturn, rcol, linkedText)
-                    db.LineStrings[db.lineNumber].rawValue = db.LineStrings[db.lineNumber].rawValue .. string.format(chatStrings.esostandart, lcol, new_from, zonetag, carriageReturn, rcol, text)
+                    message = message .. strfor(chatStrings.esostandart, lcol, new_from, zonetag, carriageReturn, rcol, linkedText)
+                    db.LineStrings[db.lineNumber].rawValue = db.LineStrings[db.lineNumber].rawValue .. strfor(chatStrings.esostandart, lcol, new_from, zonetag, carriageReturn, rcol, text)
                 end
             end
 
@@ -891,10 +894,10 @@ function pChat.InitializeMessageFormatters()
         elseif chanCode == CHAT_CHANNEL_MONSTER_SAY or chanCode == CHAT_CHANNEL_MONSTER_YELL or chanCode == CHAT_CHANNEL_MONSTER_WHISPER then
 
             -- Used for Copy
-            db.LineStrings[db.lineNumber].rawFrom = string.format(chatStrings.copynpc, db.LineStrings[db.lineNumber].rawFrom)
+            db.LineStrings[db.lineNumber].rawFrom = strfor(chatStrings.copynpc, db.LineStrings[db.lineNumber].rawFrom)
 
-            message = message .. string.format(chatStrings.standard, lcol, new_from, carriageReturn, rcol, linkedText)
-            db.LineStrings[db.lineNumber].rawValue = db.LineStrings[db.lineNumber].rawValue .. string.format(chatStrings.standard, lcol, new_from, carriageReturn, rcol, text)
+            message = message .. strfor(chatStrings.standard, lcol, new_from, carriageReturn, rcol, linkedText)
+            db.LineStrings[db.lineNumber].rawValue = db.LineStrings[db.lineNumber].rawValue .. strfor(chatStrings.standard, lcol, new_from, carriageReturn, rcol, text)
 
             -- Incoming whispers
         elseif chanCode == CHAT_CHANNEL_WHISPER then
@@ -909,19 +912,19 @@ function pChat.InitializeMessageFormatters()
             end
 
             -- Used for Copy
-            db.LineStrings[db.lineNumber].rawFrom = string.format(chatStrings.copytellIn, db.LineStrings[db.lineNumber].rawFrom)
+            db.LineStrings[db.lineNumber].rawFrom = strfor(chatStrings.copytellIn, db.LineStrings[db.lineNumber].rawFrom)
 
-            message = message .. string.format(chatStrings.tellIn, lcol, new_from, carriageReturn, rcol, linkedText)
-            db.LineStrings[db.lineNumber].rawValue = db.LineStrings[db.lineNumber].rawValue .. string.format(chatStrings.tellIn, lcol, new_from, carriageReturn, rcol, text)
+            message = message .. strfor(chatStrings.tellIn, lcol, new_from, carriageReturn, rcol, linkedText)
+            db.LineStrings[db.lineNumber].rawValue = db.LineStrings[db.lineNumber].rawValue .. strfor(chatStrings.tellIn, lcol, new_from, carriageReturn, rcol, text)
 
             -- Outgoing whispers
         elseif chanCode == CHAT_CHANNEL_WHISPER_SENT then
 
             -- Used for Copy
-            db.LineStrings[db.lineNumber].rawFrom = string.format(chatStrings.copytellOut, db.LineStrings[db.lineNumber].rawFrom)
+            db.LineStrings[db.lineNumber].rawFrom = strfor(chatStrings.copytellOut, db.LineStrings[db.lineNumber].rawFrom)
 
-            message = message .. string.format(chatStrings.tellOut, lcol, new_from, carriageReturn, rcol, linkedText)
-            db.LineStrings[db.lineNumber].rawValue = db.LineStrings[db.lineNumber].rawValue .. string.format(chatStrings.tellOut, lcol, new_from, carriageReturn, rcol, text)
+            message = message .. strfor(chatStrings.tellOut, lcol, new_from, carriageReturn, rcol, linkedText)
+            db.LineStrings[db.lineNumber].rawValue = db.LineStrings[db.lineNumber].rawValue .. strfor(chatStrings.tellOut, lcol, new_from, carriageReturn, rcol, text)
 
             -- Guild chat
         elseif chanCode >= CHAT_CHANNEL_GUILD_1 and chanCode <= CHAT_CHANNEL_GUILD_5 then
@@ -934,24 +937,24 @@ function pChat.InitializeMessageFormatters()
                 --logger:Debug(">>gtag: %s, chanCode: %d, tag: %s", gtag, chanCode, tag)
 
                 -- Used for Copy
-                db.LineStrings[db.lineNumber].rawFrom = string.format(chatStrings.copyguild, gtag, db.LineStrings[db.lineNumber].rawFrom)
+                db.LineStrings[db.lineNumber].rawFrom = strfor(chatStrings.copyguild, gtag, db.LineStrings[db.lineNumber].rawFrom)
 
                 -- GuildHandler
                 gtag = ZO_LinkHandler_CreateLink(gtag, nil, CHANNEL_LINK_TYPE, chanCode)
-                message = message .. string.format(chatStrings.guild, lcol, gtag, new_from, carriageReturn, rcol, linkedText)
-                db.LineStrings[db.lineNumber].rawValue = db.LineStrings[db.lineNumber].rawValue .. string.format(chatStrings.guild, lcol, gtag, new_from, carriageReturn, rcol, text)
+                message = message .. strfor(chatStrings.guild, lcol, gtag, new_from, carriageReturn, rcol, linkedText)
+                db.LineStrings[db.lineNumber].rawValue = db.LineStrings[db.lineNumber].rawValue .. strfor(chatStrings.guild, lcol, gtag, new_from, carriageReturn, rcol, text)
 
             else
                 --logger:Debug(">No guild number")
 
                 -- Used for Copy
-                db.LineStrings[db.lineNumber].rawFrom = string.format(chatStrings.copyguild, gtag, db.LineStrings[db.lineNumber].rawFrom)
+                db.LineStrings[db.lineNumber].rawFrom = strfor(chatStrings.copyguild, gtag, db.LineStrings[db.lineNumber].rawFrom)
 
                 -- GuildHandler
                 gtag = ZO_LinkHandler_CreateLink(gtag, nil, CHANNEL_LINK_TYPE, chanCode)
 
-                message = message .. string.format(chatStrings.guild, lcol, gtag, new_from, carriageReturn, rcol, linkedText)
-                db.LineStrings[db.lineNumber].rawValue = db.LineStrings[db.lineNumber].rawValue .. string.format(chatStrings.guild, lcol, gtag, new_from, carriageReturn, rcol, text)
+                message = message .. strfor(chatStrings.guild, lcol, gtag, new_from, carriageReturn, rcol, linkedText)
+                db.LineStrings[db.lineNumber].rawValue = db.LineStrings[db.lineNumber].rawValue .. strfor(chatStrings.guild, lcol, gtag, new_from, carriageReturn, rcol, text)
 
             end
 
@@ -963,61 +966,65 @@ function pChat.InitializeMessageFormatters()
                 gtag = (chanCode - CHAT_CHANNEL_OFFICER_1 + 1) .. "-" .. tag
 
                 -- Used for Copy
-                db.LineStrings[db.lineNumber].rawFrom = string.format(chatStrings.copyguild, gtag, db.LineStrings[db.lineNumber].rawFrom)
+                db.LineStrings[db.lineNumber].rawFrom = strfor(chatStrings.copyguild, gtag, db.LineStrings[db.lineNumber].rawFrom)
 
                 -- GuildHandler
                 gtag = ZO_LinkHandler_CreateLink(gtag, nil, CHANNEL_LINK_TYPE, chanCode)
 
-                message = message .. string.format(chatStrings.guild, lcol, gtag, new_from, carriageReturn, rcol, linkedText)
-                db.LineStrings[db.lineNumber].rawValue = db.LineStrings[db.lineNumber].rawValue .. string.format(chatStrings.guild, lcol, gtag, new_from, carriageReturn, rcol, text)
+                message = message .. strfor(chatStrings.guild, lcol, gtag, new_from, carriageReturn, rcol, linkedText)
+                db.LineStrings[db.lineNumber].rawValue = db.LineStrings[db.lineNumber].rawValue .. strfor(chatStrings.guild, lcol, gtag, new_from, carriageReturn, rcol, text)
             else
 
                 -- Used for Copy
-                db.LineStrings[db.lineNumber].rawFrom = string.format(chatStrings.copyguild, gtag, db.LineStrings[db.lineNumber].rawFrom)
+                db.LineStrings[db.lineNumber].rawFrom = strfor(chatStrings.copyguild, gtag, db.LineStrings[db.lineNumber].rawFrom)
 
                 -- GuildHandler
                 gtag = ZO_LinkHandler_CreateLink(gtag, nil, CHANNEL_LINK_TYPE, chanCode)
 
-                message = message .. string.format(chatStrings.guild, lcol, gtag, new_from, carriageReturn, rcol, linkedText)
-                db.LineStrings[db.lineNumber].rawValue = db.LineStrings[db.lineNumber].rawValue .. string.format(chatStrings.guild, lcol, gtag, new_from, carriageReturn, rcol, text)
+                message = message .. strfor(chatStrings.guild, lcol, gtag, new_from, carriageReturn, rcol, linkedText)
+                db.LineStrings[db.lineNumber].rawValue = db.LineStrings[db.lineNumber].rawValue .. strfor(chatStrings.guild, lcol, gtag, new_from, carriageReturn, rcol, text)
             end
 
             -- Player emotes
         elseif chanCode == CHAT_CHANNEL_EMOTE then
 
-            db.LineStrings[db.lineNumber].rawFrom = string.format(chatStrings.copyemote, db.LineStrings[db.lineNumber].rawFrom)
-            message = message .. string.format(chatStrings.emote, lcol, new_from, rcol, linkedText)
-            db.LineStrings[db.lineNumber].rawValue = db.LineStrings[db.lineNumber].rawValue .. string.format(chatStrings.emote, lcol, new_from, rcol, text)
+            db.LineStrings[db.lineNumber].rawFrom = strfor(chatStrings.copyemote, db.LineStrings[db.lineNumber].rawFrom)
+            message = message .. strfor(chatStrings.emote, lcol, new_from, rcol, linkedText)
+            db.LineStrings[db.lineNumber].rawValue = db.LineStrings[db.lineNumber].rawValue .. strfor(chatStrings.emote, lcol, new_from, rcol, text)
 
             -- NPC emotes
         elseif chanCode == CHAT_CHANNEL_MONSTER_EMOTE then
 
             -- Used for Copy
-            db.LineStrings[db.lineNumber].rawFrom = string.format(chatStrings.copyemote, db.LineStrings[db.lineNumber].rawFrom)
+            db.LineStrings[db.lineNumber].rawFrom = strfor(chatStrings.copyemote, db.LineStrings[db.lineNumber].rawFrom)
 
-            message = message .. string.format(chatStrings.emote, lcol, new_from, rcol, linkedText)
-            db.LineStrings[db.lineNumber].rawValue = db.LineStrings[db.lineNumber].rawValue .. string.format(chatStrings.emote, lcol, new_from, rcol, text)
+            message = message .. strfor(chatStrings.emote, lcol, new_from, rcol, linkedText)
+            db.LineStrings[db.lineNumber].rawValue = db.LineStrings[db.lineNumber].rawValue .. strfor(chatStrings.emote, lcol, new_from, rcol, text)
 
-            -- Language zones
-        elseif chanCode >= CHAT_CHANNEL_ZONE_LANGUAGE_1 and chanCode <= CHAT_CHANNEL_ZONE_LANGUAGE_5 then
-            local lang
-            if chanCode == CHAT_CHANNEL_ZONE_LANGUAGE_1 then lang = "EN"
-            elseif chanCode == CHAT_CHANNEL_ZONE_LANGUAGE_2 then lang = "FR"
-            elseif chanCode == CHAT_CHANNEL_ZONE_LANGUAGE_3 then lang = "DE"
-            elseif chanCode == CHAT_CHANNEL_ZONE_LANGUAGE_4 then lang = "JP"
-            elseif chanCode == CHAT_CHANNEL_ZONE_LANGUAGE_5 then lang = "RU"
-            end
-
-            -- Used for Copy
-            db.LineStrings[db.lineNumber].rawFrom = string.format(chatStrings.copylanguage, lang, db.LineStrings[db.lineNumber].rawFrom)
-
-            message = message .. string.format(chatStrings.language, lcol, lang, new_from, carriageReturn, rcol, linkedText)
-            db.LineStrings[db.lineNumber].rawValue = db.LineStrings[db.lineNumber].rawValue .. string.format(chatStrings.language, lcol, lang, new_from, carriageReturn, rcol, text)
-
-            -- Unknown messages - just pass it through, no changes.
         else
-            notHandled = true
-            message = text
+            -- Language zones
+            local lang = chatChannelLangToLangStr[chanCode]
+            --[[
+            elseif chanCode >= CHAT_CHANNEL_ZONE_LANGUAGE_1 and chanCode <= CHAT_CHANNEL_ZONE_LANGUAGE_5 then
+                local lang
+                if chanCode == CHAT_CHANNEL_ZONE_LANGUAGE_1 then lang = "EN"
+                elseif chanCode == CHAT_CHANNEL_ZONE_LANGUAGE_2 then lang = "FR"
+                elseif chanCode == CHAT_CHANNEL_ZONE_LANGUAGE_3 then lang = "DE"
+                elseif chanCode == CHAT_CHANNEL_ZONE_LANGUAGE_4 then lang = "JP"
+                elseif chanCode == CHAT_CHANNEL_ZONE_LANGUAGE_5 then lang = "RU"
+                end
+            ]]
+            if lang ~= nil then
+                -- Used for Copy
+                db.LineStrings[db.lineNumber].rawFrom = strfor(chatStrings.copylanguage, lang, db.LineStrings[db.lineNumber].rawFrom)
+
+                message = message .. strfor(chatStrings.language, lcol, lang, new_from, carriageReturn, rcol, linkedText)
+                db.LineStrings[db.lineNumber].rawValue = db.LineStrings[db.lineNumber].rawValue .. strfor(chatStrings.language, lcol, lang, new_from, carriageReturn, rcol, text)
+            else
+                -- Unknown messages - just pass it through, no changes.
+                notHandled = true
+                message = text
+            end
         end
 
         db.LineStrings[db.lineNumber].rawDisplayed = message
@@ -1025,18 +1032,18 @@ function pChat.InitializeMessageFormatters()
         -- Only if handled by pChat
 
         if not notHandled then
-            -- Store message and params into an array for copy system and SpamFiltering
-            pChat.StorelineNumber(GetTimeStamp(), db.LineStrings[db.lineNumber].rawFrom, text, chanCode, originalFrom)
+        -- Store message and params into an array for copy system and SpamFiltering
+        pChat.StorelineNumber(GetTimeStamp(), db.LineStrings[db.lineNumber].rawFrom, text, chanCode, originalFrom)
         end
 
         -- Needs to be after .storelineNumber()
         if chanCode == CHAT_CHANNEL_WHISPER then
-            pChat.OnIMReceived(displayedFrom, db.lineNumber - 1)
-        end
+        pChat.OnIMReceived(displayedFrom, db.lineNumber - 1)
+            end
 
-        --logger:Debug("<messageNew:", message)
+            --logger:Debug("<messageNew:", message)
 
-        return message
+            return message
 
     end
 
@@ -1058,13 +1065,13 @@ function pChat.InitializeMessageFormatters()
                 -- Timestamp color is chanCode so no coloring
                 if db.timestampcolorislcol then
                     -- Show Message
-                    timestamp = string.format("[%s] ", timestamp)
+                    timestamp = strfor("[%s] ", timestamp)
                 else
                     -- Timestamp color is our setting color
                     timecol = db.colours.timestamp
 
                     -- Show Message
-                    timestamp = string.format("%s[%s] |r", timecol, timestamp)
+                    timestamp = strfor("%s[%s] |r", timecol, timestamp)
                 end
 
                 logger.verbose:Debug(">SystemMessage showTimestamp:", timestamp)

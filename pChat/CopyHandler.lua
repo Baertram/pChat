@@ -5,6 +5,8 @@ local ADDON_NAME = CONSTANTS.ADDON_NAME
 pChat.ChatCopyOptions = nil
 local mapChatChannelToPChatChannel = pChat.mapChatChannelToPChatChannel
 
+local chatChannelLangToLangStr = CONSTANTS.chatChannelLangToLangStr
+
 -------------------------------------------------------------
 -- Helper functions --
 -------------------------------------------------------------
@@ -284,6 +286,7 @@ local chatChannelsToMap = {
     CHAT_CHANNEL_ZONE_LANGUAGE_3,
     CHAT_CHANNEL_ZONE_LANGUAGE_4,
     CHAT_CHANNEL_ZONE_LANGUAGE_5,
+    CHAT_CHANNEL_ZONE_LANGUAGE_6,
     CHAT_CHANNEL_WHISPER,
     CHAT_CHANNEL_WHISPER_SENT,
     CHAT_CHANNEL_PARTY,
@@ -313,7 +316,7 @@ for _, chatChannelId in pairs(chatChannelsToMap) do
 end
 pChat.ChatCategory2ChatChannel = ChatCategory2ChatChannel
 
---[[ ChatCopyOptions Panel ]]--
+--[[ ChatCopyOptions Class ]]--
 local ChatCopyOptions = ZO_Object:Subclass()
 
 function ChatCopyOptions:New(...)
@@ -715,6 +718,7 @@ function ChatCopyOptions:ApplyFilters()
 end
 
 function ChatCopyOptions:Show()
+--d("[pChat]ChatCopyOptions:Show()")
     ZO_Dialogs_ShowDialog("PCHAT_CHAT_COPY_DIALOG")
 end
 
@@ -863,13 +867,17 @@ function pChat.InitializeCopyHandler(control)
                         or chanNumber == CHAT_CHANNEL_YELL
                         or chanNumber == CHAT_CHANNEL_PARTY
                         or chanNumber == CHAT_CHANNEL_ZONE
+                        --[[
                         or chanNumber == CHAT_CHANNEL_ZONE_LANGUAGE_1
                         or chanNumber == CHAT_CHANNEL_ZONE_LANGUAGE_2
                         or chanNumber == CHAT_CHANNEL_ZONE_LANGUAGE_3
                         or chanNumber == CHAT_CHANNEL_ZONE_LANGUAGE_4
                         or chanNumber == CHAT_CHANNEL_ZONE_LANGUAGE_5
+                        ]]
+                        or chatChannelLangToLangStr[chanNumber] ~= nil
                         or (chanNumber >= CHAT_CHANNEL_GUILD_1 and chanNumber <= CHAT_CHANNEL_GUILD_5)
-                        or (chanNumber >= CHAT_CHANNEL_OFFICER_1 and chanNumber <= CHAT_CHANNEL_OFFICER_5) then
+                        or (chanNumber >= CHAT_CHANNEL_OFFICER_1 and chanNumber <= CHAT_CHANNEL_OFFICER_5)
+                then
                     IgnoreMouseDownEditFocusLoss()
                     --CHAT_SYSTEM:StartTextEntry(nil, chanNumber)
                     StartChatInput(nil, chanNumber, nil)

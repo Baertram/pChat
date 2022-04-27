@@ -7,7 +7,7 @@ pChat = pChat or {}
     --AddOn information
     local CONSTANTS = {
         ADDON_NAME          = "pChat",
-        ADDON_VERSION       = "10.0.2.6",
+        ADDON_VERSION       = "10.0.2.8",
 
         API_VERSION         = GetAPIVersion()
     }
@@ -21,5 +21,15 @@ pChat = pChat or {}
     --Backup SavedVariables link on www.esoui.com
     CONSTANTS.BACKUP_SV_URL = "https://www.esoui.com/forums/showthread.php?t=9235" --"https://bit.ly/2SZcXzk" --""
 
+    CONSTANTS.chatChannelLangToLangStr = {
+        [CHAT_CHANNEL_ZONE_LANGUAGE_1] = "EN",
+        [CHAT_CHANNEL_ZONE_LANGUAGE_2] = "FR",
+        [CHAT_CHANNEL_ZONE_LANGUAGE_3] = "DE",
+        [CHAT_CHANNEL_ZONE_LANGUAGE_4] = "JP",
+        [CHAT_CHANNEL_ZONE_LANGUAGE_5] = "RU",
+        [CHAT_CHANNEL_ZONE_LANGUAGE_6] = "ES",
+    }
+
     --Add constants to pChat namespace
     pChat.CONSTANTS = CONSTANTS
+

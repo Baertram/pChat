@@ -379,6 +379,12 @@ local strings = {
 	PCHAT_RUZONECHAT = "RU Zone - message",
 	PCHAT_RUZONECHATTT = "Set chat message color for Russian zone channel",
 
+	PCHAT_ESZONE = "ES Zone - name",
+	PCHAT_ESZONETT = "Set player name color for Spanish zone channel",
+
+	PCHAT_ESZONECHAT = "ES Zone - message",
+	PCHAT_ESZONECHATTT = "Set chat message color for Spanish zone channel",
+
 	PCHAT_NPCSAY = "NPC Say - name",
 	PCHAT_NPCSAYTT = "Set NPC name color for NPC say",
 
@@ -499,8 +505,13 @@ local strings = {
 	PCHAT_MENTIONS_WHOLEWORD_NAME = "Match your names as whole words only?",
 	PCHAT_MENTIONS_WHOLEWORD_TOOLTIP = "Whether or not to match your character names as whole words only. If you have a very short name in your character name, you may want to turn this on.",
 
-
-
+	-- Coorbin20211222
+	-- CharCount settings strings
+	PCHAT_CHARCOUNTH = "Chat Window Header",
+	PCHAT_CHARCOUNT_ENABLE_CHECKBOX_NAME = "Show Character Count",
+	PCHAT_CHARCOUNT_ENABLE_CHECKBOX_TOOLTIP = "Displays the current number of characters typed into the chat text box out of the max limit of 350. It will appear at the top center position of the chat window.",
+	PCHAT_CHARCOUNT_ZONE_POST_TRACKER_NAME = "Show Zone Post Tracker",
+	PCHAT_CHARCOUNT_ZONE_POST_TRACKER_TOOLTIP = "Displays the timestamp of when you've last posted in zone chat in the current zone. The time resets when you change zone. Useful for posting announcements to zone chat. It will appear at the top center position of the chat window."
 }
 
 for stringId, stringValue in pairs(strings) do

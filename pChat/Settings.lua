@@ -149,6 +149,8 @@ function pChat.InitializeSettings()
 			[2*CHAT_CHANNEL_ZONE_LANGUAGE_4 + 1] = "|cB0A074", -- JP zone Right
 			[2*CHAT_CHANNEL_ZONE_LANGUAGE_5] = "|cCEB36F", -- RU zone Left
 			[2*CHAT_CHANNEL_ZONE_LANGUAGE_5 + 1] = "|cB0A074", -- RU zone Right
+			[2*CHAT_CHANNEL_ZONE_LANGUAGE_6] = "|cCEB36F", -- ES zone Left
+			[2*CHAT_CHANNEL_ZONE_LANGUAGE_6 + 1] = "|cB0A074", -- ES zone Right
 			["timestamp"] = "|c8F8F8F", -- timestamp
 			["tabwarning"] = "|c76BCC3", -- tab Warning ~ "Azure" (ZOS default)
 			["groupleader"] = "|cC35582", --
@@ -180,6 +182,11 @@ function pChat.InitializeSettings()
 		ding = false,
 		selfchar = false,
 		wholenames = false,
+		
+		-- @Coorbin 20211222
+		-- CharCount
+		useCharCount = false,
+		charCountZonePostTracker = false,
 	}
 
 	--Helper for the format of guilds
@@ -294,6 +301,34 @@ function pChat.InitializeSettings()
 		if not db.defaultTab then
 			db.defaultTab = 1
 		end
+
+
+		-- Coorbin20211222
+		------------------------------------------------------------------------------------------------------------------------
+		--CharCount
+		--------------------Char Count Settings getter/setter functions
+    	local cc = pChat.charCount
+
+		local function cc_setUseCharCount(var)
+			db.useCharCount = var
+			cc.setHandlers()
+		end
+
+		local function cc_getUseCharCount()
+			return db.useCharCount
+		end
+
+		local function cc_setCharCountZonePostTracker(var)
+			db.charCountZonePostTracker = var
+			cc.setHandlers()
+		end
+
+		local function cc_getCharCountZonePostTracker()
+			return db.charCountZonePostTracker
+		end
+		-- END Coorbin20211222 charCount
+		------------------------------------------------------------------------------------------------------------------------
+
 
 		--The LAM options data table
 		local optionsData = {}
@@ -562,6 +597,35 @@ function pChat.InitializeSettings()
 					type = "submenu",
 					name = GetString(PCHAT_APPARENCEMH),
 					controls = {
+						-- BEGIN - Coorbin20211222
+						-- BEGIN - Chat char count settings
+						{
+							type = "submenu",
+							name = GetString(PCHAT_CHARCOUNTH),
+							controls = {
+								{
+									type = "checkbox",
+									name = GetString(PCHAT_CHARCOUNT_ENABLE_CHECKBOX_NAME),
+									getFunc = cc_getUseCharCount,
+									setFunc = cc_setUseCharCount,
+									tooltip = GetString(PCHAT_CHARCOUNT_ENABLE_CHECKBOX_TOOLTIP),
+									default = false,
+									width = "full",
+								},
+								{
+									type = "checkbox",
+									name = GetString(PCHAT_CHARCOUNT_ZONE_POST_TRACKER_NAME),
+									getFunc = cc_getCharCountZonePostTracker,
+									setFunc = cc_setCharCountZonePostTracker,
+									tooltip = GetString(PCHAT_CHARCOUNT_ZONE_POST_TRACKER_TOOLTIP),
+									default = false,
+									width = "full",
+								},
+							},
+						},
+						-- END - Coorbin20211222
+						-- END - Chat char count settings
+------------------------------------------------------------------------------------------------------------------------
 						{
 							type = "submenu",
 							name = GetString(PCHAT_SETTINGS_EDITBOX_HOOKS),
@@ -1109,6 +1173,26 @@ function pChat.InitializeSettings()
 									getFunc = function() return ConvertHexToRGBA(db.colours[2*CHAT_CHANNEL_ZONE_LANGUAGE_5 + 1]) end,
 									setFunc = function(r, g, b) db.colours[2*CHAT_CHANNEL_ZONE_LANGUAGE_5 + 1] = ConvertRGBToHex(r, g, b) end,
 									default = ConvertHexToRGBAPacked(defaults.colours[2*CHAT_CHANNEL_ZONE_LANGUAGE_5 + 1]),
+									disabled = function() return db.useESOcolors or db.allZonesSameColour or db.oneColour end,
+									width = "half",
+								},
+								{--
+									type = "colorpicker",
+									name = GetString(PCHAT_ESZONE),
+									tooltip = GetString(PCHAT_ESZONETT),
+									getFunc = function() return ConvertHexToRGBA(db.colours[2*CHAT_CHANNEL_ZONE_LANGUAGE_6]) end,
+									setFunc = function(r, g, b) db.colours[2*CHAT_CHANNEL_ZONE_LANGUAGE_6] = ConvertRGBToHex(r, g, b) end,
+									default = ConvertHexToRGBAPacked(defaults.colours[2*CHAT_CHANNEL_ZONE_LANGUAGE_6]),
+									disabled = function() return db.useESOcolors or db.allZonesSameColour end,
+									width = "half",
+								},
+								{--
+									type = "colorpicker",
+									name = GetString(PCHAT_ESZONECHAT),
+									tooltip = GetString(PCHAT_ESZONECHATTT),
+									getFunc = function() return ConvertHexToRGBA(db.colours[2*CHAT_CHANNEL_ZONE_LANGUAGE_6 + 1]) end,
+									setFunc = function(r, g, b) db.colours[2*CHAT_CHANNEL_ZONE_LANGUAGE_6 + 1] = ConvertRGBToHex(r, g, b) end,
+									default = ConvertHexToRGBAPacked(defaults.colours[2*CHAT_CHANNEL_ZONE_LANGUAGE_6 + 1]),
 									disabled = function() return db.useESOcolors or db.allZonesSameColour or db.oneColour end,
 									width = "half",
 								},
@@ -1935,7 +2019,7 @@ function pChat.InitializeSettings()
 				},
 			},
 		}
-
+		
 
 		--
 		-- Baertram 2021-06-06

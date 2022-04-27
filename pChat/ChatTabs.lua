@@ -70,22 +70,43 @@ function pChat.InitializeChatTabs()
     local function CreateNewChatTabPostHook()
         if not CHAT_SYSTEM or not CHAT_SYSTEM.primaryContainer or not CHAT_SYSTEM.primaryContainer.windows then return end
         local db = pChat.db
-        --For each chat tab do
-        for tabIndex, tabObject in ipairs(CHAT_SYSTEM.primaryContainer.windows) do
-            --Set the maximum lines in the chat tab to 1000 instead of 200
-            if db.augmentHistoryBuffer then
-                tabObject.buffer:SetMaxHistoryLines(1000) -- 1000 = max of control
-            end
-            --If the chat fade out is disabled: Set the fade timeout to 3600 milliseconds
-            if db.alwaysShowChat then
-                --New values for fadeOut taken from file:
-                --https://github.com/esoui/esoui/blob/360dee5f494a444c2418a4e20fab8237e29f641b/esoui/ingame/chatsystem/console/gamepadchatsystem.lua
+        --[[
+        for i,container in pairs(self.containers) do
+            container:FadeIn()
+
+            for tabIndex = 1, #container.windows do
+                container.windows[tabIndex].buffer:ShowFadedLines()
+
                 local NEVER_FADE = 0
-                --container.windows[tabIndex].buffer:SetLineFade(NEVER_FADE, NEVER_FADE)
-                tabObject.buffer:SetLineFade(NEVER_FADE, NEVER_FADE) --old values: 3600, 2
+                container.windows[tabIndex].buffer:SetLineFade(NEVER_FADE, NEVER_FADE)
             end
         end
+        ]]
 
+        local NEVER_FADE = 0
+        --For each chat container, and then for each chat tab in that container, do
+        for _, container in pairs(CHAT_SYSTEM.containers) do
+            container:FadeIn()
+
+            for tabIndex, tabObject in ipairs(container.windows) do
+                --Set the maximum lines in the chat tab to 1000 instead of 200
+                if db.augmentHistoryBuffer then
+                    tabObject.buffer:SetMaxHistoryLines(1000) -- 1000 = max of control
+                end
+                --If the chat fade out is disabled: Set the fade timeout to 3600 milliseconds
+                if db.alwaysShowChat then
+                    --New values for fadeOut taken from file:
+                    --https://github.com/esoui/esoui/blob/master/esoui/ingame/chatsystem/gamepad/gamepadchatsystem.lua
+                    local bufferOfTab = tabObject.buffer
+                    bufferOfTab:ShowFadedLines()
+                    --old values: 3, 2 as of API 101032 2022-01-30:
+                    --local FADE_BEGIN = 3
+                    --local FADE_DURATION = 2
+                    --self.windows[tabIndex].buffer:SetLineFade(FADE_BEGIN, FADE_DURATION)
+                    bufferOfTab:SetLineFade(NEVER_FADE, NEVER_FADE)
+                end
+            end
+        end
     end
 
     -- need to call this separately due to the load and init order
