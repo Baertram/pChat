@@ -2,6 +2,8 @@ local CONSTANTS = pChat.CONSTANTS
 local ADDON_NAME = CONSTANTS.ADDON_NAME
 local ADDON_VERSION			= CONSTANTS.ADDON_VERSION
 
+local ChatSys = CONSTANTS.CHAT_SYSTEM
+
 local CM = CALLBACK_MANAGER
 local EM = EVENT_MANAGER
 
@@ -70,6 +72,7 @@ function pChat.InitializeSettings()
 		chatMinimizedAtLaunch = false,
 		chatMinimizedInMenus = false,
 		chatMaximizedAfterMenus = false,
+		chatMaximizedAfterMove = false,
 		windowDarkness = 6,
 		chatSyncConfig = true,
 		floodProtect = true,
@@ -149,8 +152,8 @@ function pChat.InitializeSettings()
 			[2*CHAT_CHANNEL_ZONE_LANGUAGE_4 + 1] = "|cB0A074", -- JP zone Right
 			[2*CHAT_CHANNEL_ZONE_LANGUAGE_5] = "|cCEB36F", -- RU zone Left
 			[2*CHAT_CHANNEL_ZONE_LANGUAGE_5 + 1] = "|cB0A074", -- RU zone Right
-			[2*CHAT_CHANNEL_ZONE_LANGUAGE_6] = "|cCEB36F", -- ES zone Left
-			[2*CHAT_CHANNEL_ZONE_LANGUAGE_6 + 1] = "|cB0A074", -- ES zone Right
+			[2*CHAT_CHANNEL_ZONE_LANGUAGE_6] = "|cCEB36F", 		-- ES zone Left
+			[2*CHAT_CHANNEL_ZONE_LANGUAGE_6 + 1] = "|cB0A074",	-- ES zone Right
 			["timestamp"] = "|c8F8F8F", -- timestamp
 			["tabwarning"] = "|c76BCC3", -- tab Warning ~ "Azure" (ZOS default)
 			["groupleader"] = "|cC35582", --
@@ -182,7 +185,7 @@ function pChat.InitializeSettings()
 		ding = false,
 		selfchar = false,
 		wholenames = false,
-		
+
 		-- @Coorbin 20211222
 		-- CharCount
 		useCharCount = false,
@@ -254,7 +257,7 @@ function pChat.InitializeSettings()
 
 	-- Build LAM Option Table, used when AddonLoads or when a player join/leave a guild
 	local function BuildLAMPanel()
---d("[pChat]Build LAM Panel")
+		--d("[pChat]Build LAM Panel")
 		local function UpdateSoundDescription(soundType, newSoundIndex)
 			--Whisper sound
 			if soundType == "whisper" then
@@ -285,7 +288,7 @@ function pChat.InitializeSettings()
 
 		SyncCharacterSelectChoices()
 
-		-- CHAT_SYSTEM.primaryContainer.windows doesn't exists yet at OnAddonLoaded. So using the pChat reference.
+		-- ChatSys.primaryContainer.windows doesn't exists yet at OnAddonLoaded. So using the pChat reference.
 		local arrayTab = {}
 		if db.chatConfSync and db.chatConfSync[charId] and db.chatConfSync[charId].tabs then
 			for numTab, _ in pairs (db.chatConfSync[charId].tabs) do
@@ -307,7 +310,7 @@ function pChat.InitializeSettings()
 		------------------------------------------------------------------------------------------------------------------------
 		--CharCount
 		--------------------Char Count Settings getter/setter functions
-    	local cc = pChat.charCount
+		local cc = pChat.charCount
 
 		local function cc_setUseCharCount(var)
 			db.useCharCount = var
@@ -590,8 +593,8 @@ function pChat.InitializeSettings()
 					default = defaults.enablecopy,
 				},
 
-------------------------------------------------------------------------------------------------------------------------
-------------------------------------------------------------------------------------------------------------------------
+				------------------------------------------------------------------------------------------------------------------------
+				------------------------------------------------------------------------------------------------------------------------
 				-- Chat window
 				{
 					type = "submenu",
@@ -625,7 +628,7 @@ function pChat.InitializeSettings()
 						},
 						-- END - Coorbin20211222
 						-- END - Chat char count settings
-------------------------------------------------------------------------------------------------------------------------
+						------------------------------------------------------------------------------------------------------------------------
 						{
 							type = "submenu",
 							name = GetString(PCHAT_SETTINGS_EDITBOX_HOOKS),
@@ -642,7 +645,7 @@ function pChat.InitializeSettings()
 							}, --controls submenu chat edit box
 
 						}, -- submenu chat edit box
-------------------------------------------------------------------------------------------------------------------------
+						------------------------------------------------------------------------------------------------------------------------
 						{--	New Message Color
 							type = "colorpicker",
 							name = GetString(PCHAT_TABWARNING),
@@ -662,8 +665,8 @@ function pChat.InitializeSettings()
 							setFunc = function(newValue)
 								db.windowDarkness = newValue
 								pChat.ChangeChatWindowDarkness()
-								if CHAT_SYSTEM.isMinimized == true then
-									CHAT_SYSTEM:Maximize()
+								if ChatSys.isMinimized == true then
+									ChatSys:Maximize()
 								end
 							end,
 							width = "full",
@@ -716,8 +719,8 @@ function pChat.InitializeSettings()
 			},
 		}
 
-------------------------------------------------------------------------------------------------------------------------
-------------------------------------------------------------------------------------------------------------------------
+		------------------------------------------------------------------------------------------------------------------------
+		------------------------------------------------------------------------------------------------------------------------
 		-- Message settings
 		optionsData[#optionsData + 1] = {
 			type = "submenu",
@@ -793,7 +796,7 @@ function pChat.InitializeSettings()
 					}, --controls Chat message handlers
 
 				}, --submenu Chat message handlers
-------------------------------------------------------------------------------------------------------------------------
+				------------------------------------------------------------------------------------------------------------------------
 				{-- LAM Option Remove Zone Tags
 					type = "checkbox",
 					name = GetString(PCHAT_DELZONETAGS),
@@ -812,7 +815,7 @@ function pChat.InitializeSettings()
 					width = "half",
 					default = defaults.urlHandling,
 				},
-------------------------------------------------------------------------------------------------------------------------
+				------------------------------------------------------------------------------------------------------------------------
 				-- Timestamp options
 				{
 					type = "submenu",
@@ -858,7 +861,7 @@ function pChat.InitializeSettings()
 						},
 					},
 				},
-------------------------------------------------------------------------------------------------------------------------
+				------------------------------------------------------------------------------------------------------------------------
 				--Chat messages
 				{
 					type     = "submenu",
@@ -891,7 +894,7 @@ function pChat.InitializeSettings()
 							default = defaults.disableBrackets,
 							width   = "half",
 						},
-------------------------------------------------------------------------------------------------------------------------
+						------------------------------------------------------------------------------------------------------------------------
 						-- Group Submenu
 						{
 							type = "submenu",
@@ -912,14 +915,14 @@ function pChat.InitializeSettings()
 								},
 							},
 						},
-------------------------------------------------------------------------------------------------------------------------
+						------------------------------------------------------------------------------------------------------------------------
 						-- Guild Submenu
 						{
 							type = "submenu",
 							name = GetString(PCHAT_GUILDH),
 							controls = controlsForGuildSubmenu2,
 						},
-------------------------------------------------------------------------------------------------------------------------
+						------------------------------------------------------------------------------------------------------------------------
 						--All other chat messages
 						{
 							type     = "submenu",
@@ -943,11 +946,11 @@ function pChat.InitializeSettings()
 								},
 							},
 						},
-------------------------------------------------------------------------------------------------------------------------
+						------------------------------------------------------------------------------------------------------------------------
 
 					}, --controls PCHAT_MESSAGEOPTIONSNAMEH
 				}, --submenu Chat messages
-------------------------------------------------------------------------------------------------------------------------
+				------------------------------------------------------------------------------------------------------------------------
 				--Colors in chat messages
 				{
 					type = "submenu",
@@ -1029,7 +1032,7 @@ function pChat.InitializeSettings()
 							default = defaults.diffChatColorsLightenValue,
 							disabled = function() return db.diffforESOcolors == 0 or db.oneColour end,
 						},
-------------------------------------------------------------------------------------------------------------------------
+						------------------------------------------------------------------------------------------------------------------------
 						-- Chat channel colors
 						{
 							type = "submenu",
@@ -1278,7 +1281,7 @@ function pChat.InitializeSettings()
 								},
 							},
 						},
-------------------------------------------------------------------------------------------------------------------------
+						------------------------------------------------------------------------------------------------------------------------
 						--Other Colors
 						{
 							type = "submenu",
@@ -1390,23 +1393,23 @@ function pChat.InitializeSettings()
 								},
 							},
 						}, --other colors
-------------------------------------------------------------------------------------------------------------------------
+						------------------------------------------------------------------------------------------------------------------------
 					}, --colors in chat messages
-------------------------------------------------------------------------------------------------------------------------
+					------------------------------------------------------------------------------------------------------------------------
 				}, --colors in chat messages
-------------------------------------------------------------------------------------------------------------------------
+				------------------------------------------------------------------------------------------------------------------------
 			} --pchat chat handlers
-------------------------------------------------------------------------------------------------------------------------
+			------------------------------------------------------------------------------------------------------------------------
 		}--pchat message options
-------------------------------------------------------------------------------------------------------------------------
-------------------------------------------------------------------------------------------------------------------------
+		------------------------------------------------------------------------------------------------------------------------
+		------------------------------------------------------------------------------------------------------------------------
 		------------------------------------------------------------------------------------------------------------------------
 		-- Chat Tabs
 		optionsData[#optionsData + 1] = {
 			type = "submenu",
 			name = GetString(PCHAT_CHATTABH),
 			controls = {
-				{-- CHAT_SYSTEM.primaryContainer.windows doesn't exists yet at OnAddonLoaded. So using the pChat reference.
+				{-- ChatSys.primaryContainer.windows doesn't exists yet at OnAddonLoaded. So using the pChat reference.
 					type = "dropdown",
 					name = GetString(PCHAT_DEFAULTTAB),
 					tooltip = GetString(PCHAT_DEFAULTTABTT),
@@ -1840,7 +1843,7 @@ function pChat.InitializeSettings()
 		--Chat Mentions
 
 		--------------------Chat Mentions Settings getter/setter functions
-    	local cm = pChat.ChatMentions
+		local cm = pChat.ChatMentions
 
 		local function cm_setMentionColorOption(var)
 			db.changeColor = var
@@ -2019,7 +2022,7 @@ function pChat.InitializeSettings()
 				},
 			},
 		}
-		
+
 
 		--
 		-- Baertram 2021-06-06
@@ -2134,7 +2137,7 @@ function pChat.InitializeSettings()
 				SetChatCategoryColor(CHAT_CATEGORY_OFFICER_1 + iGuilds - 1, db.chatConfSync[charId].colors[CHAT_CATEGORY_OFFICER_1 + iGuilds].red, db.chatConfSync[charId].colors[CHAT_CATEGORY_OFFICER_1 + iGuilds].green, db.chatConfSync[charId].colors[CHAT_CATEGORY_OFFICER_1 + iGuilds].blue)
 
 				-- Restore tab config previously set.
-				for numTab in ipairs (CHAT_SYSTEM.primaryContainer.windows) do
+				for numTab in ipairs (ChatSys.primaryContainer.windows) do
 					if db.chatConfSync[charId].tabs[numTab] then
 						SetChatContainerTabCategoryEnabled(1, numTab, (CHAT_CATEGORY_GUILD_1 + iGuilds - 1), db.chatConfSync[charId].tabs[numTab].enabledCategories[CHAT_CATEGORY_GUILD_1 + iGuilds])
 						SetChatContainerTabCategoryEnabled(1, numTab, (CHAT_CATEGORY_OFFICER_1 + iGuilds - 1), db.chatConfSync[charId].tabs[numTab].enabledCategories[CHAT_CATEGORY_OFFICER_1 + iGuilds])
@@ -2316,7 +2319,7 @@ function pChat.InitializeSettings()
 			if db.migratedSVToServer == false then
 				migrationInfoOutput("Successfully migrated the SavedVariables to the server \'" ..tostring(worldName) .. "\'", true, true)
 				migrationInfoOutput(">Non-server dependent SavedVariables for your account \'"..GetDisplayName().."\' can be deleted via the slash command \'/pchatdeleteoldsv\'!", true, false)
-            	migrationInfoOutput(">Attention: If you want to copy the SVs to another server login to that other server first BEFORE deleting the non-server dependent SavedVariables, because they will be taken as the base to copy!", true, false)
+				migrationInfoOutput(">Attention: If you want to copy the SVs to another server login to that other server first BEFORE deleting the non-server dependent SavedVariables, because they will be taken as the base to copy!", true, false)
 				db.migratedSVToServer = true
 				pChat.migrationReloadUI = 3
 			end
@@ -2359,7 +2362,7 @@ function pChat.InitializeSettings()
 					formatValue = db.formatguild[guildId]
 				end
 				if formatValue == nil or type(formatValue) ~= "number" or formatValue <= 0 then
---d(">resetting guildformat to character, for guild: " ..tostring(guildName))
+					--d(">resetting guildformat to character, for guild: " ..tostring(guildName))
 					formatValue = 2 --default/fallback value for guild messages: Character name
 				end
 				--Remove old guildName entry

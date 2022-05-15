@@ -74,6 +74,8 @@ local pChatData = {}
 pChatData.localPlayer = GetUnitName("player")
 -- Logged in @Account name
 pChatData.localAccount = GetDisplayName()
+pChatData.wasManuallyMinimized = false
+
 
 --LibDebugLogger objects
 local logger
@@ -130,6 +132,8 @@ pChat.migrationInfoOutput = migrationInfoOutput
 
 --Prepare some needed addon variables
 local function PrepareVars()
+    CONSTANTS.CHAT_SYSTEM = CONSTANTS.CHAT_SYSTEM or CHAT_SYSTEM
+
     --Build the character name to unique ID mapping tables and vice-versa
     --The character names are decorated with the color and icon of the class!
     pChat.characterName2Id = {}
@@ -313,7 +317,9 @@ do
     ChannelInfo[CHAT_CHANNEL_ZONE_LANGUAGE_3].channelLinkable = true
     ChannelInfo[CHAT_CHANNEL_ZONE_LANGUAGE_4].channelLinkable = true
     ChannelInfo[CHAT_CHANNEL_ZONE_LANGUAGE_5].channelLinkable = true
-    ChannelInfo[CHAT_CHANNEL_ZONE_LANGUAGE_6].channelLinkable = true
+    if ChannelInfo[CHAT_CHANNEL_ZONE_LANGUAGE_6] ~= nil then
+        ChannelInfo[CHAT_CHANNEL_ZONE_LANGUAGE_6].channelLinkable = true
+    end
 end
 
 --Do some checks after the EVENT_PLAYER_ACTIVATED task was done
@@ -370,6 +376,8 @@ end
 -- Unregisters itself from the player activation event with the event manager.
 local function OnPlayerActivated()
     logger:Debug("EVENT_PLAYER_ACTIVATED - Start")
+    CONSTANTS.CHAT_SYSTEM = CONSTANTS.CHAT_SYSTEM or CHAT_SYSTEM
+
     --Were SavedVariables migrated from non-server dependent ones?
     --And do we need a reloadui here?
     checkSavedVariablesMigrationTasks()
@@ -509,6 +517,16 @@ local function LoadHooks()
 
         self:SetText(newText)
         self:SetCursorPosition(space+1)
+    end)
+
+    ZO_PreHook("ZO_ChatSystem_OnMinMaxClicked", function()
+        if KEYBOARD_CHAT_SYSTEM:IsMinimized() then
+            --Will be maximized now
+            pChat.pChatData.wasManuallyMinimized = false
+        else
+            --Will be mainimized now
+            pChat.pChatData.wasManuallyMinimized = true
+        end
     end)
 
 end

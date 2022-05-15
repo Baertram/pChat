@@ -7,6 +7,8 @@ pChat = pChat or {}
 local CONSTANTS     = pChat.CONSTANTS
 local ADDON_NAME    = CONSTANTS.ADDON_NAME
 
+local ChatSys = CONSTANTS.CHAT_SYSTEM
+
 --======================================================================================================================
 -- Keybindings
 --======================================================================================================================
@@ -68,7 +70,7 @@ local ADDON_NAME    = CONSTANTS.ADDON_NAME
     -- Called by bindings
     function pChat_WhispMyTarget()
         if targetToWhisp then
-            CHAT_SYSTEM:StartTextEntry(nil, CHAT_CHANNEL_WHISPER, targetToWhisp)
+            ChatSys:StartTextEntry(nil, CHAT_CHANNEL_WHISPER, targetToWhisp)
         end
     end
     pChat.WhispMyTarget = pChat_WhispMyTarget
@@ -80,11 +82,12 @@ local ADDON_NAME    = CONSTANTS.ADDON_NAME
 
     --Toggle the chat window
     function pChat_ToggleChat()
-        if not CHAT_SYSTEM then return end
-        if CHAT_SYSTEM:IsMinimized() then
-            CHAT_SYSTEM:Maximize()
+        if not ChatSys then return end
+        if ChatSys:IsMinimized() then
+            ChatSys:Maximize()
         else
-            CHAT_SYSTEM:Minimize()
+            ChatSys:Minimize()
+            pChat.pChatData.wasManuallyMinimized = true
         end
     end
     pChat.ToggleChat = pChat_ToggleChat
@@ -103,15 +106,15 @@ local ADDON_NAME    = CONSTANTS.ADDON_NAME
 
         local PRESSED = 1
         local UNPRESSED = 2
-        local numTabs = #CHAT_SYSTEM.primaryContainer.windows
+        local numTabs = #ChatSys.primaryContainer.windows
         local activeTab = pChatData.activeTab
 
         if numTabs > 1 then
-            for numTab, container in ipairs (CHAT_SYSTEM.primaryContainer.windows) do
+            for numTab, container in ipairs (ChatSys.primaryContainer.windows) do
 
                 if (not hasSwitched) then
                     if activeTab + 1 == numTab then
-                        CHAT_SYSTEM.primaryContainer:HandleTabClick(container.tab)
+                        ChatSys.primaryContainer:HandleTabClick(container.tab)
 
                         local tabText = pChat.GetTabTextControl(numTab)
                         tabText:SetColor(GetInterfaceColor(INTERFACE_COLOR_TYPE_TEXT_COLORS, INTERFACE_TEXT_COLOR_SELECTED))
@@ -127,11 +130,11 @@ local ADDON_NAME    = CONSTANTS.ADDON_NAME
             end
 
             if (not hasSwitched) then
-                CHAT_SYSTEM.primaryContainer:HandleTabClick(CHAT_SYSTEM.primaryContainer.windows[1].tab)
+                ChatSys.primaryContainer:HandleTabClick(ChatSys.primaryContainer.windows[1].tab)
                 local tabText = pChat.GetTabTextControl(1)
                 tabText:SetColor(GetInterfaceColor(INTERFACE_COLOR_TYPE_TEXT_COLORS, INTERFACE_TEXT_COLOR_SELECTED))
                 tabText:GetParent().state = PRESSED
-                local oldTabText = pChat.GetTabTextControl(#CHAT_SYSTEM.primaryContainer.windows)
+                local oldTabText = pChat.GetTabTextControl(#ChatSys.primaryContainer.windows)
                 oldTabText:SetColor(GetInterfaceColor(INTERFACE_COLOR_TYPE_TEXT_COLORS, INTERFACE_TEXT_COLOR_CONTRAST))
                 oldTabText:GetParent().state = UNPRESSED
             end
@@ -144,15 +147,17 @@ local ADDON_NAME    = CONSTANTS.ADDON_NAME
         local logger = pChat.logger
         logger:Debug("pChat_ChangeTab", "To tab: " ..tostring(tabToSet))
         if type(tabToSet)~="number" then return end
-        local container=CHAT_SYSTEM.primaryContainer if not container then return end
+        local container=ChatSys.primaryContainer if not container then return end
         if tabToSet<1 or tabToSet>#container.windows then return end
         if container.windows[tabToSet].tab==nil then return end
         container.tabGroup:SetClickedButton(container.windows[tabToSet].tab)
-        if CHAT_SYSTEM:IsMinimized() then CHAT_SYSTEM:Maximize() end
-        --TODO: Why is this scource below needed? Container was defined and checked already above,
+        if ChatSys:IsMinimized() then
+            ChatSys:Maximize()
+        end
+        --TODO: Why is this source below needed? Container was defined and checked already above,
         --TODO: and setting tabToSet without returning/using the value makes no sense?
         --[[
-        container=CHAT_SYSTEM.primaryContainer
+        container=ChatSys.primaryContainer
         if not container then return end
         tabToSet=container.currentBuffer:GetParent().tab.tabToSet
         ]]

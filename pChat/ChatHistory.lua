@@ -1,6 +1,8 @@
 local CONSTANTS = pChat.CONSTANTS
 local ADDON_NAME = CONSTANTS.ADDON_NAME
 
+local ChatSys = CONSTANTS.CHAT_SYSTEM
+
 local mapChatChannelToPChatChannel = pChat.mapChatChannelToPChatChannel
 local mapPChatChannelToChatChannel = pChat.mapPChatChannelToChatChannel
 
@@ -94,8 +96,8 @@ function pChat.InitializeChatHistory()
                 db.lastWasAFK = false
 
                 --Save actual channel
-                db.history.currentChannel = CHAT_SYSTEM.currentChannel
-                db.history.currentTarget = CHAT_SYSTEM.currentTarget
+                db.history.currentChannel = ChatSys.currentChannel
+                db.history.currentTarget = ChatSys.currentTarget
 
             elseif typeOf == 2 then
                 db.lastWasReloadUI = false
@@ -116,9 +118,9 @@ function pChat.InitializeChatHistory()
 
             --Save TextEntry history
             db.history.textEntry = {}
-            if CHAT_SYSTEM.textEntry.commandHistory.entries then
-                db.history.textEntry.entries = CHAT_SYSTEM.textEntry.commandHistory.entries
-                db.history.textEntry.numEntries = CHAT_SYSTEM.textEntry.commandHistory.index
+            if ChatSys.textEntry.commandHistory.entries then
+                db.history.textEntry.entries = ChatSys.textEntry.commandHistory.entries
+                db.history.textEntry.numEntries = ChatSys.textEntry.commandHistory.index
             else
                 db.history.textEntry.entries = {}
                 db.history.textEntry.numEntries = 0
@@ -175,9 +177,9 @@ function pChat.InitializeChatHistory()
                         local timeStamp = GetTimeStamp()
                         if db.LineStrings[historyIndex] and db.LineStrings[historyIndex].rawTimestamp and timeStamp - db.LineStrings[historyIndex].rawTimestamp < db.timeBeforeRestore * 60 * 60 and db.LineStrings[historyIndex].rawTimestamp < timeStamp then
                             lastInsertionWas = math.max(lastInsertionWas, db.LineStrings[historyIndex].rawTimestamp)
-                            for containerIndex=1, #CHAT_SYSTEM.containers do
-                                for tabIndex=1, #CHAT_SYSTEM.containers[containerIndex].windows do
-                                    if IsChatContainerTabCategoryEnabled(CHAT_SYSTEM.containers[containerIndex].id, tabIndex, category) then
+                            for containerIndex=1, #ChatSys.containers do
+                                for tabIndex=1, #ChatSys.containers[containerIndex].windows do
+                                    if IsChatContainerTabCategoryEnabled(ChatSys.containers[containerIndex].id, tabIndex, category) then
                                         if not db.chatConfSync[charId].tabs[tabIndex].notBefore or db.LineStrings[historyIndex].rawTimestamp > db.chatConfSync[charId].tabs[tabIndex].notBefore then
                                             local restoredChatRawText = db.LineStrings[historyIndex].rawValue
                                             if restoredChatRawText and restoredChatRawText ~= "" then
@@ -185,7 +187,7 @@ function pChat.InitializeChatHistory()
                                                     --If the message was restored from history then add a prefix [H] )for history) to it!
                                                     restoredChatRawText = restoredPrefix .. restoredChatRawText
                                                 end
-                                                CHAT_SYSTEM.containers[containerIndex]:AddEventMessageToWindow(CHAT_SYSTEM.containers[containerIndex].windows[tabIndex], pChat.AddLinkHandler(restoredChatRawText, channelToRestore, historyIndex), category)
+                                                ChatSys.containers[containerIndex]:AddEventMessageToWindow(ChatSys.containers[containerIndex].windows[tabIndex], pChat.AddLinkHandler(restoredChatRawText, channelToRestore, historyIndex), category)
                                                 -- TODO why is this commented out?
                                                 --else
                                                 --    --DEBUG: Add SavedVariables entries for erroneous history entries (without rawValue text etc.)
@@ -218,11 +220,11 @@ function pChat.InitializeChatHistory()
 
             local PRESSED = 1
             local UNPRESSED = 2
-            local numTabs = #CHAT_SYSTEM.primaryContainer.windows
+            local numTabs = #ChatSys.primaryContainer.windows
 
-            for numTab, container in ipairs (CHAT_SYSTEM.primaryContainer.windows) do
+            for numTab, container in ipairs (ChatSys.primaryContainer.windows) do
                 if numTab > 1 then
-                    CHAT_SYSTEM.primaryContainer:HandleTabClick(container.tab)
+                    ChatSys.primaryContainer:HandleTabClick(container.tab)
                     local tabText = pChat.GetTabTextControl(numTab)
                     tabText:SetColor(GetInterfaceColor(INTERFACE_COLOR_TYPE_TEXT_COLORS, INTERFACE_TEXT_COLOR_SELECTED))
                     tabText:GetParent().state = PRESSED
@@ -233,11 +235,11 @@ function pChat.InitializeChatHistory()
             end
 
             if numTabs > 1 then
-                CHAT_SYSTEM.primaryContainer:HandleTabClick(CHAT_SYSTEM.primaryContainer.windows[1].tab)
+                ChatSys.primaryContainer:HandleTabClick(ChatSys.primaryContainer.windows[1].tab)
                 local tabText = pChat.GetTabTextControl(1)
                 tabText:SetColor(GetInterfaceColor(INTERFACE_COLOR_TYPE_TEXT_COLORS, INTERFACE_TEXT_COLOR_SELECTED))
                 tabText:GetParent().state = PRESSED
-                local oldTabText = pChat.GetTabTextControl(#CHAT_SYSTEM.primaryContainer.windows)
+                local oldTabText = pChat.GetTabTextControl(#ChatSys.primaryContainer.windows)
                 oldTabText:SetColor(GetInterfaceColor(INTERFACE_COLOR_TYPE_TEXT_COLORS, INTERFACE_TEXT_COLOR_CONTRAST))
                 oldTabText:GetParent().state = UNPRESSED
             end
@@ -251,10 +253,10 @@ function pChat.InitializeChatHistory()
 
                 if lastInsertionWas and ((GetTimeStamp() - lastInsertionWas) < (db.timeBeforeRestore * 60 * 60)) then
                     for _, text in ipairs(db.history.textEntry.entries) do
-                        CHAT_SYSTEM.textEntry:AddCommandHistory(text)
+                        ChatSys.textEntry:AddCommandHistory(text)
                     end
 
-                    CHAT_SYSTEM.textEntry.commandHistory.index = db.history.textEntry.numEntries
+                    ChatSys.textEntry.commandHistory.index = db.history.textEntry.numEntries
                 end
 
             end
@@ -266,11 +268,11 @@ function pChat.InitializeChatHistory()
     --**** Issue
     local function SetDefaultTab(tabToSet)
         logger:Debug("DefaultTab", "START, tabToSet: " ..tostring(tabToSet))
-        if not CHAT_SYSTEM or not CHAT_SYSTEM.primaryContainer or not CHAT_SYSTEM.primaryContainer.windows then return end
+        if not ChatSys or not ChatSys.primaryContainer or not ChatSys.primaryContainer.windows then return end
         --OLD CODE
         --[[
         -- Search in all tabs the good name
-        for numTab in ipairs(CHAT_SYSTEM.primaryContainer.windows) do
+        for numTab in ipairs(ChatSys.primaryContainer.windows) do
             -- Not this one, try the next one, if tab is not found (newly added, removed), pChat_SwitchToNextTab() will go back to tab 1
             if tonumber(tabToSet) ~= numTab then
                 pChat_SwitchToNextTab()
@@ -298,7 +300,7 @@ function pChat.InitializeChatHistory()
 
                 -- RestoreChannel
                 if db.defaultchannel ~= CONSTANTS.PCHAT_CHANNEL_NONE then
-                    CHAT_SYSTEM:SetChannel(db.history.currentChannel, db.history.currentTarget)
+                    ChatSys:SetChannel(db.history.currentChannel, db.history.currentTarget)
                 end
 
                 -- restore TextEntry and Chat
