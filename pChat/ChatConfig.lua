@@ -4,8 +4,13 @@ local ADDON_NAME = CONSTANTS.ADDON_NAME
 local EM = EVENT_MANAGER
 local WM = WINDOW_MANAGER
 
+local ChatSys = CONSTANTS.CHAT_SYSTEM
+
 function pChat.InitializeChatConfig()
     local pChatData = pChat.pChatData
+    pChat.pChatData.wasManuallyMinimized = pChat.pChatData.wasManuallyMinimized or false
+    local wasManuallyMinimized = pChat.pChatData.wasManuallyMinimized
+
     local db = pChat.db
 
     pChatData.chatCategories = {
@@ -36,6 +41,10 @@ function pChat.InitializeChatConfig()
         CHAT_CATEGORY_MONSTER_WHISPER,
         CHAT_CATEGORY_MONSTER_EMOTE,
     }
+    if CHAT_CATEGORY_ZONE_SPANISH ~= nil then
+        table.insert(pChatData.chatCategories, 23, CHAT_CATEGORY_ZONE_SPANISH)
+    end
+    local chatCategories = pChatData.chatCategories
 
     pChatData.guildCategories = {
         CHAT_CATEGORY_GUILD_1,
@@ -150,40 +159,40 @@ function pChat.InitializeChatConfig()
             pChatData.tabNotBefore = {} -- Init here or in SyncChatConfig depending if the "Clear Tab" has been used
         end
 
-        if pChatData.isAddonLoaded and CHAT_SYSTEM and CHAT_SYSTEM.primaryContainer then -- Some addons calls SetCVar before
+        if pChatData.isAddonLoaded and ChatSys and ChatSys.primaryContainer then -- Some addons calls SetCVar before
             local charId = GetCurrentCharacterId()
 
             -- Rewrite the whole char tab
             db.chatConfSync[charId] = {}
 
             -- Save Chat positions
-            db.chatConfSync[charId].relPoint = CHAT_SYSTEM.primaryContainer.settings.relPoint
-            db.chatConfSync[charId].x = CHAT_SYSTEM.primaryContainer.settings.x
-            db.chatConfSync[charId].y = CHAT_SYSTEM.primaryContainer.settings.y
-            db.chatConfSync[charId].height = CHAT_SYSTEM.primaryContainer.settings.height
-            db.chatConfSync[charId].width = CHAT_SYSTEM.primaryContainer.settings.width
-            db.chatConfSync[charId].point = CHAT_SYSTEM.primaryContainer.settings.point
+            db.chatConfSync[charId].relPoint = ChatSys.primaryContainer.settings.relPoint
+            db.chatConfSync[charId].x = ChatSys.primaryContainer.settings.x
+            db.chatConfSync[charId].y = ChatSys.primaryContainer.settings.y
+            db.chatConfSync[charId].height = ChatSys.primaryContainer.settings.height
+            db.chatConfSync[charId].width = ChatSys.primaryContainer.settings.width
+            db.chatConfSync[charId].point = ChatSys.primaryContainer.settings.point
 
             --db.chatConfSync[charId].textEntryDocked = true
 
             -- Don't overflow screen, remove 10px.
-            if CHAT_SYSTEM.primaryContainer.settings.height >= ( CHAT_SYSTEM.maxContainerHeight - 15 ) then
-                db.chatConfSync[charId].height = ( CHAT_SYSTEM.maxContainerHeight - 15 )
+            if ChatSys.primaryContainer.settings.height >= ( ChatSys.maxContainerHeight - 15 ) then
+                db.chatConfSync[charId].height = ( ChatSys.maxContainerHeight - 15 )
             else
-                db.chatConfSync[charId].height = CHAT_SYSTEM.primaryContainer.settings.height
+                db.chatConfSync[charId].height = ChatSys.primaryContainer.settings.height
             end
 
             -- Same
-            if CHAT_SYSTEM.primaryContainer.settings.width >= ( CHAT_SYSTEM.maxContainerWidth - 15 ) then
-                db.chatConfSync[charId].width = ( CHAT_SYSTEM.maxContainerWidth - 15 )
+            if ChatSys.primaryContainer.settings.width >= ( ChatSys.maxContainerWidth - 15 ) then
+                db.chatConfSync[charId].width = ( ChatSys.maxContainerWidth - 15 )
             else
-                db.chatConfSync[charId].width = CHAT_SYSTEM.primaryContainer.settings.width
+                db.chatConfSync[charId].width = ChatSys.primaryContainer.settings.width
             end
 
             -- Save Colors
             db.chatConfSync[charId].colors = {}
 
-            for _, category in ipairs (pChatData.chatCategories) do
+            for _, category in ipairs (chatCategories) do
                 local r, g, b = GetChatCategoryColor(category)
                 db.chatConfSync[charId].colors[category] = { red = r, green = g, blue = b }
             end
@@ -196,7 +205,7 @@ function pChat.InitializeChatConfig()
 
             -- GetNumChatContainerTabs(1) don't refresh its number before a ReloadUI
             -- for numTab = 1, GetNumChatContainerTabs(1) do
-            for numTab in ipairs (CHAT_SYSTEM.primaryContainer.windows) do
+            for numTab in ipairs (ChatSys.primaryContainer.windows) do
 
                 db.chatConfSync[charId].tabs[numTab] = {}
 
@@ -207,24 +216,24 @@ function pChat.InitializeChatConfig()
 
                 -- No.. need a ReloadUI     local name, isLocked, isInteractable, isCombatLog, areTimestampsEnabled = GetChatContainerTabInfo(1, numTab)
                 -- IsLocked
-                if CHAT_SYSTEM.primaryContainer:IsLocked(numTab) then
+                if ChatSys.primaryContainer:IsLocked(numTab) then
                     db.chatConfSync[charId].tabs[numTab].isLocked = true
                 else
                     db.chatConfSync[charId].tabs[numTab].isLocked = false
                 end
 
                 -- IsInteractive
-                if CHAT_SYSTEM.primaryContainer:IsInteractive(numTab) then
+                if ChatSys.primaryContainer:IsInteractive(numTab) then
                     db.chatConfSync[charId].tabs[numTab].isInteractable = true
                 else
                     db.chatConfSync[charId].tabs[numTab].isInteractable = false
                 end
 
                 -- IsCombatLog
-                if CHAT_SYSTEM.primaryContainer:IsCombatLog(numTab) then
+                if ChatSys.primaryContainer:IsCombatLog(numTab) then
                     db.chatConfSync[charId].tabs[numTab].isCombatLog = true
                     -- AreTimestampsEnabled
-                    if CHAT_SYSTEM.primaryContainer:AreTimestampsEnabled(numTab) then
+                    if ChatSys.primaryContainer:AreTimestampsEnabled(numTab) then
                         db.chatConfSync[charId].tabs[numTab].areTimestampsEnabled = true
                     else
                         db.chatConfSync[charId].tabs[numTab].areTimestampsEnabled = false
@@ -235,12 +244,12 @@ function pChat.InitializeChatConfig()
                 end
 
                 -- GetTabName
-                db.chatConfSync[charId].tabs[numTab].name = CHAT_SYSTEM.primaryContainer:GetTabName(numTab)
+                db.chatConfSync[charId].tabs[numTab].name = ChatSys.primaryContainer:GetTabName(numTab)
 
                 -- Enabled categories
                 db.chatConfSync[charId].tabs[numTab].enabledCategories = {}
 
-                for _, category in ipairs (pChatData.chatCategories) do
+                for _, category in ipairs (chatCategories) do
                     local isEnabled = IsChatContainerTabCategoryEnabled(1, numTab, category)
                     db.chatConfSync[charId].tabs[numTab].enabledCategories[category] = isEnabled
                 end
@@ -257,28 +266,63 @@ function pChat.InitializeChatConfig()
     -- Function for Minimizing chat at launch
     local function MinimizeChatAtLaunch()
         if db.chatMinimizedAtLaunch then
-            CHAT_SYSTEM:Minimize()
+            ChatSys:Minimize()
         end
     end
 
-    local function MinimizeChatInMenus()
+    --todo debugging only!
+    --db.chatMaximizedAfterMove = false
 
+    local function MinimizeChatInMenus()
         -- RegisterCallback for Maximize/Minimize chat when entering/leaving scenes
         -- "hud" is base scene (with "hudui")
         local hudScene = SCENE_MANAGER:GetScene("hud")
         hudScene:RegisterCallback("StateChange", function(oldState, newState)
-
-                if db.chatMinimizedInMenus then
+--d("[pChat]HUD Scene State: " ..tostring(newState) .. ", chatMin: " ..tostring(ChatSys:IsMinimized()))
+                if db.chatMinimizedInMenus == true then
                     if newState == SCENE_HIDDEN and SCENE_MANAGER:GetNextScene():GetName() ~= "hudui" then
-                        CHAT_SYSTEM:Minimize()
+--d(">chat hidden")
+                        if ChatSys:IsMinimized() then
+--d(">>is minimized already")
+                        else
+--d("<<Minimizing now!")
+                            ChatSys:Minimize()
+                        end
                     end
                 end
 
-                if db.chatMaximizedAfterMenus then
-                    if newState == SCENE_SHOWING then
-                        CHAT_SYSTEM:Maximize()
+            if newState == SCENE_SHOWING then
+                if not ChatSys:IsMinimized() then return end
+--d(">>chat showing")
+                if db.chatMaximizedAfterMenus == true then
+--d(">max after menu - wasManuallyMinimized: " ..tostring(wasManuallyMinimized))
+                    --Do not show the chat if we are just moving and no menu was opened before
+--[[
+                    if wasManuallyMinimized == true then
+                        if IsPlayerMoving() then
+--d("<<Moving, menu closed: EXIT!!")
+                            return
+                        end
+                    end
+]]
+--d("<<Not moving, menu closed: Maximize now!!")
+                    ChatSys:Maximize()
+                end
+--[[
+                if db.chatMaximizedAfterMove == true then
+--d(">>max after move")
+                    if not ChatSys:IsMinimized() then return end
+--d(">>>chat is minimized")
+                    --Do not show the chat if we are just moving and no menu was opened before
+                    if IsPlayerMoving() then
+                        d("<<Moving: Maximize now!!")
+                        ChatSys:Maximize()
+                    else
+--d("<<not moving")
                     end
                 end
+]]
+            end
 
         end)
 
@@ -288,51 +332,51 @@ function pChat.InitializeChatConfig()
     local function SyncChatConfig(shouldSync, whichCharId)
 
         if shouldSync then
-            if db.chatConfSync and db.chatConfSync[whichCharId] and CHAT_SYSTEM and CHAT_SYSTEM.primaryContainer then
+            if db.chatConfSync and db.chatConfSync[whichCharId] and ChatSys and ChatSys.primaryContainer then
                 local chatConfSyncForCharId = db.chatConfSync[whichCharId]
-                if CHAT_SYSTEM.control then
+                if ChatSys.control then
                     -- Position and width/height
-                    CHAT_SYSTEM.control:SetAnchor(chatConfSyncForCharId.point, GuiRoot, chatConfSyncForCharId.relPoint, chatConfSyncForCharId.x, chatConfSyncForCharId.y)
+                    ChatSys.control:SetAnchor(chatConfSyncForCharId.point, GuiRoot, chatConfSyncForCharId.relPoint, chatConfSyncForCharId.x, chatConfSyncForCharId.y)
                     -- Height / Width
-                    CHAT_SYSTEM.control:SetDimensions(chatConfSyncForCharId.width, chatConfSyncForCharId.height)
+                    ChatSys.control:SetDimensions(chatConfSyncForCharId.width, chatConfSyncForCharId.height)
                 end
 
                 -- Save settings immediatly (to check, maybe call function which do this)
-                if CHAT_SYSTEM.primaryContainer.settings then
-                    CHAT_SYSTEM.primaryContainer.settings.height = chatConfSyncForCharId.height
-                    CHAT_SYSTEM.primaryContainer.settings.point = chatConfSyncForCharId.point
-                    CHAT_SYSTEM.primaryContainer.settings.relPoint = chatConfSyncForCharId.relPoint
-                    CHAT_SYSTEM.primaryContainer.settings.width = chatConfSyncForCharId.width
-                    CHAT_SYSTEM.primaryContainer.settings.x = chatConfSyncForCharId.x
-                    CHAT_SYSTEM.primaryContainer.settings.y = chatConfSyncForCharId.y
+                if ChatSys.primaryContainer.settings then
+                    ChatSys.primaryContainer.settings.height = chatConfSyncForCharId.height
+                    ChatSys.primaryContainer.settings.point = chatConfSyncForCharId.point
+                    ChatSys.primaryContainer.settings.relPoint = chatConfSyncForCharId.relPoint
+                    ChatSys.primaryContainer.settings.width = chatConfSyncForCharId.width
+                    ChatSys.primaryContainer.settings.x = chatConfSyncForCharId.x
+                    ChatSys.primaryContainer.settings.y = chatConfSyncForCharId.y
                 end
 
                 -- TODO why is this commented out?
                 ---- Don't overflow screen, remove 15px.
-                --if chatConfSyncForCharId.height >= (CHAT_SYSTEM.maxContainerHeight - 15 ) then
-                --    CHAT_SYSTEM.control:SetHeight((CHAT_SYSTEM.maxContainerHeight - 15 ))
-                --    logger:Debug("Overflow height %d -+- %d",  chatConfSyncForCharId.height, (CHAT_SYSTEM.maxContainerHeight - 15))
-                --    logger:Debug(CHAT_SYSTEM.control:GetHeight())
+                --if chatConfSyncForCharId.height >= (ChatSys.maxContainerHeight - 15 ) then
+                --    ChatSys.control:SetHeight((ChatSys.maxContainerHeight - 15 ))
+                --    logger:Debug("Overflow height %d -+- %d",  chatConfSyncForCharId.height, (ChatSys.maxContainerHeight - 15))
+                --    logger:Debug(ChatSys.control:GetHeight())
                 --else
                 --    -- Don't set good values ?! SetHeight(674) = GetHeight(524) ? same with Width and resizing is buggy
-                --    --CHAT_SYSTEM.control:SetHeight(chatConfSyncForCharId.height)
-                --    CHAT_SYSTEM.control:SetDimensions(settings.width, settings.height)
-                --    logger:Debug("height %d -+- %d", chatConfSyncForCharId.height, CHAT_SYSTEM.control:GetHeight())
+                --    --ChatSys.control:SetHeight(chatConfSyncForCharId.height)
+                --    ChatSys.control:SetDimensions(settings.width, settings.height)
+                --    logger:Debug("height %d -+- %d", chatConfSyncForCharId.height, ChatSys.control:GetHeight())
                 --end
                 --
                 ---- Same
-                --if chatConfSyncForCharId.width >= (CHAT_SYSTEM.maxContainerWidth - 15 ) then
-                --    CHAT_SYSTEM.control:SetWidth((CHAT_SYSTEM.maxContainerWidth - 15 ))
-                --    logger:Debug("Overflow width %d -+- %d", chatConfSyncForCharId.width, (CHAT_SYSTEM.maxContainerWidth - 15))
-                --    logger:Debug(CHAT_SYSTEM.control:GetWidth())
+                --if chatConfSyncForCharId.width >= (ChatSys.maxContainerWidth - 15 ) then
+                --    ChatSys.control:SetWidth((ChatSys.maxContainerWidth - 15 ))
+                --    logger:Debug("Overflow width %d -+- %d", chatConfSyncForCharId.width, (ChatSys.maxContainerWidth - 15))
+                --    logger:Debug(ChatSys.control:GetWidth())
                 --else
-                --    CHAT_SYSTEM.control:SetHeight(chatConfSyncForCharId.width)
-                --    logger:Debug("width %d -+- %d", chatConfSyncForCharId.width, CHAT_SYSTEM.control:GetWidth())
+                --    ChatSys.control:SetHeight(chatConfSyncForCharId.width)
+                --    logger:Debug("width %d -+- %d", chatConfSyncForCharId.width, ChatSys.control:GetWidth())
                 --end
 
                 -- Colors
                 if GetChatCategoryColor and SetChatCategoryColor then
-                    for _, category in ipairs (pChatData.chatCategories) do
+                    for _, category in ipairs (chatCategories) do
                         if not chatConfSyncForCharId.colors[category] then
                             local r, g, b = GetChatCategoryColor(category)
                             chatConfSyncForCharId.colors[category] = { red = r, green = g, blue = b }
@@ -342,12 +386,12 @@ function pChat.InitializeChatConfig()
                 end
 
                 -- Font Size
-                -- Not in Realtime SetChatFontSize(chatConfSyncForCharId.fontSize), need to add CHAT_SYSTEM:SetFontSize for Realtimed
+                -- Not in Realtime SetChatFontSize(chatConfSyncForCharId.fontSize), need to add ChatSys:SetFontSize for Realtimed
 
                 -- ?!? Need to go by a local?..
-                if CHAT_SYSTEM.SetFontSize and SetChatFontSize then
+                if ChatSys.SetFontSize and SetChatFontSize then
                     local fontSize = chatConfSyncForCharId.fontSize
-                    CHAT_SYSTEM:SetFontSize(fontSize)
+                    ChatSys:SetFontSize(fontSize)
                     SetChatFontSize(chatConfSyncForCharId.fontSize)
                 end
 
@@ -358,7 +402,7 @@ function pChat.InitializeChatConfig()
                         --Create a Tab if nessesary
                         if (GetNumChatContainerTabs(1) < numTab) then
                             -- AddChatContainerTab(1, , chatConfSyncForCharId.tabs[numTab].isCombatLog) No ! Require a ReloadUI
-                            CHAT_SYSTEM.primaryContainer:AddWindow(chatConfSyncForCharId.tabs[numTab].name)
+                            ChatSys.primaryContainer:AddWindow(chatConfSyncForCharId.tabs[numTab].name)
                         end
 
                         if chatConfSyncForCharId.tabs[numTab] and chatConfSyncForCharId.tabs[numTab].notBefore then
@@ -374,13 +418,13 @@ function pChat.InitializeChatConfig()
                         -- Set Tab options
                         -- Not in realtime : SetChatContainerTabInfo(1, numTab, chatConfSyncForCharId.tabs[numTab].name, chatConfSyncForCharId.tabs[numTab].isLocked, chatConfSyncForCharId.tabs[numTab].isInteractable, chatConfSyncForCharId.tabs[numTab].areTimestampsEnabled)
 
-                        CHAT_SYSTEM.primaryContainer:SetTabName(numTab, chatConfSyncForCharId.tabs[numTab].name)
-                        CHAT_SYSTEM.primaryContainer:SetLocked(numTab, chatConfSyncForCharId.tabs[numTab].isLocked)
-                        CHAT_SYSTEM.primaryContainer:SetInteractivity(numTab, chatConfSyncForCharId.tabs[numTab].isInteractable)
-                        CHAT_SYSTEM.primaryContainer:SetTimestampsEnabled(numTab, chatConfSyncForCharId.tabs[numTab].areTimestampsEnabled)
+                        ChatSys.primaryContainer:SetTabName(numTab, chatConfSyncForCharId.tabs[numTab].name)
+                        ChatSys.primaryContainer:SetLocked(numTab, chatConfSyncForCharId.tabs[numTab].isLocked)
+                        ChatSys.primaryContainer:SetInteractivity(numTab, chatConfSyncForCharId.tabs[numTab].isInteractable)
+                        ChatSys.primaryContainer:SetTimestampsEnabled(numTab, chatConfSyncForCharId.tabs[numTab].areTimestampsEnabled)
 
                         -- Set Channel per tab configuration
-                        for _, category in ipairs (pChatData.chatCategories) do
+                        for _, category in ipairs (chatCategories) do
                             if chatConfSyncForCharId.tabs[numTab].enabledCategories[category] == nil then -- Cal be false
                                 chatConfSyncForCharId.tabs[numTab].enabledCategories[category] = IsChatContainerTabCategoryEnabled(1, numTab, category)
                             end
@@ -398,7 +442,7 @@ function pChat.InitializeChatConfig()
                     -- Too many tabs, deleting one
                     if GetNumChatContainerTabs(1) > chatSyncNumTab then
                         -- Not in realtime : RemoveChatContainerTab(1, chatSyncNumTab + 1)
-                        CHAT_SYSTEM.primaryContainer:RemoveWindow(chatSyncNumTab + 1, nil)
+                        ChatSys.primaryContainer:RemoveWindow(chatSyncNumTab + 1, nil)
                     else
                         removeTabs = false
                     end
@@ -422,7 +466,7 @@ function pChat.InitializeChatConfig()
     -- Set channel to the default one
     local function SetToDefaultChannel()
         if db.defaultchannel ~= CONSTANTS.PCHAT_CHANNEL_NONE then
-            CHAT_SYSTEM:SetChannel(db.defaultchannel)
+            ChatSys:SetChannel(db.defaultchannel)
         end
     end
 
@@ -434,7 +478,7 @@ function pChat.InitializeChatConfig()
             -- Go back to default channel when leaving a group
             if db.enablepartyswitch then
                 -- Only if we was on party
-                if CHAT_SYSTEM.currentChannel == CHAT_CHANNEL_PARTY and db.defaultchannel ~= CONSTANTS.PCHAT_CHANNEL_NONE then
+                if ChatSys.currentChannel == CHAT_CHANNEL_PARTY and db.defaultchannel ~= CONSTANTS.PCHAT_CHANNEL_NONE then
                     SetToDefaultChannel()
                 end
             end
@@ -449,7 +493,7 @@ function pChat.InitializeChatConfig()
 
                     -- Switch to party channel when joining a group
                     if db.enablepartyswitch then
-                        CHAT_SYSTEM:SetChannel(CHAT_CHANNEL_PARTY)
+                        ChatSys:SetChannel(CHAT_CHANNEL_PARTY)
                     end
             else
                 -- Someone else joined group
@@ -457,7 +501,7 @@ function pChat.InitializeChatConfig()
                 if GetGroupSize() == 2 then
                     -- Switch to party channel when joinin a group
                     if db.enablepartyswitch then
-                        CHAT_SYSTEM:SetChannel(CHAT_CHANNEL_PARTY)
+                        ChatSys:SetChannel(CHAT_CHANNEL_PARTY)
                     end
                 end
 
@@ -483,7 +527,7 @@ function pChat.InitializeChatConfig()
 
     -- PreHook of ZO_ChatSystem_ShowOptions() and ZO_ChatWindow_OpenContextMenu(control.index)
     local function ChatSystemShowOptions(tabIndex)
-        local self = CHAT_SYSTEM.primaryContainer
+        local self = ChatSys.primaryContainer
         tabIndex = tabIndex or (self.currentBuffer and self.currentBuffer:GetParent() and self.currentBuffer:GetParent().tab and self.currentBuffer:GetParent().tab.index)
         local window = self.windows[tabIndex]
         if window then
@@ -537,7 +581,7 @@ function pChat.InitializeChatConfig()
     local function SaveTabsCategories()
         local charId = GetCurrentCharacterId()
 
-        for numTab in ipairs (CHAT_SYSTEM.primaryContainer.windows) do
+        for numTab in ipairs (ChatSys.primaryContainer.windows) do
 
             for _, category in ipairs (pChatData.guildCategories) do
                 local isEnabled = IsChatContainerTabCategoryEnabled(1, numTab, category)

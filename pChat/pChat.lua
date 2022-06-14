@@ -62,6 +62,9 @@ local strlen = string.len
 local strfind = string.find
 local strsub = string.sub
 
+local chatChannelLangToLangStr = CONSTANTS.chatChannelLangToLangStr
+
+
 --======================================================================================================================
 --pChat Variables--
 --======================================================================================================================
@@ -71,6 +74,8 @@ local pChatData = {}
 pChatData.localPlayer = GetUnitName("player")
 -- Logged in @Account name
 pChatData.localAccount = GetDisplayName()
+pChatData.wasManuallyMinimized = false
+
 
 --LibDebugLogger objects
 local logger
@@ -127,6 +132,8 @@ pChat.migrationInfoOutput = migrationInfoOutput
 
 --Prepare some needed addon variables
 local function PrepareVars()
+    CONSTANTS.CHAT_SYSTEM = CONSTANTS.CHAT_SYSTEM or CHAT_SYSTEM
+
     --Build the character name to unique ID mapping tables and vice-versa
     --The character names are decorated with the color and icon of the class!
     pChat.characterName2Id = {}
@@ -195,7 +202,8 @@ do
                 pChatColor = db.colours[2 * CHAT_CHANNEL_GUILD_1]
             elseif db.allGuildsSameColour and (channelId >= CHAT_CHANNEL_OFFICER_1 and channelId <= CHAT_CHANNEL_OFFICER_5) then
                 pChatColor = db.colours[2 * CHAT_CHANNEL_OFFICER_1]
-            elseif db.allZonesSameColour and (channelId >= CHAT_CHANNEL_ZONE_LANGUAGE_1 and channelId <= CHAT_CHANNEL_ZONE_LANGUAGE_5) then
+            --elseif db.allZonesSameColour and (channelId >= CHAT_CHANNEL_ZONE_LANGUAGE_1 and channelId <= CHAT_CHANNEL_ZONE_LANGUAGE_5) then
+            elseif db.allZonesSameColour and chatChannelLangToLangStr[channelId] ~= nil then
                 pChatColor = db.colours[2 * CHAT_CHANNEL_ZONE]
             else
                 pChatColor = db.colours[2 * channelId]
@@ -309,6 +317,9 @@ do
     ChannelInfo[CHAT_CHANNEL_ZONE_LANGUAGE_3].channelLinkable = true
     ChannelInfo[CHAT_CHANNEL_ZONE_LANGUAGE_4].channelLinkable = true
     ChannelInfo[CHAT_CHANNEL_ZONE_LANGUAGE_5].channelLinkable = true
+    if ChannelInfo[CHAT_CHANNEL_ZONE_LANGUAGE_6] ~= nil then
+        ChannelInfo[CHAT_CHANNEL_ZONE_LANGUAGE_6].channelLinkable = true
+    end
 end
 
 --Do some checks after the EVENT_PLAYER_ACTIVATED task was done
@@ -365,6 +376,8 @@ end
 -- Unregisters itself from the player activation event with the event manager.
 local function OnPlayerActivated()
     logger:Debug("EVENT_PLAYER_ACTIVATED - Start")
+    CONSTANTS.CHAT_SYSTEM = CONSTANTS.CHAT_SYSTEM or CHAT_SYSTEM
+
     --Were SavedVariables migrated from non-server dependent ones?
     --And do we need a reloadui here?
     checkSavedVariablesMigrationTasks()
@@ -504,6 +517,16 @@ local function LoadHooks()
 
         self:SetText(newText)
         self:SetCursorPosition(space+1)
+    end)
+
+    ZO_PreHook("ZO_ChatSystem_OnMinMaxClicked", function()
+        if KEYBOARD_CHAT_SYSTEM:IsMinimized() then
+            --Will be maximized now
+            pChat.pChatData.wasManuallyMinimized = false
+        else
+            --Will be mainimized now
+            pChat.pChatData.wasManuallyMinimized = true
+        end
     end)
 
 end

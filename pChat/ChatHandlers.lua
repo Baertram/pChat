@@ -251,3 +251,5 @@ function pChat.InitializeChatHandlers()
 	pChat.charCount.createControl()
 	pChat.charCount.setHandlers()
 end
+
+

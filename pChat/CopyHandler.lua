@@ -1,9 +1,13 @@
 local CONSTANTS = pChat.CONSTANTS
 local ADDON_NAME = CONSTANTS.ADDON_NAME
 
+local ChatSys = CONSTANTS.CHAT_SYSTEM
+
 -- pChat Chat Copy Options OBJKCT
 pChat.ChatCopyOptions = nil
 local mapChatChannelToPChatChannel = pChat.mapChatChannelToPChatChannel
+
+local chatChannelLangToLangStr = CONSTANTS.chatChannelLangToLangStr
 
 -------------------------------------------------------------
 -- Helper functions --
@@ -86,8 +90,8 @@ local function CopyToTextEntry(message)
 
     -- Max of inputbox is 351 chars
     if string.len(message) < 351 then
-        if CHAT_SYSTEM.textEntry:GetText() == "" then
-            CHAT_SYSTEM.textEntry:Open(message)
+        if ChatSys.textEntry:GetText() == "" then
+            ChatSys.textEntry:Open(message)
             ZO_ChatWindowTextEntryEditBox:SelectAll()
         end
     end
@@ -160,7 +164,7 @@ local function isChatCategoryEnabledInAnyChatTab(chatChannel)
     local isChatCategoryEnabledAtAnyChatTabCheck = false
     if chatChannel and chatChannel ~= "" then
         local actualTab = 1
-        local numTabs = #CHAT_SYSTEM.primaryContainer.windows
+        local numTabs = #ChatSys.primaryContainer.windows
         local chatCategory = GetChannelCategoryFromChannel(chatChannel)
         if chatCategory then
             if chatCatgoriesEnabledTable[chatCategory] == true then return true end
@@ -271,9 +275,15 @@ local CHANNEL_ORDERING_WEIGHT = {
 
     [CHAT_CATEGORY_ZONE_ENGLISH] = 90,
     [CHAT_CATEGORY_ZONE_FRENCH] = 100,
-
     [CHAT_CATEGORY_ZONE_GERMAN] = 110,
+    [CHAT_CATEGORY_ZONE_JAPANESE] = 120,
+    [CHAT_CATEGORY_ZONE_RUSSIAN] = 130,
 }
+if CHAT_CATEGORY_ZONE_SPANISH ~= nil then
+    CHANNEL_ORDERING_WEIGHT[CHAT_CATEGORY_ZONE_SPANISH] = 140
+end
+
+
 
 local chatChannelsToMap = {
     CHAT_CHANNEL_SAY,
@@ -284,6 +294,7 @@ local chatChannelsToMap = {
     CHAT_CHANNEL_ZONE_LANGUAGE_3,
     CHAT_CHANNEL_ZONE_LANGUAGE_4,
     CHAT_CHANNEL_ZONE_LANGUAGE_5,
+    CHAT_CHANNEL_ZONE_LANGUAGE_6,
     CHAT_CHANNEL_WHISPER,
     CHAT_CHANNEL_WHISPER_SENT,
     CHAT_CHANNEL_PARTY,
@@ -302,8 +313,9 @@ local chatChannelsToMap = {
     CHAT_CHANNEL_MONSTER_SAY,
     CHAT_CHANNEL_MONSTER_YELL,
     CHAT_CHANNEL_MONSTER_WHISPER,
-    CHAT_CHANNEL_MONSTER_EMOTE
+    CHAT_CHANNEL_MONSTER_EMOTE,
 }
+
 local ChatCategory2ChatChannel = {}
 for _, chatChannelId in pairs(chatChannelsToMap) do
     local chatCat = GetChannelCategoryFromChannel(chatChannelId)
@@ -452,7 +464,7 @@ function ChatCopyOptions:Initialize(control)
     --Check each chat tab in the chat container and update the checkboxes of the filters:
     --Mark those where any chat channel matching to the enabled chat container chat channels applies
     if pChat.tabIndices and #pChat.tabIndices > 0 then
-        local chatContainer = CHAT_SYSTEM.primaryContainer
+        local chatContainer = ChatSys.primaryContainer
         if chatContainer then
             if isShowDiscussion == true then
                 local pChatData = pChat.pChatData
@@ -864,20 +876,24 @@ function pChat.InitializeCopyHandler(control)
                         or chanNumber == CHAT_CHANNEL_YELL
                         or chanNumber == CHAT_CHANNEL_PARTY
                         or chanNumber == CHAT_CHANNEL_ZONE
+                        --[[
                         or chanNumber == CHAT_CHANNEL_ZONE_LANGUAGE_1
                         or chanNumber == CHAT_CHANNEL_ZONE_LANGUAGE_2
                         or chanNumber == CHAT_CHANNEL_ZONE_LANGUAGE_3
                         or chanNumber == CHAT_CHANNEL_ZONE_LANGUAGE_4
                         or chanNumber == CHAT_CHANNEL_ZONE_LANGUAGE_5
+                        ]]
+                        or chatChannelLangToLangStr[chanNumber] ~= nil
                         or (chanNumber >= CHAT_CHANNEL_GUILD_1 and chanNumber <= CHAT_CHANNEL_GUILD_5)
-                        or (chanNumber >= CHAT_CHANNEL_OFFICER_1 and chanNumber <= CHAT_CHANNEL_OFFICER_5) then
+                        or (chanNumber >= CHAT_CHANNEL_OFFICER_1 and chanNumber <= CHAT_CHANNEL_OFFICER_5)
+                then
                     IgnoreMouseDownEditFocusLoss()
-                    --CHAT_SYSTEM:StartTextEntry(nil, chanNumber)
+                    --ChatSys:StartTextEntry(nil, chanNumber)
                     StartChatInput(nil, chanNumber, nil)
                 elseif chanNumber == CHAT_CHANNEL_WHISPER then
                     local target = zo_strformat(SI_UNIT_NAME, db.LineStrings[numLine].rawFrom)
                     IgnoreMouseDownEditFocusLoss()
-                    --CHAT_SYSTEM:StartTextEntry(nil, chanNumber, target)
+                    --ChatSys:StartTextEntry(nil, chanNumber, target)
                     StartChatInput(nil, chanNumber, target)
                 elseif chanNumber == CONSTANTS.PCHAT_URL_CHAN then
                     RequestOpenUnsafeURL(linkText)

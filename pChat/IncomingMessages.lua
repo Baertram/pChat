@@ -1,33 +1,35 @@
 local CONSTANTS = pChat.CONSTANTS
 local ADDON_NAME = CONSTANTS.ADDON_NAME
 
+local ChatSys = CONSTANTS.CHAT_SYSTEM
+
 -- Add IM label on XML Initialization, set anchor and set it hidden
 function pChat_AddIMLabel(control)
 
-    control:SetParent(CHAT_SYSTEM.control)
+    control:SetParent(ChatSys.control)
     control:ClearAnchors()
     control:SetAnchor(RIGHT, ZO_ChatWindowOptions, LEFT, -5, 32)
-    CHAT_SYSTEM.IMLabel = control
+    ChatSys.IMLabel = control
 
 end
 
 -- Add IM label on XML Initialization, set anchor and set it hidden. Used for Chat Minibar
 function pChat_AddIMLabelMin(control)
 
-    control:SetParent(CHAT_SYSTEM.control)
+    control:SetParent(ChatSys.control)
     control:ClearAnchors()
-    control:SetAnchor(BOTTOM, CHAT_SYSTEM.minBar.maxButton, TOP, 2, 0)
-    CHAT_SYSTEM.IMLabelMin = control
+    control:SetAnchor(BOTTOM, ChatSys.minBar.maxButton, TOP, 2, 0)
+    ChatSys.IMLabelMin = control
 
 end
 
 -- Add IM close button on XML Initialization, set anchor and set it hidden
 function pChat_AddIMButton(control)
 
-    control:SetParent(CHAT_SYSTEM.control)
+    control:SetParent(ChatSys.control)
     control:ClearAnchors()
     control:SetAnchor(RIGHT, ZO_ChatWindowOptions, LEFT, 2, 35)
-    CHAT_SYSTEM.IMbutton = control
+    ChatSys.IMbutton = control
 
 end
 
@@ -78,18 +80,18 @@ function pChat.InitializeIncomingMessages()
             end
 
             -- If chat minimized, show the minified button
-            if (CHAT_SYSTEM:IsMinimized()) then
-                CHAT_SYSTEM.IMLabelMin:SetHandler("OnMouseEnter", function(self) ShowIMTooltip(self, lineNumber) end)
-                CHAT_SYSTEM.IMLabelMin:SetHandler("OnMouseExit", HideIMTooltip)
-                CHAT_SYSTEM.IMLabelMin:SetHidden(false)
+            if (ChatSys:IsMinimized()) then
+                ChatSys.IMLabelMin:SetHandler("OnMouseEnter", function(self) ShowIMTooltip(self, lineNumber) end)
+                ChatSys.IMLabelMin:SetHandler("OnMouseExit", HideIMTooltip)
+                ChatSys.IMLabelMin:SetHidden(false)
             else
                 -- Chat maximized
-                local _, scrollMax = CHAT_SYSTEM.primaryContainer.scrollbar:GetMinMax()
+                local _, scrollMax = ChatSys.primaryContainer.scrollbar:GetMinMax()
 
                 -- If chat tab with whisper channel activated is not the currently active one, or it's the whisper tab but we did not scroll to the bottom
                 local isChatContainerCategoryEnabledWhisperIncoming = IsChatContainerTabCategoryEnabled(1, pChatData.activeTab, CHAT_CATEGORY_WHISPER_INCOMING)
                 if (   (not isChatContainerCategoryEnabledWhisperIncoming)
-                    or (isChatContainerCategoryEnabledWhisperIncoming and CHAT_SYSTEM.primaryContainer.scrollbar:GetValue() < scrollMax) ) then
+                    or (isChatContainerCategoryEnabledWhisperIncoming and ChatSys.primaryContainer.scrollbar:GetValue() < scrollMax) ) then
 
                     -- Undecorate (^F / ^M)
                     if (not IsDecoratedDisplayName(from)) then
@@ -103,13 +105,13 @@ function pChat.InitializeIncomingMessages()
                     end
 
                     -- Show
-                    CHAT_SYSTEM.IMLabel:SetText(displayedFrom)
-                    CHAT_SYSTEM.IMLabel:SetHidden(false)
-                    CHAT_SYSTEM.IMbutton:SetHidden(false)
+                    ChatSys.IMLabel:SetText(displayedFrom)
+                    ChatSys.IMLabel:SetHidden(false)
+                    ChatSys.IMbutton:SetHidden(false)
 
                     -- Add handler
-                    CHAT_SYSTEM.IMLabel:SetHandler("OnMouseEnter", function(self) ShowIMTooltip(self, lineNumber) end)
-                    CHAT_SYSTEM.IMLabel:SetHandler("OnMouseExit", function(self) HideIMTooltip() end)
+                    ChatSys.IMLabel:SetHandler("OnMouseEnter", function(self) ShowIMTooltip(self, lineNumber) end)
+                    ChatSys.IMLabel:SetHandler("OnMouseExit", function(self) HideIMTooltip() end)
                 end
             end
 
@@ -120,9 +122,9 @@ function pChat.InitializeIncomingMessages()
 
     -- Hide IM notification when click on it. Can be Called by XML
     function pChat_RemoveIMNotification()
-        CHAT_SYSTEM.IMLabel:SetHidden(true)
-        CHAT_SYSTEM.IMLabelMin:SetHidden(true)
-        CHAT_SYSTEM.IMbutton:SetHidden(true)
+        ChatSys.IMLabel:SetHidden(true)
+        ChatSys.IMLabelMin:SetHidden(true)
+        ChatSys.IMbutton:SetHidden(true)
     end
 
     -- Will try to display the notified IM. Called by XML
@@ -130,18 +132,18 @@ function pChat.InitializeIncomingMessages()
 
         -- Show chat first
         if isMinimized then
-            CHAT_SYSTEM:Maximize()
-            CHAT_SYSTEM.IMLabelMin:SetHidden(true)
+            ChatSys:Maximize()
+            ChatSys.IMLabelMin:SetHidden(true)
         end
 
         -- Tab get IM, scroll
         if IsChatContainerTabCategoryEnabled(1, pChatData.activeTab, CHAT_CATEGORY_WHISPER_INCOMING) then
-            ZO_ChatSystem_ScrollToBottom(CHAT_SYSTEM.control)
+            ZO_ChatSystem_ScrollToBottom(ChatSys.control)
             pChat_RemoveIMNotification()
         else
 
             -- Tab don't have IM's, switch to next
-            local numTabs = #CHAT_SYSTEM.primaryContainer.windows
+            local numTabs = #ChatSys.primaryContainer.windows
             local actualTab = pChatData.activeTab + 1
             local oldActiveTab = pChatData.activeTab
             local PRESSED = 1
@@ -152,7 +154,7 @@ function pChat.InitializeIncomingMessages()
             while actualTab <= numTabs and (not hasSwitched) do
                 if IsChatContainerTabCategoryEnabled(1, actualTab, CHAT_CATEGORY_WHISPER_INCOMING) then
 
-                    CHAT_SYSTEM.primaryContainer:HandleTabClick(CHAT_SYSTEM.primaryContainer.windows[actualTab].tab)
+                    ChatSys.primaryContainer:HandleTabClick(ChatSys.primaryContainer.windows[actualTab].tab)
 
                     local tabText = pChat.GetTabTextControl(actualTab)
                     tabText:SetColor(GetInterfaceColor(INTERFACE_COLOR_TYPE_TEXT_COLORS, INTERFACE_TEXT_COLOR_SELECTED))
@@ -160,7 +162,7 @@ function pChat.InitializeIncomingMessages()
                     local oldTabText = pChat.GetTabTextControl(oldActiveTab)
                     oldTabText:SetColor(GetInterfaceColor(INTERFACE_COLOR_TYPE_TEXT_COLORS, INTERFACE_TEXT_COLOR_CONTRAST))
                     oldTabText:GetParent().state = UNPRESSED
-                    ZO_ChatSystem_ScrollToBottom(CHAT_SYSTEM.control)
+                    ZO_ChatSystem_ScrollToBottom(ChatSys.control)
 
                     hasSwitched = true
                 else
@@ -174,7 +176,7 @@ function pChat.InitializeIncomingMessages()
             while actualTab < oldActiveTab and (not hasSwitched) do
                 if IsChatContainerTabCategoryEnabled(1, actualTab, CHAT_CATEGORY_WHISPER_INCOMING) then
 
-                    CHAT_SYSTEM.primaryContainer:HandleTabClick(CHAT_SYSTEM.primaryContainer.windows[actualTab].tab)
+                    ChatSys.primaryContainer:HandleTabClick(ChatSys.primaryContainer.windows[actualTab].tab)
 
                     local tabText = pChat.GetTabTextControl(actualTab)
                     tabText:SetColor(GetInterfaceColor(INTERFACE_COLOR_TYPE_TEXT_COLORS, INTERFACE_TEXT_COLOR_SELECTED))
@@ -182,7 +184,7 @@ function pChat.InitializeIncomingMessages()
                     local oldTabText = pChat.GetTabTextControl(oldActiveTab)
                     oldTabText:SetColor(GetInterfaceColor(INTERFACE_COLOR_TYPE_TEXT_COLORS, INTERFACE_TEXT_COLOR_CONTRAST))
                     oldTabText:GetParent().state = UNPRESSED
-                    ZO_ChatSystem_ScrollToBottom(CHAT_SYSTEM.control)
+                    ZO_ChatSystem_ScrollToBottom(ChatSys.control)
 
                     hasSwitched = true
                 else
@@ -195,7 +197,9 @@ function pChat.InitializeIncomingMessages()
     end
 
     -- Visual Notification PreHook
-    ZO_PreHook(CHAT_SYSTEM, "Maximize", function(self)
-        CHAT_SYSTEM.IMLabelMin:SetHidden(true)
+    ZO_PreHook(ChatSys, "Maximize", function(self)
+--d("[pChat]Maximizing chat")
+        ChatSys.IMLabelMin:SetHidden(true)
+        pChat.pChatData.wasManuallyMinimized = false
     end)
 end

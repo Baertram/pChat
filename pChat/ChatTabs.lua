@@ -1,12 +1,14 @@
 local CONSTANTS = pChat.CONSTANTS
 local ADDON_NAME = CONSTANTS.ADDON_NAME
 
+local ChatSys = CONSTANTS.CHAT_SYSTEM
+
 function pChat.InitializeChatTabs()
     pChat.tabNames = {}
     pChat.tabIndices = {}
 
     local function getTabNames()
-        local totalTabs = CHAT_SYSTEM.tabPool.m_Active
+        local totalTabs = ChatSys.tabPool.m_Active
         if totalTabs ~= nil and #totalTabs >= 1 then
             pChat.tabNames = {}
             pChat.tabIndices = {}
@@ -31,7 +33,7 @@ function pChat.InitializeChatTabs()
             getTabNames()
         end
         local chatTabNames = pChat.tabNames
-        local totalTabs = CHAT_SYSTEM.tabPool.m_Active
+        local totalTabs = ChatSys.tabPool.m_Active
         for i = 1, #totalTabs do
             if chatTabNames[i] == tabName then
                 return i
@@ -68,24 +70,45 @@ function pChat.InitializeChatTabs()
     end
 
     local function CreateNewChatTabPostHook()
-        if not CHAT_SYSTEM or not CHAT_SYSTEM.primaryContainer or not CHAT_SYSTEM.primaryContainer.windows then return end
+        if not ChatSys or not ChatSys.primaryContainer or not ChatSys.primaryContainer.windows then return end
         local db = pChat.db
-        --For each chat tab do
-        for tabIndex, tabObject in ipairs(CHAT_SYSTEM.primaryContainer.windows) do
-            --Set the maximum lines in the chat tab to 1000 instead of 200
-            if db.augmentHistoryBuffer then
-                tabObject.buffer:SetMaxHistoryLines(1000) -- 1000 = max of control
-            end
-            --If the chat fade out is disabled: Set the fade timeout to 3600 milliseconds
-            if db.alwaysShowChat then
-                --New values for fadeOut taken from file:
-                --https://github.com/esoui/esoui/blob/360dee5f494a444c2418a4e20fab8237e29f641b/esoui/ingame/chatsystem/console/gamepadchatsystem.lua
+        --[[
+        for i,container in pairs(self.containers) do
+            container:FadeIn()
+
+            for tabIndex = 1, #container.windows do
+                container.windows[tabIndex].buffer:ShowFadedLines()
+
                 local NEVER_FADE = 0
-                --container.windows[tabIndex].buffer:SetLineFade(NEVER_FADE, NEVER_FADE)
-                tabObject.buffer:SetLineFade(NEVER_FADE, NEVER_FADE) --old values: 3600, 2
+                container.windows[tabIndex].buffer:SetLineFade(NEVER_FADE, NEVER_FADE)
             end
         end
+        ]]
 
+        local NEVER_FADE = 0
+        --For each chat container, and then for each chat tab in that container, do
+        for _, container in pairs(ChatSys.containers) do
+            container:FadeIn()
+
+            for tabIndex, tabObject in ipairs(container.windows) do
+                --Set the maximum lines in the chat tab to 1000 instead of 200
+                if db.augmentHistoryBuffer then
+                    tabObject.buffer:SetMaxHistoryLines(1000) -- 1000 = max of control
+                end
+                --If the chat fade out is disabled: Set the fade timeout to 3600 milliseconds
+                if db.alwaysShowChat then
+                    --New values for fadeOut taken from file:
+                    --https://github.com/esoui/esoui/blob/master/esoui/ingame/chatsystem/gamepad/gamepadchatsystem.lua
+                    local bufferOfTab = tabObject.buffer
+                    bufferOfTab:ShowFadedLines()
+                    --old values: 3, 2 as of API 101032 2022-01-30:
+                    --local FADE_BEGIN = 3
+                    --local FADE_DURATION = 2
+                    --self.windows[tabIndex].buffer:SetLineFade(FADE_BEGIN, FADE_DURATION)
+                    bufferOfTab:SetLineFade(NEVER_FADE, NEVER_FADE)
+                end
+            end
+        end
     end
 
     -- need to call this separately due to the load and init order
@@ -94,8 +117,8 @@ function pChat.InitializeChatTabs()
         local pChatData = pChat.pChatData
         pChatData.activeTab = 1
 
-        if CHAT_SYSTEM.ValidateChatChannel then
-            ZO_PreHook(CHAT_SYSTEM, "ValidateChatChannel", function(self)
+        if ChatSys.ValidateChatChannel then
+            ZO_PreHook(ChatSys, "ValidateChatChannel", function(self)
                 if (db.enableChatTabChannel  == true) and (self.currentChannel ~= CHAT_CHANNEL_WHISPER) then
                     local tabIndex = self.primaryContainer.currentBuffer:GetParent().tab.index
                     db.chatTabChannel[tabIndex] = db.chatTabChannel[tabIndex] or {}
@@ -105,13 +128,13 @@ function pChat.InitializeChatTabs()
             end)
         end
 
-        if CHAT_SYSTEM.primaryContainer.HandleTabClick then
-            ZO_PreHook(CHAT_SYSTEM.primaryContainer, "HandleTabClick", function(self, tab)
+        if ChatSys.primaryContainer.HandleTabClick then
+            ZO_PreHook(ChatSys.primaryContainer, "HandleTabClick", function(self, tab)
                 pChatData.activeTab = tab.index
                 if (db.enableChatTabChannel == true) then
                     local tabIndex = tab.index
                     if db.chatTabChannel[tabIndex] then
-                        CHAT_SYSTEM:SetChannel(db.chatTabChannel[tabIndex].channel, db.chatTabChannel[tabIndex].target)
+                        ChatSys:SetChannel(db.chatTabChannel[tabIndex].channel, db.chatTabChannel[tabIndex].target)
                     end
                 end
                 --ZO_TabButton_Text_RestoreDefaultColors(tab)
@@ -122,7 +145,7 @@ function pChat.InitializeChatTabs()
         SetSwitchToNextBinding()
 
         -- Show 1000 lines instead of 200 & Change fade delay
-        SecurePostHook(CHAT_SYSTEM, "CreateNewChatTab", function()
+        SecurePostHook(ChatSys, "CreateNewChatTab", function()
             CreateNewChatTabPostHook()
         end)
         CreateNewChatTabPostHook()

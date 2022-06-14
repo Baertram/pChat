@@ -1,6 +1,8 @@
 local CONSTANTS = pChat.CONSTANTS
 local apiVersion = CONSTANTS.API_VERSION
 
+local chatChannelLangToLangStr = CONSTANTS.chatChannelLangToLangStr
+
 do
     --Get the class's icon texture
     local function getClassIcon(classId)
@@ -109,7 +111,8 @@ do
                 rESO, gESO, bESO = ZO_ChatSystem_GetCategoryColorFromChannel(CHAT_CHANNEL_GUILD_1)
             elseif db.allGuildsSameColour and (channel >= CHAT_CHANNEL_OFFICER_1 and channel <= CHAT_CHANNEL_OFFICER_5) then
                 rESO, gESO, bESO = ZO_ChatSystem_GetCategoryColorFromChannel(CHAT_CHANNEL_OFFICER_1)
-            elseif db.allZonesSameColour and (channel >= CHAT_CHANNEL_ZONE_LANGUAGE_1 and channel <= CHAT_CHANNEL_ZONE_LANGUAGE_5) then
+            --elseif db.allZonesSameColour and (channel >= CHAT_CHANNEL_ZONE_LANGUAGE_1 and channel <= CHAT_CHANNEL_ZONE_LANGUAGE_5) then
+            elseif db.allZonesSameColour and chatChannelLangToLangStr[channel] ~= nil then
                 rESO, gESO, bESO = ZO_ChatSystem_GetCategoryColorFromChannel(CHAT_CHANNEL_ZONE_LANGUAGE_1)
             elseif channel == CHAT_CHANNEL_PARTY and from and db.groupLeader and zo_strformat(SI_UNIT_NAME, from) == GetUnitName(GetGroupLeaderUnitTag()) then
                 rESO, gESO, bESO = ConvertHexToRGBA(db.colours["groupleader"])
@@ -119,13 +122,13 @@ do
 
             -- Set right colour to left colour - cause ESO colors are rewritten, if one color is not rewritten
             if db.oneColour == true then
-                pChat.lcol = ConvertRGBToHex(rESO, gESO, bESO)
-                pChat.rcol = pChat.lcol
+            pChat.lcol = ConvertRGBToHex(rESO, gESO, bESO)
+            pChat.rcol = pChat.lcol
             else
-                --Change name and text brightness?
-                pChat.lcol = ConvertRGBToHex(DarkenRGBColor(rESO,gESO,bESO, db.diffforESOcolors, 100-db.diffChatColorsDarkenValue))
-                pChat.rcol = ConvertRGBToHex(LightenRGBColor(rESO,gESO,bESO, db.diffforESOcolors, 100-db.diffChatColorsLightenValue))
-            end
+            --Change name and text brightness?
+            pChat.lcol = ConvertRGBToHex(DarkenRGBColor(rESO,gESO,bESO, db.diffforESOcolors, 100-db.diffChatColorsDarkenValue))
+            pChat.rcol = ConvertRGBToHex(LightenRGBColor(rESO,gESO,bESO, db.diffforESOcolors, 100-db.diffChatColorsLightenValue))
+                end
 
         else
             -- pChat Colors
@@ -139,7 +142,8 @@ do
             elseif db.allGuildsSameColour and (channel >= CHAT_CHANNEL_OFFICER_1 and channel <= CHAT_CHANNEL_OFFICER_5) then
                 pChat.lcol = db.colours[2*CHAT_CHANNEL_OFFICER_1]
                 pChat.rcol = db.colours[2*CHAT_CHANNEL_OFFICER_1 + 1]
-            elseif db.allZonesSameColour and (channel >= CHAT_CHANNEL_ZONE_LANGUAGE_1 and channel <= CHAT_CHANNEL_ZONE_LANGUAGE_5) then
+            --elseif db.allZonesSameColour and (channel >= CHAT_CHANNEL_ZONE_LANGUAGE_1 and channel <= CHAT_CHANNEL_ZONE_LANGUAGE_5) then
+            elseif db.allZonesSameColour and chatChannelLangToLangStr[channel] ~= nil then
                 pChat.lcol = db.colours[2*CHAT_CHANNEL_ZONE]
                 pChat.rcol = db.colours[2*CHAT_CHANNEL_ZONE + 1]
             elseif channel == CHAT_CHANNEL_PARTY and from and db.groupLeader and zo_strformat(SI_UNIT_NAME, from) == GetUnitName(GetGroupLeaderUnitTag()) then
