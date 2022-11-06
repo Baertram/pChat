@@ -73,6 +73,11 @@ local strings = {
 
 	PCHAT_PREVENTCHATTEXTFADING = "Prevent chat text fading",
 	PCHAT_PREVENTCHATTEXTFADINGTT = "Prevents the chat text from fading (you can prevent the BG from fading in the Social options",
+	PCHAT_CHATTEXTFADINGBEGIN = "Text fade begin after seconds",
+	PCHAT_CHATTEXTFADINGBEGINTT = "Fade the text after this seconds have passed",
+	PCHAT_CHATTEXTFADINGDURATION = "Text fade duration seconds",
+	PCHAT_CHATTEXTFADINGDURATIONTT = "Fade the text taking this duration in seconds",
+
 
 	PCHAT_AUGMENTHISTORYBUFFER = "Augment # of lines displayed in chat",
 	PCHAT_AUGMENTHISTORYBUFFERTT = "Per default, only the last 200 lines are displayed in chat. This feature raise this value up to 1000 lines",

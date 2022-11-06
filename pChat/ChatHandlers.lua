@@ -1,6 +1,8 @@
 local CONSTANTS = pChat.CONSTANTS
 local ADDON_NAME = CONSTANTS.ADDON_NAME
 
+local maxChatCharCount = CONSTANTS.maxChatCharCount
+
 function pChat.InitializeChatHandlers()
     local db = pChat.db
     local logger = pChat.logger
@@ -191,16 +193,23 @@ function pChat.InitializeChatHandlers()
 		updateLabelText = function()
 			if pChat.charCount ~= nil and pChat.charCount.control ~= nil then
 				if db.useCharCount == true then
+                    local currentChatEditBoxStr = ZO_ChatWindowTextEntryEditBox:GetText()
+                    local currentChatEditBoxStrLen = string.len(currentChatEditBoxStr)
+                    local hideCharCountLabel = (currentChatEditBoxStrLen == nil or currentChatEditBoxStrLen == 0 and true) or false
+                    local chatCharCountTextBase = tostring(currentChatEditBoxStrLen) .. "/" .. maxChatCharCount
 					if db.charCountZonePostTracker == true then
-						pChat.charCount.control:SetText(tostring(string.len(ZO_ChatWindowTextEntryEditBox:GetText())) .. "/350" .. pChat.charCount.postedstr)
+						pChat.charCount.control:SetText(chatCharCountTextBase .. pChat.charCount.postedstr)
 					else
-						pChat.charCount.control:SetText(tostring(string.len(ZO_ChatWindowTextEntryEditBox:GetText())) .. "/350")
+						pChat.charCount.control:SetText(chatCharCountTextBase)
 					end
+                    pChat.charCount.control:SetHidden(hideCharCountLabel)
 				else
 					if db.charCountZonePostTracker == true then
 						pChat.charCount.control:SetText(pChat.charCount.postedstr)
+                        pChat.charCount.control:SetHidden(false)
 					else
 						pChat.charCount.control:SetText("")
+                        pChat.charCount.control:SetHidden(true)
 					end
 				end
 			end

@@ -86,30 +86,39 @@ function pChat.InitializeChatTabs()
         ]]
 
         local NEVER_FADE = 0
+        --old values: 3, 2 as of API 101032 2022-01-30:
+        local FADE_BEGIN = db.chatTextFadeBegin
+        local FADE_DURATION = db.chatTextFadeDuration
+
+        local neverFadeOut = ( db.alwaysShowChat == true and true) or false
+        local fadeBegin = ( neverFadeOut == true and NEVER_FADE ) or FADE_BEGIN
+        local fadeDuration = ( neverFadeOut == true and NEVER_FADE ) or FADE_DURATION
+
         --For each chat container, and then for each chat tab in that container, do
         for _, container in pairs(ChatSys.containers) do
             container:FadeIn()
 
-            for tabIndex, tabObject in ipairs(container.windows) do
+            for _, tabObject in ipairs(container.windows) do
                 --Set the maximum lines in the chat tab to 1000 instead of 200
                 if db.augmentHistoryBuffer then
                     tabObject.buffer:SetMaxHistoryLines(1000) -- 1000 = max of control
                 end
                 --If the chat fade out is disabled: Set the fade timeout to 3600 milliseconds
-                if db.alwaysShowChat then
-                    --New values for fadeOut taken from file:
-                    --https://github.com/esoui/esoui/blob/master/esoui/ingame/chatsystem/gamepad/gamepadchatsystem.lua
-                    local bufferOfTab = tabObject.buffer
-                    bufferOfTab:ShowFadedLines()
-                    --old values: 3, 2 as of API 101032 2022-01-30:
-                    --local FADE_BEGIN = 3
-                    --local FADE_DURATION = 2
+                --New values for fadeOut taken from file:
+                --https://github.com/esoui/esoui/blob/master/esoui/ingame/chatsystem/gamepad/gamepadchatsystem.lua
+                local bufferOfTab = tabObject.buffer
+                if bufferOfTab ~= nil then
+                    if neverFadeOut then
+                        bufferOfTab:ShowFadedLines()
+                    end
                     --self.windows[tabIndex].buffer:SetLineFade(FADE_BEGIN, FADE_DURATION)
-                    bufferOfTab:SetLineFade(NEVER_FADE, NEVER_FADE)
+                    bufferOfTab:SetLineFade(fadeBegin, fadeDuration)
                 end
             end
         end
     end
+    pChat.CreateNewChatTabPostHook = CreateNewChatTabPostHook
+
 
     -- need to call this separately due to the load and init order
     function pChat.SetupChatTabs()
@@ -131,6 +140,18 @@ function pChat.InitializeChatTabs()
         if ChatSys.primaryContainer.HandleTabClick then
             ZO_PreHook(ChatSys.primaryContainer, "HandleTabClick", function(self, tab)
                 pChatData.activeTab = tab.index
+                --20221106 Check for open whisper notifications shown and if switched to whisper tab, close them if the
+                --current tab's whisper chat channel is enabled
+                --Check if the whisper notifications visual is enabled
+                if db.notifyIM == true then
+                    local isWhisperEnabled = IsChatContainerTabCategoryEnabled(tab.container.id, tab.index, CHAT_CATEGORY_WHISPER_INCOMING)
+                    --Current tab got incoming whisper chat channel/category enabled
+                    if isWhisperEnabled == true then
+                        --Is the visual whisper control still shown? Close it
+                        pChat_RemoveIMNotification()
+                    end
+                end
+
                 if (db.enableChatTabChannel == true) then
                     local tabIndex = tab.index
                     if db.chatTabChannel[tabIndex] then

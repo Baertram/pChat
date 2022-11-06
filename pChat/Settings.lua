@@ -44,6 +44,8 @@ function pChat.InitializeSettings()
 		delzonetags = true,
 		carriageReturn = false,
 		alwaysShowChat = false,
+		chatTextFadeBegin = 3, --20221106
+		chatTextFadeDuration = 2, --20221106
 		augmentHistoryBuffer = true,
 		oneColour = false,
 		showTagInEntry = true,
@@ -570,10 +572,45 @@ function pChat.InitializeSettings()
 					name = GetString(PCHAT_PREVENTCHATTEXTFADING),
 					tooltip = GetString(PCHAT_PREVENTCHATTEXTFADINGTT),
 					getFunc = function() return db.alwaysShowChat end,
-					setFunc = function(newValue) db.alwaysShowChat = newValue end,
+					setFunc = function(newValue) db.alwaysShowChat = newValue
+						pChat.CreateNewChatTabPostHook()
+					end,
 					width = "full",
 					default = defaults.alwaysShowChat,
 				},
+				{-- Chat text fade out begin timer
+					type = "slider",
+					name = GetString(PCHAT_CHATTEXTFADINGBEGIN),
+					tooltip = GetString(PCHAT_CHATTEXTFADINGBEGINTT),
+					min = 1,
+					max = 3600,
+					step = 1,
+					getFunc = function() return db.chatTextFadeBegin end,
+					setFunc = function(newValue)
+						db.chatTextFadeBegin = newValue
+						pChat.CreateNewChatTabPostHook()
+					end,
+					width = "full",
+					default = defaults.chatTextFadeBegin,
+					disabled = function() return db.alwaysShowChat end
+				},
+				{-- Chat text fade out duration timer
+					type = "slider",
+					name = GetString(PCHAT_CHATTEXTFADINGDURATION),
+					tooltip = GetString(PCHAT_CHATTEXTFADINGDURATIONTT),
+					min = 1,
+					max = 30,
+					step = 1,
+					getFunc = function() return db.chatTextFadeDuration end,
+					setFunc = function(newValue)
+						db.chatTextFadeDuration = newValue
+						pChat.CreateNewChatTabPostHook()
+					end,
+					width = "full",
+					default = defaults.chatTextFadeDuration,
+					disabled = function() return db.alwaysShowChat end
+				},
+
 				{-- Augment lines of chat
 					type = "checkbox",
 					name = GetString(PCHAT_AUGMENTHISTORYBUFFER),

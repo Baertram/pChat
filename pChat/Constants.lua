@@ -7,7 +7,7 @@ pChat = pChat or {}
     --AddOn information
     local CONSTANTS = {
         ADDON_NAME          = "pChat",
-        ADDON_VERSION       = "10.0.3.0",
+        ADDON_VERSION       = "10.0.3.1",
 
         API_VERSION         = GetAPIVersion(),
 
@@ -37,6 +37,8 @@ pChat = pChat or {}
         [CHAT_CHANNEL_ZONE_LANGUAGE_5] = "RU",
         [CHAT_CHANNEL_ZONE_LANGUAGE_6] = "ES"
     }
+
+    CONSTANTS.maxChatCharCount = 350
 
     --Add constants to pChat namespace
     pChat.CONSTANTS = CONSTANTS
