@@ -58,6 +58,12 @@ function pChat.InitializeMessageFormatters()
     -- protos : only http/https
     pChatData.protocols = {['http://'] = 0, ['https://'] = 0}
 
+    --Detect the QuickChat messages |s<number><number:optional><number:optional><number:optional>|s
+    local function detectQuickChat(text, start)
+        local startcolQuickChat, _ = string.find(text, "|s%d(.*)|s", start)
+        return startcolQuickChat
+    end
+
     -- Add a pChat handler for URL's
     local function AddURLHandling(text)
 
@@ -406,7 +412,6 @@ function pChat.InitializeMessageFormatters()
     -- WARNING : See FormatSysMessage()
     -- Get a string without |cXXXXXX as parameter
     local function AddLinkHandlerToString(textToCheck, numLine, chanCode)
-
         local stillToParseDDS = true
         local noDDSlen = textToCheck:len()
 
@@ -586,8 +591,8 @@ function pChat.InitializeMessageFormatters()
     -- Add pChatLinks Handlers on the whole text except LinkHandlers already here
     -- WARNING : See FormatSysMessage()
     local function AddLinkHandlerToLine(text, chanCode, numLine)
-
         local rawText = ReformatSysMessages(text) -- FUCK YOU
+        logger:Debug(strfor("[pChat]AddLinkHandlerToLine - text: %s, rawText: %s", tostring(text), tostring(rawText)))
 
         local start = 1
         local rawTextlen = string.len(rawText)
@@ -651,10 +656,13 @@ function pChat.InitializeMessageFormatters()
 
     end
 
+
+
     -- Split lines using CRLF for function addLinkHandlerToLine
     -- WARNING : See FormatSysMessage()
     local function AddLinkHandler(text, chanCode, numLine)
         if not text or text == "" then return end
+
         -- Some Addons output multiple lines into a message
         -- Split the entire string with CRLF, cause LinkHandler don't support CRLF
 
@@ -675,7 +683,7 @@ function pChat.InitializeMessageFormatters()
             else
                 local lines = {zo_strsplit("\n", crtext)}
                 local first = true
-                local strippedLine
+                --local strippedLine
                 local nunmRows = 0
 
                 for _, line in pairs(lines) do
@@ -714,7 +722,7 @@ function pChat.InitializeMessageFormatters()
     -- Executed when EVENT_CHAT_MESSAGE_CHANNEL triggers
     -- Formats the message
     local function FormatMessage(chanCode, from, text, isCS, fromDisplayName, originalFrom, originalText, DDSBeforeAll, TextBeforeAll, DDSBeforeSender, TextBeforeSender, TextAfterSender, DDSAfterSender, DDSBeforeText, TextBeforeText, TextAfterText, DDSAfterText)
-        logger.verbose:Debug(strfor("FormatMessage-Line#: %s, channel %s: %s(%s/%s) %s", tostring(db.lineNumber), tostring(chanCode), tostring(originalFrom), tostring(fromDisplayName), tostring(from), tostring(text)))
+        logger.verbose:Debug(strfor("FormatMessage-Line#: %s, channel %s: %s(%s/%s) %s (orig: %s)", tostring(db.lineNumber), tostring(chanCode), tostring(originalFrom), tostring(fromDisplayName), tostring(from), tostring(text), tostring(originalText)))
         local notHandled = false
 
         -- Will calculate if this message is a spam
@@ -814,13 +822,14 @@ function pChat.InitializeMessageFormatters()
 
             -- Message is timestamp for now
             -- Add PCHAT_HANDLER for display
-            local timestamp = ZO_LinkHandler_CreateLink(pChat.CreateTimestamp(GetTimeString()), nil, CONSTANTS.PCHAT_LINK, db.lineNumber .. ":" .. chanCode) .. " "
+            local timeStampData = pChat.CreateTimestamp(GetTimeString())
+            local timestamp = ZO_LinkHandler_CreateLink(timeStampData, nil, CONSTANTS.PCHAT_LINK, db.lineNumber .. ":" .. chanCode) .. " "
 
             logger:Debug(">showTimestamp:", strfor("timecol: %s, timestamp: %s", tostring(timecol), tostring(timestamp)))
 
             -- Timestamp color
             message = message .. strfor("%s%s|r", timecol, timestamp)
-            db.LineStrings[db.lineNumber].rawValue = strfor("%s[%s] |r", timecol, pChat.CreateTimestamp(GetTimeString()))
+            db.LineStrings[db.lineNumber].rawValue = strfor("%s[%s] |r", timecol, timeStampData)
         else
             --Fixed lines by Maggi (pChat PrivateMessage-> Pastebin link: https://pastebin.com/raw/dM7GQCsY)
             db.LineStrings[db.lineNumber].rawValue = ""
@@ -837,8 +846,21 @@ function pChat.InitializeMessageFormatters()
             text = AddURLHandling(text)
         end
 
+        local isSayChannel = (chanCode == CHAT_CHANNEL_SAY and true) or false
+
         if db.enablecopy then
-            linkedText = AddLinkHandler(text, chanCode, db.lineNumber)
+            local addLinkNow = true
+            if isSayChannel then
+                local isQuickChat = (isSayChannel == true and detectQuickChat(text, 1) ~= nil and true) or false
+                if isQuickChat == true then
+                    --QuickChat message found
+                    logger:Debug(">QuickChat message found, text: " ..tostring(text))
+                    addLinkNow = false
+                end
+            end
+            if addLinkNow then
+                linkedText = AddLinkHandler(text, chanCode, db.lineNumber)
+            end
         end
 
         local carriageReturn = ""
@@ -847,7 +869,7 @@ function pChat.InitializeMessageFormatters()
         end
 
         -- Standard format
-        if chanCode == CHAT_CHANNEL_SAY or chanCode == CHAT_CHANNEL_YELL or chanCode == CHAT_CHANNEL_PARTY or chanCode == CHAT_CHANNEL_ZONE then
+        if isSayChannel or chanCode == CHAT_CHANNEL_YELL or chanCode == CHAT_CHANNEL_PARTY or chanCode == CHAT_CHANNEL_ZONE then
             -- Remove zone tags
             if db.delzonetags then
 
@@ -856,7 +878,21 @@ function pChat.InitializeMessageFormatters()
 
                 message = message .. strfor(chatStrings.standard, lcol, new_from, carriageReturn, rcol, linkedText)
                 db.LineStrings[db.lineNumber].rawValue = db.LineStrings[db.lineNumber].rawValue .. strfor(chatStrings.standard, lcol, new_from, carriageReturn, rcol, text)
-                -- Keep them
+
+                --[[
+                if isSayChannel then
+                    logger:Debug(strfor(">SAY - lineNo: %s, rawFrom: %s, text: %s, linkedText: %s, rawValue: %s",
+                            tostring(db.lineNumber),
+                            tostring(db.LineStrings[db.lineNumber].rawFrom),
+                            tostring(text),
+                            tostring(linkedText),
+                            tostring(db.LineStrings[db.lineNumber].rawValue)
+                        )
+                    )
+                end
+                ]]
+
+            -- Keep zoneTags
             else
                 -- Init zonetag to keep the channel tag
                 local zonetag
@@ -874,7 +910,7 @@ function pChat.InitializeMessageFormatters()
                     db.LineStrings[db.lineNumber].rawValue = db.LineStrings[db.lineNumber].rawValue .. strfor(chatStrings.esoparty, lcol, zonetag, new_from, carriageReturn, rcol, text)
                 else
                     -- Pattern for say/yell/zone is "player says:" ..
-                    if chanCode == CHAT_CHANNEL_SAY then zonetag = GetString(PCHAT_ZONETAGSAY)
+                    if isSayChannel then zonetag = GetString(PCHAT_ZONETAGSAY)
                     elseif chanCode == CHAT_CHANNEL_YELL then zonetag = GetString(PCHAT_ZONETAGYELL)
                     elseif chanCode == CHAT_CHANNEL_ZONE then zonetag = GetString(PCHAT_ZONETAGZONE)
                     end

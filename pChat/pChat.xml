@@ -131,7 +131,7 @@
 			</Controls>
 		</TopLevelControl>
 
-		<Button name="ZO_ChatWindowIM" mouseOverBlendMode="ADD" inherits="ZO_CloseButton" hidden="true">
+		<Button name="ZO_ChatWindowIM" mouseOverBlendMode="ADD" inherits="ZO_CloseButton" hidden="true" tier="MEDIUM" layer="CONTROLS" level="1">
 			<Dimensions x="16" y="16" />
 			<OnInitialized>
 				pChat_AddIMButton(self)
@@ -149,7 +149,7 @@
 			</Controls>
 		</Button>
 		
-		<Button name="ZO_ChatWindowIMLabel" font="ZoFontWinH5"  inherits="ZO_ButtonBehaviorClickSound" hidden="true">
+		<Button name="ZO_ChatWindowIMLabel" font="ZoFontWinH5" inherits="ZO_ButtonBehaviorClickSound" hidden="true" tier="MEDIUM" layer="CONTROLS" level="1">
 			<Dimensions x="90" y="16" />
 			<FontColors
 				normalColor="INTERFACE_COLOR_TYPE_TEXT_COLORS:INTERFACE_TEXT_COLOR_NORMAL"
@@ -167,7 +167,7 @@
 			</OnInitialized>
 		</Button>
 		
-		<Button name="ZO_ChatWindowIMLabelMin" font="ZoFontWinH5" inherits="ZO_ButtonBehaviorClickSound" text="IM" hidden="true">
+		<Button name="ZO_ChatWindowIMLabelMin" font="ZoFontWinH5" inherits="ZO_ButtonBehaviorClickSound" text="IM" hidden="true" tier="MEDIUM" layer="CONTROLS" level="1">
 			<Dimensions x="24" y="24" />
 			
 			<FontColors

@@ -317,9 +317,8 @@ do
     ChannelInfo[CHAT_CHANNEL_ZONE_LANGUAGE_3].channelLinkable = true
     ChannelInfo[CHAT_CHANNEL_ZONE_LANGUAGE_4].channelLinkable = true
     ChannelInfo[CHAT_CHANNEL_ZONE_LANGUAGE_5].channelLinkable = true
-    if ChannelInfo[CHAT_CHANNEL_ZONE_LANGUAGE_6] ~= nil then
-        ChannelInfo[CHAT_CHANNEL_ZONE_LANGUAGE_6].channelLinkable = true
-    end
+    ChannelInfo[CHAT_CHANNEL_ZONE_LANGUAGE_6].channelLinkable = true
+    ChannelInfo[CHAT_CHANNEL_ZONE_LANGUAGE_7].channelLinkable = true
 end
 
 --Do some checks after the EVENT_PLAYER_ACTIVATED task was done

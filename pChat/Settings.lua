@@ -44,6 +44,8 @@ function pChat.InitializeSettings()
 		delzonetags = true,
 		carriageReturn = false,
 		alwaysShowChat = false,
+		chatTextFadeBegin = 3, --20221106
+		chatTextFadeDuration = 2, --20221106
 		augmentHistoryBuffer = true,
 		oneColour = false,
 		showTagInEntry = true,
@@ -154,6 +156,8 @@ function pChat.InitializeSettings()
 			[2*CHAT_CHANNEL_ZONE_LANGUAGE_5 + 1] = "|cB0A074", -- RU zone Right
 			[2*CHAT_CHANNEL_ZONE_LANGUAGE_6] = "|cCEB36F", 		-- ES zone Left
 			[2*CHAT_CHANNEL_ZONE_LANGUAGE_6 + 1] = "|cB0A074",	-- ES zone Right
+			[2*CHAT_CHANNEL_ZONE_LANGUAGE_7] = "|cCEB36F", 		-- ZH zone Left
+			[2*CHAT_CHANNEL_ZONE_LANGUAGE_7 + 1] = "|cB0A074",	-- ZH zone Right
 			["timestamp"] = "|c8F8F8F", -- timestamp
 			["tabwarning"] = "|c76BCC3", -- tab Warning ~ "Azure" (ZOS default)
 			["groupleader"] = "|cC35582", --
@@ -570,10 +574,45 @@ function pChat.InitializeSettings()
 					name = GetString(PCHAT_PREVENTCHATTEXTFADING),
 					tooltip = GetString(PCHAT_PREVENTCHATTEXTFADINGTT),
 					getFunc = function() return db.alwaysShowChat end,
-					setFunc = function(newValue) db.alwaysShowChat = newValue end,
+					setFunc = function(newValue) db.alwaysShowChat = newValue
+						pChat.CreateNewChatTabPostHook()
+					end,
 					width = "full",
 					default = defaults.alwaysShowChat,
 				},
+				{-- Chat text fade out begin timer
+					type = "slider",
+					name = GetString(PCHAT_CHATTEXTFADINGBEGIN),
+					tooltip = GetString(PCHAT_CHATTEXTFADINGBEGINTT),
+					min = 1,
+					max = 3600,
+					step = 1,
+					getFunc = function() return db.chatTextFadeBegin end,
+					setFunc = function(newValue)
+						db.chatTextFadeBegin = newValue
+						pChat.CreateNewChatTabPostHook()
+					end,
+					width = "full",
+					default = defaults.chatTextFadeBegin,
+					disabled = function() return db.alwaysShowChat end
+				},
+				{-- Chat text fade out duration timer
+					type = "slider",
+					name = GetString(PCHAT_CHATTEXTFADINGDURATION),
+					tooltip = GetString(PCHAT_CHATTEXTFADINGDURATIONTT),
+					min = 1,
+					max = 30,
+					step = 1,
+					getFunc = function() return db.chatTextFadeDuration end,
+					setFunc = function(newValue)
+						db.chatTextFadeDuration = newValue
+						pChat.CreateNewChatTabPostHook()
+					end,
+					width = "full",
+					default = defaults.chatTextFadeDuration,
+					disabled = function() return db.alwaysShowChat end
+				},
+
 				{-- Augment lines of chat
 					type = "checkbox",
 					name = GetString(PCHAT_AUGMENTHISTORYBUFFER),
@@ -1196,6 +1235,26 @@ function pChat.InitializeSettings()
 									getFunc = function() return ConvertHexToRGBA(db.colours[2*CHAT_CHANNEL_ZONE_LANGUAGE_6 + 1]) end,
 									setFunc = function(r, g, b) db.colours[2*CHAT_CHANNEL_ZONE_LANGUAGE_6 + 1] = ConvertRGBToHex(r, g, b) end,
 									default = ConvertHexToRGBAPacked(defaults.colours[2*CHAT_CHANNEL_ZONE_LANGUAGE_6 + 1]),
+									disabled = function() return db.useESOcolors or db.allZonesSameColour or db.oneColour end,
+									width = "half",
+								},
+								{--
+									type = "colorpicker",
+									name = GetString(PCHAT_ZHZONE),
+									tooltip = GetString(PCHAT_ZHZONETT),
+									getFunc = function() return ConvertHexToRGBA(db.colours[2*CHAT_CHANNEL_ZONE_LANGUAGE_7]) end,
+									setFunc = function(r, g, b) db.colours[2*CHAT_CHANNEL_ZONE_LANGUAGE_7] = ConvertRGBToHex(r, g, b) end,
+									default = ConvertHexToRGBAPacked(defaults.colours[2*CHAT_CHANNEL_ZONE_LANGUAGE_7]),
+									disabled = function() return db.useESOcolors or db.allZonesSameColour end,
+									width = "half",
+								},
+								{--
+									type = "colorpicker",
+									name = GetString(PCHAT_ZHZONECHAT),
+									tooltip = GetString(PCHAT_ZHZONECHATTT),
+									getFunc = function() return ConvertHexToRGBA(db.colours[2*CHAT_CHANNEL_ZONE_LANGUAGE_7 + 1]) end,
+									setFunc = function(r, g, b) db.colours[2*CHAT_CHANNEL_ZONE_LANGUAGE_7 + 1] = ConvertRGBToHex(r, g, b) end,
+									default = ConvertHexToRGBAPacked(defaults.colours[2*CHAT_CHANNEL_ZONE_LANGUAGE_7 + 1]),
 									disabled = function() return db.useESOcolors or db.allZonesSameColour or db.oneColour end,
 									width = "half",
 								},

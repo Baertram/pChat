@@ -55,11 +55,12 @@ function pChat.InitializeSpamFilter()
                                         spammableChannels[CHAT_CHANNEL_ZONE_LANGUAGE_3] = true
                                         spammableChannels[CHAT_CHANNEL_ZONE_LANGUAGE_4] = true
                                         spammableChannels[CHAT_CHANNEL_ZONE_LANGUAGE_5] = true
+                                        spammableChannels[CHAT_CHANNEL_ZONE_LANGUAGE_6] = true
+                                        spammableChannels[CHAT_CHANNEL_ZONE_LANGUAGE_7] = true
                                         spammableChannels[CONSTANTS.PCHAT_CHANNEL_SAY] = true
                                         spammableChannels[CHAT_CHANNEL_YELL] = true
                                         spammableChannels[CHAT_CHANNEL_ZONE] = true
                                         spammableChannels[CHAT_CHANNEL_EMOTE] = true
-                                        spammableChannels[CHAT_CHANNEL_ZONE_LANGUAGE_6] = true
 
                                         -- spammableChannels[spamChanCode] = return true if our message was sent in a spammable channel
                                         -- spammableChannels[previousLineStringChannel] = return true if previous message was sent in a spammable channel
@@ -157,11 +158,12 @@ function pChat.InitializeSpamFilter()
         spammableChannels[CHAT_CHANNEL_ZONE_LANGUAGE_3] = true
         spammableChannels[CHAT_CHANNEL_ZONE_LANGUAGE_4] = true
         spammableChannels[CHAT_CHANNEL_ZONE_LANGUAGE_5] = true
+        spammableChannels[CHAT_CHANNEL_ZONE_LANGUAGE_6] = true
+        spammableChannels[CHAT_CHANNEL_ZONE_LANGUAGE_7] = true
         spammableChannels[CONSTANTS.PCHAT_CHANNEL_SAY] = true
         spammableChannels[CHAT_CHANNEL_YELL] = true
         spammableChannels[CHAT_CHANNEL_ZONE] = true
         spammableChannels[CHAT_CHANNEL_EMOTE] = true
-        spammableChannels[CHAT_CHANNEL_ZONE_LANGUAGE_6] = true
 
         local spamStrings = {
             ["[Ll]ooking [Ff]or ([Nn]ew+) [Mm]embers"] = 5, -- looking for (new) members

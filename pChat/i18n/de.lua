@@ -91,6 +91,12 @@ SafeAddString(PCHAT_AUGMENTHISTORYBUFFERTT						, "Standardmässig werden nur 20
 
 SafeAddString(PCHAT_PREVENTCHATTEXTFADING							, "Textausblenden unterbinden", 1)
 SafeAddString(PCHAT_PREVENTCHATTEXTFADINGTT						, "Verhindert,daß der Chat-Text ausgeblendet wird (Einstellungen zum Chat-Hintergrund finden sich unter Einstellungen: Soziales - Minimale Transparenz)", 1)
+SafeAddString(PCHAT_CHATTEXTFADINGBEGIN,                        "Textausblenden nach Sekunden", 1)
+SafeAddString(PCHAT_CHATTEXTFADINGBEGINTT,                      "Blendet den Text nach dieser Anzahl Sekunden aus ", 1)
+SafeAddString(PCHAT_CHATTEXTFADINGDURATION,                     "Textausblenden Dauer in Sekunden", 1)
+SafeAddString(PCHAT_CHATTEXTFADINGDURATIONTT,                   "Das Ausblenden dauert diese Anzahl an Sekunden", 1)
+
+
 
 SafeAddString(PCHAT_USEONECOLORFORLINES							, "Einfarbige Zeilen", 1)
 SafeAddString(PCHAT_USEONECOLORFORLINESTT							, "Verwendet nur eine Farbe pro Chat-Kanal, anstatt zwei Farben (Nur die Erste, für den Spieler, wird verwendet)", 1)
@@ -400,6 +406,12 @@ SafeAddString(PCHAT_ESZONETT                                        , "Legt die 
 
 SafeAddString(PCHAT_ESZONECHAT                                      , "ES Zone - Nachricht", 1)
 SafeAddString(PCHAT_ESZONECHATTT                                    , "Legt die Farbe der Nachrichten im spanischen Chat-Kanal fest.", 1)
+
+SafeAddString(PCHAT_ZHZONE                                          , "ZH Zone - Name", 1)
+SafeAddString(PCHAT_ZHZONETT                                        , "Legt die Farbe für Spieler Namen im chinesischen Chat-Kanal fest.", 1)
+
+SafeAddString(PCHAT_ZHZONECHAT                                      , "ZH Zone - Nachricht", 1)
+SafeAddString(PCHAT_ZHZONECHATTT                                    , "Legt die Farbe der Nachrichten im chinesischen Chat-Kanal fest.", 1)
 
 SafeAddString(PCHAT_NPCSAY												, "NSC Sagen - NSC Name", 1)
 SafeAddString(PCHAT_NPCSAYTT											, "Legt die Farbe des Namens des Nicht-Spieler-Charakters (NSC - NPC) in NSC-Texten fest.", 1)
