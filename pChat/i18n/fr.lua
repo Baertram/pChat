@@ -356,7 +356,21 @@ SafeAddString(PCHAT_JPZONETT											, "Définir la couleur du joueur couleurs
 										
 SafeAddString(PCHAT_JPZONECHAT										, "JP Zone - Message", 1)
 SafeAddString(PCHAT_JPZONECHATTT										, "Définir la couleur du message pour le canal de zone Japonais", 1)
-										
+
+SafeAddString(PCHAT_ESZONE												, "ES Zone - Joueur", 1)
+SafeAddString(PCHAT_ESZONETT											, "Définir la couleur du joueur couleurs pour le canal de zone espagnol", 1)
+
+SafeAddString(PCHAT_ESZONECHAT										, "ES Zone - Message", 1)
+SafeAddString(PCHAT_ESZONECHATTT										, "Définir la couleur du message pour le canal de zone espagnol", 1)
+
+
+SafeAddString(PCHAT_ZHZONE												, "ZH Zone - Joueur", 1)
+SafeAddString(PCHAT_ZHZONETT											, "Définir la couleur du joueur couleurs pour le canal de zone chinois", 1)
+
+SafeAddString(PCHAT_ZHZONECHAT										, "ZH Zone - Message", 1)
+SafeAddString(PCHAT_ZHZONECHATTT										, "Définir la couleur du message pour le canal de zone chinois", 1)
+
+
 SafeAddString(PCHAT_NPCSAY												, "Discussions de PNJ - PNJ", 1)
 SafeAddString(PCHAT_NPCSAYTT											, "Définir la couleur du PNJ pour les discussions de PNJ", 1)
 										

@@ -407,6 +407,12 @@ SafeAddString(PCHAT_ESZONETT                                        , "Legt die 
 SafeAddString(PCHAT_ESZONECHAT                                      , "ES Zone - Nachricht", 1)
 SafeAddString(PCHAT_ESZONECHATTT                                    , "Legt die Farbe der Nachrichten im spanischen Chat-Kanal fest.", 1)
 
+SafeAddString(PCHAT_ZHZONE                                          , "ZH Zone - Name", 1)
+SafeAddString(PCHAT_ZHZONETT                                        , "Legt die Farbe für Spieler Namen im chinesischen Chat-Kanal fest.", 1)
+
+SafeAddString(PCHAT_ZHZONECHAT                                      , "ZH Zone - Nachricht", 1)
+SafeAddString(PCHAT_ZHZONECHATTT                                    , "Legt die Farbe der Nachrichten im chinesischen Chat-Kanal fest.", 1)
+
 SafeAddString(PCHAT_NPCSAY												, "NSC Sagen - NSC Name", 1)
 SafeAddString(PCHAT_NPCSAYTT											, "Legt die Farbe des Namens des Nicht-Spieler-Charakters (NSC - NPC) in NSC-Texten fest.", 1)
 

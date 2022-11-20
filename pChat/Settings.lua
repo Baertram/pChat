@@ -156,6 +156,8 @@ function pChat.InitializeSettings()
 			[2*CHAT_CHANNEL_ZONE_LANGUAGE_5 + 1] = "|cB0A074", -- RU zone Right
 			[2*CHAT_CHANNEL_ZONE_LANGUAGE_6] = "|cCEB36F", 		-- ES zone Left
 			[2*CHAT_CHANNEL_ZONE_LANGUAGE_6 + 1] = "|cB0A074",	-- ES zone Right
+			[2*CHAT_CHANNEL_ZONE_LANGUAGE_7] = "|cCEB36F", 		-- ZH zone Left
+			[2*CHAT_CHANNEL_ZONE_LANGUAGE_7 + 1] = "|cB0A074",	-- ZH zone Right
 			["timestamp"] = "|c8F8F8F", -- timestamp
 			["tabwarning"] = "|c76BCC3", -- tab Warning ~ "Azure" (ZOS default)
 			["groupleader"] = "|cC35582", --
@@ -1233,6 +1235,26 @@ function pChat.InitializeSettings()
 									getFunc = function() return ConvertHexToRGBA(db.colours[2*CHAT_CHANNEL_ZONE_LANGUAGE_6 + 1]) end,
 									setFunc = function(r, g, b) db.colours[2*CHAT_CHANNEL_ZONE_LANGUAGE_6 + 1] = ConvertRGBToHex(r, g, b) end,
 									default = ConvertHexToRGBAPacked(defaults.colours[2*CHAT_CHANNEL_ZONE_LANGUAGE_6 + 1]),
+									disabled = function() return db.useESOcolors or db.allZonesSameColour or db.oneColour end,
+									width = "half",
+								},
+								{--
+									type = "colorpicker",
+									name = GetString(PCHAT_ZHZONE),
+									tooltip = GetString(PCHAT_ZHZONETT),
+									getFunc = function() return ConvertHexToRGBA(db.colours[2*CHAT_CHANNEL_ZONE_LANGUAGE_7]) end,
+									setFunc = function(r, g, b) db.colours[2*CHAT_CHANNEL_ZONE_LANGUAGE_7] = ConvertRGBToHex(r, g, b) end,
+									default = ConvertHexToRGBAPacked(defaults.colours[2*CHAT_CHANNEL_ZONE_LANGUAGE_7]),
+									disabled = function() return db.useESOcolors or db.allZonesSameColour end,
+									width = "half",
+								},
+								{--
+									type = "colorpicker",
+									name = GetString(PCHAT_ZHZONECHAT),
+									tooltip = GetString(PCHAT_ZHZONECHATTT),
+									getFunc = function() return ConvertHexToRGBA(db.colours[2*CHAT_CHANNEL_ZONE_LANGUAGE_7 + 1]) end,
+									setFunc = function(r, g, b) db.colours[2*CHAT_CHANNEL_ZONE_LANGUAGE_7 + 1] = ConvertRGBToHex(r, g, b) end,
+									default = ConvertHexToRGBAPacked(defaults.colours[2*CHAT_CHANNEL_ZONE_LANGUAGE_7 + 1]),
 									disabled = function() return db.useESOcolors or db.allZonesSameColour or db.oneColour end,
 									width = "half",
 								},

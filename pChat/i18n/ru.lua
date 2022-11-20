@@ -342,29 +342,42 @@ SafeAddString(PCHAT_EMOTESCHAT										, "Emotes - Чат", 1)
 SafeAddString(PCHAT_EMOTESCHATTT										, "Цвет сообщений в канале emotes", 1)
 					
 SafeAddString(PCHAT_ENZONE												, "EN Zone - Игpoк", 1)
-SafeAddString(PCHAT_ENZONETT											, "Цвет имена игpoкa в канале English zone", 1)
+SafeAddString(PCHAT_ENZONETT											, "Цвет имена игpoкa в канале Английский zone", 1)
 					
 SafeAddString(PCHAT_ENZONECHAT										, "EN Zone - Чат", 1)
-SafeAddString(PCHAT_ENZONECHATTT										, "Цвет сообщений в канале English zone", 1)
+SafeAddString(PCHAT_ENZONECHATTT										, "Цвет сообщений в канале Английский zone", 1)
 					
 SafeAddString(PCHAT_FRZONE												, "FR Zone - Игpoк", 1)
-SafeAddString(PCHAT_FRZONETT											, "Цвет имена игpoкa в канале French zone", 1)
+SafeAddString(PCHAT_FRZONETT											, "Цвет имена игpoкa в канале Франция zone", 1)
 					
 SafeAddString(PCHAT_FRZONECHAT										, "FR Zone - Чат", 1)
-SafeAddString(PCHAT_FRZONECHATTT										, "Цвет сообщений в канале French zone", 1)
+SafeAddString(PCHAT_FRZONECHATTT										, "Цвет сообщений в канале Франция zone", 1)
 					
 SafeAddString(PCHAT_DEZONE												, "DE Zone - Игpoк", 1)
-SafeAddString(PCHAT_DEZONETT											, "Цвет имена игpoкa в канале German zone", 1)
+SafeAddString(PCHAT_DEZONETT											, "Цвет имена игpoкa в канале Немецкий zone", 1)
 					
 SafeAddString(PCHAT_DEZONECHAT										, "DE Zone - Чат", 1)
-SafeAddString(PCHAT_DEZONECHATTT										, "Цвет сообщений в канале German zone", 1)
+SafeAddString(PCHAT_DEZONECHATTT										, "Цвет сообщений в канале Немецкий zone", 1)
 					
 SafeAddString(PCHAT_JPZONE												, "JP Zone - Игpoк", 1)
-SafeAddString(PCHAT_JPZONETT											, "Цвет имена игpoкa в канале Japanese zone", 1)
+SafeAddString(PCHAT_JPZONETT											, "Цвет имена игpoкa в канале Японский zone", 1)
 					
 SafeAddString(PCHAT_JPZONECHAT										, "JP Zone - Чат", 1)
-SafeAddString(PCHAT_JPZONECHATTT										, "Цвет сообщений в канале Japanese zone", 1)
-					
+SafeAddString(PCHAT_JPZONECHATTT										, "Цвет сообщений в канале Японский zone", 1)
+
+SafeAddString(PCHAT_ESZONE												, "ES Zone - Игpoк", 1)
+SafeAddString(PCHAT_ESZONETT											, "Цвет имена игpoкa в канале испанский zone", 1)
+
+SafeAddString(PCHAT_ESZONECHAT										, "ES Zone - Чат", 1)
+SafeAddString(PCHAT_ESZONECHATTT										, "Цвет сообщений в канале испанский zone", 1)
+
+SafeAddString(PCHAT_ZHZONE												, "ZH Zone - Игpoк", 1)
+SafeAddString(PCHAT_ZHZONETT											, "Цвет имена игpoкa в канале китайский язык zone", 1)
+
+SafeAddString(PCHAT_ZHZONECHAT										, "ZH Zone - Чат", 1)
+SafeAddString(PCHAT_ZHZONECHATTT										, "Цвет сообщений в канале китайский язык zone", 1)
+
+
 SafeAddString(PCHAT_NPCSAY												, "NPC Say - имя NPC", 1)
 SafeAddString(PCHAT_NPCSAYTT											, "Цвет имена NPC в канале NPC say", 1)
 					
