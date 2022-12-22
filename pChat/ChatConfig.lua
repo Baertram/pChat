@@ -127,6 +127,11 @@ function pChat.InitializeChatConfig()
             ZO_ChatWindowBg:SetCenterTexture(texturePathCenterDependingOnWindowDarkness)
             ZO_ChatWindowBg:SetEdgeTexture(texturePathEdgeDependingOnWindowDarkness, 256, 256, 32)
         end
+
+        --Compatibility for PerfectPixel
+        if PP ~= nil and PP.UpdateBackgrounds ~= nil then
+            PP:UpdateBackgrounds('ChatWindow')
+        end
     end
     pChat.ChangeChatWindowDarkness = ChangeChatWindowDarkness
 
