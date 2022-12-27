@@ -261,11 +261,12 @@ end
 
 function pChat.alreadyHasColorize(regex, origColor)
 	local keyBuild = {}
-	table.insert(keyBuild, "|r")
-	table.insert(keyBuild, regex)
-	table.insert(origColor)
+	keyBuild[1] = "|r"
+	keyBuild[2] = regex
+	keyBuild[3] = origColor
 	return table.concat(keyBuild, "")
 end
+local pChat_alreadyHasColorize = pChat.alreadyHasColorize
 
 function pChat.doAppendColor(text, v, k, appendColor)
 	k = k .. appendColor
@@ -276,6 +277,7 @@ function pChat.doAppendColor(text, v, k, appendColor)
 	end
 	return text
 end
+local pChat_doAppendColor = pChat.doAppendColor
 
 -- The main formatting routine that gets called inside FormatMessage.
 function cm.cm_format(text, fromDisplayName, isCS, appendColor)
@@ -299,10 +301,10 @@ function cm.cm_format(text, fromDisplayName, isCS, appendColor)
                     v = string.sub(v,2)
                     if cm.cm_containsWholeWord(text, v) then
                         if alreadyHasColor then
-							text = string.gsub(text, v, pChat.alreadyHasColorize(k, origColor))
+							text = string.gsub(text, v, pChat_alreadyHasColorize(k, origColor))
 						else
 							if appendColor ~= nil then
-								text = pChat.doAppendColor(text, v, k, appendColor)
+								text = pChat_doAppendColor(text, v, k, appendColor)
 							else
 								text = string.gsub(text, v, k)
 							end
@@ -319,10 +321,10 @@ function cm.cm_format(text, fromDisplayName, isCS, appendColor)
                     end
                 else
 					if alreadyHasColor then
-						text = string.gsub(text, v, pChat.alreadyHasColorize(k, origColor))
+						text = string.gsub(text, v, pChat_alreadyHasColorize(k, origColor))
 					else
 						if appendColor ~= nil then
-							text = pChat.doAppendColor(text, v, k, appendColor)
+							text = pChat_doAppendColor(text, v, k, appendColor)
 						else
 							text = string.gsub(text, v, k)
 						end
