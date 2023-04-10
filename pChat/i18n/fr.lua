@@ -437,3 +437,39 @@ SafeAddString(PCHAT_SI_BINDING_NAME_PCHAT_SHOW_AUTO_MSG		, "Messages automatique
 SafeAddString(PCHAT_AUTOMSG_REMOVE_AUTO_MSG				, "Supprimer", 1)
 
 SafeAddString(PCHAT_CLEARBUFFER										, "Effacer le chat", 1)
+
+SafeAddString(PCHAT_RESTORESHOWNAMEANDZONE, "Après rest. history: Afficher le nom et la zone", 1)
+SafeAddString(PCHAT_RESTORESHOWNAMEANDZONE_TT, "Zeige den aktuell eingeloggten @Account - Charakter Name & Zone im Chat, nachdem die Chat Historie wiederhergestellt wurde.", 1)
+
+
+-- Coorbin20200708
+-- Chat Mentions settings strings
+SafeAddString(PCHAT_MENTIONSH, "Mentions", 1)
+SafeAddString(PCHAT_MENTIONS_TEXT_COLOR_CHECKBOX_NAME, "Changer la couleur du texte lorsque votre nom est mentionné?", 1)
+SafeAddString(PCHAT_MENTIONS_TEXT_COLOR_CHECKBOX_TOOLTIP, "Changer ou non la couleur du texte lorsque votre nom est mentionné.", 1)
+SafeAddString(PCHAT_MENTIONS_TEXT_COLOR_PICKER_NAME, "Couleur de votre nom lorsqu'il est mentionné", 1)
+SafeAddString(PCHAT_MENTIONS_ADD_EXCL_ICON_NAME, "Ajouter une icône d'exclamation ?", 1)
+SafeAddString(PCHAT_MENTIONS_ADD_EXCL_ICON_TOOLTIP, "Ajouter ou non une icône de point d'exclamation au début lorsque votre nom est mentionné.", 1)
+SafeAddString(PCHAT_MENTIONS_ALLCAPS_NAME, "TOUT EN MAJUSCULES votre nom?", 1)
+SafeAddString(PCHAT_MENTIONS_ALLCAPS_TOOLTIP, "Que ce soit en MAJUSCULES ou non votre nom lorsque votre nom est mentionné.", 1)
+SafeAddString(PCHAT_MENTIONS_EXTRA_NAMES_NAME, "Noms supplémentaires sur lesquels envoyer un ping (nouvelle ligne par nom)", 1)
+SafeAddString(PCHAT_MENTIONS_EXTRA_NAMES_TOOLTIP, "Une liste séparée par des retours à la ligne de noms supplémentaires sur lesquels vous envoyer un ping. Appuyez sur ENTER pour créer de nouvelles lignes. Si vous mettez un `!` (point d'exclamation) devant un nom personnalisé que vous souhaitez surveiller, il ne vous avertira que si ce nom apparaît sur une limite de mot. Par exemple, si vous ajoutez '!de' à votre liste Extras, vous serez notifié pour 'de nada' mais pas pour 'delicatessen'. Si vous venez d'ajouter 'de' à votre liste d'extras, vous serez également averti pour 'delicatessen'.", 1)
+SafeAddString(PCHAT_MENTIONS_SELFSEND_NAME, "Appliquer aux messages que VOUS envoyez ?", 1)
+SafeAddString(PCHAT_MENTIONS_SELFSEND_TOOLTIP, "Appliquer ou non le formatage aux messages que VOUS envoyez.", 1)
+SafeAddString(PCHAT_MENTIONS_DING_NAME, "Son de ding?", 1)
+SafeAddString(PCHAT_MENTIONS_DING_TOOLTIP, "Que ce soit pour jouer ou non un son ding lorsque votre nom est mentionné.", 1)
+SafeAddString(PCHAT_MENTIONS_DING_SOUND_NAME, "Choisissez le son")
+SafeAddString(PCHAT_MENTIONS_DING_SOUND_NAME_TOOLTIP, "Sélectionnez le son qui doit être joué")
+SafeAddString(PCHAT_MENTIONS_APPLYNAME_NAME, "Appliquer à vos noms de personnages?", 1)
+SafeAddString(PCHAT_MENTIONS_APPLYNAME_TOOLTIP, "Appliquer ou non le formatage à chaque nom (séparé par des espaces) dans le nom de votre personnage. Désactivez-le si vous utilisez un nom très courant comme 'Me' dans le nom de votre personnage.", 1)
+SafeAddString(PCHAT_MENTIONS_WHOLEWORD_NAME, "Associez vos noms à des mots entiers uniquement?", 1)
+SafeAddString(PCHAT_MENTIONS_WHOLEWORD_TOOLTIP, "Que ce soit pour faire correspondre ou non les noms de vos personnages en tant que mots entiers uniquement. Si vous avez un nom très court dans le nom de votre personnage, vous pouvez l'activer.", 1)
+
+-- Coorbin20211222
+-- CharCount settings strings
+SafeAddString(PCHAT_CHARCOUNTH, "En-tête de la fenêtre de chat", 1)
+SafeAddString(PCHAT_CHARCOUNT_ENABLE_CHECKBOX_NAME, "Afficher le nombre de caractères", 1)
+SafeAddString(PCHAT_CHARCOUNT_ENABLE_CHECKBOX_TOOLTIP, "Affiche le nombre actuel de caractères saisis dans la zone de texte de chat sur la limite maximale de 350. Il apparaîtra en haut au centre de la fenêtre de chat.", 1)
+SafeAddString(PCHAT_CHARCOUNT_ZONE_POST_TRACKER_NAME, "Afficher le traqueur de publication de zone", 1)
+SafeAddString(PCHAT_CHARCOUNT_ZONE_POST_TRACKER_TOOLTIP, "Affiche l'horodatage de la dernière publication dans le chat de zone de la zone actuelle. L'heure se réinitialise lorsque vous changez de zone. Utile pour publier des annonces sur le chat de zone. Il apparaîtra en haut au centre de la fenêtre de chat.", 1)
+

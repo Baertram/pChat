@@ -278,11 +278,9 @@ local CHANNEL_ORDERING_WEIGHT = {
     [CHAT_CATEGORY_ZONE_GERMAN] = 110,
     [CHAT_CATEGORY_ZONE_JAPANESE] = 120,
     [CHAT_CATEGORY_ZONE_RUSSIAN] = 130,
+    [CHAT_CATEGORY_ZONE_SPANISH] = 140,
+    [CHAT_CATEGORY_ZONE_CHINESE_S] = 150,
 }
-if CHAT_CATEGORY_ZONE_SPANISH ~= nil then
-    CHANNEL_ORDERING_WEIGHT[CHAT_CATEGORY_ZONE_SPANISH] = 140
-end
-
 
 
 local chatChannelsToMap = {
@@ -727,6 +725,56 @@ function ChatCopyOptions:ApplyFilters()
     end
 end
 
+function ChatCopyOptions:ChangeFiltersState(doEnable, filterType)
+    if not self.filterButtons then return end
+
+    if filterType == nil then
+        for _, button in ipairs(self.filterButtons) do
+            if doEnable == true then
+                if ZO_CheckButton_IsChecked(button) == false then
+                    ZO_CheckButton_SetChecked(button)
+                end
+            else
+                if ZO_CheckButton_IsChecked(button) == true then
+                    ZO_CheckButton_SetUnchecked(button)
+                end
+            end
+
+        end
+    else
+        if filterType == "filter" then
+        for _, button in ipairs(self.filterButtons) do
+            if button:GetParent():GetParent() == pChatCopyOptionsDialogFilterSection then
+                if doEnable == true then
+                    if ZO_CheckButton_IsChecked(button) == false then
+                        ZO_CheckButton_SetChecked(button)
+                    end
+                else
+                    if ZO_CheckButton_IsChecked(button) == true then
+                        ZO_CheckButton_SetUnchecked(button)
+                    end
+                end
+            end
+        end
+
+        elseif filterType == "guild" then
+            for _, button in ipairs(self.filterButtons) do
+                if button:GetParent():GetParent() == pChatCopyOptionsDialogGuildSection then
+                    if doEnable == true then
+                        if ZO_CheckButton_IsChecked(button) == false then
+                            ZO_CheckButton_SetChecked(button)
+                        end
+                    else
+                        if ZO_CheckButton_IsChecked(button) == true then
+                            ZO_CheckButton_SetUnchecked(button)
+                        end
+                    end
+                end
+            end
+        end
+    end
+end
+
 function ChatCopyOptions:Show()
 --d("[pChat]ChatCopyOptions:Show()")
     ZO_Dialogs_ShowDialog("PCHAT_CHAT_COPY_DIALOG")
@@ -744,7 +792,7 @@ function pChat_ChatCopyOptions_OnInitialized(dialogControl)
 	pChat.ChatCopyOptions = ChatCopyOptions:New(dialogControl)
 end
 
-function  pChat_ChatCopyOptions_OnCommitClicked()
+function pChat_ChatCopyOptions_OnCommitClicked()
 	pChat.ChatCopyOptions:ApplyFilters()
 end
 
@@ -753,6 +801,17 @@ function pChat_ChatCopyOptions_OnHide()
     ZO_Dialogs_ReleaseDialog("PCHAT_CHAT_COPY_DIALOG")
     pChat.ChatCopyOptions:Hide()
 end
+
+function pChat_ChatCopyOptions_EnableAllFilters(filterType)
+    --d("[pChat]Enable all filters")
+    pChat.ChatCopyOptions:ChangeFiltersState(true, filterType)
+end
+
+function pChat_ChatCopyOptions_DisableAllFilters(filterType)
+--d("[pChat]Disable all filters")
+    pChat.ChatCopyOptions:ChangeFiltersState(false, filterType)
+end
+
 
 --[[
 function pChat_ChatCopyOptionsOnCheckboxToggled(buttonControl, checked)

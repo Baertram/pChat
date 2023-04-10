@@ -89,6 +89,7 @@ function pChat.InitializeSettings()
 		restoreSystemOnly = false,
 		restoreWhisps = true,
 		restoreTextEntryHistoryAtLogOutQuit = false,
+		restoreShowCurrentNameAndZone = false,
 		addChannelAndTargetToHistory = true,
 		timeBeforeRestore = 2,
 		notifyIM = false,
@@ -187,6 +188,7 @@ function pChat.InitializeSettings()
 		extras = "",
 		selfsend = false,
 		ding = false,
+		dingSoundName = SOUNDS.NEW_NOTIFICATION, --Baertram 2023-04-10
 		selfchar = false,
 		wholenames = false,
 
@@ -1832,7 +1834,7 @@ function pChat.InitializeSettings()
 					name = GetString(PCHAT_TIMEBEFORERESTORE),
 					tooltip = GetString(PCHAT_TIMEBEFORERESTORETT),
 					min = 1,
-					max = 24,
+					max = 48,
 					step = 1,
 					getFunc = function() return db.timeBeforeRestore end,
 					setFunc = function(newValue) db.timeBeforeRestore = newValue end,
@@ -1893,6 +1895,15 @@ function pChat.InitializeSettings()
 					setFunc = function(newValue) db.restoreTextEntryHistoryAtLogOutQuit = newValue end,
 					width = "full",
 					default = defaults.restoreTextEntryHistoryAtLogOutQuit,
+				},
+				{-- LAM Option Restore: Show name and zone
+					type = "checkbox",
+					name = GetString(PCHAT_RESTORESHOWNAMEANDZONE),
+					tooltip = GetString(PCHAT_RESTORESHOWNAMEANDZONE_TT),
+					getFunc = function() return db.restoreShowCurrentNameAndZone end,
+					setFunc = function(newValue) db.restoreShowCurrentNameAndZone = newValue end,
+					width = "full",
+					default = defaults.restoreShowCurrentNameAndZone,
 				},
 			},
 		}
@@ -1971,6 +1982,14 @@ function pChat.InitializeSettings()
 
 		local function cm_setMentionDingOption(var)
 			db.ding = var
+		end
+
+		local function cm_getMentionDingSoundNameOption()
+			return db.dingSoundName
+		end
+
+		local function cm_setMentionDingSoundNameOption(var)
+			db.dingSoundName = var
 		end
 
 		local function cm_getMentionApplyNameOption()
@@ -2061,6 +2080,24 @@ function pChat.InitializeSettings()
 					default = false,
 					width = "full",
 				},
+				{
+					type = "soundslider",
+					name = GetString(PCHAT_MENTIONS_DING_SOUND_NAME),
+					getFunc = cm_getMentionDingSoundNameOption,
+					setFunc = cm_setMentionDingSoundNameOption,
+					tooltip = GetString(PCHAT_MENTIONS_DING_SOUND_NAME_TOOLTIP),
+					default = false,
+					width = "full",
+					saveSoundIndex = false,
+					showSoundName = true,
+					playSound = true,
+					showPlaySoundButton = true,
+					noAutomaticSoundPreview = false,
+					readOnly = true,
+					autoselect = false,
+					disabled = function() return not cm_getMentionDingOption() end,
+				},
+
 				{
 					type = "checkbox",
 					name = GetString(PCHAT_MENTIONS_APPLYNAME_NAME),

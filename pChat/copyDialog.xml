@@ -58,6 +58,35 @@
 				<Label name="$(parent)FilterLabel" inherits="ZO_ChatOptionsSectionLabel" text="SI_CHAT_OPTIONS_FILTERS">
 					<Anchor point="TOPLEFT" relativePoint="TOPLEFT" relativeTo="$(parent)" offsetX="10" offsetY="100" />
 				</Label>
+				<Button name="$(parent)EnableAll" inherits="ZO_DefaultButton" text="SI_CHECK_BUTTON_ON">
+					<DimensionConstraints maxX="60" maxY="24" />
+					<Anchor point="BOTTOMLEFT" relativePoint="TOPLEFT" relativeTo="$(parent)FilterLabel" offsetX="20" offsetY="-20"/>
+					<OnClicked>
+						pChat_ChatCopyOptions_EnableAllFilters()
+					</OnClicked>
+				</Button>
+				<Button name="$(parent)DisableAll" inherits="ZO_DefaultButton" text="SI_CHECK_BUTTON_OFF">
+					<DimensionConstraints maxX="60" maxY="24" />
+					<Anchor point="LEFT" relativePoint="RIGHT" relativeTo="$(parent)EnableAll" offsetX="15" offsetY="00"/>
+					<OnClicked>
+						pChat_ChatCopyOptions_DisableAllFilters()
+					</OnClicked>
+				</Button>
+
+				<Button name="$(parent)EnableAllFilter" inherits="ZO_DefaultButton" text="SI_CHECK_BUTTON_ON">
+					<DimensionConstraints maxX="60" maxY="24" />
+					<Anchor point="LEFT" relativePoint="RIGHT" relativeTo="$(parent)FilterLabel" offsetX="15" offsetY="0"/>
+					<OnClicked>
+						pChat_ChatCopyOptions_EnableAllFilters("filter")
+					</OnClicked>
+				</Button>
+				<Button name="$(parent)DisableAllFilter" inherits="ZO_DefaultButton" text="SI_CHECK_BUTTON_OFF">
+					<DimensionConstraints maxX="60" maxY="24" />
+					<Anchor point="LEFT" relativePoint="RIGHT" relativeTo="$(parent)EnableAllFilter" offsetX="15" offsetY="00"/>
+					<OnClicked>
+						pChat_ChatCopyOptions_DisableAllFilters("filter")
+					</OnClicked>
+				</Button>
 
 				<Control name="$(parent)FilterSection" resizeToFitDescendents="true" >
 					<Anchor point="TOPLEFT" relativeTo="$(parent)FilterLabel" relativePoint="BOTTOMLEFT" offsetX="10" offsetY="10" />
@@ -66,6 +95,20 @@
 				<Label name="$(parent)GuildChannelLabel" inherits="ZO_ChatOptionsSectionLabel" text="SI_CHAT_OPTIONS_GUILD_CHANNELS">
 					<Anchor point="TOPLEFT" relativeTo="$(parent)FilterSection" relativePoint="BOTTOMLEFT" offsetX="-10" offsetY="10" />
 				</Label>
+				<Button name="$(parent)EnableAllFilterGuild" inherits="ZO_DefaultButton" text="SI_CHECK_BUTTON_ON">
+					<DimensionConstraints maxX="60" maxY="24" />
+					<Anchor point="LEFT" relativePoint="RIGHT" relativeTo="$(parent)GuildChannelLabel" offsetX="15" offsetY="0"/>
+					<OnClicked>
+						pChat_ChatCopyOptions_EnableAllFilters("guild")
+					</OnClicked>
+				</Button>
+				<Button name="$(parent)DisableAllFilterGuild" inherits="ZO_DefaultButton" text="SI_CHECK_BUTTON_OFF">
+					<DimensionConstraints maxX="60" maxY="24" />
+					<Anchor point="LEFT" relativePoint="RIGHT" relativeTo="$(parent)EnableAllFilterGuild" offsetX="15" offsetY="0"/>
+					<OnClicked>
+						pChat_ChatCopyOptions_DisableAllFilters("guild")
+					</OnClicked>
+				</Button>
 
 				<Control name="$(parent)GuildSection" resizeToFitDescendents="true" >
 					<Anchor point ="TOPLEFT" relativeTo="$(parent)GuildChannelLabel" relativePoint="BOTTOMLEFT" offsetX="10" offsetY="10" />

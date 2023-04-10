@@ -3,6 +3,8 @@ local ADDON_NAME = CONSTANTS.ADDON_NAME
 
 local maxChatCharCount = CONSTANTS.maxChatCharCount
 
+local CM = CALLBACK_MANAGER
+
 function pChat.InitializeChatHandlers()
     local db = pChat.db
     local logger = pChat.logger
@@ -156,6 +158,8 @@ function pChat.InitializeChatHandlers()
 
     --Set the chat handlers for the chat/friend/group events
     CHAT_ROUTER:RegisterMessageFormatter(EVENT_CHAT_MESSAGE_CHANNEL, pChatChatHandlersMessageChannelReceiver)
+    CM:FireCallbacks("pChat_Initialized_EVENT_CHAT_MESSAGE_CHANNEL", function() return pChatChatHandlersMessageChannelReceiver end)
+
     if db.useSystemMessageChatHandler == true then
         if LibChatMessage then
             local formatters = CHAT_ROUTER:GetRegisteredMessageFormatters()
@@ -168,21 +172,29 @@ function pChat.InitializeChatHandlers()
             end
         end
         CHAT_ROUTER:RegisterMessageFormatter("AddSystemMessage", pChatOnSystemMessage)
+        CM:FireCallbacks("pChat_Initialized_AddSystemMessage", function() return pChatOnSystemMessage end)
     end
+
+
     if db.usePlayerStatusChangedChatHandler == true then
         CHAT_ROUTER:RegisterMessageFormatter(EVENT_FRIEND_PLAYER_STATUS_CHANGED, OnFriendPlayerStatusChanged)
+        CM:FireCallbacks("pChat_Initialized_EVENT_FRIEND_PLAYER_STATUS_CHANGED", function() return OnFriendPlayerStatusChanged end)
     end
     if db.useIgnoreAddedChatHandler == true then
         CHAT_ROUTER:RegisterMessageFormatter(EVENT_IGNORE_ADDED, OnIgnoreAdded)
+        CM:FireCallbacks("pChat_Initialized_EVENT_IGNORE_ADDED", function() return OnIgnoreAdded end)
     end
     if db.useIgnoreRemovedChatHandler == true then
         CHAT_ROUTER:RegisterMessageFormatter(EVENT_IGNORE_REMOVED, OnIgnoreRemoved)
+        CM:FireCallbacks("pChat_Initialized_EVENT_IGNORE_REMOVED", function() return OnIgnoreRemoved end)
     end
     if db.useGroupMemberLeftChatHandler == true then
         CHAT_ROUTER:RegisterMessageFormatter(EVENT_GROUP_MEMBER_LEFT, OnGroupMemberLeft)
+        CM:FireCallbacks("pChat_Initialized_EVENT_GROUP_MEMBER_LEFT", function() return OnGroupMemberLeft end)
     end
     if db.useGroupTypeChangedChatHandler == true then
         CHAT_ROUTER:RegisterMessageFormatter(EVENT_GROUP_TYPE_CHANGED, OnGroupTypeChanged)
+        CM:FireCallbacks("pChat_Initialized_EVENT_GROUP_TYPE_CHANGED", function() return OnGroupTypeChanged end)
     end
 	
 	--20211222 @Coorbin - Init CharCount functionality

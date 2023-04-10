@@ -495,6 +495,9 @@ local strings = {
 	PCHAT_SETTINGS_BACKUP_REMINDER_DIALOG_TEXT		= "Please |cFF0000!logout!|r and backup your pChat SavedVariables!\nThe following link at www.esoui.com explains\nhow to do it:\n\nhttps://www.esoui.com/forums/showthread.php?t=9235\n\nJust press the confirm button and the next dialog\nshown will ask to open the website\n(if you need to learn how to backup your SavedVariables).",
 	PCHAT_SETTINGS_WARNING_REMINDER_LOGOUT_BEFORE	= "Remember to LOGOUT first!",
 
+	PCHAT_RESTORESHOWNAMEANDZONE = "After restore: Show name & zone",
+	PCHAT_RESTORESHOWNAMEANDZONE_TT = "Afficher @Account actuellement connecté - Nom et zone du personnage dans le chat, après la restauration de l'historique du chat.",
+
 	-- Coorbin20200708
 	-- Chat Mentions settings strings
 	PCHAT_MENTIONSH = "Mentions",
@@ -511,6 +514,8 @@ local strings = {
 	PCHAT_MENTIONS_SELFSEND_TOOLTIP = "Whether or not to apply formatting to messages YOU send.",
 	PCHAT_MENTIONS_DING_NAME = "Ding sound?",
 	PCHAT_MENTIONS_DING_TOOLTIP = "Whether or not to play a ding sound when your name is mentioned.",
+	PCHAT_MENTIONS_DING_SOUND_NAME = "Choose sound",
+	PCHAT_MENTIONS_DING_SOUND_NAME_TOOLTIP = "Choose the sound to play",
 	PCHAT_MENTIONS_APPLYNAME_NAME = "Apply to your character names?",
 	PCHAT_MENTIONS_APPLYNAME_TOOLTIP = "Whether or not to apply formatting to each name (separated by spaces) in your character name. Disable if you use a very common name like 'Me' in your character name.",
 	PCHAT_MENTIONS_WHOLEWORD_NAME = "Match your names as whole words only?",

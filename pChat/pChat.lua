@@ -1,6 +1,6 @@
 --=======================================================================================================================================
 --Known problems/bugs:
---Last updated: 2021-11-15
+--Last updated: 2023-04-09
 --Total number: 12
 ------------------------------------------------------------------------------------------------------------------------
 --#2	2020-02-28 Baetram, bug: New selection for @accountName/character chat prefix will only show /charactername (@accountName is missing) during whispers,
@@ -29,17 +29,16 @@
 --
 
 --=======================================================================================================================================
--- Changelog version: 10.0.2.7 (last version 10.0.2.6)
+-- Changelog version: 10.0.3.5 (last version 10.0.3.3)
 --=======================================================================================================================================
 --Fixed:
---Removed debug messages
+--
 
 --Changed:
 
 
 --Added:
---Show typed character count at top of chat window (and show max 350 chars info) -> Thanks Coorbin
---Show date & time of last posted zone chat message (for recruiting e.g.) -> Thanks Coorbin
+
 
 --Added on request:
 
@@ -58,7 +57,7 @@ local addonNamePrefix = "[" .. ADDON_NAME .. "] "
 
 local EM = EVENT_MANAGER
 
-local strlen = string.len
+--local strlen = string.len
 local strfind = string.find
 local strsub = string.sub
 

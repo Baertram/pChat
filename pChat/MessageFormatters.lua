@@ -1084,6 +1084,7 @@ function pChat.InitializeMessageFormatters()
     end
 
     local function FormatSysMessage(statusMessage)
+--d("[pChat]FormatSysMessage: " ..tostring(statusMessage))
         logger.verbose:Debug("FormatSysMessage:", statusMessage)
 
         -- Display Timestamp if needed
@@ -1141,7 +1142,7 @@ function pChat.InitializeMessageFormatters()
                     -- Show Message
                     statusMessage = ShowTimestamp() .. statusMessage
                     logger.verbose:Debug(">statusMessage after:", statusMessage)
-
+--d(">pchat status msg after: " ..tostring(statusMessage))
                     if not db.lineNumber then
                         db.lineNumber = 1
                     end
@@ -1164,7 +1165,7 @@ function pChat.InitializeMessageFormatters()
                     if not db.LineStrings[db.lineNumber].rawDisplayed then db.LineStrings[db.lineNumber].rawDisplayed = sysMessage end
 
                     -- No From, rawTimestamp is in statusMessage, sent as arg for SpamFiltering even if SysMessages are not filtered
-                    pChat.StorelineNumber(GetTimeStamp(), nil, statusMessage, CHAT_CHANNEL_SYSTEM, nil)
+                    pChat.StorelineNumber(GetTimeStamp(), nil, statusMessage, CHAT_CHANNEL_SYSTEM, nil, db.showTimestamp)
 
                 end
 

@@ -327,14 +327,21 @@ function pChat.InitializeChatHistory()
         else
             pChatData.messagesHaveBeenRestorated = true
         end
+		-- @Baertram - By Ernest Bagwell 2023-02-10 Added this line to show the player name and zone, it will be added once the add-on has loaded the historical chats ######
+        -- CHAT_SYSTEM:AddMessage(string.format("pChat loaded: %s in %s", GetUnitName("player"), ZO_WorldMapTitle:GetText()))
+        if db.restoreShowCurrentNameAndZone == true then
+            CHAT_SYSTEM:AddMessage(string.format("[pChat]History restored: %s in %s", GetDisplayName()  .. " - " .. zo_strformat(SI_UNIT_NAME, GetUnitName("player")), ZO_WorldMapTitle:GetText()))
+        end
     end
     pChat.RestoreChatHistory = RestoreChatHistory
 
     -- Store line number
     -- Create an array for the copy functions, spam functions and revert history functions
     -- WARNING : See FormatSysMessage()
-    local function StorelineNumber(rawTimestamp, rawFrom, text, chanCode, originalFrom)
+    local function StorelineNumber(rawTimestamp, rawFrom, text, chanCode, originalFrom, wasTimeStampAdded)
         logger.verbose:Debug(string.format("StoreLineNumber-Channel %s: [%s]%s(%s) %s", tostring(chanCode), tostring(rawTimestamp), tostring(originalFrom), tostring(rawFrom), tostring(text)))
+        wasTimeStampAdded = wasTimeStampAdded or false
+
         -- Strip DDS tag from Copy text
         local function StripDDStags(text)
             return text:gsub("|t(.-)|t", "")
@@ -344,7 +351,7 @@ function pChat.InitializeChatHistory()
         local rawText = text
 
         -- Timestamp cannot be nil anymore with SpamFilter, so use the option itself
-        if db.showTimestamp then
+        if not wasTimeStampAdded and db.showTimestamp then
             -- Format for Copy
             formattedMessage = "[" .. pChat.CreateTimestamp(GetTimeString()) .. "] "
         end
