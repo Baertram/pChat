@@ -3,8 +3,9 @@ local ADDON_NAME = CONSTANTS.ADDON_NAME
 
 local ChatSys = CONSTANTS.CHAT_SYSTEM
 
-local mapChatChannelToPChatChannel = pChat.mapChatChannelToPChatChannel
-local mapPChatChannelToChatChannel = pChat.mapPChatChannelToChatChannel
+local mapChatChannelToPChatChannel  = pChat.mapChatChannelToPChatChannel
+local mapPChatChannelToChatChannel  = pChat.mapPChatChannelToChatChannel
+local SetToChatChannelAndTarget     = pChat.SetToChatChannelAndTarget
 
 function pChat.InitializeChatHistory()
     local pChatData = pChat.pChatData
@@ -295,12 +296,15 @@ function pChat.InitializeChatHistory()
 
         -- Restore History
         if db.history then
+            local historyData = db.history
 
             if db.lastWasReloadUI and db.restoreOnReloadUI then
 
                 -- RestoreChannel
-                if db.defaultchannel ~= CONSTANTS.PCHAT_CHANNEL_NONE then
-                    ChatSys:SetChannel(db.history.currentChannel, db.history.currentTarget)
+                local defChatChannel = db.defaultchannel
+                if defChatChannel ~= nil and defChatChannel ~= "" and defChatChannel ~= CONSTANTS.PCHAT_CHANNEL_NONE then
+                    SetToChatChannelAndTarget(historyData.currentChannel, historyData.currentTarget)
+                    --ChatSys:SetChannel(db.history.currentChannel, db.history.currentTarget)
                 end
 
                 -- restore TextEntry and Chat

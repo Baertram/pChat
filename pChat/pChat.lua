@@ -23,16 +23,22 @@
 --and then I copy the message and paste I get:
 --[19:40:15] You craft [Dwarven Ingot] x33, [Ebony Ingot] x232, [Orichalcum Ingot] x12, [Iron Ingot] x134, [Steel Ingot] x83, [Rubedite Ingot] x91, [Sanded Oak] x91, [Voidstone Ingot] x58, [Quicksilver Ingot] x44, [Galatite Ingot] x73.
 ------------------------------------------------------------------------------------------------------------------------
+-- #11 2023-07-01, bug, Baertram:   Chat Mentions: Chat messages highlight/colorized and add the ! icon at your own send messages, even if you have disabled to do so.
+-- #12 2023-07-31, bug, Masteroshi340:   Default chat channel dropdown is empty and thus no chat channel will be set
+
+------------------------------------------------------------------------------------------------------------------------
 --=======================================================================================================================================
 
 --Working on:
---
+-- #11 Chat Mentions: Chat messages highlight/colorized and add the ! icon at your own send messages, even if you have disabled to do so.
+
 
 --=======================================================================================================================================
--- Changelog version: 10.0.3.5 (last version 10.0.3.3)
+-- Changelog version: 10.0.3.6 (last version 10.0.3.5)
 --=======================================================================================================================================
 --Fixed:
---
+-- #12 Default chat channel dropdown is empty and thus no chat channel will be set
+
 
 --Changed:
 

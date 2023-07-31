@@ -1556,7 +1556,6 @@ function pChat.InitializeSettings()
 							-- When user click on LAM reinit button
 							db.defaultchannel = defaults.defaultchannel
 						end
-
 					end,
 				},
 				{--Target History
@@ -2498,6 +2497,12 @@ function pChat.InitializeSettings()
 	local function AfterSettings()
 		migrateToCharacterIdSavedVars()
 		checkNameFormat()
+
+		--Security fixes - Wrong SV: Correct them
+		if db.defaultchannel == nil or db.defaultchannel == "" then
+			db.defaultchannel = CONSTANTS.PCHAT_CHANNEL_NONE
+		end
+
 		getLastBackupSVReminderText()
 	end
 

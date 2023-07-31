@@ -469,11 +469,16 @@ function pChat.InitializeChatConfig()
     end
 
     -- Set channel to the default one
-    local function SetToDefaultChannel()
-        if db.defaultchannel ~= CONSTANTS.PCHAT_CHANNEL_NONE then
-            ChatSys:SetChannel(db.defaultchannel)
+    local function SetToDefaultChannel(defChannelTouse, targetToUse)
+        local defChatChannel = defChannelTouse
+        if defChatChannel == nil then
+            defChatChannel = db.defaultchannel
+        end
+        if defChatChannel ~= nil and defChatChannel ~= "" and defChatChannel ~= CONSTANTS.PCHAT_CHANNEL_NONE then
+            ChatSys:SetChannel(defChatChannel, targetToUse)
         end
     end
+    pChat.SetToChatChannelAndTarget = SetToDefaultChannel
 
     -- triggers when EVENT_GROUP_MEMBER_LEFT
     local function OnGroupMemberLeft(_, characterName, reason, wasMeWhoLeft)
