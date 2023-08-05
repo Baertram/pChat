@@ -186,7 +186,7 @@ function pChat.InitializeChatHistory()
                                             if restoredChatRawText and restoredChatRawText ~= "" then
                                                 if db.addHistoryRestoredPrefix == true then
                                                     --If the message was restored from history then add a prefix [H] )for history) to it!
-                                                    restoredChatRawText = restoredPrefix .. restoredChatRawText
+                                                    restoredChatRawText = restoredPrefix .. " " .. restoredChatRawText
                                                 end
                                                 ChatSys.containers[containerIndex]:AddEventMessageToWindow(ChatSys.containers[containerIndex].windows[tabIndex], pChat.AddLinkHandler(restoredChatRawText, channelToRestore, historyIndex), category)
                                                 -- TODO why is this commented out?
