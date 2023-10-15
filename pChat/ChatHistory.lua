@@ -303,6 +303,7 @@ function pChat.InitializeChatHistory()
                 -- RestoreChannel
                 local defChatChannel = db.defaultchannel
                 if defChatChannel ~= nil and defChatChannel ~= "" and defChatChannel ~= CONSTANTS.PCHAT_CHANNEL_NONE then
+                    SetToChatChannelAndTarget = SetToChatChannelAndTarget or pChat.SetToChatChannelAndTarget
                     SetToChatChannelAndTarget(historyData.currentChannel, historyData.currentTarget)
                     --ChatSys:SetChannel(db.history.currentChannel, db.history.currentTarget)
                 end
