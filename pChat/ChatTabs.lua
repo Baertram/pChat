@@ -8,6 +8,7 @@ function pChat.InitializeChatTabs()
     pChat.tabIndices = {}
 
     local function getTabNames()
+        ChatSys = CONSTANTS.CHAT_SYSTEM
         local totalTabs = ChatSys.tabPool.m_Active
         if totalTabs ~= nil and #totalTabs >= 1 then
             pChat.tabNames = {}
@@ -69,7 +70,9 @@ function pChat.InitializeChatTabs()
         end
     end
 
+    local alreadyHookedFadeOutContainers = {}
     local function CreateNewChatTabPostHook()
+--d("[pChat]CreateNewChatTabPostHook")
         if not ChatSys or not ChatSys.primaryContainer or not ChatSys.primaryContainer.windows then return end
         local db = pChat.db
         --[[
@@ -98,6 +101,37 @@ function pChat.InitializeChatTabs()
         for _, container in pairs(ChatSys.containers) do
             container:FadeIn()
 
+            --Hook the FadeOut function and prevent FadeOut -> If disabled in the settings
+            if neverFadeOut == true and container.FadeOut ~= nil and not alreadyHookedFadeOutContainers[container] then
+                --See \esoui\ingame\chatsystem\sharedchatsystem.lua, SharedChatContainer:FadeOut(delay)
+                ZO_PreHook(container, "FadeOut", function(self, delay)
+--d("[pChat]Chat container FadeOut Prehook-delay: " ..tostring(delay))
+                    --Always fade in the chat text again?
+                    if not pChat.db.alwaysShowChat then return false end --Call original function code!
+
+                    --Start of original code:
+                    if self.fadeInReferences > 0 or not IsChatSystemAvailableForCurrentPlatform() then
+                        return
+                    end
+                    if not self.fadeAnim then
+                        self.fadeAnim = ZO_AlphaAnimation:New(self.control)
+                    end
+
+                    --pChat code addition: Should pChat prevent the FadeOut: Show text lines again
+                    if self.currentBuffer then
+                        self.currentBuffer:ShowFadedLines()
+                    end
+
+                    return true --prevent original code "Fade out" afterwards being called
+                    --[[
+                    self.fadeAnim:SetMinMaxAlpha(self.minAlpha, self.maxAlpha)
+                    self.fadeAnim:FadeOut(delay or FADE_ANIMATION_DELAY, FADE_ANIMATION_DURATION)
+                    ]]
+                end)
+
+                alreadyHookedFadeOutContainers[container] = true
+            end
+
             for _, tabObject in ipairs(container.windows) do
                 --Set the maximum lines in the chat tab to 1000 instead of 200
                 if db.augmentHistoryBuffer then
@@ -108,9 +142,11 @@ function pChat.InitializeChatTabs()
                 --https://github.com/esoui/esoui/blob/master/esoui/ingame/chatsystem/gamepad/gamepadchatsystem.lua
                 local bufferOfTab = tabObject.buffer
                 if bufferOfTab ~= nil then
-                    if neverFadeOut then
+                    if neverFadeOut == true then
+--d(">ShowFadedLines")
                         bufferOfTab:ShowFadedLines()
                     end
+                    --Maybe only working in Gamepad mode?
                     --self.windows[tabIndex].buffer:SetLineFade(FADE_BEGIN, FADE_DURATION)
                     bufferOfTab:SetLineFade(fadeBegin, fadeDuration)
                 end

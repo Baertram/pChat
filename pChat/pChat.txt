@@ -13,7 +13,7 @@
 ## Author: Ayantir, DesertDwellers, Baertram
 ## SavedVariables: PCHAT_OPTS
 ## DependsOn: LibAddonMenu-2.0>=34 LibAddonMenuSoundSlider>=5
-## DependsOn: LibMainMenu-2.0>=40400 LibCustomMenu>=713 LibDebugLogger>=220 LibMediaProvider-1.0>=22
+## DependsOn: LibMainMenu-2.0>=40400 LibCustomMenu>=721 LibDebugLogger>=263 LibMediaProvider-1.0>=26
 ## OptionalDependsOn: LibCustomTitles LibChatMessage>=100
 
 Constants.lua

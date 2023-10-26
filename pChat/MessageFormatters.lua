@@ -837,7 +837,7 @@ function pChat.InitializeMessageFormatters()
 
 		-- Coorbin20200708
         -- Chat Mentions: username highlighting, audible ding, exclamation icon, etc.
-        text = cm.cm_format(text, fromDisplayName, isCS, rcol)
+        text = cm.cm_format(chanCode, text, fromDisplayName, isCS, rcol)
 
         local linkedText = text
 

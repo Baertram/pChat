@@ -304,7 +304,7 @@ function pChat.InitializeSettings()
 			table.insert(arrayTab, 1)
 		end
 
-		--Get the tab names and indices
+		--Check if the chat tabs were updated -> Rebuild the settings tables
 		pChat.getTabNames()
 		--No default tab chosen in SavedVariables yet? Use the first tab	--Update the available sounds from the game
 		if not db.defaultTab then
