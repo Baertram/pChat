@@ -72,7 +72,7 @@ local strings = {
 	PCHAT_REMOVECOLORSFROMMESSAGESTT = "Stops people using things like rainbow colored text",
 
 	PCHAT_PREVENTCHATTEXTFADING = "Prevent chat text fading",
-	PCHAT_PREVENTCHATTEXTFADINGTT = "Prevents the chat text from fading (you can prevent the BG from fading in the Social options",
+	PCHAT_PREVENTCHATTEXTFADINGTT = "Prevents the chat text from fading (you can prevent the BG from fading at the \'Chat window settings\')",
 	PCHAT_CHATTEXTFADINGBEGIN = "Text fade begin after seconds",
 	PCHAT_CHATTEXTFADINGBEGINTT = "Fade the text after this seconds have passed",
 	PCHAT_CHATTEXTFADINGDURATION = "Text fade duration seconds",
@@ -159,8 +159,8 @@ local strings = {
 
 	PCHAT_APPARENCEMH = "Chat window settings",
 
-	PCHAT_WINDOWDARKNESS = "Chat window transparency",
-	PCHAT_WINDOWDARKNESSTT = "Increase the darkening of the chat window",
+	PCHAT_WINDOWDARKNESS = "Chat window darkness",
+	PCHAT_WINDOWDARKNESSTT = "Increase the darkening of the chat window. 0 = No darkness\nWill affect the inactive & the active chat window!",
 
 	PCHAT_CHATMINIMIZEDATLAUNCH = "Chat minimized at startup",
 	PCHAT_CHATMINIMIZEDATLAUNCHTT = "Minimize chat window on the left side of the screen when the game starts",

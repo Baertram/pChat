@@ -102,33 +102,19 @@ function pChat.InitializeChatTabs()
             container:FadeIn()
 
             --Hook the FadeOut function and prevent FadeOut -> If disabled in the settings
+            --Disabled as the chat background is somehow disturbed by it
             if neverFadeOut == true and container.FadeOut ~= nil and not alreadyHookedFadeOutContainers[container] then
                 --See \esoui\ingame\chatsystem\sharedchatsystem.lua, SharedChatContainer:FadeOut(delay)
-                ZO_PreHook(container, "FadeOut", function(self, delay)
---d("[pChat]Chat container FadeOut Prehook-delay: " ..tostring(delay))
+                SecurePostHook(container, "FadeOut", function(self, delay)
+--d("[pChat]Chat container FadeOut SecurePostHook-delay: " ..tostring(delay))
                     --Always fade in the chat text again?
-                    if not pChat.db.alwaysShowChat then return false end --Call original function code!
-
-                    --Start of original code:
-                    if self.fadeInReferences > 0 or not IsChatSystemAvailableForCurrentPlatform() then
-                        return
-                    end
-                    if not self.fadeAnim then
-                        self.fadeAnim = ZO_AlphaAnimation:New(self.control)
-                    end
-
-                    --pChat code addition: Should pChat prevent the FadeOut: Show text lines again
-                    if self.currentBuffer then
-                        self.currentBuffer:ShowFadedLines()
-                    end
-
-                    return true --prevent original code "Fade out" afterwards being called
-                    --[[
-                    self.fadeAnim:SetMinMaxAlpha(self.minAlpha, self.maxAlpha)
-                    self.fadeAnim:FadeOut(delay or FADE_ANIMATION_DELAY, FADE_ANIMATION_DURATION)
-                    ]]
+                    if pChat.db.alwaysShowChat == true then
+                        --pChat code addition: Should pChat prevent the FadeOut: Show text lines again
+                        if self.currentBuffer then
+                            self.currentBuffer:ShowFadedLines()
+                        end
+                    end --Call original function code!
                 end)
-
                 alreadyHookedFadeOutContainers[container] = true
             end
 

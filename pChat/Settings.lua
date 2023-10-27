@@ -713,6 +713,29 @@ function pChat.InitializeSettings()
 							width = "full",
 							default = defaults.windowDarkness,
 						},
+						{-- Chat Window Min Transparency: ESO vanilla settings! See social -> Chat min transparency
+							-->esoui\ingame\optionspanels\optionspanel_social_shared.lua
+							type = "slider",
+							name = GetString(SI_SOCIAL_OPTIONS_MIN_ALPHA) .. " (".. GetString(SI_CHECK_BUTTON_DISABLED) ..")",
+							tooltip = GetString(SI_SOCIAL_OPTIONS_MIN_ALPHA_TOOLTIP),
+							min = 0,
+							max = 100,
+							step = 1,
+							getFunc = function()
+								return zo_round(KEYBOARD_CHAT_SYSTEM:GetMinAlpha() * 100)
+							end,
+							setFunc = function(newValue)
+								--= newValue
+								KEYBOARD_CHAT_SYSTEM:SetMinAlpha(newValue / 100)
+								if ChatSys.isMinimized == true then
+									ChatSys:Maximize()
+								end
+							end,
+							width = "full",
+							default = function()
+								KEYBOARD_CHAT_SYSTEM:ResetMinAlphaToDefault()
+							end,
+						},
 						{-- Minimize at launch
 							type = "checkbox",
 							name = GetString(PCHAT_CHATMINIMIZEDATLAUNCH),

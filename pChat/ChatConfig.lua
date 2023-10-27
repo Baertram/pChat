@@ -108,25 +108,44 @@ function pChat.InitializeChatConfig()
     --end
 
     -- Change ChatWindow Darkness by modifying its <Center> & <Edge>. Originally defined in virtual object ZO_ChatContainerTemplate in sharedchatsystem.xml
+    local texturePathEdgeDependingOnWindowDarknessTemplate =    "pChat/dds/chat_bg_edge_%d.dds"
+    local texturePathCenterDependingOnWindowDarknessTemplate =  "pChat/dds/chat_bg_center_%d.dds"
     local function ChangeChatWindowDarkness()
         --New dynamic code
         local chatWindowDarknesssSetting = db.windowDarkness
+        --Default chat window darkness
         if chatWindowDarknesssSetting == 0 then
-            ZO_ChatWindowBg:SetCenterTexture("EsoUI/Art/ChatWindow/chat_BG_center.dds")
+            --[[
+                <Edge file="EsoUI/Art/ChatWindow/chat_BG_edge.dds" edgeFileWidth="256" edgeFileHeight="256" edgeSize="32"/>
+                <Center file="EsoUI/Art/ChatWindow/chat_BG_center.dds" />
+                <Insets left="32" top="32" right="-32" bottom="-32" />
+            ]]
             ZO_ChatWindowBg:SetEdgeTexture("EsoUI/Art/ChatWindow/chat_BG_edge.dds", 256, 256, 32)
+            ZO_ChatWindowBg:SetCenterTexture("EsoUI/Art/ChatWindow/chat_BG_center.dds")
+            ZO_ChatWindowBg:SetInsets(32, 32, -32, -32)
+        --[[
         elseif chatWindowDarknesssSetting == 1 then
             ZO_ChatWindowBg:SetCenterColor(0, 0, 0, 0)
             ZO_ChatWindowBg:SetEdgeColor(0, 0, 0, 0)
-        elseif chatWindowDarknesssSetting > 1 then
+            ZO_ChatWindowBg:SetInsets(32, 32, -32, -32)
+        ]]
+        else--if chatWindowDarknesssSetting > 1 then
             local textureStringMultiValue = tonumber((chatWindowDarknesssSetting - 1) * 10)
-            if textureStringMultiValue == nil or textureStringMultiValue > 100 then return end
-            local texturePathCenterDependingOnWindowDarknessTemplate = "pChat/dds/chat_bg_center_%d.dds"
-            local texturePathCenterDependingOnWindowDarkness = string.format(texturePathCenterDependingOnWindowDarknessTemplate, textureStringMultiValue)
-            local texturePathEdgeDependingOnWindowDarknessTemplate = "pChat/dds/chat_bg_edge_%d.dds"
+            if textureStringMultiValue == nil then return end
+            textureStringMultiValue = zo_clamp(textureStringMultiValue, 10, 100)
             local texturePathEdgeDependingOnWindowDarkness = string.format(texturePathEdgeDependingOnWindowDarknessTemplate, textureStringMultiValue)
-            ZO_ChatWindowBg:SetCenterTexture(texturePathCenterDependingOnWindowDarkness)
+            local texturePathCenterDependingOnWindowDarkness = string.format(texturePathCenterDependingOnWindowDarknessTemplate, textureStringMultiValue)
             ZO_ChatWindowBg:SetEdgeTexture(texturePathEdgeDependingOnWindowDarkness, 256, 256, 32)
+            ZO_ChatWindowBg:SetCenterTexture(texturePathCenterDependingOnWindowDarkness)
+            --ZO_ChatWindowBg:SetInsets(32, 32, -32, -32)
         end
+
+        --Apply the default chat window transparency (while inactive) -> social settings
+        local chatTransparencyWhileminimize = zo_round(KEYBOARD_CHAT_SYSTEM:GetMinAlpha() * 100)
+        if chatTransparencyWhileminimize ~= nil then
+            chatTransparencyWhileminimize = zo_clamp(chatTransparencyWhileminimize, 0, 100)
+        end
+        KEYBOARD_CHAT_SYSTEM:SetMinAlpha(chatTransparencyWhileminimize / 100)
 
         --Compatibility for PerfectPixel
         if PP ~= nil and PP.UpdateBackgrounds ~= nil then

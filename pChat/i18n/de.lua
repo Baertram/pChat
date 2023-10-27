@@ -90,7 +90,7 @@ SafeAddString(PCHAT_AUGMENTHISTORYBUFFER							, "Anzahl Zeilen im Chat erhöhen
 SafeAddString(PCHAT_AUGMENTHISTORYBUFFERTT						, "Standardmässig werden nur 200 Zeilen im Chat dargestellt. Hiermit kannst du diese auf bis zu 1000 erhöhen.", 1)
 
 SafeAddString(PCHAT_PREVENTCHATTEXTFADING							, "Textausblenden unterbinden", 1)
-SafeAddString(PCHAT_PREVENTCHATTEXTFADINGTT						, "Verhindert,daß der Chat-Text ausgeblendet wird (Einstellungen zum Chat-Hintergrund finden sich unter Einstellungen: Soziales - Minimale Transparenz)", 1)
+SafeAddString(PCHAT_PREVENTCHATTEXTFADINGTT						, "Verhindert,daß der Chat-Text ausgeblendet wird (Einstellungen zum Chat-Hintergrund finden sich unter \'Chatfenster Aussehen\')", 1)
 SafeAddString(PCHAT_CHATTEXTFADINGBEGIN,                        "Textausblenden nach Sekunden", 1)
 SafeAddString(PCHAT_CHATTEXTFADINGBEGINTT,                      "Blendet den Text nach dieser Anzahl Sekunden aus ", 1)
 SafeAddString(PCHAT_CHATTEXTFADINGDURATION,                     "Textausblenden Dauer in Sekunden", 1)
@@ -179,8 +179,8 @@ SafeAddString(PCHAT_APPARENCEMH										, "Chatfenster Aussehen", 1)
 SafeAddString(PCHAT_TABWARNING										, "Neue Nachricht Warnung", 1)
 SafeAddString(PCHAT_TABWARNINGTT										, "Legen Sie die Farbe für die Warnmeldung im Chat Reiter fest.", 1)
 
-SafeAddString(PCHAT_WINDOWDARKNESS									, "Transparenz des Chat-Fensters", 1)
-SafeAddString(PCHAT_WINDOWDARKNESSTT								, "Erhöhen Sie die Verdunkelung des Chat-Fensters", 1)
+SafeAddString(PCHAT_WINDOWDARKNESS									, "Hintergrund Dunkelheit Chat-Fenster", 1)
+SafeAddString(PCHAT_WINDOWDARKNESSTT								, "Erhöhen Sie die Verdunkelung des Chat-Fensters. 0 = Keine Verdunklung.\nDies verändert den inaktiven & den aktiven Chat!", 1)
 
 SafeAddString(PCHAT_CHATMINIMIZEDATLAUNCH							, "Chat beim Start minimiert", 1)
 SafeAddString(PCHAT_CHATMINIMIZEDATLAUNCHTT						, "Chat-Fenster auf der linken Seite des Bildschirms minimieren, wenn das Spiel startet", 1)
