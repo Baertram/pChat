@@ -1,0 +1,190 @@
+<GuiXml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sir.insidi.at/or/schema/esoui.xsd">
+	<Controls>
+		
+		<Button name="pChatAutoMsgTemplateRmv" mouseOverBlendMode="ADD" inherits="ZO_ButtonBehaviorClickSound" virtual="true" hidden="true">
+			<Dimensions x="32" y="32"/>
+			<Textures
+				normal="EsoUI/Art/Buttons/decline_up.dds"
+				pressed="EsoUI/Art/Buttons/decline_down.dds"
+				mouseOver="EsoUI/Art/Buttons/decline_over.dds"
+			/>
+			<OnClicked>
+				pChat.removeFav(self)
+			</OnClicked>
+		</Button>
+		
+		<Control name="pChatXMLAutoMsgRowTemplate" virtual="true" mouseEnabled="true">
+		
+			<OnMouseEnter>
+				pChat_HoverRowOfAutomatedMessages(self)
+			</OnMouseEnter>
+
+			<OnMouseExit>
+				pChat_ExitRowOfAutomatedMessages(self)
+			</OnMouseExit>
+
+			<Dimensions x="600" y="30" />
+			<Controls>
+				<Texture name="$(parent)BG" inherits="ZO_ThinListBgStrip" />
+				<Label name="$(parent)Name" font="ZoFontGame" verticalAlignment="CENTER">
+					<Dimensions x="150" y="30" />
+					<Anchor point="TOPLEFT" relativeTo="$(parent)" />
+				</Label>
+				<Label name="$(parent)Message" font="ZoFontGame" verticalAlignment="CENTER">
+					<Dimensions x="440" y="30" />
+					<Anchor point="TOPLEFT" relativeTo="$(parent)Name" relativePoint="TOPRIGHT" />
+				</Label>
+			</Controls>
+		</Control>
+		
+		<TopLevelControl name="pChatXMLAutoMsg" inherits="ZO_RightPanelFootPrint" hidden="true">
+			<Dimensions x="600" y="650" />
+			<Controls>
+				
+				<Label name="$(parent)Warning" font="ZoFontHeader3" mouseEnabled="true" horizontalAlignment="CENTER">
+					<Anchor point="TOPLEFT" relativeTo="$(parent)" relativePoint="TOPLEFT" offsetX="-175" offsetY="75" />
+				</Label>
+				
+				<Control name="$(parent)Headers">
+					<Dimensions x="750" y="32" />
+					<Anchor point="TOPLEFT" relativeTo="$(parent)" relativePoint="TOPLEFT" offsetX="-250" offsetY="120"/>
+					<Controls>
+						<Control name="$(parent)Name" inherits="ZO_SortHeader">
+							<OnInitialized>
+								ZO_SortHeader_Initialize(self, "Name", "name", ZO_SORT_ORDER_DOWN, TEXT_ALIGN_LEFT, "ZoFontGameLargeBold")
+							</OnInitialized>
+							<Anchor point="TOPLEFT" relativeTo="$(parent)" />
+							<Dimensions x="150" y="32" />
+						</Control>
+						
+						<Control name="$(parent)Message" inherits="ZO_SortHeader">
+							<OnInitialized>
+								ZO_SortHeader_Initialize(self, "Message", "message", ZO_SORT_ORDER_DOWN, TEXT_ALIGN_LEFT, "ZoFontGameLargeBold")
+							</OnInitialized>
+							<Anchor point="TOPLEFT" relativeTo="$(parent)Name" relativePoint="TOPRIGHT"/>
+							<Dimensions x="440" y="32" />
+						</Control>
+						
+					</Controls>
+				</Control>
+				
+				<Control name="$(parent)List" inherits="ZO_ScrollList">
+					<Dimensions x="750" y="500" />
+					<Anchor point="TOPLEFT" relativeTo="$(parent)Headers" relativePoint="TOPLEFT" offsetX="0" offsetY="40" />
+				</Control>
+				
+			</Controls>
+		</TopLevelControl>
+		
+		<TopLevelControl name="pChatXMLAutoMsgDialog" inherits="ZO_CustomDialogBase" hidden="true">
+			<Controls>
+				<Label name="$(parent)NameHeader" inherits="ZO_DialogContentAnchors" color="INTERFACE_COLOR_TYPE_TEXT_COLORS:INTERFACE_TEXT_COLOR_NORMAL" font="ZoFontGame" text="PCHAT_AUTOMSG_NAME_HEADER"/>
+
+				<Backdrop name="$(parent)Name" inherits="ZO_EditBackdrop">
+					<Anchor point="TOPLEFT" relativeTo="$(parent)NameHeader" relativePoint="BOTTOMLEFT" offsetY="10"/>
+					<Anchor point="TOPRIGHT" relativeTo="$(parent)NameHeader" relativePoint="BOTTOMRIGHT" offsetY="10"/>
+					<Controls>
+						<EditBox name="$(parent)Edit" inherits="ZO_DefaultEditForBackdrop ZO_EditDefaultText">
+							<OnInitialized>
+								ZO_EditDefaultText_Initialize(self, GetString(PCHAT_AUTOMSG_NAME_DEFAULT_TEXT))
+							</OnInitialized>
+							<OnEffectivelyShown>
+								self:TakeFocus()
+							</OnEffectivelyShown>
+							<OnTab>
+								pChatXMLAutoMsgDialogMessageEdit:TakeFocus()
+							</OnTab>
+						</EditBox>
+					</Controls>
+				</Backdrop>                
+
+				<Label name="$(parent)MessageHeader" color="INTERFACE_COLOR_TYPE_TEXT_COLORS:INTERFACE_TEXT_COLOR_NORMAL" font="ZoFontGame" text="PCHAT_AUTOMSG_MESSAGE_HEADER">
+					<Anchor point="TOPLEFT" relativeTo="$(parent)Name" relativePoint="BOTTOMLEFT" offsetY="25" />
+					<Anchor point="TOPRIGHT" relativeTo="$(parent)Name" relativePoint="BOTTOMRIGHT" offsetY="25" />
+				</Label>
+				<Backdrop name="$(parent)Message" inherits="ZO_EditBackdrop">
+					<Anchor point="TOPLEFT" relativeTo="$(parent)MessageHeader" relativePoint="BOTTOMLEFT" offsetY="10"/>
+					<Anchor point="TOPRIGHT" relativeTo="$(parent)MessageHeader" relativePoint="BOTTOMRIGHT" offsetY="10"/>
+					<Dimensions y="180"/>
+					<Controls>
+						<EditBox name="$(parent)Edit" inherits="ZO_DefaultEditMultiLineForBackdrop ZO_EditDefaultText" maxInputCharacters="350">
+							<OnInitialized>
+								ZO_EditDefaultText_Initialize(self, GetString(PCHAT_AUTOMSG_MESSAGE_DEFAULT_TEXT))
+							</OnInitialized>
+						</EditBox>
+						<Label name="$(parent)Tip1" color="INTERFACE_COLOR_TYPE_TEXT_COLORS:INTERFACE_TEXT_COLOR_NORMAL" font="ZoFontGame" text="PCHAT_AUTOMSG_MESSAGE_TIP1_TEXT">
+							<Dimensions x="400"/>
+							<Anchor point="TOPLEFT" relativeTo="$(parent)Edit" relativePoint="BOTTOMLEFT" offsetY="20" offsetX="-25" />
+						</Label>
+						<Label name="$(parent)Tip2" color="INTERFACE_COLOR_TYPE_TEXT_COLORS:INTERFACE_TEXT_COLOR_NORMAL" font="ZoFontGame" text="PCHAT_AUTOMSG_MESSAGE_TIP2_TEXT">
+							<Dimensions x="400"/>
+							<Anchor point="TOPLEFT" relativeTo="$(parent)Tip1" relativePoint="BOTTOMLEFT" offsetY="15" />
+						</Label>
+						<Label name="$(parent)Tip3" color="INTERFACE_COLOR_TYPE_TEXT_COLORS:INTERFACE_TEXT_COLOR_NORMAL" font="ZoFontGame" text="PCHAT_AUTOMSG_MESSAGE_TIP3_TEXT">
+							<Dimensions x="400"/>
+							<Anchor point="TOPLEFT" relativeTo="$(parent)Tip2" relativePoint="BOTTOMLEFT" offsetY="15" />
+						</Label>
+					</Controls>
+				</Backdrop>
+				<Control name="$(parent)Cancel" inherits="ZO_CustomDialogButton"/>
+				<Control name="$(parent)Request" inherits="ZO_CustomDialogButton"/>
+			</Controls>
+		</TopLevelControl>
+
+		<Button name="ZO_ChatWindowIM" mouseOverBlendMode="ADD" inherits="ZO_CloseButton" hidden="true" tier="MEDIUM" layer="CONTROLS" level="1">
+			<Dimensions x="16" y="16" />
+			<OnInitialized>
+				pChat_AddIMButton(self)
+			</OnInitialized>
+			
+			<OnClicked>
+				pChat_RemoveIMNotification()
+			</OnClicked>
+			
+			<Controls>
+				<Texture name="$(parent)Burst" tier="HIGH" textureFile="EsoUI/Art/ChatWindow/chat_notification_burst.dds" blendMode="ADD" alpha="0">
+					<Dimensions x="512" y="512"/>
+					<Anchor point="CENTER"/>
+				</Texture>
+			</Controls>
+		</Button>
+		
+		<Button name="ZO_ChatWindowIMLabel" font="ZoFontWinH5" inherits="ZO_ButtonBehaviorClickSound" hidden="true" tier="MEDIUM" layer="CONTROLS" level="1">
+			<Dimensions x="90" y="16" />
+			<FontColors
+				normalColor="INTERFACE_COLOR_TYPE_TEXT_COLORS:INTERFACE_TEXT_COLOR_NORMAL"
+				pressedColor="INTERFACE_COLOR_TYPE_TEXT_COLORS:INTERFACE_TEXT_COLOR_SELECTED"
+				mouseOverColor="INTERFACE_COLOR_TYPE_TEXT_COLORS:INTERFACE_TEXT_COLOR_HIGHLIGHT"
+				disabledColor="INTERFACE_COLOR_TYPE_TEXT_COLORS:INTERFACE_TEXT_COLOR_DISABLED"
+			/>
+		
+			<OnClicked>
+				pChat_TryToJumpToIm(false)
+			</OnClicked>
+			
+			<OnInitialized>
+				pChat_AddIMLabel(self)
+			</OnInitialized>
+		</Button>
+		
+		<Button name="ZO_ChatWindowIMLabelMin" font="ZoFontWinH5" inherits="ZO_ButtonBehaviorClickSound" text="IM" hidden="true" tier="MEDIUM" layer="CONTROLS" level="1">
+			<Dimensions x="24" y="24" />
+			
+			<FontColors
+				normalColor="INTERFACE_COLOR_TYPE_TEXT_COLORS:INTERFACE_TEXT_COLOR_FAILED"
+				pressedColor="INTERFACE_COLOR_TYPE_TEXT_COLORS:INTERFACE_TEXT_COLOR_SELECTED"
+				mouseOverColor="INTERFACE_COLOR_TYPE_TEXT_COLORS:INTERFACE_TEXT_COLOR_HIGHLIGHT"
+				disabledColor="INTERFACE_COLOR_TYPE_TEXT_COLORS:INTERFACE_TEXT_COLOR_DISABLED"
+			/>
+		
+			<OnClicked>
+				pChat_TryToJumpToIm(true)
+			</OnClicked>
+			
+			<OnInitialized>
+				pChat_AddIMLabelMin(self)
+			</OnInitialized>
+		</Button>
+		
+	</Controls>
+</GuiXml>

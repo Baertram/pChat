@@ -1,0 +1,154 @@
+<GuiXml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sir.insidi.at/or/schema/esoui.xsd">
+	<Controls>
+		<!-- Virutal template for chat options checkbox -->
+		<Control name="pChat_ChatCopyOptionsFilterEntry" virtual="true">
+            <Dimensions x="100" y="20" />
+            <Controls>
+                <Button name="$(parent)Check" inherits="ZO_CheckButton">
+                    <Anchor point="LEFT" />
+                    <!-- <OnInitialized>
+                        ZO_CheckButton_SetToggleFunction(self, pChat_ChatCopyOptionsOnCheckboxToggled)
+                    </OnInitialized> -->
+                </Button>
+            </Controls>
+        </Control>
+		<!-- Virutal template for chat options guild checkbox -->
+		<Control name="pChat_ChatCopyOptionsGuildFilters" virtual="true">
+            <Dimensions x="150" y="70" />
+            <Controls>
+                <Label name="$(parent)GuildName" inherits="ZO_TooltipIfTruncatedLabel" font="ZoFontWinH4" color="INTERFACE_COLOR_TYPE_TEXT_COLORS:INTERFACE_TEXT_COLOR_NORMAL">
+                    <Dimensions y="24" />
+                    <DimensionConstraints maxX="210" />
+                    <Anchor point="TOPLEFT" />
+                </Label>
+                <Button name="$(parent)Guild" inherits="ZO_CheckButton" >
+                    <Anchor point ="TOPLEFT" relativeTo="$(parent)GuildName" relativePoint="BOTTOMLEFT" offsetY="5" />
+                     <!-- <OnInitialized>
+                        ZO_CheckButton_SetToggleFunction(self, pChat_ChatCopyOptionsOnCheckboxToggled)
+                    </OnInitialized> -->
+                </Button>
+                <Button name="$(parent)Officer" inherits="ZO_CheckButton" >
+                    <Anchor point ="TOPLEFT" relativeTo="$(parent)Guild" relativePoint="BOTTOMLEFT" offsetY="5" />
+                     <!-- <OnInitialized>
+                        ZO_CheckButton_SetToggleFunction(self, pChat_ChatCopyOptionsOnCheckboxToggled)
+                    </OnInitialized> -->
+                </Button>
+            </Controls>
+        </Control>
+
+		<!-- The chat options dialog containing the following sections:
+		 	1. Checkboxes for chat channels
+		 	2. For each guild the chat channel checkboxes
+		 	3. A label above the text field showing if there was text split or "Copy with CTRL+C" hint
+		 	4. A text field containing the message text block (current split)
+		 	5. A "next" button to get to the next chat message block (next split)
+		 	6. "Apply filter" and "Close" buttons -->
+		<TopLevelControl name="pChatCopyOptionsDialog" inherits="ZO_CustomDialogBase">
+			<OnInitialized>
+				pChat_ChatCopyOptions_OnInitialized(self)
+			</OnInitialized>
+			<OnHide>
+				pChat_ChatCopyOptions_OnHide()
+			</OnHide>
+			<ResizeToFitPadding width="25" height="25" />
+			<DimensionConstraints maxX="1000" maxY="800" />
+			<Controls>
+				<Label name="$(parent)Label" inherits="ZO_DialogContentAnchors" horizontalAlignment="CENTER" color="INTERFACE_COLOR_TYPE_TEXT_COLORS:INTERFACE_TEXT_COLOR_NORMAL" font="ZoFontHeader3"/>
+
+				<Label name="$(parent)FilterLabel" inherits="ZO_ChatOptionsSectionLabel" text="SI_CHAT_OPTIONS_FILTERS">
+					<Anchor point="TOPLEFT" relativePoint="TOPLEFT" relativeTo="$(parent)" offsetX="10" offsetY="100" />
+				</Label>
+				<Button name="$(parent)EnableAll" inherits="ZO_DefaultButton" text="SI_CHECK_BUTTON_ON">
+					<DimensionConstraints maxX="60" maxY="24" />
+					<Anchor point="BOTTOMLEFT" relativePoint="TOPLEFT" relativeTo="$(parent)FilterLabel" offsetX="20" offsetY="-20"/>
+					<OnClicked>
+						pChat_ChatCopyOptions_EnableAllFilters()
+					</OnClicked>
+				</Button>
+				<Button name="$(parent)DisableAll" inherits="ZO_DefaultButton" text="SI_CHECK_BUTTON_OFF">
+					<DimensionConstraints maxX="60" maxY="24" />
+					<Anchor point="LEFT" relativePoint="RIGHT" relativeTo="$(parent)EnableAll" offsetX="15" offsetY="00"/>
+					<OnClicked>
+						pChat_ChatCopyOptions_DisableAllFilters()
+					</OnClicked>
+				</Button>
+
+				<Button name="$(parent)EnableAllFilter" inherits="ZO_DefaultButton" text="SI_CHECK_BUTTON_ON">
+					<DimensionConstraints maxX="60" maxY="24" />
+					<Anchor point="LEFT" relativePoint="RIGHT" relativeTo="$(parent)FilterLabel" offsetX="15" offsetY="0"/>
+					<OnClicked>
+						pChat_ChatCopyOptions_EnableAllFilters("filter")
+					</OnClicked>
+				</Button>
+				<Button name="$(parent)DisableAllFilter" inherits="ZO_DefaultButton" text="SI_CHECK_BUTTON_OFF">
+					<DimensionConstraints maxX="60" maxY="24" />
+					<Anchor point="LEFT" relativePoint="RIGHT" relativeTo="$(parent)EnableAllFilter" offsetX="15" offsetY="00"/>
+					<OnClicked>
+						pChat_ChatCopyOptions_DisableAllFilters("filter")
+					</OnClicked>
+				</Button>
+
+				<Control name="$(parent)FilterSection" resizeToFitDescendents="true" >
+					<Anchor point="TOPLEFT" relativeTo="$(parent)FilterLabel" relativePoint="BOTTOMLEFT" offsetX="10" offsetY="10" />
+				</Control>
+
+				<Label name="$(parent)GuildChannelLabel" inherits="ZO_ChatOptionsSectionLabel" text="SI_CHAT_OPTIONS_GUILD_CHANNELS">
+					<Anchor point="TOPLEFT" relativeTo="$(parent)FilterSection" relativePoint="BOTTOMLEFT" offsetX="-10" offsetY="10" />
+				</Label>
+				<Button name="$(parent)EnableAllFilterGuild" inherits="ZO_DefaultButton" text="SI_CHECK_BUTTON_ON">
+					<DimensionConstraints maxX="60" maxY="24" />
+					<Anchor point="LEFT" relativePoint="RIGHT" relativeTo="$(parent)GuildChannelLabel" offsetX="15" offsetY="0"/>
+					<OnClicked>
+						pChat_ChatCopyOptions_EnableAllFilters("guild")
+					</OnClicked>
+				</Button>
+				<Button name="$(parent)DisableAllFilterGuild" inherits="ZO_DefaultButton" text="SI_CHECK_BUTTON_OFF">
+					<DimensionConstraints maxX="60" maxY="24" />
+					<Anchor point="LEFT" relativePoint="RIGHT" relativeTo="$(parent)EnableAllFilterGuild" offsetX="15" offsetY="0"/>
+					<OnClicked>
+						pChat_ChatCopyOptions_DisableAllFilters("guild")
+					</OnClicked>
+				</Button>
+
+				<Control name="$(parent)GuildSection" resizeToFitDescendents="true" >
+					<Anchor point ="TOPLEFT" relativeTo="$(parent)GuildChannelLabel" relativePoint="BOTTOMLEFT" offsetX="10" offsetY="10" />
+				</Control>
+
+				<Backdrop name="$(parent)Note" inherits="ZO_EditBackdrop">
+					<Anchor point="TOPLEFT" relativeTo="$(parent)FilterSection" relativePoint="TOPRIGHT" offsetX="10" offsetY="0"/>
+					<Anchor point="BOTTOMLEFT" relativeTo="$(parent)GuildSection" relativePoint="BOTTOMRIGHT" offsetX="10" offsetY="0"/>
+					<Dimensions x="390" />
+					<Controls>
+						<EditBox name="$(parent)Edit" maxInputCharacters="20000" inherits="ZO_DefaultEditMultiLineForBackdrop ZO_EditDefaultText">
+							<OnEffectivelyShown>
+								self:TakeFocus()
+							</OnEffectivelyShown>
+						</EditBox>
+						<Button name="$(parent)Prev" inherits="ZO_DefaultButton">
+							<Anchor point="TOPLEFT" relativePoint="BOTTOMLEFT" relativeTo="$(parent)NoteEdit" offsetX="0" offsetY="10"/>
+							<OnClicked>
+								pChat_ShowCopyDialogPrev(pChatCopyOptionsDialog)
+							</OnClicked>
+						</Button>
+						<Button name="$(parent)Next" inherits="ZO_DefaultButton">
+							<Anchor point="TOPRIGHT" relativePoint="BOTTOMRIGHT" relativeTo="$(parent)NoteEdit" offsetX="0" offsetY="10"/>
+							<OnClicked>
+								pChat_ShowCopyDialogNext(pChatCopyOptionsDialog)
+							</OnClicked>
+						</Button>
+					</Controls>
+				</Backdrop>
+				<Button name="$(parent)Close" inherits="ZO_DialogButton">
+					<Anchor point="TOPLEFT" relativePoint="BOTTOM" relativeTo="$(parent)GuildSection" offsetX="10" offsetY="20"/>
+				</Button>
+				<Button name="$(parent)ApplyFilter" inherits="ZO_DefaultButton">
+					<Anchor point="TOPRIGHT" relativePoint="BOTTOM" relativeTo="$(parent)GuildSection" offsetX="-10" offsetY="20"/>
+					<OnClicked>
+						pChat_ChatCopyOptions_OnCommitClicked()
+					</OnClicked>
+				</Button>
+			</Controls>
+		</TopLevelControl>
+	</Controls>
+
+</GuiXml>

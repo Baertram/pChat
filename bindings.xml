@@ -1,0 +1,81 @@
+<Bindings xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sir.insidi.at/or/schema/esobindings.xsd">
+	<Layer name="SI_KEYBINDINGS_LAYER_GENERAL">
+		<Category name="pChat">
+			<Action name="PCHAT_SWITCH_TAB">
+				<Down>pChat_SwitchToNextTab()</Down>
+			</Action>
+			<Action name="PCHAT_TOGGLE_CHAT_WINDOW">
+				<Down>pChat_ToggleChat()</Down>
+			</Action>
+			<Action name="PCHAT_COPY_WHOLE_CHAT">
+				<Down>pChat_CopyWholeChat()</Down>
+			</Action>
+			<Action name="PCHAT_SHOW_AUTO_MSG">
+				<Down>pChat_ShowAutoMsg()</Down>
+			</Action>
+			<Action name="PCHAT_WHISPER_MY_TARGET">
+				<Down>pChat_WhispMyTarget()</Down>
+			</Action>
+			<Action name="PCHAT_TAB_1">
+				<Down>
+					pChat_ChangeTab(1)
+				</Down>
+			</Action>
+			<Action name="PCHAT_TAB_2">
+				<Down>
+					pChat_ChangeTab(2)
+				</Down>
+			</Action>
+			<Action name="PCHAT_TAB_3">
+				<Down>
+					pChat_ChangeTab(3)
+				</Down>
+			</Action>
+			<Action name="PCHAT_TAB_4">
+				<Down>
+					pChat_ChangeTab(4)
+				</Down>
+			</Action>
+			<Action name="PCHAT_TAB_5">
+				<Down>
+					pChat_ChangeTab(5)
+				</Down>
+			</Action>
+			<Action name="PCHAT_TAB_6">
+				<Down>
+					pChat_ChangeTab(6)
+				</Down>
+			</Action>
+			<Action name="PCHAT_TAB_7">
+				<Down>
+					pChat_ChangeTab(7)
+				</Down>
+			</Action>
+			<Action name="PCHAT_TAB_8">
+				<Down>
+					pChat_ChangeTab(8)
+				</Down>
+			</Action>
+			<Action name="PCHAT_TAB_9">
+				<Down>
+					pChat_ChangeTab(9)
+				</Down>
+			</Action>
+			<Action name="PCHAT_TAB_10">
+				<Down>
+					pChat_ChangeTab(10)
+				</Down>
+			</Action>
+			<Action name="PCHAT_TAB_11">
+				<Down>
+					pChat_ChangeTab(11)
+				</Down>
+			</Action>
+			<Action name="PCHAT_TAB_12">
+				<Down>
+					pChat_ChangeTab(12)
+				</Down>
+			</Action>
+		</Category>
+	</Layer>
+</Bindings>
