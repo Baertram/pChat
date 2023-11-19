@@ -4,6 +4,7 @@ local ADDON_NAME = CONSTANTS.ADDON_NAME
 local strfor                   = string.format
 local chatChannelLangToLangStr = CONSTANTS.chatChannelLangToLangStr
 
+local isDiceRollSystemMessage = pChat.IsDiceRollSystemMessage
 
 function pChat.InitializeMessageFormatters()
     local pChatData = pChat.pChatData
@@ -24,7 +25,6 @@ function pChat.InitializeMessageFormatters()
         language = "%s[%s] %s: |r%s%s%s|r", -- language zones
 
         -- For copy System, only Handle "From part"
-
         copystandard = "[%s]: ", -- standard format: say, yell, group, npc, npc yell, npc whisper, zone
         copyesostandard = "[%s] %s: ", -- standard format: say, yell, group, npc, npc yell, npc whisper, zone with tag (except for monsters)
         copyesoparty = "[%s]%s: ", -- standard format: party
@@ -413,7 +413,7 @@ function pChat.InitializeMessageFormatters()
     -- Get a string without |cXXXXXX as parameter
     local function AddLinkHandlerToString(textToCheck, numLine, chanCode)
         local stillToParseDDS = true
-        local noDDSlen = textToCheck:len()
+        local noDDSlen -- = textToCheck:len()
 
         -- this var seems to get some rework
         local startNoDDS = 1
@@ -436,6 +436,9 @@ function pChat.InitializeMessageFormatters()
             noDDSlen = textToCheck:len()
 
             local startpos, endpos = string.find(textToCheck, "|t%-?%d+%%?:%-?%d+%%?:.-|t", 1)
+            if startpos == nil and endpos == nil then
+                startpos, endpos = string.find(textToCheck, "|tnil:nil:.-|t", 1) --"|tnil:nil:EsoUI/Art/Miscellaneous/roll_dice.dds|t"
+            end
             -- DDS not found
             if startpos == nil then
                 -- If nil, then we won't have new link after startposition = startNoDDS , so add ours until the end
@@ -451,6 +454,7 @@ function pChat.InitializeMessageFormatters()
 
                 -- DDS is at the begginning of the string
                 if startpos == 1 then
+
                     -- New text is (only DDS because its at the pos 1)
                     textTReformated = textTReformated .. textToCheck:sub(startpos, endpos)
 
@@ -618,7 +622,6 @@ function pChat.InitializeMessageFormatters()
 
             -- Handling Colors, search for color tag
             local startcol, endcol = string.find(rawText, "|[cC]%x%x%x%x%x%x(.-)|r", start)
-
             -- Not Found
             if startcol == nil then
                 startColortag = ""
@@ -657,6 +660,16 @@ function pChat.InitializeMessageFormatters()
     end
 
 
+    --[[
+    --Disabled as we cannot copy the text that way, so fixing he link handlers instead!
+    local function checkIfLinkHandlerShouldBeAdded(text, chanCode, numLine)
+        if chanCode == CHAT_CHANNEL_SYSTEM then
+            if isDiceRollSystemMessage(text) then return true end
+        end
+        return false
+    end
+    ]]
+
 
     -- Split lines using CRLF for function addLinkHandlerToLine
     -- WARNING : See FormatSysMessage()
@@ -671,6 +684,9 @@ function pChat.InitializeMessageFormatters()
 
         -- Recheck setting if copy is disabled for chat dump
         if db.enablecopy then
+            --Should a link handler be added for that text (e.g. a /roll command get's destroyed by that linkhandler!)
+            --local doNotAddLinkHandler = checkIfLinkHandlerShouldBeAdded(text, chanCode, numLine)
+            --if doNotAddLinkHandler == true then return text end
 
             -- No CRLF
             -- ESO LUA Messages output \n instead of \r\n
@@ -1068,18 +1084,18 @@ function pChat.InitializeMessageFormatters()
         -- Only if handled by pChat
 
         if not notHandled then
-        -- Store message and params into an array for copy system and SpamFiltering
-        pChat.StorelineNumber(GetTimeStamp(), db.LineStrings[db.lineNumber].rawFrom, text, chanCode, originalFrom)
+            -- Store message and params into an array for copy system and SpamFiltering
+            pChat.StorelineNumber(GetTimeStamp(), db.LineStrings[db.lineNumber].rawFrom, text, chanCode, originalFrom)
         end
 
         -- Needs to be after .storelineNumber()
         if chanCode == CHAT_CHANNEL_WHISPER then
-        pChat.OnIMReceived(displayedFrom, db.lineNumber - 1)
-            end
+            pChat.OnIMReceived(displayedFrom, db.lineNumber - 1)
+        end
 
-            --logger:Debug("<messageNew:", message)
+        --logger:Debug("<messageNew:", message)
 
-            return message
+        return message
 
     end
 
@@ -1139,10 +1155,11 @@ function pChat.InitializeMessageFormatters()
 
                 -- Some addons are quicker than pChat
                 if db then
+                    --Check if status message is a special one like /roll dice roll
+                    local isDiceRoll = isDiceRollSystemMessage(statusMessage)
                     -- Show Message
                     statusMessage = ShowTimestamp() .. statusMessage
                     logger.verbose:Debug(">statusMessage after:", statusMessage)
---d(">pchat status msg after: " ..tostring(statusMessage))
                     if not db.lineNumber then
                         db.lineNumber = 1
                     end
@@ -1156,6 +1173,7 @@ function pChat.InitializeMessageFormatters()
                     else
                         sysMessage = statusMessage
                     end
+
                     logger.verbose:Debug(">sysMessage:", sysMessage)
 
                     if not db.LineStrings[db.lineNumber].rawFrom then db.LineStrings[db.lineNumber].rawFrom = "" end

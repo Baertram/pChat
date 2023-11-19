@@ -175,6 +175,7 @@ function pChat.InitializeSettings()
 		useIgnoreRemovedChatHandler = true,
 		useGroupMemberLeftChatHandler = true,
 		useGroupTypeChangedChatHandler = true,
+		useKeepAttackUpdateChatHandler = true,
 		chatEditBoxOnBackspaceHook = true,
 		backupYourSavedVariablesReminder = true,
 		backupYourSavedVariablesReminderDone = {},
@@ -776,7 +777,8 @@ function pChat.InitializeSettings()
 								ReloadUI()
 							end,
 							default = defaults.fontChange,
-							warning = "ReloadUI"
+							warning = "ReloadUI",
+							scrollable = true,
 						},
 					},
 				},
@@ -855,6 +857,16 @@ function pChat.InitializeSettings()
 							width = "full",
 							requiresReload = true,
 							default = defaults.useGroupTypeChangedChatHandler,
+						},
+						{-- LAM Option enable keep attack update chat message handler
+							type = "checkbox",
+							name = GetString(PCHAT_CHATHANDLER_KEEP_ATTACK_UPDATE),
+							tooltip = string.format(GetString(PCHAT_CHATHANDLER_TEMPLATETT), GetString(PCHAT_CHATHANDLER_KEEP_ATTACK_UPDATE)),
+							getFunc = function() return db.useKeepAttackUpdateChatHandler end,
+							setFunc = function(newValue) db.useKeepAttackUpdateChatHandler = newValue end,
+							width = "full",
+							requiresReload = true,
+							default = defaults.useKeepAttackUpdateChatHandler,
 						},
 
 					}, --controls Chat message handlers
@@ -1506,6 +1518,7 @@ function pChat.InitializeSettings()
 						--logger:Debug(choice)
 					end,
 					default = defaults.defaultTab,
+					scrollable = true,
 				},
 			},
 		}
@@ -1580,6 +1593,7 @@ function pChat.InitializeSettings()
 							db.defaultchannel = defaults.defaultchannel
 						end
 					end,
+					scrollable = true,
 				},
 				{--Target History
 					type = "checkbox",
@@ -1732,6 +1746,7 @@ function pChat.InitializeSettings()
 					setFunc = function(p_charId)
 						pChat.SyncChatConfig(true, p_charId)
 					end,
+					scrollable = true,
 				},
 			},
 		}

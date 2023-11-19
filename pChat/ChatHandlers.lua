@@ -5,6 +5,14 @@ local maxChatCharCount = CONSTANTS.maxChatCharCount
 
 local CM = CALLBACK_MANAGER
 
+local function CreateChannelLink(channelInfo, overrideName)
+    if channelInfo.channelLinkable then
+        local channelName = overrideName or GetChannelName(channelInfo.id)
+        return ZO_LinkHandler_CreateChannelLink(channelName)
+    end
+end
+
+
 function pChat.InitializeChatHandlers()
     local db = pChat.db
     local logger = pChat.logger
@@ -83,6 +91,31 @@ function pChat.InitializeChatHandlers()
             return FormatSysMessage(GetString(SI_CHAT_ANNOUNCEMENT_IN_SMALL_GROUP))
         end
 
+    end
+
+    -- Executed when EVENT_GUILD_KEEP_ATTACK_UPDATE triggers
+    local function OnKeepAttackUpdate(channel, numGuardsKilled, numAttackers, location)
+        logger:Debug("OnKeepAttackUpdate: ", string.format("channel: %s, numGuardsKilled: %s, numAttackers: %s, location: %s", tostring(channel), tostring(numGuardsKilled), tostring(numAttackers), tostring(location)))
+
+        if tonumber(GetSetting(SETTING_TYPE_UI, UI_SETTING_SHOW_AVA_NOTIFICATIONS)) ~= AVA_NOTIFICATIONS_SETTING_CHOICE_DONT_SHOW and
+            tonumber(GetSetting(SETTING_TYPE_UI, UI_SETTING_SHOW_GUILD_KEEP_NOTICES)) == GUILD_KEEP_NOTICES_SETTING_CHOICE_CHAT then
+            local ChannelInfo = ZO_ChatSystem_GetChannelInfo()
+            local channelInfo = ChannelInfo[channel]
+
+            if channelInfo then
+                local text
+                if numGuardsKilled > 0 then
+                    text = zo_strformat(SI_GUILD_KEEP_ATTACK_UPDATE, numGuardsKilled, location, numAttackers)
+                else
+                    text = zo_strformat(SI_GUILD_KEEP_ATTACK_END, location)
+                end
+                local channelInfoFormat = GetString(SI_CHAT_MESSAGE_GUILD_NO_SENDER)
+                local channelLink = CreateChannelLink(channelInfo)
+                local formattedText = string.format(channelInfoFormat, channelLink, text)
+
+                return FormatSysMessage(formattedText)
+            end
+        end
     end
 
     local function OnGroupMemberLeft(_, reason, isLocalPlayer, _, _, actionRequiredVote)
@@ -196,7 +229,11 @@ function pChat.InitializeChatHandlers()
         CHAT_ROUTER:RegisterMessageFormatter(EVENT_GROUP_TYPE_CHANGED, OnGroupTypeChanged)
         CM:FireCallbacks("pChat_Initialized_EVENT_GROUP_TYPE_CHANGED", function() return OnGroupTypeChanged end)
     end
-	
+    if db.useKeepAttackUpdateChatHandler == true then
+        CHAT_ROUTER:RegisterMessageFormatter(EVENT_GUILD_KEEP_ATTACK_UPDATE, OnKeepAttackUpdate)
+        CM:FireCallbacks("pChat_Initialized_EVENT_GUILD_KEEP_ATTACK_UPDATE", function() return OnKeepAttackUpdate end)
+    end
+
 	--20211222 @Coorbin - Init CharCount functionality
 	pChat.charCount = {
 		postedstr = "",

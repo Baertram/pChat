@@ -393,3 +393,14 @@ do
     end
     pChat.ShowBackupReminder = showBackupReminder
 end
+
+do
+    --local diceRollTemplateStr = GetString(SI_RANDOM_ROLL_RANGE_RESULT)
+    local RANDOM_ROLL_TEXTURE = zo_iconFormat("EsoUI/Art/Miscellaneous/roll_dice.dds")
+    function pChat.IsDiceRollSystemMessage(messageTxt)
+        if string.find(messageTxt, RANDOM_ROLL_TEXTURE, 1, true) ~= nil then
+            return true
+        end
+        return false
+    end
+end

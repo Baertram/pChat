@@ -483,6 +483,7 @@ local strings = {
 	PCHAT_CHATHANDLER_IGNORE_REMOVED = "Ignore list removed",
 	PCHAT_CHATHANDLER_GROUP_MEMBER_LEFT = "Group member left",
 	PCHAT_CHATHANDLER_GROUP_TYPE_CHANGED = "Group type changed",
+	PCHAT_CHATHANDLER_KEEP_ATTACK_UPDATE = "Keep attack update",
 
 	PCHAT_SETTINGS_EDITBOX_HOOKS 					= "Chat editbox",
 	PCHAT_SETTINGS_EDITBOX_HOOK_CTRL_BACKSPACE 		= "CTRL + backspace: Remove word",
