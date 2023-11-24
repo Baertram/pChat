@@ -266,12 +266,14 @@ local function GetAccountAndCharacterNameFromLine(numLine, chatChannel)
         accountName = zo_strformat(SI_UNIT_NAME, accountName)
         accountAndCharName = accountName
     end
-    if characterName ~= nil and characterName ~= "" and characterName ~= accountName then
+    if characterName ~= nil and characterName ~= "" then
         characterName = zo_strformat(SI_UNIT_NAME, characterName)
-        if accountAndCharName == "" then
-            accountAndCharName = characterName
-        else
-            accountAndCharName = accountAndCharName .. " / " .. characterName
+        if characterName ~= accountName then
+            if accountAndCharName == "" then
+                accountAndCharName = characterName
+            else
+                accountAndCharName = accountAndCharName .. " / " .. characterName
+            end
         end
     end
     return accountAndCharName
