@@ -3,6 +3,11 @@ local ADDON_NAME = CONSTANTS.ADDON_NAME
 
 local ChatSys = CONSTANTS.CHAT_SYSTEM
 
+local strfin = string.find
+local strsub = string.sub
+local strlen = string.len
+local strbyt = string.byte
+
 -- pChat Chat Copy Options OBJKCT
 pChat.ChatCopyOptions = nil
 local mapChatChannelToPChatChannel = pChat.mapChatChannelToPChatChannel
@@ -16,7 +21,7 @@ local chatChannelLangToLangStr = CONSTANTS.chatChannelLangToLangStr
 local function str_lensplit(text, maxChars)
 
     local ret                   = {}
-    local text_len              = string.len(text)
+    local text_len              = strlen(text)
     local UTFAditionalBytes = 0
     local fromWithUTFShift  = 0
     local doCut                 = true
@@ -44,11 +49,11 @@ local function str_lensplit(text, maxChars)
             if(splittedEnd >= text_len) then
                 splittedEnd = text_len
                 doCut = false
-            elseif (string.byte(text, splittedEnd, splittedEnd)) > 128 then
+            elseif (strbyt(text, splittedEnd, splittedEnd)) > 128 then
                 UTFAditionalBytes = 1
 
-                local lastByte = splittedString and string.byte(splittedString, -1) or 0
-                local beforeLastByte = splittedString and string.byte(splittedString, -2, -2) or 0
+                local lastByte = splittedString and strbyt(splittedString, -1) or 0
+                local beforeLastByte = splittedString and strbyt(splittedString, -2, -2) or 0
 
                 if (lastByte < 128) then
                     --
@@ -76,7 +81,7 @@ local function str_lensplit(text, maxChars)
             end
 
             --ret = ret+1
-            ret[#ret+1] = string.sub(text, splittedStart, splittedEnd)
+            ret[#ret+1] = strsub(text, splittedStart, splittedEnd)
 
             splittedStart = splittedEnd + 1
 
@@ -89,13 +94,187 @@ end
 local function CopyToTextEntry(message)
 
     -- Max of inputbox is 351 chars
-    if string.len(message) < 351 then
+    if strlen(message) < 351 then
         if ChatSys.textEntry:GetText() == "" then
             ChatSys.textEntry:Open(message)
             ZO_ChatWindowTextEntryEditBox:SelectAll()
         end
     end
 
+end
+
+local DISPLAY_NAME_PREFIX_BYTE = 64
+local function IsDisplayName(str, offset)
+    offset = offset or 1
+    return str:byte(offset) == DISPLAY_NAME_PREFIX_BYTE
+end
+pChat.IsDisplayName = IsDisplayName
+
+-- Get the @Account and charatcerName from the actual right clicked line
+local function GetAccountAndCharacterNameFromLine(numLine, chatChannel)
+    local db = pChat.db
+    if not numLine or not db.LineStrings then return end
+    local lineData = db.LineStrings[numLine]
+    if not lineData then return end
+
+    local rawFrom = lineData.rawFrom
+    local accountName
+    local characterName --db.LineStrings[numLine].rawLine -- rawLine may contain "[20:45:49] Dead Shot x: vrg 2t  4dd link achive", or "[20:45:38] [FTS] @Baerkloppt/Gammal Björn: Is any crafter available depending on your pChat settings :-(
+
+    if rawFrom ~= nil and rawFrom ~= "" then
+        --rawFrom is an @accountName
+        if not IsDisplayName(rawFrom) then
+            characterName = rawFrom
+        else
+            accountName = rawFrom
+        end
+    end
+--d(">RAWFROM: " .. tostring(rawFrom) .. ", characterName: " ..tostring(characterName) ..", accountName: " ..tostring(accountName))
+
+    local accountAndMaybeCharName
+    --rawValue contains the link for the displayName, guild etc., depending on the chatChannel
+    --e.g. could be |H0:display:@Baerkloppt|h, or "|c8F8F8F[20:46:09] |r|cb99e5a|H0:character:Bubamara O^Mx|h or "|c8F8F8F[20:46:30] |r|cb99e5a|H0:character:grey'ar^Fx|hGrey'ar|h: |r|cbeae82|H1:guild:732024|hCadwell's Gefolge|h etc.
+    local rawValue = lineData.rawValue
+    if rawValue ~= nil then
+        local characterPosStart, characterPosEnd = strfin(rawValue, "%|H%d%:character%:.*%|h.*%|h%:")
+        --d(">CHAR characterPosStart: " .. tostring(characterPosStart) .. ", characterPosEnd: " ..tostring(characterPosEnd) ..", rawValue: " ..tostring(rawValue))
+        if characterPosStart ~= nil and characterPosEnd ~= nil then
+            local startPos = characterPosStart + 12 -- after the :character:
+            local startPosCharNameReal = string.find(rawValue, "%|h", startPos)
+            if startPosCharNameReal ~= nil then
+                local endPos = characterPosEnd - 3 --before the |h:
+                accountAndMaybeCharName = string.sub(rawValue, startPosCharNameReal + 2, endPos)
+            end
+       end
+
+        if accountAndMaybeCharName == nil then
+            local accountPosStart, accountPosEnd = strfin(rawValue, "%|H%d%:display%:%@.*%|h%@.*%|h%:")
+            --d(">ACCOUNT accountPosStart: " .. tostring(accountPosStart) .. ", accountPosEnd: " ..tostring(accountPosEnd) ..", rawValue: " ..tostring(rawValue))
+            if accountPosStart ~= nil and accountPosEnd ~= nil then
+                local startPos = strfin(rawValue, "%|h%@", accountPosStart + 12) -- after the :display:
+                local endPos = accountPosEnd - 3 --before the |h:
+                accountAndMaybeCharName = strsub(rawValue, startPos + 2, endPos)
+                --d(">ACCOUNT startPos: " .. tostring(startPos) .. ", endPos: " ..tostring(endPos) ..", accountName: " ..tostring(accountName))
+            end
+        end
+
+        if accountAndMaybeCharName ~= nil and accountAndMaybeCharName ~= "" then
+            --Check if the chatChannel's settings contain the @displayName/charName or charName/@displayName etc. and
+            --get the values from the accountAndMaybeCharName
+            --[[
+                db.formatguild[guildId]
+                db.groupNames
+                db.geoChannelsFormat
+            ]]
+            local chatChannelToFormatNameVar = {
+                --Group
+                [CHAT_CHANNEL_PARTY] = "groupNames",
+                --Guilds
+                [CHAT_CHANNEL_GUILD_1] = "formatguild", --[guildId]
+                [CHAT_CHANNEL_GUILD_2] = "formatguild", --[guildId]
+                [CHAT_CHANNEL_GUILD_3] = "formatguild", --[guildId]
+                [CHAT_CHANNEL_GUILD_4] = "formatguild", --[guildId]
+                [CHAT_CHANNEL_GUILD_5] = "formatguild", --[guildId]
+                [CHAT_CHANNEL_OFFICER_1] = "formatguild", --[guildId]
+                [CHAT_CHANNEL_OFFICER_2] = "formatguild", --[guildId]
+                [CHAT_CHANNEL_OFFICER_3] = "formatguild", --[guildId]
+                [CHAT_CHANNEL_OFFICER_4] = "formatguild", --[guildId]
+                [CHAT_CHANNEL_OFFICER_5] = "formatguild", --[guildId]
+                --All others
+                --"geoChannelsFormat"
+            }
+            local chatChannelGuildToGuildIndex = {
+                [CHAT_CHANNEL_GUILD_1] = 1,
+                [CHAT_CHANNEL_GUILD_2] = 2,
+                [CHAT_CHANNEL_GUILD_3] = 3,
+                [CHAT_CHANNEL_GUILD_4] = 4,
+                [CHAT_CHANNEL_GUILD_5] = 5,
+                [CHAT_CHANNEL_OFFICER_1] = 1,
+                [CHAT_CHANNEL_OFFICER_2] = 2,
+                [CHAT_CHANNEL_OFFICER_3] = 3,
+                [CHAT_CHANNEL_OFFICER_4] = 4,
+                [CHAT_CHANNEL_OFFICER_5] = 5,
+            }
+
+            local dbFormatNameVar = chatChannelToFormatNameVar[chatChannel]
+            dbFormatNameVar = dbFormatNameVar or "geoChannelsFormat"
+            local isGuildChatChannel = dbFormatNameVar == "formatguild"
+            local currentSettingOfFormatNameVar
+            if not isGuildChatChannel then
+                currentSettingOfFormatNameVar = db[dbFormatNameVar]
+            else
+                --Get the guildId by help of the chat channel
+                local guildIndex = chatChannelGuildToGuildIndex[chatChannel]
+                if guildIndex ~= nil and guildIndex >= 1 and guildIndex <= MAX_GUILDS then
+                    local guildId = GetGuildId(guildIndex)
+                    if guildId ~= 0 then
+                        currentSettingOfFormatNameVar = db[dbFormatNameVar][guildId]
+                    end
+                end
+            end
+            if currentSettingOfFormatNameVar ~= nil then
+                --[[
+                --currentSettingOfFormatNameVar contains 1, 2, 3, 4 -> pointing to the formatetr strings in PCHAT_FORMATCHOICE1 to 4 then
+                --which basically define the ordr of @account<seperator>character or character<separator>@account etc.
+                local formatNameChoices       =  { GetString(PCHAT_FORMATCHOICE1), GetString(PCHAT_FORMATCHOICE2), GetString(PCHAT_FORMATCHOICE3), GetString(PCHAT_FORMATCHOICE4)}
+                local formatNameChoicesValues =  { 1, 2, 3, 4}
+                ]]
+                local separatorChar, accountNamePart, characterNamePart
+                --PCHAT_FORMATCHOICE1 = "@UserID",
+                if currentSettingOfFormatNameVar == 1 then
+                    accountNamePart = accountAndMaybeCharName
+                    --PCHAT_FORMATCHOICE2 = "Character Name",
+                elseif currentSettingOfFormatNameVar == 2 then
+                    characterNamePart = accountAndMaybeCharName
+                    --PCHAT_FORMATCHOICE3 = "Character Name@UserID",
+                elseif currentSettingOfFormatNameVar == 3 then
+                    separatorChar = "@"
+                    --PCHAT_FORMATCHOICE4 = "@UserID/Character Name",
+                elseif currentSettingOfFormatNameVar == 4 then
+                    separatorChar = "/"
+                end
+
+                if separatorChar ~= nil then
+                    local separatorPos = strfin(accountAndMaybeCharName, separatorChar)
+                    if separatorPos ~= nil then
+                        --PCHAT_FORMATCHOICE3 = "Character Name@UserID",
+                        if currentSettingOfFormatNameVar == 3 then
+                            characterNamePart = strsub(accountAndMaybeCharName, 1, separatorPos - 1)
+                            accountNamePart = strsub(accountAndMaybeCharName, separatorPos)
+
+                            --PCHAT_FORMATCHOICE4 = "@UserID/Character Name",
+                        elseif currentSettingOfFormatNameVar == 4 then
+                            accountNamePart = strsub(accountAndMaybeCharName, 1, separatorPos - 1)
+                            characterNamePart = strsub(accountAndMaybeCharName, separatorPos + 1)
+                        end
+                    end
+                end
+
+                if accountName == nil and accountNamePart ~= nil then
+                    accountName = accountNamePart
+                end
+                if characterName == nil and characterNamePart ~= nil then
+                    characterName = characterNamePart
+                end
+            end
+        end
+
+    end
+
+    local accountAndCharName = ""
+    if accountName ~= nil and accountName ~= "" then
+        accountName = zo_strformat(SI_UNIT_NAME, accountName)
+        accountAndCharName = accountName
+    end
+    if characterName ~= nil and characterName ~= "" and characterName ~= accountName then
+        characterName = zo_strformat(SI_UNIT_NAME, characterName)
+        if accountAndCharName == "" then
+            accountAndCharName = characterName
+        else
+            accountAndCharName = accountAndCharName .. " / " .. characterName
+        end
+    end
+    return accountAndCharName
 end
 
 -- Copy message (only message)
@@ -384,7 +563,7 @@ function ChatCopyOptions:UpdateEditAndButtons()
     local noteNext  = GetControl(control, "NoteNext")
     local noteEdit  = GetControl(control, "NoteEdit")
 
-    if string.len(message) < maxChars then
+    if strlen(message) < maxChars then
         label:SetText(GetString(PCHAT_COPYXMLLABEL))
         noteEdit:SetText(message)
         noteNext:SetHidden(true)
@@ -908,6 +1087,10 @@ function pChat.InitializeCopyHandler(control)
         ClearMenu()
 
         if not ZO_Dialogs_IsShowingDialog() then
+            local accountAndCharacterName = GetAccountAndCharacterNameFromLine(numLine, chanNumber)
+            if accountAndCharacterName ~= nil and accountAndCharacterName ~= "" then
+                AddCustomMenuItem(accountAndCharacterName, function() end, MENU_ADD_OPTION_HEADER) --@AccountName / Character name
+            end
             AddCustomMenuItem(GetString(PCHAT_COPYMESSAGECT), function() CopyMessage(numLine) end)
             AddCustomMenuItem(GetString(PCHAT_COPYLINECT), function() CopyLine(numLine) end)
             AddCustomMenuItem(GetString(PCHAT_COPYDISCUSSIONCT), function() CopyDiscussion(chanNumber, numLine) end)
