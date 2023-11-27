@@ -508,6 +508,8 @@ SafeAddString(PCHAT_SETTINGS_WARNING_REMINDER_LOGOUT_BEFORE	, "Denk daran dich z
 
 SafeAddString(PCHAT_RESTORESHOWNAMEANDZONE, "Nach Widerherst.: Zeige Name & Zone", 1)
 SafeAddString(PCHAT_RESTORESHOWNAMEANDZONE_TT, "Zeige den aktuell eingeloggten @Account - Charakter Name & Zone im Chat, nachdem die Chat Historie wiederhergestellt wurde.", 1)
+SafeAddString(PCHAT_SHOWACCANDCHARATCONTEXTMENU, "@Account/CharakterName im Kontextmenü", 1)
+SafeAddString(PCHAT_SHOWACCANDCHARATCONTEXTMENU_TT, "Zeige den @AccountName/CharakterName im Kopier Kontextmenü an.\nEs werden nur beide angezeigt wenn auch die Option der Namensformate im entsprechenden Chat Kanal beide anzeigt! Flüster Nachrichten sind davon ausgenommen weil hier nicht beide Werte vorhanden sind.", 1)
 
 
 -- Coorbin20200708

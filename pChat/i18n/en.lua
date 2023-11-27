@@ -499,6 +499,9 @@ local strings = {
 	PCHAT_RESTORESHOWNAMEANDZONE = "After restore: Show name & zone",
 	PCHAT_RESTORESHOWNAMEANDZONE_TT = "Afficher @Account actuellement connecté - Nom et zone du personnage dans le chat, après la restauration de l'historique du chat.",
 
+	PCHAT_SHOWACCANDCHARATCONTEXTMENU = "@Account/Charname at context menu",
+	PCHAT_SHOWACCANDCHARATCONTEXTMENU_TT = "Show the @AccountName/Charname at the copy context menu.\nThis will only show both if you have enabled the name formatting of that chat channel to show both too!\nAnd some chat channels like whisper does not provide both!",
+
 	-- Coorbin20200708
 	-- Chat Mentions settings strings
 	PCHAT_MENTIONSH = "Mentions",

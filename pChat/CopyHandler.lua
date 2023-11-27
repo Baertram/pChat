@@ -113,6 +113,7 @@ pChat.IsDisplayName = IsDisplayName
 -- Get the @Account and charatcerName from the actual right clicked line
 local function GetAccountAndCharacterNameFromLine(numLine, chatChannel)
     local db = pChat.db
+
     if not numLine or not db.LineStrings then return end
     local lineData = db.LineStrings[numLine]
     if not lineData then return end
@@ -137,24 +138,37 @@ local function GetAccountAndCharacterNameFromLine(numLine, chatChannel)
     local rawValue = lineData.rawValue
     if rawValue ~= nil then
         local characterPosStart, characterPosEnd = strfin(rawValue, "%|H%d%:character%:.*%|h.*%|h%:")
-        --d(">CHAR characterPosStart: " .. tostring(characterPosStart) .. ", characterPosEnd: " ..tostring(characterPosEnd) ..", rawValue: " ..tostring(rawValue))
+--d(">CHAR characterPosStart: " .. tostring(characterPosStart) .. ", characterPosEnd: " ..tostring(characterPosEnd) ..", rawValue: " ..tostring(rawValue))
         if characterPosStart ~= nil and characterPosEnd ~= nil then
             local startPos = characterPosStart + 12 -- after the :character:
             local startPosCharNameReal = string.find(rawValue, "%|h", startPos)
             if startPosCharNameReal ~= nil then
                 local endPos = characterPosEnd - 3 --before the |h:
                 accountAndMaybeCharName = string.sub(rawValue, startPosCharNameReal + 2, endPos)
+--d(">CHARACTER startPos: " .. tostring(startPos) .. ", endPos: " ..tostring(endPos) ..", accountAndMaybeCharName: " ..tostring(accountAndMaybeCharName))
             end
        end
 
         if accountAndMaybeCharName == nil then
             local accountPosStart, accountPosEnd = strfin(rawValue, "%|H%d%:display%:%@.*%|h%@.*%|h%:")
-            --d(">ACCOUNT accountPosStart: " .. tostring(accountPosStart) .. ", accountPosEnd: " ..tostring(accountPosEnd) ..", rawValue: " ..tostring(rawValue))
+--d(">ACCOUNT accountPosStart: " .. tostring(accountPosStart) .. ", accountPosEnd: " ..tostring(accountPosEnd) ..", rawValue: " ..tostring(rawValue))
             if accountPosStart ~= nil and accountPosEnd ~= nil then
                 local startPos = strfin(rawValue, "%|h%@", accountPosStart + 12) -- after the :display:
                 local endPos = accountPosEnd - 3 --before the |h:
                 accountAndMaybeCharName = strsub(rawValue, startPos + 2, endPos)
-                --d(">ACCOUNT startPos: " .. tostring(startPos) .. ", endPos: " ..tostring(endPos) ..", accountName: " ..tostring(accountName))
+                d(">ACCOUNT startPos: " .. tostring(startPos) .. ", endPos: " ..tostring(endPos) ..", accountAndMaybeCharName: " ..tostring(accountAndMaybeCharName))
+            else
+                --Charactername@AccountName
+                --"|H0:display:@Baertram|hZaubärbuch@Baertram|h: |r|cc3f0c2test6|r"
+                local accountPosStart, accountPosEnd = strfin(rawValue, "%|H%d%:display%:%@.*%|h.*%@.*%|h%:")
+--d(">ACCOUNT accountPosStart2: " .. tostring(accountPosStart) .. ", accountPosEnd2: " ..tostring(accountPosEnd) ..", rawValue: " ..tostring(rawValue))
+                if accountPosStart ~= nil and accountPosEnd ~= nil then
+                    local startPos = strfin(rawValue, "%|h.*%@.*%|h%:", accountPosStart + 12) -- after the :display:
+                    --local subString = strsub(rawValue, startPos)
+                    local endPos = strfin(rawValue, "%|h%:", startPos) --find the |h:
+                    accountAndMaybeCharName = strsub(rawValue, startPos + 2, endPos - 1)
+        --d(">ACCOUNT startPos2: " .. tostring(startPos) .. ", endPos2: " ..tostring(endPos) ..", accountAndMaybeCharName: " ..tostring(accountAndMaybeCharName))
+                end
             end
         end
 
@@ -212,6 +226,7 @@ local function GetAccountAndCharacterNameFromLine(numLine, chatChannel)
                     end
                 end
             end
+--d(">>>currentSettingOfFormatNameVar: " ..tostring(currentSettingOfFormatNameVar))
             if currentSettingOfFormatNameVar ~= nil then
                 --[[
                 --currentSettingOfFormatNameVar contains 1, 2, 3, 4 -> pointing to the formatetr strings in PCHAT_FORMATCHOICE1 to 4 then
@@ -233,9 +248,11 @@ local function GetAccountAndCharacterNameFromLine(numLine, chatChannel)
                 elseif currentSettingOfFormatNameVar == 4 then
                     separatorChar = "/"
                 end
+--d(">>>separatorChar: " ..tostring(separatorChar) ..", accountNamePart: " ..tostring(accountNamePart) .. ", characterNamePart: " ..tostring(characterNamePart))
 
                 if separatorChar ~= nil then
                     local separatorPos = strfin(accountAndMaybeCharName, separatorChar)
+--d(">>>separatorPos: " ..tostring(separatorPos))
                     if separatorPos ~= nil then
                         --PCHAT_FORMATCHOICE3 = "Character Name@UserID",
                         if currentSettingOfFormatNameVar == 3 then
@@ -249,6 +266,7 @@ local function GetAccountAndCharacterNameFromLine(numLine, chatChannel)
                         end
                     end
                 end
+--d(">>>characterNamePart: " ..tostring(characterNamePart) .. "; accountNamePart: " ..tostring(accountNamePart))
 
                 if accountName == nil and accountNamePart ~= nil then
                     accountName = accountNamePart
@@ -258,7 +276,6 @@ local function GetAccountAndCharacterNameFromLine(numLine, chatChannel)
                 end
             end
         end
-
     end
 
     local accountAndCharName = ""
@@ -1089,9 +1106,11 @@ function pChat.InitializeCopyHandler(control)
         ClearMenu()
 
         if not ZO_Dialogs_IsShowingDialog() then
-            local accountAndCharacterName = GetAccountAndCharacterNameFromLine(numLine, chanNumber)
-            if accountAndCharacterName ~= nil and accountAndCharacterName ~= "" then
-                AddCustomMenuItem(accountAndCharacterName, function() end, MENU_ADD_OPTION_HEADER) --@AccountName / Character name
+            if db.showAccountAndCharAtContextMenu then
+                local accountAndCharacterName = GetAccountAndCharacterNameFromLine(numLine, chanNumber)
+                if accountAndCharacterName ~= nil and accountAndCharacterName ~= "" then
+                    AddCustomMenuItem(accountAndCharacterName, function() end, MENU_ADD_OPTION_HEADER) --@AccountName / Character name
+                end
             end
             AddCustomMenuItem(GetString(PCHAT_COPYMESSAGECT), function() CopyMessage(numLine) end)
             AddCustomMenuItem(GetString(PCHAT_COPYLINECT), function() CopyLine(numLine) end)

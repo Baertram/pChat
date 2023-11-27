@@ -179,6 +179,7 @@ function pChat.InitializeSettings()
 		chatEditBoxOnBackspaceHook = true,
 		backupYourSavedVariablesReminder = true,
 		backupYourSavedVariablesReminderDone = {},
+		showAccountAndCharAtContextMenu = false,
 
 		-- Coorbin20200708
 		-- Chat Mentions
@@ -633,6 +634,16 @@ function pChat.InitializeSettings()
 					setFunc = function(newValue) db.enablecopy = newValue end,
 					width = "full",
 					default = defaults.enablecopy,
+				},
+				{-- Context menu headline: @Account/characterName
+					type = "checkbox",
+					name = GetString(PCHAT_SHOWACCANDCHARATCONTEXTMENU),
+					tooltip = GetString(PCHAT_SHOWACCANDCHARATCONTEXTMENUTT),
+					getFunc = function() return db.showAccountAndCharAtContextMenu end,
+					setFunc = function(newValue) db.showAccountAndCharAtContextMenu = newValue end,
+					width = "full",
+					default = defaults.showAccountAndCharAtContextMenu,
+					disabled = function() return not db.enablecopy end,
 				},
 
 				------------------------------------------------------------------------------------------------------------------------

@@ -361,17 +361,15 @@ function cm.cm_format(chanCode, text, fromDisplayName, isCS, appendColor)
 	end
 	
     if isCS == false then
-		--todo: 2023-10-26 Bug: Whispering a message will not consider db.selfsend and always play the sound and show the (!) icon if I myself write a trigger-text
+		local mentionOnSelfSend = db.selfsend
 		-->Upon whispering lfrom is not the sender's name e.g. @Baertram but the receivers? Somehow mixed up here by ZOs?
---d("[pChat-ChatMentions]selfSend: " ..tos(db.selfsend) .. ", lfrom: " ..tos(lfrom) .. ", cm_lplayerAt: " ..tos(cm_lplayerAt))
-		local sendingWhisper = false
 		if chanCode == CHAT_CHANNEL_WHISPER_SENT then
+--d("[pChat-ChatMentions]whisper messabe from: " ..tos(lfrom))
 			lfrom = cm_lplayerAt
-			sendingWhisper = true
 		end
-
-
-		if db.selfsend == true or not sendingWhisper or (lfrom ~= nil and lfrom ~= "" and lfrom ~= cm_lplayerAt) then
+		local sendByMyself = lfrom ~= nil and lfrom ~= "" and lfrom == cm_lplayerAt
+--d("[pChat-ChatMentions]sendByMyself: " ..tos(sendByMyself) .. ", lfrom: " ..tos(lfrom) .. ", cm_lplayerAt: " ..tos(cm_lplayerAt) .. ", db.selfsend: " ..tos(mentionOnSelfSend))
+		if mentionOnSelfSend == true or (mentionOnSelfSend == false and not sendByMyself) then
 			local origtext = text
 			local matched = false
 
