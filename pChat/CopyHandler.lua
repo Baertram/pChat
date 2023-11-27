@@ -156,7 +156,7 @@ local function GetAccountAndCharacterNameFromLine(numLine, chatChannel)
                 local startPos = strfin(rawValue, "%|h%@", accountPosStart + 12) -- after the :display:
                 local endPos = accountPosEnd - 3 --before the |h:
                 accountAndMaybeCharName = strsub(rawValue, startPos + 2, endPos)
-                d(">ACCOUNT startPos: " .. tostring(startPos) .. ", endPos: " ..tostring(endPos) ..", accountAndMaybeCharName: " ..tostring(accountAndMaybeCharName))
+                --d(">ACCOUNT startPos: " .. tostring(startPos) .. ", endPos: " ..tostring(endPos) ..", accountAndMaybeCharName: " ..tostring(accountAndMaybeCharName))
             else
                 --Charactername@AccountName
                 --"|H0:display:@Baertram|hZaubärbuch@Baertram|h: |r|cc3f0c2test6|r"
