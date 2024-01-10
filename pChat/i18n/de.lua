@@ -508,8 +508,27 @@ SafeAddString(PCHAT_SETTINGS_WARNING_REMINDER_LOGOUT_BEFORE	, "Denk daran dich z
 
 SafeAddString(PCHAT_RESTORESHOWNAMEANDZONE, "Nach Widerherst.: Zeige Name & Zone", 1)
 SafeAddString(PCHAT_RESTORESHOWNAMEANDZONE_TT, "Zeige den aktuell eingeloggten @Account - Charakter Name & Zone im Chat, nachdem die Chat Historie wiederhergestellt wurde.", 1)
+
+SafeAddString(PCHAT_CHATCONTEXTMENU, "Chat Kontextmenü", 1)
 SafeAddString(PCHAT_SHOWACCANDCHARATCONTEXTMENU, "@Account/CharakterName im Kontextmenü", 1)
 SafeAddString(PCHAT_SHOWACCANDCHARATCONTEXTMENU_TT, "Zeige den @AccountName/CharakterName im Kopier Kontextmenü an.\nEs werden nur beide angezeigt wenn auch die Option der Namensformate im entsprechenden Chat Kanal beide anzeigt! Flüster Nachrichten sind davon ausgenommen weil hier nicht beide Werte vorhanden sind.", 1)
+SafeAddString(PCHAT_ASKBEFOREIGNORE					,'Zeige \'!WARNUNG!\' für ignorierte Spieler',1)
+SafeAddString(PCHAT_ASKBEFOREIGNORETT					,'Fügt eine Warnung Kopfzeile zum Chat Kontextmenü hinzu, wenn der Spieler auf deiner Ignorieren Liste steht',1)
+SafeAddString(PCHAT_SHOWIGNOREDWARNINGCONTEXTMENU	, "Frage Ja/Nein vor dem Ignorieren (Chat, Freundesliste, ...)",1)
+SafeAddString(PCHAT_SHOWIGNOREDWARNINGCONTEXTMENUTT	, "Fügt einen Dialog hinzu welcher mit Ja/Nein Knöpfem fragt, ob der Spieler tatsächlich ignoriert werden soll. Damit kannst du nicht mehr aus Versehen jemanden auf deine Ignorieren Liste setzen, weil du dich verklickt hast (z.B. wolltest du ihn anflüstern über das Chat Kontextmenü).",1)
+SafeAddString(PCHAT_SHOWSENDMAILCONTEXTMENU			, "Füge \'Sende Mail\' Eintrag hinzu",1)
+SafeAddString(PCHAT_SHOWSENDMAILCONTEXTMENUTT			, "Fügt einen extra Eintrag im Chat Kontextmenü hinzu mit welchem du direkt eine neue Mail an den Spieler erstellen kannst.",1)
+SafeAddString(PCHAT_SHOWTELEPORTTOCONTEXTMENU		, "Füge \'Teleportiere zu\' Eintrag hinzu",1)
+SafeAddString(PCHAT_SHOWTELEPORTTOCONTEXTMENUTT		, "Fügt einen extra Eintrag im Chat Kontextmenü ein mit welchem du zum Gruppenmitglied/Freund/Gildenmitglied teleportieren kannst. Dies funktioniert nicht bei normalen Zonen Spielern, welche nicht in deiner Gruppe, Gilde oder auf deiner Freundesliste stehen!", 1)
+SafeAddString(PCHAT_CHATCONTEXTMENUTPTO , "Teleportieren zu", 1)
+SafeAddString(PCHAT_CHATCONTEXTMENUTPFRIEND , "Freund %q", 1)
+SafeAddString(PCHAT_CHATCONTEXTMENUTPGUILD , "Gilden #%s Mitglied %q", 1)
+SafeAddString(PCHAT_CHATCONTEXTMENUTPGROUP , "Gruppen Mitglied %q", 1)
+SafeAddString(PCHAT_CHATCONTEXTMENUTPGROUPLEADER , "Gruppenanführer", 1)
+SafeAddString(PCHAT_CHATCONTEXTMENUWARNIGNORE, "[|c00FF00!WARNUNG!|r] Du ignorierst diesen Spieler!", 1)
+SafeAddString(PCHAT_CHATCONTEXTMENUTYPEFRIEND, "Freund", 1)
+SafeAddString(PCHAT_TELEPORTINGTO, "Teleportiere zu: ", 1)
+
 
 
 -- Coorbin20200708

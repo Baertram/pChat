@@ -66,13 +66,30 @@ function pChat.InitializeMessageFormatters()
 
     -- Add a pChat handler for URL's
     local function AddURLHandling(text)
+        --[[
+            In Rift Public dungeon -> Oberspäher Justal (quest boss with falcon) raises this error message:
+            -> line 71 is for pos, url, prot, subd, tld, colon, port, slash, path in text:gmatch("()(([%w_.~!*:@&+$/?%%#-]-)(%w[-.%w]*%.)(%w+)(:?)(%d*)(/?)([%w_.~!*:@&+$/?%#=-]*))") do
+
+            user:/AddOns/pChat/MessageFormatters.lua:71: attempt to index a nil value
+            |rstack traceback:
+            user:/AddOns/pChat/MessageFormatters.lua:71: in function 'AddURLHandling'
+            user:/AddOns/pChat/MessageFormatters.lua:862: in function 'FormatMessage'
+            |caaaaaa<Locals> chanCode = 8, from = "Oberspäher Justal^M", isCS = F, fromDisplayName = "",
+            originalFrom = "Oberspäher Justal^M", originalText = "He! Gebt mir meinen Falken zur...", DDSBeforeAll = "",
+            TextBeforeAll = "", DDSBeforeSender = "", TextBeforeSender = "", TextAfterSender = "", DDSAfterSender = "",
+            DDSBeforeText = "", TextBeforeText = "", TextAfterText = "", DDSAfterText = "", notHandled = F, isSpam = F,
+            message = "|c8F8F8F|H1:p:318:8|h[22:04:03...", new_from = "Oberspäher Justal" </Locals>|r
+            user:/AddOns/pChat/ChatHandlers.lua:168: in function 'pChatChatHandlersMessageChannelReceiver'
+            |c
+        ]]
+        if text == nil then return "" end
 
         -- handle complex URLs and do
         for pos, url, prot, subd, tld, colon, port, slash, path in text:gmatch("()(([%w_.~!*:@&+$/?%%#-]-)(%w[-.%w]*%.)(%w+)(:?)(%d*)(/?)([%w_.~!*:@&+$/?%#=-]*))") do
             if pChatData.protocols[prot:lower()] == (1 - #slash) * #path
-                and (colon == "" or port ~= "" and port + 0 < 65536)
-                and (pChatData.tlds[tld:lower()] or tld:find("^%d+$") and subd:find("^%d+%.%d+%.%d+%.$") and math.max(tld, subd:match("^(%d+)%.(%d+)%.(%d+)%.$")) < 256)
-                and not subd:find("%W%W")
+                    and (colon == "" or port ~= "" and port + 0 < 65536)
+                    and (pChatData.tlds[tld:lower()] or tld:find("^%d+$") and subd:find("^%d+%.%d+%.%d+%.$") and math.max(tld, subd:match("^(%d+)%.(%d+)%.(%d+)%.$")) < 256)
+                    and not subd:find("%W%W")
             then
                 local urlHandled = strfor("|H1:%s:%s:%s|h%s|h", CONSTANTS.PCHAT_LINK, db.lineNumber, CONSTANTS.PCHAT_URL_CHAN, url)
                 url = url:gsub("([?+-])", "%%%1") -- don't understand why, 1st arg of gsub must be escaped and 2nd not.
@@ -551,7 +568,7 @@ function pChat.InitializeMessageFormatters()
 
                 -- |r tag found
                 if lastR ~= nil then
-                    if lastTag > lastR then
+                    if lastTag ~= nil and lastTag > lastR then
                         rawSys = rawSys .. "|r"
                     end
                 else

@@ -105,8 +105,9 @@ end
 
 local DISPLAY_NAME_PREFIX_BYTE = 64
 local function IsDisplayName(str, offset)
-    offset = offset or 1
-    return str:byte(offset) == DISPLAY_NAME_PREFIX_BYTE
+    --offset = offset or 1
+    --return str:byte(offset) == DISPLAY_NAME_PREFIX_BYTE
+    return IsDecoratedDisplayName(str)
 end
 pChat.IsDisplayName = IsDisplayName
 
@@ -293,7 +294,7 @@ local function GetAccountAndCharacterNameFromLine(numLine, chatChannel)
             end
         end
     end
-    return accountAndCharName
+    return accountAndCharName, rawFrom, accountName, characterName
 end
 
 -- Copy message (only message)
@@ -1100,14 +1101,27 @@ function pChat.InitializeCopyHandler(control)
     end
     ]]
 
+    local portTypeToText = {
+        ["friend"] =        GetString(PCHAT_CHATCONTEXTMENUTPFRIEND),
+        ["group"] =         GetString(PCHAT_CHATCONTEXTMENUTPGROUP),
+        ["groupLeader"] =   GetString(PCHAT_CHATCONTEXTMENUTPGROUPLEADER),
+        ["guild"] =         GetString(PCHAT_CHATCONTEXTMENUTPGUILD),
+    }
+
     -- Show contextualMenu when clicking on a pChatLink
     local function ShowContextMenuOnHandlers(numLine, chanNumber)
 --d("pChat ShowContextMenuOnHandlers, chanNumber: "..tostring(chanNumber))
         ClearMenu()
 
         if not ZO_Dialogs_IsShowingDialog() then
+            local accountAndCharacterName, rawFrom, accountName, characterName = GetAccountAndCharacterNameFromLine(numLine, chanNumber)
+            if accountName ~= nil and pChat.IsDisplayName(accountName) == false then
+                accountName = "@" .. accountName
+            end
+            local playerName = (accountName ~= nil and accountName) or characterName
+            local playerNameStr = tostring(playerName)
+
             if db.showAccountAndCharAtContextMenu then
-                local accountAndCharacterName = GetAccountAndCharacterNameFromLine(numLine, chanNumber)
                 if accountAndCharacterName ~= nil and accountAndCharacterName ~= "" then
                     AddCustomMenuItem(accountAndCharacterName, function() end, MENU_ADD_OPTION_HEADER) --@AccountName / Character name
                 end
@@ -1116,6 +1130,45 @@ function pChat.InitializeCopyHandler(control)
             AddCustomMenuItem(GetString(PCHAT_COPYLINECT), function() CopyLine(numLine) end)
             AddCustomMenuItem(GetString(PCHAT_COPYDISCUSSIONCT), function() CopyDiscussion(chanNumber, numLine) end)
             AddCustomMenuItem(GetString(PCHAT_ALLCT), CopyWholeChat)
+
+            if db.showIgnoredInfoInContextMenuAtChat == true then
+        --d("[1]IsIgnored check")
+                if IsIgnored(playerName) then
+                    AddCustomMenuItem(GetString(PCHAT_CHATCONTEXTMENUWARNIGNORE), function()  end)
+                end
+            end
+
+            if db.sendMailContextMenuAtChat == true then
+        --d("[3]Mail to check")
+                AddCustomMenuItem(GetString(SI_SOCIAL_MENU_SEND_MAIL) .. " \'" .. playerNameStr .."\'" , function()
+                    MAIL_SEND:ComposeMailTo(playerName)
+                end)
+            end
+
+            --Teleport to features
+            if db.teleportContextMenuAtChat == true then
+
+
+        --d("[2]Teleport to check")
+                local portType, playerTypeStr, guildIndexFound = pChat.GetPortTypeFromName(playerName, rawFrom)
+        --d(">portType: " ..tos(portType) .. "; playerTypeStr: " ..tos(playerTypeStr))
+                if portType ~= nil then
+                    AddCustomMenuItem(GetString(PCHAT_CHATCONTEXTMENUTPTO), function() end, MENU_ADD_OPTION_HEADER)
+
+                    local portTypeTextTemplate = portTypeToText[portType]
+                    if portTypeTextTemplate ~= nil then
+                        local portTypeText = ""
+                        if portType == "guild" and guildIndexFound ~= nil then
+                            portTypeText = string.format(portTypeTextTemplate, tostring(guildIndexFound), tostring(playerNameStr))
+                        else
+                            portTypeText = string.format(portTypeTextTemplate, tostring(playerNameStr))
+                        end
+                        AddCustomMenuItem(portTypeText, function()
+                            pChat.PortToDisplayname(playerName, portType, guildIndexFound)
+                        end)
+                    end
+                end
+            end
         end
 
         ShowMenu()

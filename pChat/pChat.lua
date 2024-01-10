@@ -23,21 +23,22 @@
 --and then I copy the message and paste I get:
 --[19:40:15] You craft [Dwarven Ingot] x33, [Ebony Ingot] x232, [Orichalcum Ingot] x12, [Iron Ingot] x134, [Steel Ingot] x83, [Rubedite Ingot] x91, [Sanded Oak] x91, [Voidstone Ingot] x58, [Quicksilver Ingot] x44, [Galatite Ingot] x73.
 ------------------------------------------------------------------------------------------------------------------------
--- #11 2023-07-01, bug, Baertram:   Chat Mentions: Chat messages highlight/colorized and add the ! icon at your own send messages, even if you have disabled to do so.
--- #12 2023-07-31, bug, Masteroshi340:   Default chat channel dropdown is empty and thus no chat channel will be set
-
+--#13 2024-01-02 Chat mentions shows mentions in NPC chatter
+--#14 2024-01-02 Chat minimizes in menus (left side menus like Settings or full screen like Champion Points, not inventory and bank et such) even though setting says to not minimize in menus
+--#15 2024-01-02 Chat IM button (on incoming whisper -> Sometimes clickable button to scroll to bottom) shows even if we currently are at the whisper tab and are at the bottom of the chat already
 ------------------------------------------------------------------------------------------------------------------------
 --=======================================================================================================================================
 
 --Working on:
--- #11 Chat Mentions: Chat messages highlight/colorized and add the ! icon at your own send messages, even if you have disabled to do so.
+-- #13
+-- #14
 
 
 --=======================================================================================================================================
--- Changelog version: 10.0.3.6 (last version 10.0.3.5)
+-- Changelog version: 10.0.4.3 (last version 10.0.4.2)
 --=======================================================================================================================================
 --Fixed:
--- #12 Default chat channel dropdown is empty and thus no chat channel will be set
+--#13
 
 
 --Changed:
@@ -533,6 +534,8 @@ local function LoadHooks()
         end
     end)
 
+    --Teleport to "Chat message context menu handler"
+    pChat.TeleportChanges()
 end
 
 --Load the string IDs for keybindings e.g.
@@ -555,6 +558,22 @@ local function LoadStringIds()
     ZO_CreateStringId("PCHAT_AUTOMSG_EDIT_AUTO_MSG", GetString(PCHAT_PCHAT_AUTOMSG_EDIT_AUTO_MSG))
     ZO_CreateStringId("PCHAT_AUTOMSG_REMOVE_AUTO_MSG", GetString(PCHAT_PCHAT_AUTOMSG_REMOVE_AUTO_MSG))
     ]]
+end
+
+function pChat.ParseSlashCommands(args, lowerString)
+    lowerString = lowerString or false
+    local options = {}
+    --local searchResult = {} --old: searchResult = { string.match(args, "^(%S*)%s*(.-)$") }
+    for param in string.gmatch(args, "([^%s]+)%s*") do
+        if (param ~= nil and param ~= "") then
+            if lowerString == true then
+                options[#options+1] = string.lower(param)
+            else
+                options[#options+1] = param
+            end
+        end
+    end
+    return options
 end
 
 --Load the slash commands
@@ -596,6 +615,19 @@ local function LoadSlashCommands()
         end
     end
     SLASH_COMMANDS["/pchatdeleteoldsv"] = pChatDeleteOldNonServerDependentSVForAccount
+
+    --Teleport to .... slash commands
+    SLASH_COMMANDS["/pchattpgl"] =  function(params) pChat.PortToGroupLeader() end
+    SLASH_COMMANDS["/tpgl"] =       function(params) pChat.PortToGroupLeader() end
+    SLASH_COMMANDS["/pchattppl"] =  function(params) pChat.PortToGroupLeader() end
+    SLASH_COMMANDS["/pchattpgm"] =  function(params) pChat.PortToGroupMember(params) end
+    SLASH_COMMANDS["/tpgm"] =       function(params) pChat.PortToGroupMember(params) end
+    SLASH_COMMANDS["/tpp"] =        function(params) pChat.PortToGroupMember(params) end
+    SLASH_COMMANDS["/pchattpp"] =   function(params) pChat.PortToGroupMember(params) end
+    SLASH_COMMANDS["/pchattpfr"] =  function(params) pChat.PortToFriend(params) end
+    SLASH_COMMANDS["/tpfr"] =       function(params) pChat.PortToFriend(params) end
+    SLASH_COMMANDS["/pchattpg"] =   function(params) pChat.PortToGuildMember(params) end
+    SLASH_COMMANDS["/tpg"] =        function(params) pChat.PortToGuildMember(params) end
 end
 
 -- Please note that some things are delayed in OnPlayerActivated() because Chat isn't ready when this function triggers

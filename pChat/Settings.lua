@@ -181,7 +181,12 @@ function pChat.InitializeSettings()
 		backupYourSavedVariablesReminderDone = {},
 		showAccountAndCharAtContextMenu = false,
 
-		-- Coorbin20200708
+		teleportContextMenuAtChat = false,
+        sendMailContextMenuAtChat = false,
+        ignoreWithDialogContextMenuAtChat = false,
+        showIgnoredInfoInContextMenuAtChat = false,
+
+	-- Coorbin20200708
 		-- Chat Mentions
 		excl = false,
 		changeColor = false,
@@ -634,16 +639,6 @@ function pChat.InitializeSettings()
 					setFunc = function(newValue) db.enablecopy = newValue end,
 					width = "full",
 					default = defaults.enablecopy,
-				},
-				{-- Context menu headline: @Account/characterName
-					type = "checkbox",
-					name = GetString(PCHAT_SHOWACCANDCHARATCONTEXTMENU),
-					tooltip = GetString(PCHAT_SHOWACCANDCHARATCONTEXTMENUTT),
-					getFunc = function() return db.showAccountAndCharAtContextMenu end,
-					setFunc = function(newValue) db.showAccountAndCharAtContextMenu = newValue end,
-					width = "full",
-					default = defaults.showAccountAndCharAtContextMenu,
-					disabled = function() return not db.enablecopy end,
 				},
 
 				------------------------------------------------------------------------------------------------------------------------
@@ -1954,6 +1949,72 @@ function pChat.InitializeSettings()
 					default = defaults.restoreShowCurrentNameAndZone,
 				},
 			},
+		}
+
+
+		-- LAM Menu Restore Chat
+		optionsData[#optionsData + 1] = {
+			type = "submenu",
+			name = GetString(PCHAT_CHATCONTEXTMENU),
+			controls = {
+				{-- Context menu headline: @Account/characterName
+					type = "checkbox",
+					name = GetString(PCHAT_SHOWACCANDCHARATCONTEXTMENU),
+					tooltip = GetString(PCHAT_SHOWACCANDCHARATCONTEXTMENUTT),
+					getFunc = function() return db.showAccountAndCharAtContextMenu end,
+					setFunc = function(newValue) db.showAccountAndCharAtContextMenu = newValue end,
+					width = "full",
+					default = defaults.showAccountAndCharAtContextMenu,
+					disabled = function() return not db.enablecopy end,
+				},
+				{
+					type           = "checkbox",
+					name           = GetString(PCHAT_SHOWIGNOREDWARNINGCONTEXTMENU),--'Show extra \'!WARNING!\' for ignored players',
+					tooltip        = GetString(PCHAT_SHOWIGNOREDWARNINGCONTEXTMENUTT),--'Adds a warning text entry to the chat context menu if the player is on your ignore list. Clicking this entry oes nothing, it\'s just there to show the information to you.',
+					getFunc        = function() return db.showIgnoredInfoInContextMenuAtChat end,
+					setFunc        = function(value) db.showIgnoredInfoInContextMenuAtChat = value
+					end,
+					default        = defaults.showIgnoredInfoInContextMenuAtChat,
+					requiresReload = true,
+					width          = "full",
+				},
+
+				{
+					type           = "checkbox",
+					name           = GetString(PCHAT_ASKBEFOREIGNORE),--'Add yes/no dialog to \'Ignore\' player (chat, friends, ...)',
+					tooltip        = GetString(PCHAT_ASKBEFOREIGNORETT),--'Adds a dialog with yes/no buttons to the Ignore player context menu (at chat, friend list, etc.) so you do not accidently ignore a palyer that you wanted to whisper (miss clicked)',
+					getFunc        = function() return db.ignoreWithDialogContextMenuAtChat end,
+					setFunc        = function(value) db.ignoreWithDialogContextMenuAtChat = value
+					end,
+					default        = defaults.ignoreWithDialogContextMenuAtChat,
+					requiresReload = true,
+					width          = "full",
+				},
+
+				{
+					type           = "checkbox",
+					name           = GetString(PCHAT_SHOWSENDMAILCONTEXTMENU),--'Add \'Send mail\' entry',
+					tooltip        = GetString(PCHAT_SHOWSENDMAILCONTEXTMENUTT),--'Add an entry to the chat context menu to create a new mail to the character/account',
+					getFunc        = function() return db.sendMailContextMenuAtChat end,
+					setFunc        = function(value) db.sendMailContextMenuAtChat = value
+					end,
+					default        = defaults.sendMailContextMenuAtChat,
+					requiresReload = true,
+					width          = "full",
+				},
+
+				{
+					type           = "checkbox",
+					name           = GetString(PCHAT_SHOWTELEPORTTOCONTEXTMENU),--'Add entry to teleport to player',
+					tooltip        = GetString(PCHAT_SHOWTELEPORTTOCONTEXTMENUTT),--'Show context menu entries to teleport to group members, guild mates, or friends.\nAttention: This cannot work on normal zone chat players which are not friends, grouped or guild mates!',
+					getFunc        = function() return db.teleportContextMenuAtChat end,
+					setFunc        = function(value) db.teleportContextMenuAtChat = value
+					end,
+					default        = defaults.teleportContextMenuAtChat,
+					requiresReload = true,
+					width          = "full",
+				},
+			}
 		}
 
 		-- Coorbin20200708

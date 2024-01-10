@@ -289,7 +289,9 @@ function pChat.InitializeChatConfig()
 
     -- Function for Minimizing chat at launch
     local function MinimizeChatAtLaunch()
+--d("[pChat]MinimizeChatAtLaunch")
         if db.chatMinimizedAtLaunch then
+--d(">minimizing at launch")
             ChatSys:Minimize()
         end
     end
@@ -298,6 +300,50 @@ function pChat.InitializeChatConfig()
     --db.chatMaximizedAfterMove = false
 
     local function MinimizeChatInMenus()
+
+        --TODO #14 Chat minimizes in menus (left side menus like Settings or full screen like Champion Points, not inventory and bank et such) even though setting says to not minimize in menus
+        --MINIMIZE_CHAT_FRAGMENT is added to some scenes
+        --So overwrite the Show and hide functions to let it work with pChat too
+        --[[
+        function MINIMIZE_CHAT_FRAGMENT:Show()
+            local chatSystem = ZO_GetChatSystem()
+            self.wasChatMaximized = not chatSystem:IsMinimized()
+            if self.wasChatMaximized then
+                chatSystem:Minimize()
+            end
+            self:OnShown()
+        end
+
+        function MINIMIZE_CHAT_FRAGMENT:Hide()
+            local chatSystem = ZO_GetChatSystem()
+            if self.wasChatMaximized and chatSystem:IsMinimized() then
+                chatSystem:Maximize()
+            end
+
+            self.wasChatMaximized = false
+            self:OnHidden()
+        end
+        ]]
+
+        ZO_PreHook(MINIMIZE_CHAT_FRAGMENT, "Show", function()
+--d("[pChat]MINIMIZE_CHAT_FRAGMENT:Show")
+            --Do not minimize chat if pChat settings say to keep the chat maximized
+            if not db.chatMinimizedInMenus then
+                MINIMIZE_CHAT_FRAGMENT:OnShown()
+                return true
+            end
+            return false --Call original func
+        end)
+        ZO_PreHook(MINIMIZE_CHAT_FRAGMENT, "Hide", function()
+--d("[pChat]MINIMIZE_CHAT_FRAGMENT:Hide")
+            --Do not maximize chat if pChat settings say to keep the chat minimized (or non changed)
+            if not db.chatMaximizedAfterMenus then
+                MINIMIZE_CHAT_FRAGMENT:OnHidden()
+                return true
+            end
+            return false --Call original func
+        end)
+
         -- RegisterCallback for Maximize/Minimize chat when entering/leaving scenes
         -- "hud" is base scene (with "hudui")
         local hudScene = SCENE_MANAGER:GetScene("hud")
@@ -318,20 +364,20 @@ function pChat.InitializeChatConfig()
             if newState == SCENE_SHOWING then
                 if not ChatSys:IsMinimized() then return end
 --d(">>chat showing")
-                if db.chatMaximizedAfterMenus == true then
---d(">max after menu - wasManuallyMinimized: " ..tostring(wasManuallyMinimized))
-                    --Do not show the chat if we are just moving and no menu was opened before
---[[
-                    if wasManuallyMinimized == true then
-                        if IsPlayerMoving() then
---d("<<Moving, menu closed: EXIT!!")
-                            return
+                    if db.chatMaximizedAfterMenus == true then
+    --d(">max after menu - wasManuallyMinimized: " ..tostring(wasManuallyMinimized))
+                        --Do not show the chat if we are just moving and no menu was opened before
+    --[[
+                        if wasManuallyMinimized == true then
+                            if IsPlayerMoving() then
+    --d("<<Moving, menu closed: EXIT!!")
+                                return
+                            end
                         end
+    ]]
+    --d("<<Not moving, menu closed: Maximize now!!")
+                        ChatSys:Maximize()
                     end
-]]
---d("<<Not moving, menu closed: Maximize now!!")
-                    ChatSys:Maximize()
-                end
 --[[
                 if db.chatMaximizedAfterMove == true then
 --d(">>max after move")

@@ -23,6 +23,19 @@ local strlen = string.len
 local tins = table.insert
 local tcon = table.concat
 
+--Excluded chat channels where the mentions should never apply (e.g. NPC chatter)
+--#13 Chat mentions shows mentions in NPC chatter
+cm.excludedChatChannels = {
+	[CHAT_CHANNEL_UNUSED_1] = true,
+	[CHAT_CHANNEL_EMOTE] = true,
+	[CHAT_CHANNEL_SYSTEM] = true,
+	[CHAT_CHANNEL_MONSTER_EMOTE] = true,
+	[CHAT_CHANNEL_MONSTER_SAY] = true,
+	[CHAT_CHANNEL_MONSTER_WHISPER] = true,
+	[CHAT_CHANNEL_MONSTER_YELL] = true,
+}
+local excludedChatChannels = cm.excludedChatChannels
+
 --String patterns
 local colorAlreadyAddedPattern = "|c[%d%a][%d%a][%d%a][%d%a][%d%a][%d%a]"
 
@@ -351,6 +364,9 @@ end
 
 -- The main formatting routine that gets called inside FormatMessage.
 function cm.cm_format(chanCode, text, fromDisplayName, isCS, appendColor)
+	--#13 Exclude some chat channels from mentions, like system etc.
+	if chanCode == nil or cm.excludedChatChannels[chanCode] then return text end
+
     local lfrom = strlow(fromDisplayName)
 
 	-- Support custom colors already in the text

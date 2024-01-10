@@ -80,7 +80,8 @@ function pChat.InitializeIncomingMessages()
             end
 
             -- If chat minimized, show the minified button
-            if (ChatSys:IsMinimized()) then
+            --TODO #15 Chat IM button (on incoming whisper -> Sometimes clickable button to scroll to bottom) shows even if we currently are at the whisper tab and are at the bottom of the chat already
+            if ChatSys:IsMinimized() then
                 ChatSys.IMLabelMin:SetHandler("OnMouseEnter", function(self) ShowIMTooltip(self, lineNumber) end)
                 ChatSys.IMLabelMin:SetHandler("OnMouseExit", HideIMTooltip)
                 ChatSys.IMLabelMin:SetHidden(false)

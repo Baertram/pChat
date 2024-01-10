@@ -499,8 +499,25 @@ local strings = {
 	PCHAT_RESTORESHOWNAMEANDZONE = "After restore: Show name & zone",
 	PCHAT_RESTORESHOWNAMEANDZONE_TT = "Afficher @Account actuellement connecté - Nom et zone du personnage dans le chat, après la restauration de l'historique du chat.",
 
+	PCHAT_CHATCONTEXTMENU = "Chat context menu",
 	PCHAT_SHOWACCANDCHARATCONTEXTMENU = "@Account/Charname at context menu",
 	PCHAT_SHOWACCANDCHARATCONTEXTMENU_TT = "Show the @AccountName/Charname at the copy context menu.\nThis will only show both if you have enabled the name formatting of that chat channel to show both too!\nAnd some chat channels like whisper does not provide both!",
+	PCHAT_ASKBEFOREIGNORE					= 'Show extra \'!WARNING!\' for ignored players',
+	PCHAT_ASKBEFOREIGNORETT					= 'Adds a warning text entry to the chat context menu if the player is on your ignore list.',
+	PCHAT_SHOWIGNOREDWARNINGCONTEXTMENU	= "Add yes/no dialog to \'Ignore\' player (chat, friends, ...)",
+	PCHAT_SHOWIGNOREDWARNINGCONTEXTMENUTT	= "Adds a dialog with yes/no buttons to the Ignore player context menu (at chat, friend list, etc.) so you do not accidently ignore a palyer that you wanted to e.g. whisper (miss clicked)",
+	PCHAT_SHOWSENDMAILCONTEXTMENU			= "Add \'Send mail\' entry",
+	PCHAT_SHOWSENDMAILCONTEXTMENUTT			= "Add an entry to the chat context menu that directly creates a new mail to the character/account",
+	PCHAT_SHOWTELEPORTTOCONTEXTMENU		= "Add entry to teleport to player",
+	PCHAT_SHOWTELEPORTTOCONTEXTMENUTT		= "Show context menu entries to teleport to group members, guild mates, or friends.\nAttention: This cannot work on normal zone chat players which are not friends, grouped or guild mates!",
+	PCHAT_CHATCONTEXTMENUTPTO = "Teleport to",
+	PCHAT_CHATCONTEXTMENUTPFRIEND = "Friend %q",
+	PCHAT_CHATCONTEXTMENUTPGUILD = "Guild #%s member %q",
+	PCHAT_CHATCONTEXTMENUTPGROUP = "Group member %q",
+	PCHAT_CHATCONTEXTMENUTPGROUPLEADER = "Groupleader",
+	PCHAT_CHATCONTEXTMENUWARNIGNORE = "[|c00FF00!WARNING!|r] You ignore this player!",
+	PCHAT_CHATCONTEXTMENUTYPEFRIEND = "Friend",
+	PCHAT_TELEPORTINGTO = "Teleporting to: ",
 
 	-- Coorbin20200708
 	-- Chat Mentions settings strings
