@@ -63,10 +63,10 @@ function pChat.PortToDisplayname(displayName, portType, guildIndex)
     if wasUnmounted == true or isCurrentlyMounted == false then
         wasUnmounted = false
         local teleportToName = (
-                (portType == "groupLeader" and tos(displayName) .. " (Group leader)")
-                        or (portType == "group" and tos(displayName) .. " (Group member)")
-                        or (portType == "friend" and tos(displayName) .. " (Friend)")
-                        or (portType == "guild" and ((guildIndex ~= nil and tos(displayName) .. " (Guild #" .. tos(guildIndex)..")") or (tos(displayName) .. " (Guild)")))
+                (portType == "groupLeader" and tos(displayName) .. " (" .. GetString(SI_GROUP_LIST_PANEL_LEADER_TOOLTIP) .. ")")
+                        or (portType == "group" and tos(displayName) .. " (" .. GetString(SI_CHATCHANNELCATEGORIES7) ..")")
+                        or (portType == "friend" and tos(displayName) .. " (" .. GetString(PCHAT_CHATCONTEXTMENUTYPEFRIEND) ..")")
+                        or (portType == "guild" and ((guildIndex ~= nil and tos(displayName) .. " (" .. GetString(SI_GAMEPAD_GUILD_BANK_GUILD_FOOTER_LABEL) .." #" .. tos(guildIndex)..")") or (tos(displayName) .. " (" .. GetString(SI_GAMEPAD_GUILD_BANK_GUILD_FOOTER_LABEL) ..")")))
         )
                 or tos(displayName)
         d("["..ADDON_NAME.."]" .. GetString(PCHAT_TELEPORTINGTO) .. teleportToName)
@@ -492,7 +492,7 @@ local function getPortTypeFromName(playerName, rawName)
 d(">>port to group leader")
                 --port to group leader
                 portType = "groupLeader"
-                playerTypeStr = "Group leader"
+                playerTypeStr = GetString(SI_GROUP_LIST_PANEL_LEADER_TOOLTIP) --"Group leader"
             end
         end
 ]]
