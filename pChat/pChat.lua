@@ -39,13 +39,29 @@
 --=======================================================================================================================================
 --Fixed:
 --#13
+--#14
 
 
 --Changed:
 
 
 --Added:
-
+--Added new settings submenu "Chat context menu" with:
+---Mail player
+---Teleport to player (if grouped, friend or in any guild)
+---Ignore player option: Add dialog asking if you want to ignore (no more accidently ignored players if you wanted to whisper them via the chat context menu). Also works at friends list and player reports -> ignore.
+--Slash commands:
+--- /pchattpgl                                          Port to group leader
+--- /tpgl                                               Port to group leader
+--- /pchattppl                                          Port to group leader
+--- /pchattpgm      <name>                              Port to group member <1st found partial or full @displayName or character name>
+--- /tpgm           <name>                              Port to group member <1st found partial or full @displayName or character name>
+--- /tpp            <name>                              Port to group member <1st found partial or full @displayName or character name>
+--- /pchattpp       <name>                              Port to group member <1st found partial or full @displayName or character name>
+--- /pchattpfr      <name>                              Port to friend <1st found partial or full @displayName or character name>
+--- /tpfr           <name>                              Port to friend <1st found partial or full @displayName or character name>
+--- /pchattpg       <guildIndex 1 to 5:optional> <name> Port to guild's <guildIndex> member <1st found partial or full @displayName or character name>
+--- /tpg            <guildIndex 1 to 5:optional> <name> Port to guild's <guildIndex> member <1st found partial or full @displayName or character name>
 
 --Added on request:
 
