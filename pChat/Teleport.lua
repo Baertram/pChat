@@ -292,25 +292,37 @@ end
 --Check if the displayName is a @displayName, partial displayName or any other name like a character name -> Try to find a matching display name via
 --friends list, group or guild member list then
 -->If it's a partial name the first found name will be teleported to!
-local function checkDisplayName(displayName, portType, p_guildIndex, p_guildIndexIteratorStart)
+local function checkDisplayName(displayName, portType, p_guildIndex, p_guildIndexIteratorStart, wasGuildIndexInDisplayName)
+    wasGuildIndexInDisplayName = wasGuildIndexInDisplayName or false
     repeatListCheck = false
-    --displayName could be any passed in string from slash command
-    --or from the chat message a character name with spaces in there too!
-    --Check if the string passed in is a displayname
-    local isAccountName = isDisplayName(displayName)
+
     local args
-    if isAccountName == true then
+    local isAccountName = false
+
+    --Was the guildIndex passed in from a slash command as 1st param and the displayName is the 2nd param then?
+    if wasGuildIndexInDisplayName == true then
         args = parseSlashCommands(displayName, false)
+        table.remove(args, 1) --delete the guildIndex
     else
-        --Could be a character name with spaces so check the whole string
-        args = {
-            [1] = displayName
-        }
+        --displayName could be any passed in string from slash command
+        --or from the chat message a character name with spaces in there too!
+        --Check if the string passed in is a displayname
+        isAccountName = isDisplayName(displayName)
+        if isAccountName == true then
+            args = parseSlashCommands(displayName, false)
+        else
+            --Could be a character name with spaces so check the whole string
+            args = {
+                [1] = displayName
+            }
+        end
     end
+
     --Only consider the first
     if ZO_IsTableEmpty(args) then return end
-    local displayNameOffset = (portType == "guild" and p_guildIndex ~= nil and 2) or 1
-    local possibleDisplayNameNormal = tostring(args[displayNameOffset])
+    --local displayNameOffset = (portType == "guild" and p_guildIndex ~= nil and 2) or 1
+    --local possibleDisplayNameNormal = tostring(args[displayNameOffset])
+    local possibleDisplayNameNormal = tostring(args[1])
     if type(possibleDisplayNameNormal) ~= "string" then return end
     local possibleDisplayName = strlow(possibleDisplayNameNormal)
 
@@ -424,9 +436,17 @@ function pChat.PortToGuildMember(displayName, guildIndex, guildIndexIteratorStar
     if numGuilds == 0 then return end
 
     --Check if 1st param is a number 1 to 5, then it is the guild number to search
-    guildIndex = guildIndex or checkGuildIndex(displayName)
+    local wasGuildIndexInDisplayName = false
+    if guildIndex == nil then
+        guildIndex = checkGuildIndex(displayName)
+        if guildIndex ~= nil then
+            wasGuildIndexInDisplayName = true
+        end
+    end
+--d(">guildIndex: " ..tos(guildIndex))
     local p_guildIndexFound, p_GuildIndexIteratorStart
-    displayName, p_guildIndexFound, p_GuildIndexIteratorStart = checkDisplayName(displayName, "guild", guildIndex, guildIndexIteratorStart)
+    displayName, p_guildIndexFound, p_GuildIndexIteratorStart = checkDisplayName(displayName, "guild", guildIndex, guildIndexIteratorStart, wasGuildIndexInDisplayName)
+--d(">displayName: " ..tos(displayName) ..", guildIndex: " ..tos(guildIndex) ..", p_guildIndexFound: " ..tos(p_guildIndexFound))
 
     --[[
     if displayName == nil and repeatListCheck == true then
