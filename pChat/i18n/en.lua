@@ -149,11 +149,11 @@ local strings = {
 
 	PCHAT_SYNCH = "Syncing settings",
 
-	PCHAT_CHATSYNCCONFIG = "Sync chat configuration",
-	PCHAT_CHATSYNCCONFIGTT = "If the sync is enabled, all your chars will get the same chat configuration (colors, position, window dimensions, tabs)\nPS: Only enable this option after your chat is fully customized !",
+	PCHAT_CHATSYNCCONFIG = "Sync chat configuration: To 1 char",
+	PCHAT_CHATSYNCCONFIGTT = "If the sync is enabled, all your chars will get the same chat configuration (colors, position, window dimensions, tabs)\nPS: Only enable this option after your chat is fully customized!\n\nAttention: You need to have logged in the other character, where you want to copy the chat settings from, configure it's chat properly and then do a /reloadui to save it to the SaveVariables!\nAfter that relog to the other characters whom you want to copy the settings of that before configured character to. Then select that before configured character from the dropdownbox.\n\nThis will ONLY copy the SAVED chat settings of the selected character AT THE MOMENT you select the dropdown entry!\nIt will not copy the settings again on each next reloadui/login!\nIf you want to copy the updated settings (after changing the copy base character's chat configuration) you need to actively login and reselect the dropdown box entry on the other \'copy to\' characters again.",
 
 	PCHAT_CHATSYNCCONFIGIMPORTFROM = "Import chat settings from",
-	PCHAT_CHATSYNCCONFIGIMPORTFROMTT = "You can at any time import chat settings from another character (colors, position, window dimensions, tabs)",
+	PCHAT_CHATSYNCCONFIGIMPORTFROMTT = "You can at any time import chat settings from another character (colors, position, window dimensions, tabs)\n\nWarning: This copies the last saved state of the selected template character, and only 1x (when you select the entry). If the template character is subsequently changed, the settings will not automatically be applied again when this character logs in.",
 
 	-- Apparence
 

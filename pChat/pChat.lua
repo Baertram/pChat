@@ -23,24 +23,18 @@
 --and then I copy the message and paste I get:
 --[19:40:15] You craft [Dwarven Ingot] x33, [Ebony Ingot] x232, [Orichalcum Ingot] x12, [Iron Ingot] x134, [Steel Ingot] x83, [Rubedite Ingot] x91, [Sanded Oak] x91, [Voidstone Ingot] x58, [Quicksilver Ingot] x44, [Galatite Ingot] x73.
 ------------------------------------------------------------------------------------------------------------------------
---#13 2024-01-02 Chat mentions shows mentions in NPC chatter
---#14 2024-01-02 Chat minimizes in menus (left side menus like Settings or full screen like Champion Points, not inventory and bank et such) even though setting says to not minimize in menus
 --#15 2024-01-02 Chat IM button (on incoming whisper -> Sometimes clickable button to scroll to bottom) shows even if we currently are at the whisper tab and are at the bottom of the chat already
 ------------------------------------------------------------------------------------------------------------------------
 --=======================================================================================================================================
 
 --Working on:
--- #13
--- #14
 
 
 --=======================================================================================================================================
--- Changelog version: 10.0.4.3 (last version 10.0.4.2)
+-- Changelog version: 10.0.4.4 (last version 10.0.4.3)
 --=======================================================================================================================================
 --Fixed:
---#13
---#14
-
+--Translations Chat config synchronisation -> More of a "copy" than "sync"
 
 --Changed:
 

@@ -7,7 +7,7 @@ pChat = pChat or {}
     --AddOn information
     local CONSTANTS = {
         ADDON_NAME          = "pChat",
-        ADDON_VERSION       = "10.0.4.3",
+        ADDON_VERSION       = "10.0.4.4",
 
         API_VERSION         = GetAPIVersion(),
 
