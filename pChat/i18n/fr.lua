@@ -22,7 +22,10 @@ SafeAddString(PCHAT_enableChatTabChannel						,"Enable Chat Tab Last Used Channe
 SafeAddString(PCHAT_enableChatTabChannelT						,"Enable chat tabs to remember the last used channel, it will become the default until you opt to use a different one in that tab.",1)
 SafeAddString(PCHAT_enableWhisperTab							,"Enable Redirect Whisper",1)
 SafeAddString(PCHAT_enableWhisperTabT							,"Enable Redirect Whisper to a specific tab.",1)
-	
+
+
+SafeAddString(PCHAT_ADDON_INFO, "pChat remanie la façon dont le texte est affiché dans la boîte de discussion. Vous pouvez modifier les couleurs, les tailles, les notifications, jouer des sons, etc.\nL'addon ChatMentions est intégré à pChat.\nUtilisez la commande slash /msg pour définir de courtes commandes de tchat qui écriront votre phase pré-définie sur le tchat (messages de bienvenue de guilde par exemple)\nUtilisez la commande slash /pchats <texte facultatif> pour ouvrir la recherche du chat.", 1)
+SafeAddString(PCHAT_ADDON_INFO_2, "Utilisez la commande slash \'/pchatdeleteoldsv\' pour supprimer les anciennes SavedVariables non dépendantes du serveur (réduire la taille du fichier SV).", 1)
 
 
 -- New Need Translations
@@ -131,11 +134,11 @@ SafeAddString(PCHAT_GROUPNAMESTT										, "Format des noms des membres de votr
 			
 SafeAddString(PCHAT_SYNCH												, "Synchronisation des paramètres", 1)
 			
-SafeAddString(PCHAT_CHATSYNCCONFIG									, "Synchroniser les paramètres du chat", 1)
-SafeAddString(PCHAT_CHATSYNCCONFIGTT								, "Si la synchronisation est activée, tous vos personnages auront la même configuration de chat (couleurs, position, taille de la fenêtre, onglets)\nPS: Activez cette option une fois votre chat correctement configuré!\n\nAttention: Vous devez d'abord vous connecter avec le personnage dont vous voulez copier les réglages de tchat, configurer son tchat correctement et ensuite faire un /reloadui pour l'avoir sauvegardé dans les SaveVariables!\nEnsuite connectez-vous avec chaque personnage et selectionnez le personnage dont vous voulez copier les réglages de tchat dans le menu déroulant.\n\nLes réglages de tchat ne seront copiés qu'au moment de la sélecion dans le menu déroulant!\n Ils ne seront pas synchronisés à chaque reloadui/login!\nSi vous voulez de nouveau copier les réglages de tchat (après avoir modifié la configuration de tchat du personnage 'modèle') vous devez vous connecter avec chaque personnage et importer de nouveau ces réglages grâce au menu déroulant.", 1)
+SafeAddString(PCHAT_CHATSYNCCONFIG									, "Synchroniser les paramètres du chat - tous les mêmes", 1)
+SafeAddString(PCHAT_CHATSYNCCONFIGTT								, "Si la synchronisation est activée, tous vos personnages auront la même configuration de chat (couleurs, position, taille de la fenêtre, onglets)\nPS: Activez cette option une fois votre chat correctement configuré!\n\nSi ce paramètre est activé, la configuration de tchat des derniers personnages connectés sera enregistrée et le prochain personnage connecté chargera alors cette configuration, et ainsi de suite...", 1)
 			
 SafeAddString(PCHAT_CHATSYNCCONFIGIMPORTFROM						, "Importer les paramètres du Chat de", 1)
-SafeAddString(PCHAT_CHATSYNCCONFIGIMPORTFROMTT					, "Vous pouvez à tout moment importer les paramètres de Chat d'un autre personnage (couleurs, position, taille de la fenêtre, onglets).\n\nAvertissement: Ce menu déroulant copie les réglages de tchat du personnage séléctionné, et seulement une fois au moment de la sélection.Si vous changez les réglages de tchat du personnage 'modèle', ses réglages de tchat ne seront pas automatiquement copiés à chaque login.", 1)
+SafeAddString(PCHAT_CHATSYNCCONFIGIMPORTFROMTT					, "Vous pouvez à tout moment importer les paramètres de Chat d'un autre personnage (couleurs, position, taille de la fenêtre, onglets).\n\nAttention: Vous devez d'abord vous connecter avec le personnage dont vous voulez copier les réglages de tchat, configurer son tchat correctement et ensuite faire un /reloadui pour l'avoir sauvegardé dans les SaveVariables!\nEnsuite connectez-vous avec chaque personnage et selectionnez le personnage dont vous voulez copier les réglages de tchat dans le menu déroulant.\n\nLes réglages de tchat ne seront copiés qu'au moment de la sélecion dans le menu déroulant!\n Ils ne seront pas synchronisés à chaque reloadui/login!\nSi vous voulez de nouveau copier les réglages de tchat (après avoir modifié la configuration de tchat du personnage 'modèle') vous devez vous connecter avec chaque personnage et importer de nouveau ces réglages grâce au menu déroulant.", 1)
 			
 -- Apparence			
 			
@@ -412,9 +415,9 @@ SafeAddString(PCHAT_COPYLINECT										, "Copier la ligne", 1)
 SafeAddString(PCHAT_COPYDISCUSSIONCT								, "Copier la discussion", 1)
 SafeAddString(PCHAT_ALLCT												, "Copier tout le chat", 1)
 
-SafeAddString(PCHAT_COPYXMLTITLE										, "Copier le texte avec Ctrl+C", 1)
-SafeAddString(PCHAT_COPYXMLLABEL										, "Copier le texte avec Ctrl+C", 1)
-SafeAddString(PCHAT_COPYXMLTOOLONG									, "Texte découpé", 1)
+SafeAddString(PCHAT_COPYXMLTITLE										, "Copier le texte de chat", 1)
+SafeAddString(PCHAT_COPYXMLLABEL										, "Marquer le text et copier avec Ctrl+C", 1)
+SafeAddString(PCHAT_COPYXMLTOOLONG									, "Marquer le text et copier avec Ctrl+C", 1)
 SafeAddString(PCHAT_COPYXMLNEXT										, "Suivant", 1)
 
 SafeAddString(PCHAT_SWITCHTONEXTTABBINDING						, "Passer à l'onglet suivant", 1)
@@ -440,6 +443,16 @@ SafeAddString(PCHAT_CLEARBUFFER										, "Effacer le chat", 1)
 
 SafeAddString(PCHAT_RESTORESHOWNAMEANDZONE, "Après rest. history: Afficher le nom et la zone", 1)
 SafeAddString(PCHAT_RESTORESHOWNAMEANDZONE_TT, "Zeige den aktuell eingeloggten @Account - Charakter Name & Zone im Chat, nachdem die Chat Historie wiederhergestellt wurde.", 1)
+
+SafeAddString(PCHAT_TOGGLE_SEARCH_UI_ON, "Activé recherche", 1)
+SafeAddString(PCHAT_TOGGLE_SEARCH_UI_OFF, "Désactivé recherche", 1)
+SafeAddString(PCHAT_SEARCHUI_HEADER_TIME, "Date", 1)
+SafeAddString(PCHAT_SEARCHUI_HEADER_FROM,  "De", 1)
+SafeAddString(PCHAT_SEARCHUI_HEADER_CHATCHANNEL,  "Channel", 1)
+SafeAddString(PCHAT_SEARCHUI_HEADER_MESSAGE, "Message", 1)
+SafeAddString(PCHAT_SEARCHUI_MESSAGE_SEARCH_DEFAULT_TEXT, "Entrez \'message\' pour recherche ici...", 1)
+SafeAddString(PCHAT_SEARCHUI_FROM_SEARCH_DEFAULT_TEXT, "Entrez \'de\' pour recherche ici...", 1)
+SafeAddString(PCHAT_SEARCHUI_CLEAR_SEARCH_HISTORY, "Effacer l'historique de recherche", 1)
 
 
 -- Coorbin20200708

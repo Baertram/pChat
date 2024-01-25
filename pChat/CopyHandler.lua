@@ -1,18 +1,35 @@
 local CONSTANTS = pChat.CONSTANTS
 local ADDON_NAME = CONSTANTS.ADDON_NAME
 
+local EM = EVENT_MANAGER
+
 local ChatSys = CONSTANTS.CHAT_SYSTEM
 
+
+local tos = tostring
 local strfin = string.find
 local strsub = string.sub
+local strlow = string.lower
 local strlen = string.len
 local strbyt = string.byte
+local tins = table.insert
 
--- pChat Chat Copy Options OBJKCT
+
+--Editbox max characters possible - 20000
+local editBoxMaxCharacters = 20000
+
+-- pChat Chat Copy Options OBJECT
 pChat.ChatCopyOptions = nil
 local mapChatChannelToPChatChannel = pChat.mapChatChannelToPChatChannel
+local mapPChatChannelToChatChannel = pChat.mapPChatChannelToChatChannel
 
 local chatChannelLangToLangStr = CONSTANTS.chatChannelLangToLangStr
+local chatChannel2Name = CONSTANTS.chatChannel2Name
+
+--Search UI
+
+local pChat_searchUIMasterList = {}
+
 
 -------------------------------------------------------------
 -- Helper functions --
@@ -315,7 +332,7 @@ end
 
 -- Copy discussion
 -- It will copy all text mark with the same chanCode
--- Todo : Whisps by person
+-- Todo : Whispers by person
 local function CopyDiscussion(chanNumber, numLine)
     local db = pChat.db
     if not numLine or not chanNumber or not db.LineStrings or not db.LineStrings[numLine] then return end
@@ -332,27 +349,40 @@ local function CopyDiscussion(chanNumber, numLine)
         numChanCode = mapChatChannelToPChatChannel(numChanCode)
     end
 
+    ZO_ClearTable(pChat_searchUIMasterList)
+
     local stringToCopy = ""
-    for k, data in ipairs(db.LineStrings) do
-        local textToCopy = db.LineStrings[k].rawLine
+    for k, lineData in ipairs(db.LineStrings) do
+        --local lineData = db.LineStrings[k]
+        local textToCopy = lineData.rawLine
         if textToCopy ~= nil then
+            local wasAdded = false
             if numChanCode == CHAT_CHANNEL_WHISPER then -- or numChanCode == CHAT_CHANNEL_WHISPER_SENT then
-                if data.channel == CHAT_CHANNEL_WHISPER or data.channel == CHAT_CHANNEL_WHISPER_SENT then
+                if lineData.channel == CHAT_CHANNEL_WHISPER or lineData.channel == CHAT_CHANNEL_WHISPER_SENT then
                     if stringToCopy == "" then
                         stringToCopy = tostring(textToCopy)
                     else
                         stringToCopy = stringToCopy .. "\r\n" .. tostring(textToCopy)
                     end
+                    wasAdded = true
                 end
-            elseif data.channel == numChanCode then
+            elseif lineData.channel == numChanCode then
                 if stringToCopy == "" then
                     stringToCopy = tostring(textToCopy)
                 else
                     stringToCopy = stringToCopy .. "\r\n" .. tostring(textToCopy)
                 end
+                wasAdded = true
+            end
+            if wasAdded == true then
+                --Build the masterList for the search UI ZO_SortFilterList -> Based on the text to copy (all lines!)
+                pChat_searchUIMasterList[#pChat_searchUIMasterList + 1] = lineData
             end
         end
     end
+
+pChat._debugSearchUIMasterList = pChat_searchUIMasterList
+
 --d(">stringToCopy: " ..tostring(stringToCopy))
     pChat_ShowCopyDialog(stringToCopy, numChanCode)
 end
@@ -391,6 +421,9 @@ local function CopyWholeChat(updateShownDialog)
     local filteredStringCopy = ""
     local pChatData = pChat.pChatData
     local chatChannelsToFilter = pChatData.chatChannelsToFilter
+
+    ZO_ClearTable(pChat_searchUIMasterList)
+
     for k, data in ipairs(db.LineStrings) do
         local doAddLine = (updateShownDialog == true or isChatCategoryEnabledInAnyChatTab(data.channel)) or false
         local lineData = db.LineStrings[k]
@@ -413,9 +446,12 @@ local function CopyWholeChat(updateShownDialog)
                 else
                     filteredStringCopy = filteredStringCopy .. "\r\n" .. tostring(textToCopy)
                 end
+                --Build the masterList for the search UI ZO_SortFilterList -> Based on the text to copy (all lines!)
+                pChat_searchUIMasterList[#pChat_searchUIMasterList + 1] = lineData
             end
         end
     end
+pChat._debugSearchUIMasterList = pChat_searchUIMasterList
     if filteredStringCopy then
         if updateShownDialog == true then
             return filteredStringCopy
@@ -427,6 +463,7 @@ local function CopyWholeChat(updateShownDialog)
     end
 end
 
+
 --------------------------------------------------
 -- pChat ChatCopy Options CLASS
 --------------------------------------------------
@@ -434,30 +471,9 @@ local FILTERS_PER_ROW = 2
 local GUILDS_PER_ROW = 2
 
 --defines channels to be combined under one button
-local COMBINED_CHANNELS = {
-    [CHAT_CATEGORY_WHISPER_INCOMING] = {parentChannel = CHAT_CATEGORY_WHISPER_INCOMING, name = SI_CHAT_CHANNEL_NAME_WHISPER},
-    [CHAT_CATEGORY_WHISPER_OUTGOING] = {parentChannel = CHAT_CATEGORY_WHISPER_INCOMING, name = SI_CHAT_CHANNEL_NAME_WHISPER},
-
-    [CHAT_CATEGORY_MONSTER_SAY] = {parentChannel = CHAT_CATEGORY_MONSTER_SAY, name = SI_CHAT_CHANNEL_NAME_NPC},
-    [CHAT_CATEGORY_MONSTER_YELL] = {parentChannel = CHAT_CATEGORY_MONSTER_SAY, name = SI_CHAT_CHANNEL_NAME_NPC},
-    [CHAT_CATEGORY_MONSTER_WHISPER] = {parentChannel = CHAT_CATEGORY_MONSTER_SAY, name = SI_CHAT_CHANNEL_NAME_NPC},
-    [CHAT_CATEGORY_MONSTER_EMOTE] = {parentChannel = CHAT_CATEGORY_MONSTER_SAY, name = SI_CHAT_CHANNEL_NAME_NPC},
-}
-
+local COMBINED_CHANNELS = CONSTANTS.COMBINED_CHANNELS
 -- defines channels to skip when building the filter (non guild) section
-local SKIP_CHANNELS = {
-    --[CHAT_CATEGORY_SYSTEM] = true,
-    [CHAT_CATEGORY_GUILD_1] = true,
-    [CHAT_CATEGORY_GUILD_2] = true,
-    [CHAT_CATEGORY_GUILD_3] = true,
-    [CHAT_CATEGORY_GUILD_4] = true,
-    [CHAT_CATEGORY_GUILD_5] = true,
-    [CHAT_CATEGORY_OFFICER_1] = true,
-    [CHAT_CATEGORY_OFFICER_2] = true,
-    [CHAT_CATEGORY_OFFICER_3] = true,
-    [CHAT_CATEGORY_OFFICER_4] = true,
-    [CHAT_CATEGORY_OFFICER_5] = true,
-}
+local SKIP_CHANNELS = CONSTANTS.SKIP_CHANNELS
 
 -- defines the ordering of the filter categories
 local CHANNEL_ORDERING_WEIGHT = {
@@ -523,12 +539,325 @@ for _, chatChannelId in pairs(chatChannelsToMap) do
 end
 pChat.ChatCategory2ChatChannel = ChatCategory2ChatChannel
 
+
+
+--______________________________________________________________________________________________________________________
+--______________________________________________________________________________________________________________________
+--______________________________________________________________________________________________________________________
+--[[ pChat_SearchUI_List Class ]]--
+--______________________________________________________________________________________________________________________
+--______________________________________________________________________________________________________________________
+--______________________________________________________________________________________________________________________
+
+------------------------------------------------------------------------------------------------------------------------
+--SearchUI -  ZO_SortFilterList
+------------------------------------------------------------------------------------------------------------------------
+local searchUIScrollListSearchTypeDefault = 1
+local searchUIScrollListDataTypeDefault = 1
+local searchUIScrollListDataTypeXMLVirtualTemplate = "pChatSearchUIRow"
+local searchUIScrollListDataTypeXMLVirtualTemplateRowHeight = 60 --this will enable scrollList.mode = SCROLL_LIST_NON_UNIFORM
+
+local searchUIThrottledSearchHistoryHandlerName = "pChatSearchUI_SearchHistoryHandlerName"
+local searchUIThrottledSearchHandlerName = "pChatSearchUI_SearchHandlerName"
+local searchUIThrottledDelay = 1500             --Start text editbox search after 1,5seconds
+
+local maxSearchHistoryEntries = 10
+
+local SEARCH_TYPE_MESSAGE = CONSTANTS.SEARCH_TYPE_MESSAGE
+local SEARCH_TYPE_FROM =    CONSTANTS.SEARCH_TYPE_FROM
+
+--- ZO_SortFilterList
+local pChat_SearchUI_List = ZO_SortFilterList:Subclass()
+
+--Called from editbox filters -> OnTextChanged
+local function refreshSearchFilters(selfVar, editBoxControl)
+    --Start the search now
+    selfVar:StartSearch()
+end
+
+local function clearSearchHistory(searchType)
+    --d("Clear search history, type: " ..tos(searchType))
+    local searchHistory = pChat.db.chatSearchHistory
+    if ZO_IsTableEmpty(searchHistory[searchType]) then return end
+    pChat.db.chatSearchHistory[searchType] = {}
+end
+
+local function updateSearchHistory(searchType, searchValue)
+    local searchHistory = pChat.db.chatSearchHistory
+    searchHistory[searchType] = searchHistory[searchType] or {}
+    local searchHistoryOfSearchType = searchHistory[searchType]
+    local toSearch = strlow(searchValue)
+    if not ZO_IsElementInNumericallyIndexedTable(searchHistoryOfSearchType, toSearch) then
+        --Only keep the last 10 search entries
+        tins(searchHistory[searchType], 1, searchValue)
+        local countEntries = #searchHistory[searchType]
+        if countEntries > maxSearchHistoryEntries then
+            for i=maxSearchHistoryEntries+1, countEntries, 1 do
+                searchHistory[searchType][i] = nil
+            end
+        end
+    end
+end
+
+local function updateSearchHistoryDelayed(searchType, searchValue)
+    EM:UnregisterForUpdate(searchUIThrottledSearchHistoryHandlerName)
+    EM:RegisterForUpdate(searchUIThrottledSearchHistoryHandlerName, 1500, function()
+        EM:UnregisterForUpdate(searchUIThrottledSearchHistoryHandlerName)
+        updateSearchHistory(searchType, searchValue)
+    end)
+end
+
+-- ZO_SortFilterList:RefreshData()      =>  BuildMasterList()   =>  FilterScrollList()  =>  SortScrollList()    =>  CommitScrollList()
+-- ZO_SortFilterList:RefreshFilters()                           =>  FilterScrollList()  =>  SortScrollList()    =>  CommitScrollList()
+-- ZO_SortFilterList:RefreshSort()                                                      =>  SortScrollList()    =>  CommitScrollList()
+
+function pChat_SearchUI_List:New(listParentControl, parentObject)
+	local listObject = ZO_SortFilterList.New(self, listParentControl)
+    listObject._parentObject = parentObject --Points to e.g. LIBSETS_SEARCH_UI_KEYBOARD object (of class LibSets_SearchUI_Keyboard)
+	listObject:Setup()
+	return listObject
+end
+
+--Setup the scroll list
+function pChat_SearchUI_List:Setup( )
+	--Scroll UI
+	ZO_ScrollList_AddDataType(self.list, searchUIScrollListDataTypeDefault, searchUIScrollListDataTypeXMLVirtualTemplate, searchUIScrollListDataTypeXMLVirtualTemplateRowHeight, function(control, data)
+        self:SetupItemRow(control, data)
+    end)
+	ZO_ScrollList_EnableHighlight(self.list, "ZO_ThinListHighlight")
+	self:SetAlternateRowBackgrounds(true)
+
+    self:SetEmptyText("\n"..GetString(SI_TRADINGHOUSESEARCHOUTCOME2) .. "\n") --No items found, which match your filters and text
+
+	self.masterList = { }
+
+    --Build the sortkeys depending on the settings
+    --self:BuildSortKeys() --> Will be called internally in "self.sortHeaderGroup:SelectAndResetSortForKey"
+	self.currentSortKey = "rawTimestamp"
+	self.currentSortOrder = ZO_SORT_ORDER_UP
+	self.sortHeaderGroup:SelectAndResetSortForKey(self.currentSortKey) -- Will call "SortScrollList" internally
+	--The sort function
+    self.sortFunction = function( listEntry1, listEntry2 )
+        if     self.currentSortKey == nil or self.sortKeys[self.currentSortKey] == nil
+            or listEntry1.data == nil or listEntry1.data[self.currentSortKey] == nil
+            or listEntry2.data == nil or listEntry2.data[self.currentSortKey] == nil then
+            return nil
+        end
+        return ZO_TableOrderingFunction(listEntry1.data, listEntry2.data, self.currentSortKey, self.sortKeys, self.currentSortOrder)
+	end
+
+    --Sort headers
+	self.headers =                  self.control:GetNamedChild("Headers")
+    self.headerTime =               self.headers:GetNamedChild("Time")
+    self.headerFrom =               self.headers:GetNamedChild("From")
+    self.headerMessage =            self.headers:GetNamedChild("Message")
+
+    --Build initial masterlist via self:BuildMasterList() --> Do not automatically here but only as the searchUI is shown!
+    --self:RefreshData()
+end
+
+--[[
+-- ZO_SortFilterList:RefreshData()      =>  BuildMasterList()   =>  FilterScrollList()  =>  SortScrollList()    =>  CommitScrollList()
+-- ZO_SortFilterList:RefreshFilters()                           =>  FilterScrollList()  =>  SortScrollList()    =>  CommitScrollList()
+-- ZO_SortFilterList:RefreshSort()                                                      =>  SortScrollList()    =>  CommitScrollList()
+function pChat_SearchUI_List:CommitScrollList( )
+end
+]]
+
+--Get the data of the masterlist entries and add it to the list columns
+function pChat_SearchUI_List:SetupItemRow(control, data)
+    --local clientLang = WL.clientLang or WL.fallbackSetLang
+    --d(">>>      [pChat_SearchUI_List:SetupItemRow] " ..tos(data.names[clientLang]))
+    control.data = data
+
+    local lastColumn
+
+    local timeColumn       = control:GetNamedChild("Time")
+    timeColumn.normalColor = ZO_DEFAULT_TEXT
+    timeColumn:ClearAnchors()
+    timeColumn:SetAnchor(LEFT, control, nil, 0, 0)
+    local dateText = data.date or ""
+    timeColumn:SetText(dateText)
+    timeColumn:SetHidden(false)
+
+    local fromColumn       = control:GetNamedChild("From")
+    fromColumn.normalColor = ZO_DEFAULT_TEXT
+    fromColumn:ClearAnchors()
+    fromColumn:SetAnchor(LEFT, timeColumn, RIGHT, 0, 0)
+    fromColumn:SetText(data.from)
+    fromColumn:SetHidden(false)
+
+    local chatChannelColumn = control:GetNamedChild("ChatChannel")
+    chatChannelColumn.normalColor = ZO_DEFAULT_TEXT
+    chatChannelColumn:ClearAnchors()
+    chatChannelColumn:SetAnchor(LEFT, fromColumn, RIGHT, 0, 0)
+    chatChannelColumn:SetText(data.chatChannel)
+    chatChannelColumn:SetHidden(false)
+
+    local messageColumn = control:GetNamedChild("Message")
+    messageColumn:ClearAnchors()
+    messageColumn:SetAnchor(LEFT, chatChannelColumn, RIGHT, 0, 0)
+    messageColumn:SetText(data.rawMessage or "")
+    messageColumn:SetHidden(false)
+
+    --Anchor the last column's right edge to the right edge of the row
+    lastColumn = messageColumn
+    lastColumn:SetAnchor(RIGHT, control, RIGHT, -10, 0)
+
+    --Set the row to the list now
+    ZO_SortFilterList.SetupRow(self, control, data)
+end
+
+function pChat_SearchUI_List:CreateEntryForChatMessage(messageId, messageData)
+    --local parentObject = self._parentObject -- Get the SearchUI object
+
+    --The row's data table of each item/entry in the ZO_ScrollFilterList
+    local itemData = {
+        type = searchUIScrollListSearchTypeDefault     -- for the search function -> Processor. !!!Needs to match -> See function self.stringSearch:AddProcessor(searchUIScrollListSearchTypeDefault...)
+    }
+
+    --todo: Pass in whole table of message info (for debugging!)
+    itemData._pChat_messageData    = messageData
+
+    --Mix in the missing data
+    zo_mixin(itemData, messageData)
+
+    itemData.messageId = messageId
+    local timeStamp = messageData.rawTimestamp
+    local dateTimeStr = ""
+    if timeStamp ~= nil and timeStamp >= 0 then
+        dateTimeStr = os.date("%c", timeStamp)
+    end
+    itemData.date = dateTimeStr
+    itemData.from = ZO_CachedStrFormat(SI_UNIT_NAME, messageData.rawFrom) or ""
+    local chatChannel = mapPChatChannelToChatChannel(messageData.channel)
+    itemData.chatChannel = chatChannel2Name[chatChannel] or ""
+
+    itemData.message = messageData.rawMessage or ""
+
+    --Table entry for the ZO_ScrollList data
+	return itemData
+end
+
+--Build the masterlist based of the sets searched/filtered
+-- ZO_SortFilterList:RefreshData()      =>  BuildMasterList()   =>  FilterScrollList()  =>  SortScrollList()    =>  CommitScrollList()
+function pChat_SearchUI_List:BuildMasterList()
+--d("[pChat_SearchUI_List:BuildMasterList]")
+    self.masterList = {}
+
+    if pChat_searchUIMasterList == nil or ZO_IsTableEmpty(pChat_searchUIMasterList) then return end
+
+    for messageId, messageData in pairs(pChat_searchUIMasterList) do
+        table.insert(self.masterList, self:CreateEntryForChatMessage(messageId, messageData))
+    end
+end
+
+--Filter the scroll list by fiter data
+-- ZO_SortFilterList:RefreshData()      =>  BuildMasterList()   =>  FilterScrollList()  =>  SortScrollList()    =>  CommitScrollList()
+-- ZO_SortFilterList:RefreshFilters()                           =>  FilterScrollList()  =>  SortScrollList()    =>  CommitScrollList()
+function pChat_SearchUI_List:FilterScrollList()
+--d("[pChat_SearchUI_List:FilterScrollList]")
+	local scrollData = ZO_ScrollList_GetDataList(self.list)
+	ZO_ClearNumericallyIndexedTable(scrollData)
+
+    --Check the search text of both edit boxes
+    local searchInputMessage = self._parentObject.searchMessageEditBoxControl:GetText()
+    local searchInputFrom = self._parentObject.searchFromEditBoxControl:GetText()
+    local searchIsEmpty = (searchInputMessage == "" and searchInputFrom == "" and true) or false
+
+    for i = 1, #self.masterList do
+        --Get the data of each set item
+        local data = self.masterList[i]
+
+        local addItemToList = false
+
+        --Search for name/ID text, set bonuses text
+        if searchIsEmpty == true or self._parentObject:CheckForMatch(data, searchInputMessage, searchInputFrom) then
+            addItemToList = true
+        end
+        if addItemToList == true then
+            table.insert(scrollData, ZO_ScrollList_CreateDataEntry(searchUIScrollListDataTypeDefault, data))
+        end
+    end
+
+    --Update the counter
+    self:UpdateCounter(scrollData)
+end
+
+--The sort keys for the sort headers of the list
+-- ZO_SortFilterList:RefreshData()      =>  BuildMasterList()   =>  FilterScrollList()  =>  SortScrollList()    =>  CommitScrollList()
+-- ZO_SortFilterList:RefreshFilters()                           =>  FilterScrollList()  =>  SortScrollList()    =>  CommitScrollList()
+-- ZO_SortFilterList:RefreshSort()                                                      =>  SortScrollList()    =>  CommitScrollList()
+function pChat_SearchUI_List:SortScrollList( )
+    --Build the sortkeys depending on the settings
+    self:BuildSortKeys()
+    --Get the current sort header's key and direction
+    self.currentSortKey = self.sortHeaderGroup:GetCurrentSortKey()
+    self.currentSortOrder = self.sortHeaderGroup:GetSortDirection()
+--d("[pChat_SearchUI_List:SortScrollList] sortKey: " .. tos(self.currentSortKey) .. ", sortOrder: " ..tos(self.currentSortOrder))
+	if self.currentSortKey ~= nil and self.currentSortOrder ~= nil then
+        --Update the scroll list and re-sort it -> Calls "SetupItemRow" internally!
+		local scrollData = ZO_ScrollList_GetDataList(self.list)
+        if scrollData and #scrollData > 0 then
+            table.sort(scrollData, self.sortFunction)
+            self:RefreshVisible()
+        end
+	end
+end
+
+
+--The sort keys for the sort headers of the list
+function pChat_SearchUI_List:BuildSortKeys()
+    --Get the tiebraker for the 2nd sort after the selected column
+    self.sortKeys = {
+        --["timestamp"]                  = { isId64          = true, tiebreaker = "name"  }, --isNumeric = true
+        --["knownInSetItemCollectionBook"] = { caseInsensitive = true, isNumeric = true, tiebreaker = "name" },
+        --["gearId"]                     = { caseInsensitive = true, isNumeric = true, tiebreaker = "name" },
+        ["rawTimestamp"]                = { isNumber = true,                  }, --tiebreaker = "message" },
+        ["rawFrom"]                     = { caseInsensitive = true,         },
+        ["chatChannel"]                 = { caseInsensitive = true,         },
+        ["rawMessage"]                  = { caseInsensitive = true          },
+    }
+end
+
+function pChat_SearchUI_List:UpdateCounter(scrollData)
+    --Update the counter (found by search/total) at the bottom right of the scroll list
+    local listCountAndTotal = ""
+    if self.masterList == nil or (self.masterList ~= nil and #self.masterList == 0) then
+        listCountAndTotal = "0 / 0"
+    else
+        listCountAndTotal = string.format("%d / %d", #scrollData, #self.masterList)
+    end
+    self._parentObject.searchUICounterControl:SetText(listCountAndTotal)
+end
+
+
+
+--______________________________________________________________________________________________________________________
+--______________________________________________________________________________________________________________________
+--______________________________________________________________________________________________________________________
 --[[ ChatCopyOptions Class ]]--
+--______________________________________________________________________________________________________________________
+--______________________________________________________________________________________________________________________
+--______________________________________________________________________________________________________________________
 local ChatCopyOptions = ZO_Object:Subclass()
 
 function ChatCopyOptions:New(...)
     local options = ZO_Object.New(self)
     return options
+end
+
+--Run a function throttled (check if it should run already and overwrite the old call then with a new one to
+--prevent running it multiple times in a short time)
+function ChatCopyOptions:ThrottledCall(callbackName, timer, callback, ...)
+    if not callbackName or callbackName == "" or not callback then return end
+    EM:UnregisterForUpdate(callbackName)
+    local args = {...}
+    local function Update()
+        EM:UnregisterForUpdate(callbackName)
+        callback(unpack(args))
+    end
+    EM:RegisterForUpdate(callbackName, timer, Update)
 end
 
 local function SetupChatCopyOptionsDialog(control)
@@ -569,21 +898,30 @@ local function SetupChatCopyOptionsDialog(control)
             })
 end
 
+function ChatCopyOptions:UpdateSearchUI()
+    --Refresh the ZO_SortFilterList's masterlist data and populate the entries
+    if self.isSearchUIShown == true then
+        self.searchUIList:RefreshData()
+    end
+end
+
 function ChatCopyOptions:UpdateEditAndButtons()
     local control = self.control
     local pChatData = pChat.pChatData
     local message = self.message
---d("pChat ChatCopyOptions:UpdateEditAndButtons, message: " ..tostring(message))
     if not message then return end
 
     -- editbox is 20000 chars max
-    local maxChars      = 20000
+    local maxChars      = editBoxMaxCharacters --change to 10000, for debugging "pages"
     local label     = GetControl(control, "Label")
     local notePrev  = GetControl(control, "NotePrev")
     local noteNext  = GetControl(control, "NoteNext")
     local noteEdit  = GetControl(control, "NoteEdit")
 
+--d("pChat ChatCopyOptions:UpdateEditAndButtons, message: " ..tostring(message))
+
     if strlen(message) < maxChars then
+--d(">1")
         label:SetText(GetString(PCHAT_COPYXMLLABEL))
         noteEdit:SetText(message)
         noteNext:SetHidden(true)
@@ -596,6 +934,7 @@ function ChatCopyOptions:UpdateEditAndButtons()
 
 
     else
+--d(">2")
         label:SetText(GetString(PCHAT_COPYXMLTOOLONG))
         pChatData.messageTableId = 1
         pChatData.messageTable = str_lensplit(message, maxChars)
@@ -615,7 +954,7 @@ function ChatCopyOptions:UpdateEditAndButtons()
 end
 
 function ChatCopyOptions:Initialize(control)
-    if(not self.initialized) then
+    if not self.initialized then
         self.control = control
         control.owner = self
         self.filterSection = control:GetNamedChild("FilterSection")
@@ -641,6 +980,9 @@ function ChatCopyOptions:Initialize(control)
         self:InitializeFilterButtons(control)
         self:InitializeGuildFilters(control)
         self.filteredChannels = {}
+
+        self:InitializeSearchUI(control)
+
         self.initialized = true
     end
 
@@ -822,6 +1164,202 @@ do
             count = count + 1
         end
     end
+
+    function ChatCopyOptions:InitializeSearchUI(dialogControl)
+        local selfVar = self
+        self.isSearchUIShown = false
+
+        local searchUIToggleButton = dialogControl:GetNamedChild("ToggleSearch")
+        searchUIToggleButton:SetText(GetString(PCHAT_TOGGLE_SEARCH_UI_ON))
+        self.searchUIToggleButton = searchUIToggleButton
+
+        local searchUI = dialogControl:GetNamedChild("SearchUI")
+        searchUI:SetHidden(true)
+        searchUI:SetWidth(0)
+        self.searchUI = searchUI
+
+        --ZO_StringSearch - For string comparison of
+        self.stringSearch = ZO_StringSearch:New()
+        self.stringSearch:AddProcessor(searchUIScrollListSearchTypeDefault, function(stringSearch, data, searchTerm, cache)
+            return self:ProcessItemEntry(stringSearch, data, searchTerm, cache)
+        end)
+
+        self.searchMessageEditBoxControl = searchUI:GetNamedChild("MessageSearchBox")
+        self.searchMessageEditBoxControl:SetDefaultText(GetString(PCHAT_SEARCHUI_MESSAGE_SEARCH_DEFAULT_TEXT))
+        --[[
+        self.searchMessageEditBoxControl:SetHandler("OnMouseEnter", function()
+            InitializeTooltip(InformationTooltip, self.searchMessageEditBoxControl, BOTTOM, 0, -10)
+            SetTooltipText(InformationTooltip, getLocalizedText("nameTextSearchTT"))
+        end)
+        self.searchMessageEditBoxControl:SetHandler("OnMouseExit", function() ClearTooltip(InformationTooltip)  end)
+        ]]
+        self.searchMessageEditBoxControl:SetHandler("OnTextChanged", function(editBoxCtrl)
+            selfVar:ThrottledCall(searchUIThrottledSearchHandlerName, searchUIThrottledDelay, refreshSearchFilters, selfVar, selfVar.searchMessageEditBoxControl)
+            selfVar:UpdateSearchHistory(editBoxCtrl)
+        end)
+        self.searchMessageEditBoxControl:SetHandler("OnMouseUp", function(editBoxCtrl, mouseButton, upInside, shift, ctrl, alt, command)
+            if mouseButton == MOUSE_BUTTON_INDEX_RIGHT and upInside then
+                selfVar:OnSearchEditBoxContextMenu(editBoxCtrl, shift, ctrl, alt, command)
+            end
+        end)
+
+        self.searchFromEditBoxControl = searchUI:GetNamedChild("FromSearchBox")
+        self.searchFromEditBoxControl:SetDefaultText(GetString(PCHAT_SEARCHUI_FROM_SEARCH_DEFAULT_TEXT))
+        --[[
+        self.searchFromEditBoxControl:SetHandler("OnMouseEnter", function()
+            InitializeTooltip(InformationTooltip, self.searchFromEditBoxControl, BOTTOM, 0, -10)
+            SetTooltipText(InformationTooltip, getLocalizedText("nameTextSearchTT"))
+        end)
+        self.searchFromEditBoxControl:SetHandler("OnMouseExit", function() ClearTooltip(InformationTooltip)  end)
+        ]]
+        self.searchFromEditBoxControl:SetHandler("OnTextChanged", function(editBoxCtrl)
+            selfVar:ThrottledCall(searchUIThrottledSearchHandlerName, searchUIThrottledDelay, refreshSearchFilters, selfVar, selfVar.searchFromEditBoxControl)
+            selfVar:UpdateSearchHistory(editBoxCtrl)
+        end)
+        self.searchFromEditBoxControl:SetHandler("OnMouseUp", function(editBoxCtrl, mouseButton, upInside, shift, ctrl, alt, command)
+            if mouseButton == MOUSE_BUTTON_INDEX_RIGHT and upInside then
+                selfVar:OnSearchEditBoxContextMenu(editBoxCtrl, shift, ctrl, alt, command)
+            end
+        end)
+
+        --Results list -> ZO_SortFilterList
+        searchUI.counterControl = searchUI:GetNamedChild("Counter")
+        self.searchUICounterControl = searchUI.counterControl
+        self.searchUIListControl = searchUI:GetNamedChild("List")
+        searchUI.list = self.searchUIListControl
+        self.searchUIList = pChat_SearchUI_List:New(searchUI, self) --pass in the parent control of "Headers" and "List" -> "SearchUI"
+
+        --ZO_SortFilterList:RefreshFilters()                           =>  FilterScrollList()  =>  SortScrollList()    =>  CommitScrollList()
+        --Do not refresh the data here now, but as the SearchUI shows!
+        --self.searchUIList:RefreshData()
+    end
+end
+
+function ChatCopyOptions:SetSearchEditBoxValue(editBoxControl, searchTerm)
+    if editBoxControl and editBoxControl.SetText then
+        editBoxControl:SetText(searchTerm)
+    end
+end
+
+function ChatCopyOptions:OnSearchEditBoxContextMenu(editBoxControl, shift, ctrl, alt, command)
+    if LibCustomMenu == nil then return end
+    local selfVar = self
+    local searchHistory = pChat.db.chatSearchHistory
+    local doShowMenu = false
+
+    --Search set name/id text field
+    if editBoxControl == selfVar.searchEditBoxControl then
+        local searchType = SEARCH_TYPE_MESSAGE
+        local searchHistoryOfSearchMode = searchHistory[searchType]
+        if searchHistoryOfSearchMode ~= nil and #searchHistoryOfSearchMode > 0 then
+            ClearMenu()
+            for _, searchTerm in ipairs(searchHistoryOfSearchMode) do
+                AddCustomMenuItem(searchTerm, function()
+                    selfVar:SetSearchEditBoxValue(editBoxControl, searchTerm)
+                    ClearMenu()
+                end)
+            end
+            AddCustomMenuItem("-", function() end)
+            AddCustomMenuItem(GetString(PCHAT_SEARCHUI_CLEAR_SEARCH_HISTORY), function()
+                clearSearchHistory(searchType)
+                ClearMenu()
+            end)
+            doShowMenu = true
+        end
+    --Bonus text field
+    elseif editBoxControl == selfVar.bonusSearchEditBoxControl then
+        ClearMenu()
+        local searchType = SEARCH_TYPE_FROM
+        local searchHistoryOfSearchMode = searchHistory[searchType]
+        if searchHistoryOfSearchMode ~= nil and #searchHistoryOfSearchMode > 0 then
+            ClearMenu()
+            for _, searchTerm in ipairs(searchHistoryOfSearchMode) do
+                AddCustomMenuItem(searchTerm, function()
+                    selfVar:SetSearchEditBoxValue(editBoxControl, searchTerm)
+                    ClearMenu()
+                end)
+            end
+            AddCustomMenuItem("-", function() end)
+            AddCustomMenuItem(GetString(PCHAT_SEARCHUI_CLEAR_SEARCH_HISTORY), function()
+                clearSearchHistory(searchType)
+                ClearMenu()
+            end)
+            doShowMenu = true
+        end
+    end
+    --Show the context menu now?
+    if doShowMenu == true then
+        ShowMenu(editBoxControl)
+    end
+end
+
+function ChatCopyOptions:UpdateSearchHistory(editBoxCtrl)
+    --Get the editbox text and the searchType
+    local searchValue = editBoxCtrl:GetText()
+    local isEmptySearch = (searchValue == nil or searchValue == "" and true) or false
+    if isEmptySearch then return end
+    local searchType = (editBoxCtrl == self.searchMessageEditBoxControl and SEARCH_TYPE_MESSAGE) or SEARCH_TYPE_FROM
+    updateSearchHistoryDelayed(searchType, searchValue)
+end
+--ZO_SortFilterList filter functions
+function ChatCopyOptions:CheckForMatch(data, searchInputMessage, searchInputFrom)
+    local stringSearch = self.stringSearch
+    stringSearch._searchType = nil
+
+    local isMatch = false
+
+    local searchInputNumber = tonumber(searchInputMessage)
+    if searchInputNumber ~= nil then
+        local searchValueType = type(searchInputNumber)
+        if searchValueType == "number" then
+            isMatch = searchInputNumber == data.messageId or false
+            if isMatch == true and searchInputFrom ~= nil and searchInputFrom ~= "" then
+                stringSearch._searchType = SEARCH_TYPE_FROM
+                --Will call self.stringSearch:ProcessItemEntry
+                isMatch = stringSearch:IsMatch(searchInputFrom, data)
+            end
+        end
+    else
+        --Will call self.stringSearch:ProcessItemEntry
+        --Check message comparison first
+        if isMatch == false and searchInputMessage ~= nil and searchInputMessage ~= "" then
+            stringSearch._searchType = SEARCH_TYPE_MESSAGE
+            isMatch = stringSearch:IsMatch(searchInputMessage, data)
+        end
+        --Afterwards check from comparison
+        if isMatch == true and searchInputFrom ~= nil and searchInputFrom ~= "" then
+            stringSearch._searchType = SEARCH_TYPE_FROM
+            isMatch = stringSearch:IsMatch(searchInputFrom, data)
+        end
+    end
+    return isMatch
+end
+
+
+function ChatCopyOptions:ProcessItemEntry(stringSearch, data, searchTerm)
+    local searchType = stringSearch._searchType
+    if searchType == nil then return end
+
+    if searchType == SEARCH_TYPE_MESSAGE then
+        if zo_plainstrfind(data.rawMessage, searchTerm) then
+            return true
+        end
+    elseif searchType == SEARCH_TYPE_FROM then
+        if zo_plainstrfind(data.rawFrom, searchTerm) then
+            return true
+        end
+    end
+    return false
+end
+
+function ChatCopyOptions:StartSearch()
+    --Update the results list now
+    if self.searchUIList ~= nil then
+        --At "BuildMasterList" the self.searchParams will be pre-filtered, and at FilterScrollList the text search filters will be added
+        self.searchUIList:RefreshData() --> -- ZO_SortFilterList:RefreshData()      =>  BuildMasterList()   =>  FilterScrollList()  =>  SortScrollList()    =>  CommitScrollList()
+        return true
+    end
+    return false
 end
 
 function ChatCopyOptions:UpdateGuildNames()
@@ -921,6 +1459,8 @@ function ChatCopyOptions:ApplyFilters()
         self.message = CopyWholeChat(true)
         --Reset the buttons "prev"/"next" etc.
         self:UpdateEditAndButtons()
+
+        self:UpdateSearchUI()
     end
 end
 
@@ -974,15 +1514,76 @@ function ChatCopyOptions:ChangeFiltersState(doEnable, filterType)
     end
 end
 
+function ChatCopyOptions:ShowSearchUI()
+   --For debugging!
+    self.control:GetNamedChild("ModalUnderlay"):SetHidden(true)
+
+    self.isSearchUIShown = true
+    self.searchUIToggleButton:SetText(GetString(PCHAT_TOGGLE_SEARCH_UI_OFF))
+--d("[pChat]ChatCopyOptions-SearchUI - SHOWN")
+    self.control:ClearAnchors()
+    self.control:SetAnchor(RIGHT, GuiRoot, CENTER, 0, 0)
+
+    self.searchUI:ClearAnchors()
+    self.searchUI:SetAnchor(TOPLEFT, self.control, TOPRIGHT, 0, 0)
+    self.searchUI:SetAnchor(BOTTOMLEFT, self.control, BOTTOMRIGHT, 0, 0)
+    self.searchUI:SetWidth(900)
+    self.searchUI:SetHidden(false)
+
+    --Prepare the ZO_SortFilterList's masterList table and add the relevant date, from and message information
+    --> Will be done at function CopyWholeChat if param "updateShownDialog" is true -> table pChat_searchUIMasterList will be filled with relevant db.lineStrings
+    self:UpdateSearchUI()
+end
+
+function ChatCopyOptions:ClearSearchUIInternalData()
+    ZO_ClearTable(pChat_searchUIMasterList)
+end
+
+function ChatCopyOptions:HideSearchUI()
+    self:ClearSearchUIInternalData()
+
+    self.isSearchUIShown = false
+    self.searchUIToggleButton:SetText(GetString(PCHAT_TOGGLE_SEARCH_UI_ON))
+--d("[pChat]ChatCopyOptions-SearchUI - HIDDEN")
+
+    self.control:ClearAnchors()
+    self.control:SetAnchor(CENTER, GuiRoot, CENTER, 0, 0)
+
+    self.searchUI:SetWidth(0)
+    self.searchUI:SetHidden(true)
+end
+
+
+--Toggle the search UI controls and fill the ZO_SortFilterScrollList with the text lines of the prefiltered chat
+function ChatCopyOptions:ToggleSearchUI()
+    if self.isSearchUIShown == false then
+        self:ShowSearchUI()
+    else
+        self:HideSearchUI()
+    end
+end
+
 function ChatCopyOptions:Show()
 --d("[pChat]ChatCopyOptions:Show()")
     ZO_Dialogs_ShowDialog("PCHAT_CHAT_COPY_DIALOG")
+    local dialogControl = self.control
+    dialogControl:SetMouseEnabled(true)
+    dialogControl:SetMovable(true)
+    dialogControl:GetNamedChild("ModalUnderlay"):SetHidden(true)
 end
 
 function ChatCopyOptions:Hide()
+--d("[pChat]ChatCopyOptions:Hide")
+    local dialogControl = self.control
+    --dialogControl:SetMouseEnabled(true)
+    dialogControl:SetMovable(false)
+    dialogControl:GetNamedChild("ModalUnderlay"):SetHidden(false)
+
     --Unset the messageText and chatChannel variables in the dialog object
     self.message = nil
     self.chatChannel = nil
+
+    self:HideSearchUI()
 end
 
 --[[ XML Handlers ]]--
@@ -993,6 +1594,10 @@ end
 
 function pChat_ChatCopyOptions_OnCommitClicked()
 	pChat.ChatCopyOptions:ApplyFilters()
+end
+
+function pChat_ChatCopyOptions_ToggleSearchUI()
+	pChat.ChatCopyOptions:ToggleSearchUI()
 end
 
 function pChat_ChatCopyOptions_OnHide()
@@ -1011,6 +1616,26 @@ function pChat_ChatCopyOptions_DisableAllFilters(filterType)
     pChat.ChatCopyOptions:ChangeFiltersState(false, filterType)
 end
 
+function pChat_SearchUI_Shared_SortHeaderTooltip(sortHeaderColumn)
+    if sortHeaderColumn == nil or sortHeaderColumn.name == nil or sortHeaderColumn.name == "" then return end
+    local nameLabel = sortHeaderColumn:GetNamedChild("Name")
+    if nameLabel ~= nil and nameLabel:WasTruncated() then
+        InitializeTooltip(InformationTooltip, sortHeaderColumn, BOTTOM, 0, -10, TOP)
+        SetTooltipText(InformationTooltip, sortHeaderColumn.name)
+    end
+end
+
+function pChat_SearchUI_Shared_Row_OnMouseEnter(rowControl)
+
+end
+
+function pChat_SearchUI_Shared_Row_OnMouseExit(rowControl)
+
+end
+
+function pChat_SearchUI_Shared_Row_OnMouseUp(rowControl, mouseButton, upInside, shift, alt, ctrl, command)
+
+end
 
 --[[
 function pChat_ChatCopyOptionsOnCheckboxToggled(buttonControl, checked)
@@ -1050,15 +1675,28 @@ local function changeCopyDialogPage(p_control, newIndex)
     if not newIndex or newIndex == 0 or newIndex > 1 or newIndex < -1 then return end
     local oldIndex = pChatData.messageTableId
     local numPages = tostring(#pChatData.messageTable)
-    pChatData.messageTableId = pChatData.messageTableId + newIndex
+--d("[pChat]changeCopyDialogPage-newIndex: " ..tos(newIndex) .. ", oldIndex: " ..tos(pChatData.messageTableId) .. "; numPages: " ..tos(numPages))
+    pChatData.messageTableId = oldIndex + newIndex
     local messageTableId = pChatData.messageTableId
-    if pChatData.messageTable[messageTableId] then
+
+--d(">oldIndex: " ..tos(oldIndex) ..", messageTableId new: " ..tos(messageTableId))
+
+
+    if pChatData.messageTable[messageTableId] ~= nil then
         -- Build button
         local notePrev = GetControl(p_control, "NotePrev")
         local noteNext = GetControl(p_control, "NoteNext")
         local noteEdit = GetControl(p_control, "NoteEdit")
-        local prevButtonText = tostring(oldIndex) .. " / " .. numPages
-        local nextButtonText = tostring(messageTableId) .. " / " .. numPages
+        local prevButtonText, nextButtonText
+        --Next button pressed
+        if newIndex == 1 then
+            prevButtonText = tostring(oldIndex) .. " / " .. numPages
+            nextButtonText = tostring(messageTableId) .. " / " .. numPages
+        --prev button pressed
+        else
+            prevButtonText = tostring(messageTableId) .. " / " .. numPages
+            nextButtonText = tostring(oldIndex) .. " / " .. numPages
+        end
         notePrev:SetText(GetString(PCHAT_COPYXMLPREV) .. " ( " ..  prevButtonText .. " )")
         noteNext:SetText(GetString(PCHAT_COPYXMLNEXT) .. " ( " ..  nextButtonText .. " )")
         noteEdit:SetText(pChatData.messageTable[messageTableId])

@@ -76,7 +76,7 @@ function pChat.InitializeSettings()
 		chatMaximizedAfterMenus = false,
 		chatMaximizedAfterMove = false,
 		windowDarkness = 6,
-		chatSyncConfig = true,
+		chatSyncConfig = false,
 		floodProtect = true,
 		floodGracePeriod = 30,
 		lookingForProtect = false,
@@ -186,6 +186,11 @@ function pChat.InitializeSettings()
         ignoreWithDialogContextMenuAtChat = false,
         showIgnoredInfoInContextMenuAtChat = false,
 
+		chatSearchHistory = {
+			[CONSTANTS.SEARCH_TYPE_MESSAGE] = {},
+			[CONSTANTS.SEARCH_TYPE_FROM] = {},
+		},
+
 	-- Coorbin20200708
 		-- Chat Mentions
 		excl = false,
@@ -247,22 +252,29 @@ function pChat.InitializeSettings()
 
 	end
 
-	-- Character Sync
+	-- Character Sync - Provide dropdown list of characterNames (and IDs)
 	local function SyncCharacterSelectChoices()
+		local useCurrentCharData = false
 		-- Sync Character Select
 		pChatData.chatConfSyncChoices = {}
 		pChatData.chatConfSyncChoicesCharIds = {}
-		if db.chatConfSync then
+		--Chat config sync data was saved before already?
+		if db.chatConfSync ~= nil then
+			useCurrentCharData = true
 			for charId, _ in pairs (db.chatConfSync) do
-				if charId ~= "lastChar" then
+				if charId ~= nil and charId ~= CONSTANTS.chatConfigSyncLastChar then --do not contain the "lastChar" entry!
 					local nameOfCharId = pChat.characterId2Name[charId]
-					if charId and nameOfCharId then
+					if nameOfCharId ~= nil then
 						table.insert(pChatData.chatConfSyncChoices, nameOfCharId)
 						table.insert(pChatData.chatConfSyncChoicesCharIds, charId)
+						useCurrentCharData = false
 					end
 				end
 			end
 		else
+			useCurrentCharData = true
+		end
+		if useCurrentCharData == true and ZO_IsTableEmpty(pChatData.chatConfSyncChoices) then
 			table.insert(pChatData.chatConfSyncChoices, pChatData.localPlayer)
 			table.insert(pChatData.chatConfSyncChoicesCharIds, GetCurrentCharacterId())
 		end
@@ -270,6 +282,8 @@ function pChat.InitializeSettings()
 
 	-- Build LAM Option Table, used when AddonLoads or when a player join/leave a guild
 	local function BuildLAMPanel()
+		pChat.updateChatChannelNames()
+
 		--d("[pChat]Build LAM Panel")
 		local function UpdateSoundDescription(soundType, newSoundIndex)
 			--Whisper sound
@@ -298,7 +312,8 @@ function pChat.InitializeSettings()
 			local r, g, b, a = ConvertHexToRGBA(colourString)
 			return {r = r, g = g, b = b, a = a}
 		end
-
+		--Build the chat config sync dropdown boxes with the characterNames of the account, or if no saved data yet:
+		--only with the currently logged in charName
 		SyncCharacterSelectChoices()
 
 		-- ChatSys.primaryContainer.windows doesn't exists yet at OnAddonLoaded. So using the pChat reference.
@@ -2388,7 +2403,6 @@ function pChat.InitializeSettings()
 
 		-- Save Guild indexes for guild reorganization
 		SaveGuildIndexes()
-
 	end
 
 	-- Runs whenever "me" left a guild (or get kicked)
@@ -2412,7 +2426,7 @@ function pChat.InitializeSettings()
 			local charId2Name = pChat.characterId2NameRaw
 			for charName, charsChatConfSyncData in pairs(db.chatConfSync) do
 				--logger:Debug(">charName: %s, type: %s", charName, type(tonumber(charName)))
-				if charName and charName ~= "" and charName ~= "lastChar" and type(tonumber(charName)) ~= "number" then
+				if charName and charName ~= "" and charName ~= CONSTANTS.chatConfigSyncLastChar and type(tonumber(charName)) ~= "number" then
 					--Migrate the old charName to it's charId
 					local charId = charName2Id[charName]
 					--CharId exists? If not the char is not existing anymore at this account and will be removed!

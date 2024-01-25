@@ -88,9 +88,8 @@ function pChat.InitializeChatHistory()
         db.history = {}
 
         if (db.restoreOnReloadUI == true and typeOf == 1) or (db.restoreOnLogOut == true and typeOf == 2) or (db.restoreOnAFK == true) or (db.restoreOnQuit == true and typeOf == 3) then
-
+            --ReloadUI & SetCVar
             if typeOf == 1 then
-
                 db.lastWasReloadUI = true
                 db.lastWasLogOut = false
                 db.lastWasQuit = false
@@ -99,12 +98,13 @@ function pChat.InitializeChatHistory()
                 --Save actual channel
                 db.history.currentChannel = ChatSys.currentChannel
                 db.history.currentTarget = ChatSys.currentTarget
-
+            --Logout
             elseif typeOf == 2 then
                 db.lastWasReloadUI = false
                 db.lastWasLogOut = true
                 db.lastWasQuit = false
                 db.lastWasAFK = false
+            --Quit
             elseif typeOf == 3 then
                 db.lastWasReloadUI = false
                 db.lastWasLogOut = false

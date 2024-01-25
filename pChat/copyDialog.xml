@@ -1,4 +1,9 @@
 <GuiXml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sir.insidi.at/or/schema/esoui.xsd">
+<!-- pChat Search UI - Font definitions -->
+	<Font name="MyFontGame16" font="$(MEDIUM_FONT)|$(KB_16)|soft-shadow-thin" />
+    <Font name="MyFontGame18" font="$(BOLD_FONT)|$(KB_18)|soft-shadow-thik" />
+    <Font name="MyFontGame20" font="$(BOLD_FONT)|$(KB_20)|soft-shadow-thik" />
+
 	<Controls>
 		<!-- Virutal template for chat options checkbox -->
 		<Control name="pChat_ChatCopyOptionsFilterEntry" virtual="true">
@@ -35,6 +40,64 @@
                 </Button>
             </Controls>
         </Control>
+        <!-- Virtual Sort headers -->
+        <Control name="pChatSearchUISortHeader" inherits="ZO_SortHeaderBehavior" virtual="true" level="2">
+            <Controls>
+                <Label name="$(parent)Name" font="MyFontGame18" color="INTERFACE_COLOR_TYPE_TEXT_COLORS:INTERFACE_TEXT_COLOR_NORMAL"  horizontalAlignment="CENTER" verticalAlignment="CENTER" wrapMode="ELLIPSIS">
+                    <AnchorFill />
+                </Label>
+            </Controls>
+            <OnMouseEnter>
+                pChat_SearchUI_Shared_SortHeaderTooltip(self)
+            </OnMouseEnter>
+            <OnMouseExit>
+                ClearTooltip(InformationTooltip)
+            </OnMouseExit>
+        </Control>
+        <!-- Virtual backdrops -->
+		<Backdrop name="pChatSearchUIBackdrop" inherits="ZO_DefaultBackdrop" excludeFromResizeToFitExtents="true" virtual="true" tier="LOW" layer="BACKGROUND" level="0">
+			<AnchorFill />
+		</Backdrop>
+		<!-- Virtual labels -->
+        <Label name="pChatSearchUIRowLabel" font="MyFontGame16" wrapMode="ELLIPSIS" horizontalAlignment="LEFT" verticalAlignment="TOP" maxLineCount="4" newLineIndent="3" virtual="true">
+			<Dimensions y="60" />
+		</Label>
+		<!-- SCROLL_LIST_NON_UNIFORM -->
+
+		<!-- Virtual ZO_SortFilterList Rows -->
+		<Control name="pChatSearchUIRow" mouseEnabled="true" virtual="true" hidden="false">
+			<Dimensions y="90" />
+			<OnMouseEnter>
+                pChat_SearchUI_Shared_Row_OnMouseEnter(self)
+			</OnMouseEnter>
+			<OnMouseExit>
+                pChat_SearchUI_Shared_Row_OnMouseExit(self)
+			</OnMouseExit>
+            <OnMouseUp>
+                pChat_SearchUI_Shared_Row_OnMouseUp(self, button, upInside, shift, alt, ctrl, command)
+			</OnMouseUp>
+			<Controls>
+				<Texture name="$(parent)BG" inherits="ZO_ThinListBgStrip"/>
+				<Label name="$(parent)Time" inherits="pChatSearchUIRowLabel">
+					<Anchor point="LEFT" />
+					<DimensionConstraints minX="150" maxX="150" />
+				</Label>
+				<Label name="$(parent)From" inherits="pChatSearchUIRowLabel">
+					<Anchor point="LEFT" relativePoint="RIGHT" relativeTo="$(parent)Time" />
+                    <DimensionConstraints minX="150" maxX="150" />
+				</Label>
+				<Label name="$(parent)ChatChannel" inherits="pChatSearchUIRowLabel">
+					<Anchor point="LEFT" relativePoint="RIGHT" relativeTo="$(parent)From" />
+                    <DimensionConstraints minX="100" maxX="100" />
+				</Label>
+				<Label name="$(parent)Message" inherits="pChatSearchUIRowLabel">
+					<Anchor point="LEFT" relativePoint="RIGHT" relativeTo="$(parent)ChatChannel" />
+					<Anchor point="RIGHT" relativePoint="RIGHT" relativeTo="$(parent)" offsetX="-4" />
+                    <DimensionConstraints minX="500" maxX="500" />
+				</Label>
+			</Controls>
+		</Control>
+
 
 		<!-- The chat options dialog containing the following sections:
 		 	1. Checkboxes for chat channels
@@ -51,7 +114,8 @@
 				pChat_ChatCopyOptions_OnHide()
 			</OnHide>
 			<ResizeToFitPadding width="25" height="25" />
-			<DimensionConstraints maxX="1000" maxY="800" />
+			<!--<DimensionConstraints maxX="830" maxY="670" /> -->
+			<Dimensions x="830" y="670" />
 			<Controls>
 				<Label name="$(parent)Label" inherits="ZO_DialogContentAnchors" horizontalAlignment="CENTER" color="INTERFACE_COLOR_TYPE_TEXT_COLORS:INTERFACE_TEXT_COLOR_NORMAL" font="ZoFontHeader3"/>
 
@@ -147,6 +211,97 @@
 						pChat_ChatCopyOptions_OnCommitClicked()
 					</OnClicked>
 				</Button>
+				<Button name="$(parent)ToggleSearch" inherits="ZO_DefaultButton">
+					<Anchor point="TOPRIGHT" relativePoint="TOPRIGHT" relativeTo="$(parent)" offsetX="-15" offsetY="15"/>
+					<OnClicked>
+						pChat_ChatCopyOptions_ToggleSearchUI()
+					</OnClicked>
+				</Button>
+
+				<!-- The search UI with the ZO_SortFilterScrollList and the text search editbox -->
+				<Control name="$(parent)SearchUI" tier="LOW" layer="CONTROLS" level="0">
+					<Anchor point="TOPLEFT" relativePoint="TOPRIGHT" relativeTo="$(parent)" offsetX="0" offsetY="0"/>
+					<Anchor point="BOTTOMLEFT" relativePoint="BOTTOMRIGHT" relativeTo="$(parent)" offsetX="0" offsetY="0"/>
+					<DimensionConstraints maxX="900" maxY="800" />
+					<ResizeToFitPadding width="25" height="25" />
+
+					<Controls>
+						<!-- Background -->
+						<Backdrop name="$(parent)BG" alpha="1" inherits="pChatSearchUIBackdrop" centerColor="666666">
+							<AnchorFill/>
+						</Backdrop>
+
+                        <!-- Filter edit box - Message text search -->
+                        <Backdrop name="$(parent)MessageSearch" inherits="ZO_SingleLineEditBackdrop_Keyboard" tier="LOW" layer="CONTROLS" level="1">
+                            <Anchor point="TOPLEFT" relativePoint="TOPLEFT" relativeTo="$(parent)" offsetX="10" offsetY="10" />
+                            <Dimensions x="400" y="24" />
+                            <Controls>
+                                <EditBox name="$(parent)Box" inherits="ZO_DefaultEditForBackdrop" />
+                            </Controls>
+                        </Backdrop>
+                        <!-- Filter edit box - From text search -->
+                        <Backdrop name="$(parent)FromSearch" inherits="ZO_SingleLineEditBackdrop_Keyboard" tier="LOW" layer="CONTROLS" level="1">
+                            <Anchor point="TOPLEFT" relativePoint="TOPRIGHT" relativeTo="$(parent)MessageSearch" offsetX="10" offsetY="0" />
+                            <Dimensions x="400" y="24" />
+                            <Controls>
+                                <EditBox name="$(parent)Box" inherits="ZO_DefaultEditForBackdrop" />
+                            </Controls>
+                        </Backdrop>
+
+                        <!-- ZO_SortFilterScrollList - Sort header -->
+                        <Control name="$(parent)Headers" tier="LOW" layer="CONTROLS" level="1">
+                            <Dimensions y="30" />
+                            <Anchor point="TOPLEFT" relativeTo="$(parent)MessageSearch" relativePoint="BOTTOMLEFT" offsetX="0" offsetY="10" />
+                            <Controls>
+                                <Control name="$(parent)Time" inherits="pChatSearchUISortHeader">
+                                    <OnInitialized>
+                                        ZO_SortHeader_Initialize(self, GetString(PCHAT_SEARCHUI_HEADER_TIME), "rawTimestamp", ZO_SORT_ORDER_UP, TEXT_ALIGN_LEFT, "ZoFontGame")
+                                    </OnInitialized>
+                                    <Anchor point="TOPLEFT" />
+                                    <Dimensions y="30" />
+                                    <DimensionConstraints minX="150" maxX="150" />
+                                </Control>
+                                <Control name="$(parent)From" inherits="pChatSearchUISortHeader">
+                                    <OnInitialized>
+                                        ZO_SortHeader_Initialize(self, GetString(PCHAT_SEARCHUI_HEADER_FROM), "rawFrom", ZO_SORT_ORDER_UP, TEXT_ALIGN_LEFT, "ZoFontGameLargeBold")
+                                    </OnInitialized>
+                                    <Anchor point="TOPLEFT" relativePoint="TOPRIGHT" relativeTo="$(parent)Time" />
+                                    <Dimensions y="30" />
+                                    <DimensionConstraints minX="150" maxX="150" />
+                                </Control>
+                                <Control name="$(parent)ChatChannel" inherits="pChatSearchUISortHeader">
+                                    <OnInitialized>
+                                        ZO_SortHeader_Initialize(self, GetString(PCHAT_SEARCHUI_HEADER_CHATCHANNEL), "chatChannel", ZO_SORT_ORDER_UP, TEXT_ALIGN_LEFT, "ZoFontGameLargeBold")
+                                    </OnInitialized>
+                                    <Anchor point="TOPLEFT" relativePoint="TOPRIGHT" relativeTo="$(parent)From" />
+                                    <Dimensions y="30" />
+                                    <DimensionConstraints minX="100" maxX="100" />
+                                </Control>
+                                <Control name="$(parent)Message" inherits="pChatSearchUISortHeader">
+                                    <OnInitialized>
+                                        ZO_SortHeader_Initialize(self, GetString(PCHAT_SEARCHUI_HEADER_MESSAGE), "rawMessage", ZO_SORT_ORDER_UP, TEXT_ALIGN_LEFT, "ZoFontGameLargeBold")
+                                    </OnInitialized>
+                                    <Anchor point="TOPLEFT" relativePoint="TOPRIGHT" relativeTo="$(parent)ChatChannel" />
+                                    <Anchor point="TOPRIGHT" relativePoint="TOPRIGHT" relativeTo="$(parent)" offsetX="-4" />
+                                    <Dimensions y="30" />
+                                    <DimensionConstraints minX="500" maxX="500" />
+                                </Control>
+                            </Controls>
+                        </Control>
+
+                        <!-- ZO_SortFilterScrollList -->
+                        <Control name="$(parent)List" inherits="ZO_ScrollList" tier="LOW" layer="CONTROLS" level="1">
+                            <Anchor point="TOPLEFT" relativeTo="$(parent)Headers" relativePoint="BOTTOMLEFT" offsetY="0" />
+                            <Anchor point="BOTTOMRIGHT" relativeTo="$(parent)" relativePoint="BOTTOMRIGHT" offsetX="0" offsetY="-6" />
+                        </Control>
+
+                        <!-- Counter - Showing currently number of filtered rows -->
+                        <Label name="$(parent)Counter" font="ZoFontGameSmall" horizontalAlignment="RIGHT" color="INTERFACE_COLOR_TYPE_TEXT_COLORS:INTERFACE_TEXT_COLOR_DISABLED" tier="LOW" layer="CONTROLS" level="1">
+                            <Anchor point="TOPRIGHT" relativeTo="$(parent)List" relativePoint="BOTTOMRIGHT" offsetY="0" />
+                        </Label>
+					</Controls>
+				</Control>
+
 			</Controls>
 		</TopLevelControl>
 	</Controls>

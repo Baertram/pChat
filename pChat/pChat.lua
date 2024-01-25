@@ -25,6 +25,47 @@
 ------------------------------------------------------------------------------------------------------------------------
 --#15 2024-01-02 Chat IM button (on incoming whisper -> Sometimes clickable button to scroll to bottom) shows even if we currently are at the whisper tab and are at the bottom of the chat already
 ------------------------------------------------------------------------------------------------------------------------
+--#16 2024-01-23 Baertram Right clicked a text in chat: [22:41:23] [FTS] @xavaheel-xahuna/Xalxulnassa-Xahuna: Anyways, time to head off. Goodnight Fair Traders :)
+--[[
+/EsoUI/Ingame/Contacts/Keyboard/Notifications_Keyboard.lua:434: attempt to index a nil value
+|rstack traceback:
+/EsoUI/Ingame/Contacts/Keyboard/Notifications_Keyboard.lua:434: in function '(anonymous)'
+(tail call): ?
+/EsoUI/Libraries/ZO_KeybindStrip/ZO_KeybindStrip.lua:319: in function 'GetKeybindDescriptorDebugIdentifier'
+|caaaaaa<Locals> keybindButtonDescriptor = [table:1]{addedForSceneName = "notifications", keybind = "UI_SHORTCUT_PRIMARY"} </Locals>|r
+/EsoUI/Libraries/ZO_KeybindStrip/ZO_KeybindStrip.lua:331: in function 'ZO_KeybindStrip:HandleDuplicateAddKeybind'
+|caaaaaa<Locals> self = [table:2]{batchUpdating = T, insertionId = 5, allowDefaultExit = T}, existingButtonOrEtherealDescriptor = ud, keybindButtonDescriptor = [table:3]{alignment = 2, name = "Mitglied hinzufügen", keybind = "UI_SHORTCUT_PRIMARY"}, currentSceneName = "notifications", existingDescriptor = [table:1], existingSceneName = "notifications" </Locals>|r
+/EsoUI/Libraries/ZO_KeybindStrip/ZO_KeybindStrip.lua:380: in function 'ZO_KeybindStrip:AddKeybindButton'
+|caaaaaa<Locals> self = [table:2], keybindButtonDescriptor = [table:3], currentSceneName = "notifications", existingButtonOrEtherealDescriptor = ud </Locals>|r
+/EsoUI/Libraries/ZO_KeybindStrip/ZO_KeybindStrip.lua:572: in function 'ZO_KeybindStrip:AddKeybindButtonGroup'
+|caaaaaa<Locals> self = [table:2], keybindButtonGroupDescriptor = [table:4]{}, i = 1, keybindButtonDescriptor = [table:3] </Locals>|r
+/EsoUI/Ingame/Guild/Keyboard/GuildRoster_Keyboard.lua:32: in function 'callback'
+|caaaaaa<Locals> oldState = "hidden", newState = "showing" </Locals>|r
+/EsoUI/Libraries/Utility/ZO_CallbackObject.lua:132: in function 'ZO_CallbackObjectMixin:FireCallbacks'
+|caaaaaa<Locals> self = [table:5]{disallowEvaluateTransitionCompleteCount = 1, name = "guildRoster", state = "showing", restoresHUDSceneToggleGameMenu = F, wasShownInGamepadPreferredMode = F, restoresHUDSceneToggleUIMode = F, fireCallbackDepth = 1}, eventName = "StateChange", registry = [table:6]{}, callbackInfoIndex = 1, callbackInfo = [table:7]{4 = F}, callback = /EsoUI/Ingame/Guild/Keyboard/GuildRoster_Keyboard.lua:29, deleted = F </Locals>|r
+/EsoUI/Libraries/ZO_Scene/ZO_Scene.lua:151: in function 'ZO_Scene:SetState'
+|caaaaaa<Locals> self = [table:5], newState = "showing", oldState = "hidden", name = "guildRoster" </Locals>|r
+user:/AddOns/pChat/Teleport.lua:208: in function 'isPlayerInAnyOfYourGuilds'
+|caaaaaa<Locals> displayName = "@MushuTheWhale", possibleDisplayNameNormal = "@MushuTheWhale", possibleDisplayName = "@mushuthewhale", numGuilds = 5, currentGuildId = 6477, isStrDisplayName = T, onGuildDataLoaded = user:/AddOns/pChat/Teleport.lua:148, guildIndexIteratorStart = 1, guildIndex = 1, guildsList = ud </Locals>|r
+(tail call): ?
+user:/AddOns/pChat/Teleport.lua:495: in function 'getPortTypeFromName'
+|caaaaaa<Locals> playerName = "@MushuTheWhale", rawName = "@MushuTheWhale", playerTypeStr = "Spieler", localPlayerIsGrouped = F </Locals>|r
+user:/AddOns/pChat/CopyHandler.lua:1186: in function 'ShowContextMenuOnHandlers'
+|caaaaaa<Locals> numLine = 393, chanNumber = 14, accountAndCharacterName = "@MushuTheWhale / Erik Faller", rawFrom = "@MushuTheWhale", accountName = "@MushuTheWhale", characterName = "Erik Faller", playerName = "@MushuTheWhale", playerNameStr = "@MushuTheWhale" </Locals>|r
+user:/AddOns/pChat/CopyHandler.lua:1254: in function 'OnLinkClicked'
+|caaaaaa<Locals> rawLink = "|H1:p:393:14|h[22:41:19] |h", mouseButton = 2, linkText = "[22:41:19] ", color = 1, linkType = "p", lineNumber = 393, chanCode = 14, chanNumber = 14, numLine = 393 </Locals>|r
+/EsoUI/Libraries/Utility/ZO_CallbackObject.lua:132: in function 'ZO_CallbackObjectMixin:FireCallbacks'
+|caaaaaa<Locals> self = [table:8]{LINK_MOUSE_UP_EVENT = "ZO_LinkHandler_LinkMouseUpEven...", INSERT_LINK_EVENT = "ZO_LinkHandler_InsertLinkEvent...", LINK_CLICKED_EVENT = "ZO_LinkHandler_LinkClickedEven...", LINK_NOT_HANDLED_EVENT = "ZO_LinkHandler_NotHandledEvent...", fireCallbackDepth = 1}, eventName = "ZO_LinkHandler_LinkMouseUpEven...", registry = [table:9]{}, callbackInfoIndex = 7, callbackInfo = [table:10]{4 = F}, callback = user:/AddOns/pChat/CopyHandler.lua:1212, deleted = F </Locals>|r
+/EsoUI/Libraries/Utility/ZO_LinkHandler.lua:55: in function 'HandleLinkMouseEvent'
+|caaaaaa<Locals> link = "|H1:p:393:14|h[22:41:19] |h", button = 2, control = ud, eventType = "ZO_LinkHandler_LinkMouseUpEven..." </Locals>|r
+/EsoUI/Libraries/Utility/ZO_LinkHandler.lua:67: in function 'ZO_LinkHandler_OnLinkMouseUp'
+|caaaaaa<Locals> link = "|H1:p:393:14|h[22:41:19] |h", button = 2, control = ud </Locals>|r
+ZO_KeyboardChatWindowTemplate1Buffer_LinkMouseUp:3: in function '(main chunk)'
+|caaaaaa<Locals> self = ud, linkData = "1:p:393:14", linkText = "|H1:p:393:14|h[22:41:19] |h", button = 2, ctrl = F, alt = F, shift = F, command = F </Locals>|r
+]]
+
+
+
 --=======================================================================================================================================
 
 --Working on:
@@ -343,7 +384,7 @@ local function DoPostEventPlayerActivatedChecks()
     if db and db.enablepartyswitch == true and db.enablepartyswitchPortToDungeon == true then
         --Check if in group
         if IsUnitGrouped("player") == true then
-            -- Switch to party channel when joinin a group
+            -- Switch to party channel when joining a group
             CHAT_SYSTEM:SetChannel(CHAT_CHANNEL_PARTY)
         end
     end
@@ -389,7 +430,8 @@ end
 
 -- Registers the formatMessage function.
 -- Unregisters itself from the player activation event with the event manager.
-local function OnPlayerActivated()
+local OnPlayerActivated
+OnPlayerActivated = function()
     logger:Debug("EVENT_PLAYER_ACTIVATED - Start")
     CONSTANTS.CHAT_SYSTEM = CONSTANTS.CHAT_SYSTEM or CHAT_SYSTEM
 
@@ -404,7 +446,7 @@ local function OnPlayerActivated()
         pChat.InitializeChatHandlers()
     end
 
-    --Test if the chat_system containers are given already or wait until they are.
+    --Test if the chat_system containers are given already or wait until they are > wait 12 times
     --Only test 3 seconds, then do the event_player_activated tasks!
     if eventPlayerActivatedChecksDone <= 12 and (CHAT_SYSTEM == nil or CHAT_SYSTEM.primaryContainer == nil) then
         logger:Debug("EVENT_PLAYER_ACTIVATED: CHAT_SYSTEM.primaryContainer is missing!")
@@ -539,7 +581,7 @@ local function LoadHooks()
             --Will be maximized now
             pChat.pChatData.wasManuallyMinimized = false
         else
-            --Will be mainimized now
+            --Will be minimized now
             pChat.pChatData.wasManuallyMinimized = true
         end
     end)

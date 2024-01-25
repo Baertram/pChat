@@ -176,41 +176,57 @@ function pChat.InitializeChatConfig()
     end
     pChat.ChangeChatFont = ChangeChatFont
 
-    -- Save chat configuration
+    -- Save chat configuration of currently logged in characterId
+    -->Called at ReloadUI/SetCVar/Logout/Quit and at login once, and at ZO_ChatOptions_ToggleChannel (At the tabs)
     local function SaveChatConfig()
 
         if not pChatData.tabNotBefore then
             pChatData.tabNotBefore = {} -- Init here or in SyncChatConfig depending if the "Clear Tab" has been used
         end
 
-        if pChatData.isAddonLoaded and ChatSys and ChatSys.primaryContainer then -- Some addons calls SetCVar before
+        if pChatData.isAddonLoaded and ChatSys ~= nil and ChatSys.primaryContainer ~= nil then -- Some addons calls SetCVar before
             local charId = GetCurrentCharacterId()
+
+            if pChat.logger ~= nil then
+                pChat.logger:Debug("SaveChatConfig", "Saving chat and tab config for characterId: " ..tostring(charId) .. "[" .. zo_strformat(SI_UNIT_NAME, GetUnitName("player")) .."]")
+            end
+
+            local primaryContainer = ChatSys.primaryContainer
 
             -- Rewrite the whole char tab
             db.chatConfSync[charId] = {}
 
             -- Save Chat positions
-            db.chatConfSync[charId].relPoint = ChatSys.primaryContainer.settings.relPoint
-            db.chatConfSync[charId].x = ChatSys.primaryContainer.settings.x
-            db.chatConfSync[charId].y = ChatSys.primaryContainer.settings.y
-            db.chatConfSync[charId].height = ChatSys.primaryContainer.settings.height
-            db.chatConfSync[charId].width = ChatSys.primaryContainer.settings.width
-            db.chatConfSync[charId].point = ChatSys.primaryContainer.settings.point
+            local primaryContainerSettings = primaryContainer.settings
+            if primaryContainerSettings ~= nil then
+                db.chatConfSync[charId].relPoint =  primaryContainerSettings.relPoint
+                db.chatConfSync[charId].x =         primaryContainerSettings.x
+                db.chatConfSync[charId].y =         primaryContainerSettings.y
+                db.chatConfSync[charId].height =    primaryContainerSettings.height
+                db.chatConfSync[charId].width =     primaryContainerSettings.width
+                db.chatConfSync[charId].point =     primaryContainerSettings.point
+            end
 
             --db.chatConfSync[charId].textEntryDocked = true
 
             -- Don't overflow screen, remove 10px.
-            if ChatSys.primaryContainer.settings.height >= ( ChatSys.maxContainerHeight - 15 ) then
+            if primaryContainer.settings.height >= ( ChatSys.maxContainerHeight - 15 ) then
+                if pChat.logger ~= nil then
+                    pChat.logger:Debug("SyncChatConfig", ">> Chat container height too high: " ..tostring(primaryContainer.settings.height) .. "/" ..tostring(ChatSys.maxContainerHeight - 15))
+                end
                 db.chatConfSync[charId].height = ( ChatSys.maxContainerHeight - 15 )
             else
-                db.chatConfSync[charId].height = ChatSys.primaryContainer.settings.height
+                db.chatConfSync[charId].height = primaryContainer.settings.height
             end
 
             -- Same
-            if ChatSys.primaryContainer.settings.width >= ( ChatSys.maxContainerWidth - 15 ) then
+            if primaryContainer.settings.width >= ( ChatSys.maxContainerWidth - 15 ) then
+                if pChat.logger ~= nil then
+                    pChat.logger:Debug("SyncChatConfig", ">> Chat container width too wide: " ..tostring(primaryContainer.settings.width) .. "/" ..tostring(ChatSys.maxContainerWidth - 15))
+                end
                 db.chatConfSync[charId].width = ( ChatSys.maxContainerWidth - 15 )
             else
-                db.chatConfSync[charId].width = ChatSys.primaryContainer.settings.width
+                db.chatConfSync[charId].width = primaryContainer.settings.width
             end
 
             -- Save Colors
@@ -229,7 +245,7 @@ function pChat.InitializeChatConfig()
 
             -- GetNumChatContainerTabs(1) don't refresh its number before a ReloadUI
             -- for numTab = 1, GetNumChatContainerTabs(1) do
-            for numTab in ipairs (ChatSys.primaryContainer.windows) do
+            for numTab in ipairs (primaryContainer.windows) do
 
                 db.chatConfSync[charId].tabs[numTab] = {}
 
@@ -240,24 +256,24 @@ function pChat.InitializeChatConfig()
 
                 -- No.. need a ReloadUI     local name, isLocked, isInteractable, isCombatLog, areTimestampsEnabled = GetChatContainerTabInfo(1, numTab)
                 -- IsLocked
-                if ChatSys.primaryContainer:IsLocked(numTab) then
+                if primaryContainer:IsLocked(numTab) then
                     db.chatConfSync[charId].tabs[numTab].isLocked = true
                 else
                     db.chatConfSync[charId].tabs[numTab].isLocked = false
                 end
 
                 -- IsInteractive
-                if ChatSys.primaryContainer:IsInteractive(numTab) then
+                if primaryContainer:IsInteractive(numTab) then
                     db.chatConfSync[charId].tabs[numTab].isInteractable = true
                 else
                     db.chatConfSync[charId].tabs[numTab].isInteractable = false
                 end
 
                 -- IsCombatLog
-                if ChatSys.primaryContainer:IsCombatLog(numTab) then
+                if primaryContainer:IsCombatLog(numTab) then
                     db.chatConfSync[charId].tabs[numTab].isCombatLog = true
                     -- AreTimestampsEnabled
-                    if ChatSys.primaryContainer:AreTimestampsEnabled(numTab) then
+                    if primaryContainer:AreTimestampsEnabled(numTab) then
                         db.chatConfSync[charId].tabs[numTab].areTimestampsEnabled = true
                     else
                         db.chatConfSync[charId].tabs[numTab].areTimestampsEnabled = false
@@ -268,7 +284,7 @@ function pChat.InitializeChatConfig()
                 end
 
                 -- GetTabName
-                db.chatConfSync[charId].tabs[numTab].name = ChatSys.primaryContainer:GetTabName(numTab)
+                db.chatConfSync[charId].tabs[numTab].name = primaryContainer:GetTabName(numTab)
 
                 -- Enabled categories
                 db.chatConfSync[charId].tabs[numTab].enabledCategories = {}
@@ -280,8 +296,9 @@ function pChat.InitializeChatConfig()
 
             end
 
-            db.chatConfSync.lastChar = db.chatConfSync[charId]
-
+            --Update the "lastChar" entry with the currently saved data for the charaacterId loged in,
+            --so next logegd in character can reuse that "lastChar" for the "Chat config sync"!
+            db.chatConfSync[CONSTANTS.chatConfigSyncLastChar] = db.chatConfSync[charId]
         end
 
     end
@@ -398,27 +415,36 @@ function pChat.InitializeChatConfig()
 
     end
 
-    -- Set the chat config from pChat settings
+    -- Set the chat config for character with characterId = whichCharId -> from pChat settings
     local function SyncChatConfig(shouldSync, whichCharId)
 
-        if shouldSync then
-            if db.chatConfSync and db.chatConfSync[whichCharId] and ChatSys and ChatSys.primaryContainer then
+        if shouldSync == true then
+            if db.chatConfSync ~= nil and db.chatConfSync[whichCharId] ~= nil and ChatSys ~= nil and ChatSys.primaryContainer ~= nil then
+
+                if pChat.logger ~= nil then
+                    pChat.logger:Debug("SyncChatConfig", "Syncing chat config and tabs to characterId: " ..tostring(whichCharId) .. "[" .. zo_strformat(SI_UNIT_NAME, GetUnitName("player")) .."]")
+                end
+
+                local primaryContainer = ChatSys.primaryContainer
+
                 local chatConfSyncForCharId = db.chatConfSync[whichCharId]
-                if ChatSys.control then
+                local chatSysControl = ChatSys.control
+                if chatSysControl ~= nil then
                     -- Position and width/height
-                    ChatSys.control:SetAnchor(chatConfSyncForCharId.point, GuiRoot, chatConfSyncForCharId.relPoint, chatConfSyncForCharId.x, chatConfSyncForCharId.y)
+                    chatSysControl:SetAnchor(chatConfSyncForCharId.point, GuiRoot, chatConfSyncForCharId.relPoint, chatConfSyncForCharId.x, chatConfSyncForCharId.y)
                     -- Height / Width
-                    ChatSys.control:SetDimensions(chatConfSyncForCharId.width, chatConfSyncForCharId.height)
+                    chatSysControl:SetDimensions(chatConfSyncForCharId.width, chatConfSyncForCharId.height)
                 end
 
                 -- Save settings immediatly (to check, maybe call function which do this)
-                if ChatSys.primaryContainer.settings then
-                    ChatSys.primaryContainer.settings.height = chatConfSyncForCharId.height
-                    ChatSys.primaryContainer.settings.point = chatConfSyncForCharId.point
-                    ChatSys.primaryContainer.settings.relPoint = chatConfSyncForCharId.relPoint
-                    ChatSys.primaryContainer.settings.width = chatConfSyncForCharId.width
-                    ChatSys.primaryContainer.settings.x = chatConfSyncForCharId.x
-                    ChatSys.primaryContainer.settings.y = chatConfSyncForCharId.y
+                local primaryContainerSettings = CHAT_SYSTEM.primaryContainer.settings
+                if primaryContainerSettings then
+                    primaryContainerSettings.height = chatConfSyncForCharId.height
+                    primaryContainerSettings.point = chatConfSyncForCharId.point
+                    primaryContainerSettings.relPoint = chatConfSyncForCharId.relPoint
+                    primaryContainerSettings.width = chatConfSyncForCharId.width
+                    primaryContainerSettings.x = chatConfSyncForCharId.x
+                    primaryContainerSettings.y = chatConfSyncForCharId.y
                 end
 
                 -- TODO why is this commented out?
@@ -470,9 +496,9 @@ function pChat.InitializeChatConfig()
                     for numTab in ipairs(chatConfSyncForCharId.tabs) do
 
                         --Create a Tab if nessesary
-                        if (GetNumChatContainerTabs(1) < numTab) then
+                        if GetNumChatContainerTabs(1) < numTab then
                             -- AddChatContainerTab(1, , chatConfSyncForCharId.tabs[numTab].isCombatLog) No ! Require a ReloadUI
-                            ChatSys.primaryContainer:AddWindow(chatConfSyncForCharId.tabs[numTab].name)
+                            primaryContainer:AddWindow(chatConfSyncForCharId.tabs[numTab].name)
                         end
 
                         if chatConfSyncForCharId.tabs[numTab] and chatConfSyncForCharId.tabs[numTab].notBefore then
@@ -488,10 +514,10 @@ function pChat.InitializeChatConfig()
                         -- Set Tab options
                         -- Not in realtime : SetChatContainerTabInfo(1, numTab, chatConfSyncForCharId.tabs[numTab].name, chatConfSyncForCharId.tabs[numTab].isLocked, chatConfSyncForCharId.tabs[numTab].isInteractable, chatConfSyncForCharId.tabs[numTab].areTimestampsEnabled)
 
-                        ChatSys.primaryContainer:SetTabName(numTab, chatConfSyncForCharId.tabs[numTab].name)
-                        ChatSys.primaryContainer:SetLocked(numTab, chatConfSyncForCharId.tabs[numTab].isLocked)
-                        ChatSys.primaryContainer:SetInteractivity(numTab, chatConfSyncForCharId.tabs[numTab].isInteractable)
-                        ChatSys.primaryContainer:SetTimestampsEnabled(numTab, chatConfSyncForCharId.tabs[numTab].areTimestampsEnabled)
+                        primaryContainer:SetTabName(numTab, chatConfSyncForCharId.tabs[numTab].name)
+                        primaryContainer:SetLocked(numTab, chatConfSyncForCharId.tabs[numTab].isLocked)
+                        primaryContainer:SetInteractivity(numTab, chatConfSyncForCharId.tabs[numTab].isInteractable)
+                        primaryContainer:SetTimestampsEnabled(numTab, chatConfSyncForCharId.tabs[numTab].areTimestampsEnabled)
 
                         -- Set Channel per tab configuration
                         for _, category in ipairs (chatCategories) do
@@ -512,25 +538,34 @@ function pChat.InitializeChatConfig()
                     -- Too many tabs, deleting one
                     if GetNumChatContainerTabs(1) > chatSyncNumTab then
                         -- Not in realtime : RemoveChatContainerTab(1, chatSyncNumTab + 1)
-                        ChatSys.primaryContainer:RemoveWindow(chatSyncNumTab + 1, nil)
+                        primaryContainer:RemoveWindow(chatSyncNumTab + 1, nil)
                     else
                         removeTabs = false
+                    end
+                end
+            else
+                if not ChatSys or not ChatSys.primaryContainer then
+                    if pChat.logger ~= nil then
+                        pChat.logger:Warn("SyncChatConfig", "ChatSys or ChatSys.primaryContainer is missing")
                     end
                 end
             end
         end
 
     end
+    --Called from settings menu -> LAM dropdown box: GetString(PCHAT_SYNCH)
     pChat.SyncChatConfig = SyncChatConfig
 
     -- When creating a char, try to import settings
     local function AutoSyncSettingsForNewPlayer()
 
-        -- New chars get automaticaly last char config
+        -- New chars get automaticaly "lastChar" config (last logged in user's saved settings)
         if GetIsNewCharacter() then
-            SyncChatConfig(true, "lastChar")
+            --Obverite with "true" -> Even if disabled in the settings menu!
+            SyncChatConfig(true, CONSTANTS.chatConfigSyncLastChar)
+            return true
         end
-
+        return false
     end
 
     -- Set channel to the default one
@@ -714,18 +749,23 @@ function pChat.InitializeChatConfig()
     EM:RegisterForEvent(ADDON_NAME, EVENT_GROUP_MEMBER_JOINED, OnGroupMemberJoined)
     EM:RegisterForEvent(ADDON_NAME, EVENT_GROUP_MEMBER_LEFT, OnGroupMemberLeft)
 
-    -- this is called during the first EVENT_PLAYER_ACTIVATED
+    -- This is called during the first EVENT_PLAYER_ACTIVATED
     function pChat.ApplyChatConfig()
         if not pChatData.isAddonInitialized then
-            -- Should we minimize ?
-            MinimizeChatAtLaunch()
+            -- Get chat and tab's settings for new created character -> From last logged in character
+            local isNewCharacterSynced = AutoSyncSettingsForNewPlayer()
+            -- Chat Config synchronization - Only if not done before already because this is a new created character
+            -- Load the config of the last logged in character (before the current one was logged in), if the chat sync is enabled at the settings
 
-            -- Message for new chars
-            AutoSyncSettingsForNewPlayer()
-
-            -- Chat Config synchronization
-            SyncChatConfig(db.chatSyncConfig, "lastChar")
+            if isNewCharacterSynced == false then
+                SyncChatConfig(db.chatSyncConfig, CONSTANTS.chatConfigSyncLastChar)
+            end
+            --Save the actual chat and tabs config now for the currently logged in char
             SaveChatConfig()
+
+            -- Should we minimize? Call this AFTER saving the actual chat config!!! Else the minimized data might get saved
+            -- and makes the chat look weird at other characters
+            MinimizeChatAtLaunch()
 
             -- Change Window apparence
             ChangeChatWindowDarkness()

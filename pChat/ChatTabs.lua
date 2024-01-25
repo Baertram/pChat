@@ -3,6 +3,10 @@ local ADDON_NAME = CONSTANTS.ADDON_NAME
 
 local ChatSys = CONSTANTS.CHAT_SYSTEM
 
+local validateChatChannelHooked = false
+local handleTabClickHooked = false
+local createNewChatTabHooked = false
+
 function pChat.InitializeChatTabs()
     pChat.tabNames = {}
     pChat.tabIndices = {}
@@ -148,7 +152,7 @@ function pChat.InitializeChatTabs()
         local pChatData = pChat.pChatData
         pChatData.activeTab = 1
 
-        if ChatSys.ValidateChatChannel then
+        if ChatSys.ValidateChatChannel and not validateChatChannelHooked then
             ZO_PreHook(ChatSys, "ValidateChatChannel", function(self)
                 if (db.enableChatTabChannel  == true) and (self.currentChannel ~= CHAT_CHANNEL_WHISPER) then
                     local tabIndex = self.primaryContainer.currentBuffer:GetParent().tab.index
@@ -157,9 +161,10 @@ function pChat.InitializeChatTabs()
                     db.chatTabChannel[tabIndex].target  = self.currentTarget
                 end
             end)
+            validateChatChannelHooked = true
         end
 
-        if ChatSys.primaryContainer.HandleTabClick then
+        if ChatSys.primaryContainer.HandleTabClick and not handleTabClickHooked then
             ZO_PreHook(ChatSys.primaryContainer, "HandleTabClick", function(self, tab)
                 pChatData.activeTab = tab.index
                 --20221106 Check for open whisper notifications shown and if switched to whisper tab, close them if the
@@ -182,15 +187,19 @@ function pChat.InitializeChatTabs()
                 end
                 --ZO_TabButton_Text_RestoreDefaultColors(tab)
             end)
+            handleTabClickHooked = true
         end
 
         -- Will set Keybind for "switch to next tab" if needed
         SetSwitchToNextBinding()
 
         -- Show 1000 lines instead of 200 & Change fade delay
-        SecurePostHook(ChatSys, "CreateNewChatTab", function()
-            CreateNewChatTabPostHook()
-        end)
+        if not createNewChatTabHooked then
+            SecurePostHook(ChatSys, "CreateNewChatTab", function()
+                CreateNewChatTabPostHook()
+            end)
+            createNewChatTabHooked = true
+        end
         CreateNewChatTabPostHook()
 
         -- Get Chat Tab Names stored in chatTabNames {}

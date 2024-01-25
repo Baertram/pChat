@@ -324,26 +324,6 @@ do
     pChat.GetTabTextControl = GetTabTextControl
 end
 
-do
-    --pChat internally uses some chat_channel codes differently from ZOs standard codes,
-    --e.g.instead of CHAT_CHANNEL_SAY (0) -> CONSTANTS.PCHAT_CHANNEL_SAY (98) -> maybe because of 0 based table indices?
-    local function mapChatChannelToPChatChannel(chatChannel)
-        if chatChannel == CHAT_CHANNEL_SAY then
-            return CONSTANTS.PCHAT_CHANNEL_SAY
-        end
-        return chatChannel
-    end
-    pChat.mapChatChannelToPChatChannel = mapChatChannelToPChatChannel
-
-    local function mapPChatChannelToChatChannel(pChatChannel)
-        if pChatChannel == CONSTANTS.PCHAT_CHANNEL_SAY then
-            return CHAT_CHANNEL_SAY
-        end
-        return pChatChannel
-    end
-    pChat.mapPChatChannelToChatChannel = mapPChatChannelToChatChannel
-end
-
 --Baertram, 2021-06-06
 do
     local function showBackupReminder()

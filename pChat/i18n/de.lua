@@ -40,7 +40,7 @@ SafeAddString(PCHAT_enableWhisperTabT							,"Flüster Nachrichten werden zu ein
 
 
 -- New Need Translations
-SafeAddString(PCHAT_ADDON_INFO                                  , "pChat überarbeitet alle möglichen Aspekte deines Chats. Du kannst Farben, Größe, Benachrichtigungen usw. anpassen, dich per Sound benachrichtigen lassen, und vieles mehr.\nDas Addon ChatMentions ist mittlerweile in pChat integriert.\nMit dem Befehl /msg im Chat kannst du die UI zum Definieren von Kürzeln öffnen, mit denen du deine Langtexte (Gilden Willkommens-Grüße z.B.) in den Chat senden kannst.", 1)
+SafeAddString(PCHAT_ADDON_INFO                                  , "pChat überarbeitet alle möglichen Aspekte deines Chats. Du kannst Farben, Größe, Benachrichtigungen usw. anpassen, dich per Sound benachrichtigen lassen, und vieles mehr.\nDas Addon ChatMentions ist mittlerweile in pChat integriert.\nMit dem Befehl /msg kannst du die UI zum Definieren von Kürzeln öffnen, mit denen du deine Langtexte (Gilden Willkommens-Grüße z.B.) in den Chat senden kannst.\nMit dem Befehl /pchats <optionaler Text> öffnest du die Chat Suche.", 1)
 SafeAddString(PCHAT_ADDON_INFO_2                                , "Benutze den Chat Befehl \'/pchatdeleteoldsv\' um alte, nicht-Server abhängige Einstellungen zu löschen (Dateigröße verringern).", 1)
 
 SafeAddString(PCHAT_OPTIONSH											, "Chat Optionen", 1)
@@ -166,11 +166,11 @@ SafeAddString(PCHAT_GROUPNAMESTT									, "Darstellung der Namen in Gruppen.", 
 
 SafeAddString(PCHAT_SYNCH												, "Synchronisierungseinstellungen", 1)
 
-SafeAddString(PCHAT_CHATSYNCCONFIG									, "Chat-Konfiguration synchronisieren", 1)
-SafeAddString(PCHAT_CHATSYNCCONFIGTT								, "Wenn die Synchronisierung aktiviert ist, werden alle Charaktere die gleiche Chat-Konfiguration (Farben, Position, Fensterabmessungen, Reiter) bekommen:\nAktivieren Sie diese Option, nachdem Sie Ihren Chat vollständig für den Vorlagen Charakter angepasst haben!\n\nAchtung: Sie müssen sich bei dem anderen Charakter angemeldet haben, von dem Sie die Chat-Einstellungen kopieren möchten, den Chat richtig konfigurieren und dann einen /reloadui ausführen, um ihn in den SaveVariables zu speichern!\nDanach müssen Sie sich bei den anderen Charakteren anmelden, bei welchen Sie die Einstellungen vom zuvor konfigurierten Charakters übernehmen möchten. Wählen Sie dann den zuvor konfigurierten Charakter aus der Dropdown-Box aus.\n\nDadurch werden NUR DIE ZUVOR GESPEICHERTEN Chat-Einstellungen des ausgewählten Charakters kopiert, UND NUR 1x wenn Sie den Dropdown-Eintrag auswählen!\nDie Einstellungen werden nicht bei jedem nächsten Neuladen/Anmelden erneut kopiert!\nWenn Sie weitere aktualisierten Einstellungen vorm Vorlagen Charakter kopieren möchten (nachdem Sie die Chat-Konfiguration des Vorlagen Charakters geändert haben), müssen Sie sich aktiv anmelden und den Dropdown-Feldeintrag des Vorlagen Charakters für die anderen Charaktere erneut auswählen.", 1)
+SafeAddString(PCHAT_CHATSYNCCONFIG									, "Chat-Konfiguration synchronisieren - Alle gleich", 1)
+SafeAddString(PCHAT_CHATSYNCCONFIGTT								, "Wenn die Synchronisierung aktiviert ist, werden alle Charaktere die gleiche Chat-Konfiguration (Farben, Position, Fensterabmessungen, Reiter) bekommen:\nAktivieren Sie diese Option, nachdem Sie Ihren Chat vollständig für den Vorlagen Charakter angepasst haben!\n\nIst diese Option aktiv so wird immer die Chat Konfiguration des zuletzt eingeloggten Charakters gespeichert und dann auf den nächsten eingeloggten Charakter übertragen, usw.", 1)
 
 SafeAddString(PCHAT_CHATSYNCCONFIGIMPORTFROM						, "Chat Einstellungen übernehmen von", 1)
-SafeAddString(PCHAT_CHATSYNCCONFIGIMPORTFROMTT					, "Sie können jederzeit die Chat-Einstellungen von einem anderen Charakter importieren (Farbe, Ausrichtung, Fenstergröße, Reiter).\nWählen Sie hier Ihren 'Vorlage Charakter' aus.\n\nAchtung: Dies kopiert den zuletzt gespeicherten Stand des ausgewählten Vorlagen Charakters, und nur 1x (wenn Sie den Eintrag auswählen). Wird der Vorlagen Charakter nachträglich geändert, so werden die Einstellungen nicht automatisch noch einmal beim Login dieses Charakters hier übernommen.", 1)
+SafeAddString(PCHAT_CHATSYNCCONFIGIMPORTFROMTT					, "Sie können jederzeit die Chat-Einstellungen von einem anderen Charakter importieren (Farbe, Ausrichtung, Fenstergröße, Reiter).\nWählen Sie hier Ihren 'Vorlage Charakter' aus.Achtung: Sie müssen sich bei dem anderen Charakter angemeldet haben, von dem Sie die Chat-Einstellungen kopieren möchten, den Chat richtig konfigurieren und dann einen /reloadui ausführen, um ihn in den SaveVariables zu speichern!\nDanach müssen Sie sich bei den anderen Charakteren anmelden, bei welchen Sie die Einstellungen vom zuvor konfigurierten Charakters übernehmen möchten. Wählen Sie dann den zuvor konfigurierten Charakter aus der Dropdown-Box aus.\n\nDadurch werden NUR DIE ZUVOR GESPEICHERTEN Chat-Einstellungen des ausgewählten Charakters kopiert, UND NUR 1x wenn Sie den Dropdown-Eintrag auswählen!\nDie Einstellungen werden nicht bei jedem nächsten Neuladen/Anmelden erneut kopiert!\nWenn Sie weitere aktualisierten Einstellungen vorm Vorlagen Charakter kopieren möchten (nachdem Sie die Chat-Konfiguration des Vorlagen Charakters geändert haben), müssen Sie sich aktiv anmelden und den Dropdown-Feldeintrag des Vorlagen Charakters für die anderen Charaktere erneut auswählen.   \n\nAchtung: Dies kopiert den zuletzt gespeicherten Stand des ausgewählten Vorlagen Charakters, und nur 1x (wenn Sie den Eintrag auswählen). Wird der Vorlagen Charakter nachträglich geändert, so werden die Einstellungen nicht automatisch noch einmal beim Login dieses Charakters hier übernommen.", 1)
 
 -- Apparence
 
@@ -451,9 +451,9 @@ SafeAddString(PCHAT_COPYLINECT										, "Zeile kopieren", 1)
 SafeAddString(PCHAT_COPYDISCUSSIONCT								, "Diskussion kopieren", 1)
 SafeAddString(PCHAT_ALLCT												, "Ganzes Plaudern kopieren", 1)
 
-SafeAddString(PCHAT_COPYXMLTITLE										, "Kopiere Text mit STRG+C", 1)
-SafeAddString(PCHAT_COPYXMLLABEL										, "Kopiere Text mit STRG+C", 1)
-SafeAddString(PCHAT_COPYXMLTOOLONG									, "Aufgeteilter Text:", 1)
+SafeAddString(PCHAT_COPYXMLTITLE										, "Kopiere Chat Text", 1)
+SafeAddString(PCHAT_COPYXMLLABEL										, "Wähle Text, kopiere mit STRG+C", 1)
+SafeAddString(PCHAT_COPYXMLTOOLONG									, "Wähle Text, kopiere mit STRG+C", 1)
 SafeAddString(PCHAT_COPYXMLPREV										, "Vorherige", 1)
 SafeAddString(PCHAT_COPYXMLNEXT										, "Nächste", 1)
 SafeAddString(PCHAT_COPYXMLAPPLY                                    , "Filter anwenden", 1)
@@ -529,6 +529,15 @@ SafeAddString(PCHAT_CHATCONTEXTMENUWARNIGNORE, "[|c00FF00!WARNUNG!|r] Du ignorie
 SafeAddString(PCHAT_CHATCONTEXTMENUTYPEFRIEND, "Freund", 1)
 SafeAddString(PCHAT_TELEPORTINGTO, "Teleportiere zu: ", 1)
 
+SafeAddString(PCHAT_TOGGLE_SEARCH_UI_ON, "Suche AN", 1)
+SafeAddString(PCHAT_TOGGLE_SEARCH_UI_OFF, "Suche AUS", 1)
+SafeAddString(PCHAT_SEARCHUI_HEADER_TIME, "Zeit", 1)
+SafeAddString(PCHAT_SEARCHUI_HEADER_FROM,  "Von", 1)
+SafeAddString(PCHAT_SEARCHUI_HEADER_CHATCHANNEL, "Kanal", 1)
+SafeAddString(PCHAT_SEARCHUI_HEADER_MESSAGE,"Nachricht", 1)
+SafeAddString(PCHAT_SEARCHUI_MESSAGE_SEARCH_DEFAULT_TEXT, "Gib den Suchtext der \'Nachricht\' hier ein...", 1)
+SafeAddString(PCHAT_SEARCHUI_FROM_SEARCH_DEFAULT_TEXT, "Gib den Suchtext des \'Absenders\' hier ein...", 1)
+SafeAddString(PCHAT_SEARCHUI_CLEAR_SEARCH_HISTORY, "Such Historie leeren", 1)
 
 
 -- Coorbin20200708

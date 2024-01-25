@@ -26,7 +26,7 @@ local strings = {
 -- New Need Translations
 
 
-	PCHAT_ADDON_INFO = "pChat overhauls the way text is displayed in the chatbox.You are able to change colors, sizes, notifications, play sounds, etc.\nThe addon ChatMentions is integrated into pChat.\nUse the slashcommand /msg to define short chat commands which will write your longtext to the chat (guild welcome messages e.g.)",
+	PCHAT_ADDON_INFO = "pChat overhauls the way text is displayed in the chatbox.You are able to change colors, sizes, notifications, play sounds, etc.\nThe addon ChatMentions is integrated into pChat.\nUse the slashcommand /msg to define short chat commands which will write your sentence to the chat (guild welcome messages e.g.)\nUse the slashcommand /pchats <optional text> to open the chat search.",
 	PCHAT_ADDON_INFO_2 = "Use the slash command \'/pchatdeleteoldsv\' to delete old non-server dependent SavedVariables (shrink the SV file size).",
 
 	PCHAT_OPTIONSH = "Chat settings",
@@ -149,11 +149,11 @@ local strings = {
 
 	PCHAT_SYNCH = "Syncing settings",
 
-	PCHAT_CHATSYNCCONFIG = "Sync chat configuration: To 1 char",
-	PCHAT_CHATSYNCCONFIGTT = "If the sync is enabled, all your chars will get the same chat configuration (colors, position, window dimensions, tabs)\nPS: Only enable this option after your chat is fully customized!\n\nAttention: You need to have logged in the other character, where you want to copy the chat settings from, configure it's chat properly and then do a /reloadui to save it to the SaveVariables!\nAfter that relog to the other characters whom you want to copy the settings of that before configured character to. Then select that before configured character from the dropdownbox.\n\nThis will ONLY copy the SAVED chat settings of the selected character AT THE MOMENT you select the dropdown entry!\nIt will not copy the settings again on each next reloadui/login!\nIf you want to copy the updated settings (after changing the copy base character's chat configuration) you need to actively login and reselect the dropdown box entry on the other \'copy to\' characters again.",
+	PCHAT_CHATSYNCCONFIG = "Sync chat configuration: All the same",
+	PCHAT_CHATSYNCCONFIGTT = "If the sync is enabled, all your chars will get the same chat configuration (colors, position, window dimensions, tabs)\nPS: Only enable this option after your chat is fully customized!\n\nIf this setting is enabled the chat configuration of the last logged in characters will be saved and the next logged in character will load this configuration then, and so on...",
 
 	PCHAT_CHATSYNCCONFIGIMPORTFROM = "Import chat settings from",
-	PCHAT_CHATSYNCCONFIGIMPORTFROMTT = "You can at any time import chat settings from another character (colors, position, window dimensions, tabs)\n\nWarning: This copies the last saved state of the selected template character, and only 1x (when you select the entry). If the template character is subsequently changed, the settings will not automatically be applied again when this character logs in.",
+	PCHAT_CHATSYNCCONFIGIMPORTFROMTT = "You can at any time import chat settings from another character (colors, position, window dimensions, tabs)\n\nAttention: You need to have logged in the other character, where you want to copy the chat settings from, configure it's chat properly and then do a /reloadui to save it to the SaveVariables!\nAfter that relog to the other characters whom you want to copy the settings of that before configured character to. Then select that before configured character from the dropdownbox.\nThis will ONLY copy the SAVED chat settings of the selected character AT THE MOMENT you select the dropdown entry!\nIt will not copy the settings again on each next reloadui/login!\nIf you want to copy the updated settings (after changing the copy base character's chat configuration) you need to reselect the dropdown box entry again.",
 
 	-- Apparence
 
@@ -432,9 +432,9 @@ local strings = {
 	PCHAT_UNDOCKTEXTENTRY = "Undock Text Entry",
 	PCHAT_REDOCKTEXTENTRY = "Redock Text Entry",
 
-	PCHAT_COPYXMLTITLE = "Copy text with Ctrl+C",
-	PCHAT_COPYXMLLABEL = "Copy text with Ctrl+C",
-	PCHAT_COPYXMLTOOLONG = "Splitted text",
+	PCHAT_COPYXMLTITLE = "Copy chat text",
+	PCHAT_COPYXMLLABEL = "Select text & copy with Ctrl+C",
+	PCHAT_COPYXMLTOOLONG = "Select text & copy with Ctrl+C",
 	PCHAT_COPYXMLPREV = "Prev",
 	PCHAT_COPYXMLNEXT = "Next",
 	PCHAT_COPYXMLAPPLY = "Apply filter",
@@ -518,6 +518,16 @@ local strings = {
 	PCHAT_CHATCONTEXTMENUWARNIGNORE = "[|c00FF00!WARNING!|r] You ignore this player!",
 	PCHAT_CHATCONTEXTMENUTYPEFRIEND = "Friend",
 	PCHAT_TELEPORTINGTO = "Teleporting to: ",
+
+	PCHAT_TOGGLE_SEARCH_UI_ON= "Search ON",
+	PCHAT_TOGGLE_SEARCH_UI_OFF = "Search OFF",
+	PCHAT_SEARCHUI_HEADER_TIME = "Time",
+	PCHAT_SEARCHUI_HEADER_FROM = "From",
+	PCHAT_SEARCHUI_HEADER_CHATCHANNEL = "Channel",
+	PCHAT_SEARCHUI_HEADER_MESSAGE = "Message",
+	PCHAT_SEARCHUI_MESSAGE_SEARCH_DEFAULT_TEXT = "Enter \'message\' to search here...",
+	PCHAT_SEARCHUI_FROM_SEARCH_DEFAULT_TEXT = "Enter \'from\' to search here...",
+	PCHAT_SEARCHUI_CLEAR_SEARCH_HISTORY = "Clear the search history",
 
 	-- Coorbin20200708
 	-- Chat Mentions settings strings

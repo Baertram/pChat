@@ -36,6 +36,131 @@ pChat = pChat or {}
 
     CONSTANTS.maxChatCharCount = 350
 
+    --For chat config sync -> The constant for the last logged in character (before current was logged in)
+    -->Saved data of lastChar changes at call of function pChat.SaveChatConfig(), at the end, see line db.chatConfSync[CONSTANTS.chatConfigSyncLastChar] = db.chatConfSync[charId]
+    CONSTANTS.chatConfigSyncLastChar = "lastChar"
+
+    --Lookup table with the chat channels and their names
+    local COMBINED_CHANNELS = {
+        [CHAT_CATEGORY_WHISPER_INCOMING] = {parentChannel = CHAT_CATEGORY_WHISPER_INCOMING, name = SI_CHAT_CHANNEL_NAME_WHISPER},
+        [CHAT_CATEGORY_WHISPER_OUTGOING] = {parentChannel = CHAT_CATEGORY_WHISPER_INCOMING, name = SI_CHAT_CHANNEL_NAME_WHISPER},
+
+        [CHAT_CATEGORY_MONSTER_SAY] = {parentChannel = CHAT_CATEGORY_MONSTER_SAY, name = SI_CHAT_CHANNEL_NAME_NPC},
+        [CHAT_CATEGORY_MONSTER_YELL] = {parentChannel = CHAT_CATEGORY_MONSTER_SAY, name = SI_CHAT_CHANNEL_NAME_NPC},
+        [CHAT_CATEGORY_MONSTER_WHISPER] = {parentChannel = CHAT_CATEGORY_MONSTER_SAY, name = SI_CHAT_CHANNEL_NAME_NPC},
+        [CHAT_CATEGORY_MONSTER_EMOTE] = {parentChannel = CHAT_CATEGORY_MONSTER_SAY, name = SI_CHAT_CHANNEL_NAME_NPC},
+    }
+    CONSTANTS.COMBINED_CHANNELS = COMBINED_CHANNELS
+
+    -- defines channels to skip when building the filter (non guild) section
+    local SKIP_CHANNELS = {
+        --[CHAT_CATEGORY_SYSTEM] = true,
+        [CHAT_CATEGORY_GUILD_1] = true,
+        [CHAT_CATEGORY_GUILD_2] = true,
+        [CHAT_CATEGORY_GUILD_3] = true,
+        [CHAT_CATEGORY_GUILD_4] = true,
+        [CHAT_CATEGORY_GUILD_5] = true,
+        [CHAT_CATEGORY_OFFICER_1] = true,
+        [CHAT_CATEGORY_OFFICER_2] = true,
+        [CHAT_CATEGORY_OFFICER_3] = true,
+        [CHAT_CATEGORY_OFFICER_4] = true,
+        [CHAT_CATEGORY_OFFICER_5] = true,
+    }
+    CONSTANTS.SKIP_CHANNELS = SKIP_CHANNELS
+    --For the chat search UI -> Search history SavedVariables key
+    CONSTANTS.SEARCH_TYPE_MESSAGE = 1
+    CONSTANTS.SEARCH_TYPE_FROM = 2
+
     --Add constants to pChat namespace
     pChat.CONSTANTS = CONSTANTS
 
+
+
+------------------------------------------------------------------------------------------------------------------------
+-- Helper and updater fuctions for the constants
+
+do
+    --pChat internally uses some chat_channel codes differently from ZOs standard codes,
+    --e.g.instead of CHAT_CHANNEL_SAY (0) -> CONSTANTS.PCHAT_CHANNEL_SAY (98) -> maybe because of 0 based table indices?
+    local function mapChatChannelToPChatChannel(chatChannel)
+        if chatChannel == CHAT_CHANNEL_SAY then
+            return CONSTANTS.PCHAT_CHANNEL_SAY
+        end
+        return chatChannel
+    end
+    pChat.mapChatChannelToPChatChannel = mapChatChannelToPChatChannel
+
+    local function mapPChatChannelToChatChannel(pChatChannel)
+        if pChatChannel == CONSTANTS.PCHAT_CHANNEL_SAY then
+            return CHAT_CHANNEL_SAY
+        end
+        return pChatChannel
+    end
+    pChat.mapPChatChannelToChatChannel = mapPChatChannelToChatChannel
+
+    --Build the chat category names and map them for the chat channels!
+    local function updateChatChannelNames()
+        local chatCategory2Name = {}
+        local chatChannel2Name  = {}
+
+        --Non guild chat categories
+        local entryData = {}
+        for i = CHAT_CATEGORY_HEADER_CHANNELS, CHAT_CATEGORY_HEADER_COMBAT - 1 do
+            if(SKIP_CHANNELS[i] == nil and GetString("SI_CHATCHANNELCATEGORIES", i) ~= "") then
+                local name
+                if COMBINED_CHANNELS[i] == nil then
+                    name = GetString("SI_CHATCHANNELCATEGORIES", i)
+                else
+                    --create the entry for those with combined channels just once
+                    local parentChannel = COMBINED_CHANNELS[i].parentChannel
+                    if not entryData[parentChannel] then
+                        entryData[parentChannel] = true
+                        name = GetString(COMBINED_CHANNELS[i].name)
+                    end
+                end
+                if name ~= nil then
+                    chatCategory2Name[i] = name
+                end
+            end
+        end
+
+        --Guild chat channels
+        local maxGuild = CHAT_CATEGORY_HEADER_GUILDS + MAX_GUILDS - 1
+        for k = CHAT_CATEGORY_HEADER_GUILDS, maxGuild do
+            local name = GetString("SI_CHATCHANNELCATEGORIES", k)
+            if name ~= nil then
+                chatCategory2Name[k] = name
+            end
+
+            local officerChannel = k + MAX_GUILDS
+            if officerChannel ~= nil then
+                local officerName                 = GetString("SI_CHATCHANNELCATEGORIES", officerChannel)
+                chatCategory2Name[officerChannel] = officerName
+            end
+        end
+        pChat.CONSTANTS.chatCategory2Name = chatCategory2Name
+
+        --Now map the chat categries to the channels
+        for chatChannel=CHAT_CHANNEL_ITERATION_BEGIN, CHAT_CHANNEL_ITERATION_END, 1 do
+            local chatCategory = GetChannelCategoryFromChannel(chatChannel)
+            if chatCategory ~= nil then
+                local chatCategoryName = chatCategory2Name[chatCategory]
+                if chatCategoryName ~= nil then
+                    chatChannel2Name[chatChannel] = chatCategoryName
+                end
+            end
+        end
+        --pChat custom chat channels
+        chatChannel2Name[CONSTANTS.PCHAT_CHANNEL_SAY]  = chatChannel2Name[mapPChatChannelToChatChannel(CONSTANTS.PCHAT_CHANNEL_SAY)] --Say
+        chatChannel2Name[CONSTANTS.PCHAT_CHANNEL_NONE] = "n/a"
+
+        pChat.CONSTANTS.chatChannel2Name               = chatChannel2Name
+    end
+    pChat.updateChatChannelNames = updateChatChannelNames
+
+
+
+
+    --Get the chat category and channel names now
+    updateChatChannelNames()
+end
