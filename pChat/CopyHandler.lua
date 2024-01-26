@@ -1249,11 +1249,16 @@ function ChatCopyOptions:OnSearchEditBoxContextMenu(editBoxControl, shift, ctrl,
     local doShowMenu = false
 
     --Search set name/id text field
-    if editBoxControl == selfVar.searchEditBoxControl then
+    if editBoxControl == selfVar.searchMessageEditBoxControl then
         local searchType = SEARCH_TYPE_MESSAGE
         local searchHistoryOfSearchMode = searchHistory[searchType]
         if searchHistoryOfSearchMode ~= nil and #searchHistoryOfSearchMode > 0 then
             ClearMenu()
+            AddCustomMenuItem(GetString(SI_MAIL_SEND_CLEAR), function()
+                selfVar:SetSearchEditBoxValue(editBoxControl, "")
+                ClearMenu()
+            end)
+            AddCustomMenuItem("-", function() end)
             for _, searchTerm in ipairs(searchHistoryOfSearchMode) do
                 AddCustomMenuItem(searchTerm, function()
                     selfVar:SetSearchEditBoxValue(editBoxControl, searchTerm)
@@ -1268,12 +1273,17 @@ function ChatCopyOptions:OnSearchEditBoxContextMenu(editBoxControl, shift, ctrl,
             doShowMenu = true
         end
     --Bonus text field
-    elseif editBoxControl == selfVar.bonusSearchEditBoxControl then
+    elseif editBoxControl == selfVar.searchFromEditBoxControl then
         ClearMenu()
         local searchType = SEARCH_TYPE_FROM
         local searchHistoryOfSearchMode = searchHistory[searchType]
         if searchHistoryOfSearchMode ~= nil and #searchHistoryOfSearchMode > 0 then
             ClearMenu()
+            AddCustomMenuItem(GetString(SI_MAIL_SEND_CLEAR), function()
+                selfVar:SetSearchEditBoxValue(editBoxControl, "")
+                ClearMenu()
+            end)
+            AddCustomMenuItem("-", function() end)
             for _, searchTerm in ipairs(searchHistoryOfSearchMode) do
                 AddCustomMenuItem(searchTerm, function()
                     selfVar:SetSearchEditBoxValue(editBoxControl, searchTerm)
@@ -1340,7 +1350,7 @@ end
 function ChatCopyOptions:ProcessItemEntry(stringSearch, data, searchTerm)
     local searchType = stringSearch._searchType
     if searchType == nil then return end
-d("[pChat]ChatCopyOptions:ProcessItemEntry-type: " ..tos(searchType))
+--d("[pChat]ChatCopyOptions:ProcessItemEntry-type: " ..tos(searchType))
 
     if searchType == SEARCH_TYPE_MESSAGE then
         if zo_plainstrfind(strlow(data.rawMessage), strlow(searchTerm)) then
