@@ -1248,17 +1248,20 @@ function ChatCopyOptions:OnSearchEditBoxContextMenu(editBoxControl, shift, ctrl,
     local searchHistory = pChat.db.chatSearchHistory
     local doShowMenu = false
 
-    --Search set name/id text field
+    ClearMenu()
+    if editBoxControl:GetText() ~= "" then
+        AddCustomMenuItem(GetString(SI_MAIL_SEND_CLEAR), function()
+            selfVar:SetSearchEditBoxValue(editBoxControl, "")
+            ClearMenu()
+        end)
+        AddCustomMenuItem("-", function() end)
+        doShowMenu = true
+    end
+
     if editBoxControl == selfVar.searchMessageEditBoxControl then
         local searchType = SEARCH_TYPE_MESSAGE
         local searchHistoryOfSearchMode = searchHistory[searchType]
         if searchHistoryOfSearchMode ~= nil and #searchHistoryOfSearchMode > 0 then
-            ClearMenu()
-            AddCustomMenuItem(GetString(SI_MAIL_SEND_CLEAR), function()
-                selfVar:SetSearchEditBoxValue(editBoxControl, "")
-                ClearMenu()
-            end)
-            AddCustomMenuItem("-", function() end)
             for _, searchTerm in ipairs(searchHistoryOfSearchMode) do
                 AddCustomMenuItem(searchTerm, function()
                     selfVar:SetSearchEditBoxValue(editBoxControl, searchTerm)
@@ -1272,18 +1275,10 @@ function ChatCopyOptions:OnSearchEditBoxContextMenu(editBoxControl, shift, ctrl,
             end)
             doShowMenu = true
         end
-    --Bonus text field
     elseif editBoxControl == selfVar.searchFromEditBoxControl then
-        ClearMenu()
         local searchType = SEARCH_TYPE_FROM
         local searchHistoryOfSearchMode = searchHistory[searchType]
         if searchHistoryOfSearchMode ~= nil and #searchHistoryOfSearchMode > 0 then
-            ClearMenu()
-            AddCustomMenuItem(GetString(SI_MAIL_SEND_CLEAR), function()
-                selfVar:SetSearchEditBoxValue(editBoxControl, "")
-                ClearMenu()
-            end)
-            AddCustomMenuItem("-", function() end)
             for _, searchTerm in ipairs(searchHistoryOfSearchMode) do
                 AddCustomMenuItem(searchTerm, function()
                     selfVar:SetSearchEditBoxValue(editBoxControl, searchTerm)
@@ -1653,7 +1648,29 @@ function pChat_SearchUI_Shared_Row_OnMouseExit(rowControl)
 end
 
 function pChat_SearchUI_Shared_Row_OnMouseUp(rowControl, mouseButton, upInside, shift, alt, ctrl, command)
+    if upInside and mouseButton == MOUSE_BUTTON_INDEX_RIGHT then
+        local doShowMenu = false
+        ClearMenu()
+--pChat._debugRowControlSearchUI = rowControl
+        local data = rowControl.dataEntry.data
+        if data == nil then return end
+        if data.rawMessage ~= "" then
+            AddCustomMenuItem(GetString(PCHAT_COPYMESSAGECT), function()
+                ChatSys.textEntry:SetText("")
+                CopyMessage(data.messageId)
+            end)
+            AddCustomMenuItem(GetString(PCHAT_COPYLINECT), function()
+                ChatSys.textEntry:SetText("")
+                CopyLine(data.messageId)
+            end)
+            doShowMenu = true
+        end
 
+        --Show the context menu now?
+        if doShowMenu == true then
+            ShowMenu(rowControl)
+        end
+    end
 end
 
 --[[
