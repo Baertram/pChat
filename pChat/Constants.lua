@@ -34,6 +34,13 @@ pChat = pChat or {}
         [CHAT_CHANNEL_ZONE_LANGUAGE_7] = "ZH", --Chinese
     }
 
+    CONSTANTS.MONSTER_CHAT_CHANNELS = {
+        [CHAT_CHANNEL_MONSTER_SAY] = true,
+        [CHAT_CHANNEL_MONSTER_YELL] = true,
+        [CHAT_CHANNEL_MONSTER_WHISPER] = true,
+        [CHAT_CHANNEL_MONSTER_EMOTE] = true,
+    }
+
     CONSTANTS.maxChatCharCount = 350
 
     --For chat config sync -> The constant for the last logged in character (before current was logged in)

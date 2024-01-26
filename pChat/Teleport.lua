@@ -534,12 +534,15 @@ local function pChat_PlayerContextMenuCallback(playerName, rawName)
         end
     end
 
-    if settings.sendMailContextMenuAtChat == true then
+    if settings.sendMailContextMenuAtChat == true and playerName ~= nil and playerName ~= "" and playerName ~= "nil" then
 --d("[3]Mail to check")
-        AddMenuItem(GetString(SI_SOCIAL_MENU_SEND_MAIL) .. playerNameStr , function()
-            MAIL_SEND:ComposeMailTo(playerName)
-        end)
-        wasAdded = wasAdded +1
+        local chanNumber, numLine --todo how to get those from clicked line?
+        if pChat.isMonsterChatChannel(chanNumber, numLine) == false then
+            AddMenuItem(GetString(SI_SOCIAL_MENU_SEND_MAIL) .. playerNameStr , function()
+                MAIL_SEND:ComposeMailTo(playerName)
+            end)
+            wasAdded = wasAdded +1
+        end
     end
 
     if settings.teleportContextMenuAtChat == true then

@@ -60,7 +60,7 @@
 		</Backdrop>
 		<!-- Virtual labels -->
         <Label name="pChatSearchUIRowLabel" font="MyFontGame16" wrapMode="ELLIPSIS" horizontalAlignment="LEFT" verticalAlignment="TOP" maxLineCount="4" newLineIndent="3" virtual="true">
-			<Dimensions y="60" />
+			<Dimensions y="90" />
 		</Label>
 		<!-- SCROLL_LIST_NON_UNIFORM -->
 
@@ -92,8 +92,8 @@
 				</Label>
 				<Label name="$(parent)Message" inherits="pChatSearchUIRowLabel">
 					<Anchor point="LEFT" relativePoint="RIGHT" relativeTo="$(parent)ChatChannel" />
-					<Anchor point="RIGHT" relativePoint="RIGHT" relativeTo="$(parent)" offsetX="-4" />
-                    <DimensionConstraints minX="500" maxX="500" />
+					<Anchor point="RIGHT" relativePoint="RIGHT" relativeTo="$(parent)" offsetX="-20" />
+                    <DimensionConstraints minX="480" maxX="480" />
 				</Label>
 			</Controls>
 		</Control>
@@ -251,7 +251,7 @@
                         <!-- ZO_SortFilterScrollList - Sort header -->
                         <Control name="$(parent)Headers" tier="LOW" layer="CONTROLS" level="1">
                             <Dimensions y="30" />
-                            <Anchor point="TOPLEFT" relativeTo="$(parent)MessageSearch" relativePoint="BOTTOMLEFT" offsetX="0" offsetY="10" />
+                            <Anchor point="TOPLEFT" relativeTo="$(parent)MessageSearch" relativePoint="BOTTOMLEFT" offsetX="-5" offsetY="10" />
                             <Controls>
                                 <Control name="$(parent)Time" inherits="pChatSearchUISortHeader">
                                     <OnInitialized>
@@ -282,9 +282,8 @@
                                         ZO_SortHeader_Initialize(self, GetString(PCHAT_SEARCHUI_HEADER_MESSAGE), "rawMessage", ZO_SORT_ORDER_UP, TEXT_ALIGN_LEFT, "ZoFontGameLargeBold")
                                     </OnInitialized>
                                     <Anchor point="TOPLEFT" relativePoint="TOPRIGHT" relativeTo="$(parent)ChatChannel" />
-                                    <Anchor point="TOPRIGHT" relativePoint="TOPRIGHT" relativeTo="$(parent)" offsetX="-4" />
+                                    <Anchor point="TOPRIGHT" relativePoint="TOPRIGHT" relativeTo="$(parent)" offsetX="-20" />
                                     <Dimensions y="30" />
-                                    <DimensionConstraints minX="500" maxX="500" />
                                 </Control>
                             </Controls>
                         </Control>
@@ -292,7 +291,7 @@
                         <!-- ZO_SortFilterScrollList -->
                         <Control name="$(parent)List" inherits="ZO_ScrollList" tier="LOW" layer="CONTROLS" level="1">
                             <Anchor point="TOPLEFT" relativeTo="$(parent)Headers" relativePoint="BOTTOMLEFT" offsetY="0" />
-                            <Anchor point="BOTTOMRIGHT" relativeTo="$(parent)" relativePoint="BOTTOMRIGHT" offsetX="0" offsetY="-6" />
+                            <Anchor point="BOTTOMRIGHT" relativeTo="$(parent)" relativePoint="BOTTOMRIGHT" offsetX="-4" offsetY="-6" />
                         </Control>
 
                         <!-- Counter - Showing currently number of filtered rows -->

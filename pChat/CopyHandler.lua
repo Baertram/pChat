@@ -110,8 +110,8 @@ end
 -- Set copied text into text entry, if possible
 local function CopyToTextEntry(message)
 
-    -- Max of inputbox is 351 chars
-    if strlen(message) < 351 then
+    -- Max of inputbox is 350 chars
+    if strlen(message) <= CONSTANTS.maxChatCharCount then
         if ChatSys.textEntry:GetText() == "" then
             ChatSys.textEntry:Open(message)
             ZO_ChatWindowTextEntryEditBox:SelectAll()
@@ -120,7 +120,7 @@ local function CopyToTextEntry(message)
 
 end
 
-local DISPLAY_NAME_PREFIX_BYTE = 64
+--local DISPLAY_NAME_PREFIX_BYTE = 64
 local function IsDisplayName(str, offset)
     --offset = offset or 1
     --return str:byte(offset) == DISPLAY_NAME_PREFIX_BYTE
@@ -178,7 +178,7 @@ local function GetAccountAndCharacterNameFromLine(numLine, chatChannel)
             else
                 --Charactername@AccountName
                 --"|H0:display:@Baertram|hZaubärbuch@Baertram|h: |r|cc3f0c2test6|r"
-                local accountPosStart, accountPosEnd = strfin(rawValue, "%|H%d%:display%:%@.*%|h.*%@.*%|h%:")
+                accountPosStart, accountPosEnd = strfin(rawValue, "%|H%d%:display%:%@.*%|h.*%@.*%|h%:")
 --d(">ACCOUNT accountPosStart2: " .. tostring(accountPosStart) .. ", accountPosEnd2: " ..tostring(accountPosEnd) ..", rawValue: " ..tostring(rawValue))
                 if accountPosStart ~= nil and accountPosEnd ~= nil then
                     local startPos = strfin(rawValue, "%|h.*%@.*%|h%:", accountPosStart + 12) -- after the :display:
@@ -381,7 +381,7 @@ local function CopyDiscussion(chanNumber, numLine)
         end
     end
 
-pChat._debugSearchUIMasterList = pChat_searchUIMasterList
+--pChat._debugSearchUIMasterList = pChat_searchUIMasterList
 
 --d(">stringToCopy: " ..tostring(stringToCopy))
     pChat_ShowCopyDialog(stringToCopy, numChanCode)
@@ -555,7 +555,7 @@ pChat.ChatCategory2ChatChannel = ChatCategory2ChatChannel
 local searchUIScrollListSearchTypeDefault = 1
 local searchUIScrollListDataTypeDefault = 1
 local searchUIScrollListDataTypeXMLVirtualTemplate = "pChatSearchUIRow"
-local searchUIScrollListDataTypeXMLVirtualTemplateRowHeight = 60 --this will enable scrollList.mode = SCROLL_LIST_NON_UNIFORM
+local searchUIScrollListDataTypeXMLVirtualTemplateRowHeight = 90 --this will enable scrollList.mode = SCROLL_LIST_NON_UNIFORM
 
 local searchUIThrottledSearchHistoryHandlerName = "pChatSearchUI_SearchHistoryHandlerName"
 local searchUIThrottledSearchHandlerName = "pChatSearchUI_SearchHandlerName"
@@ -1168,6 +1168,7 @@ do
     function ChatCopyOptions:InitializeSearchUI(dialogControl)
         local selfVar = self
         self.isSearchUIShown = false
+        self.openedSearchUICount = 0
 
         local searchUIToggleButton = dialogControl:GetNamedChild("ToggleSearch")
         searchUIToggleButton:SetText(GetString(PCHAT_TOGGLE_SEARCH_UI_ON))
@@ -1327,7 +1328,7 @@ function ChatCopyOptions:CheckForMatch(data, searchInputMessage, searchInputFrom
             isMatch = stringSearch:IsMatch(searchInputMessage, data)
         end
         --Afterwards check from comparison
-        if isMatch == true and searchInputFrom ~= nil and searchInputFrom ~= "" then
+        if (isMatch == true or (stringSearch._searchType == nil and isMatch == false)) and searchInputFrom ~= nil and searchInputFrom ~= "" then
             stringSearch._searchType = SEARCH_TYPE_FROM
             isMatch = stringSearch:IsMatch(searchInputFrom, data)
         end
@@ -1339,13 +1340,14 @@ end
 function ChatCopyOptions:ProcessItemEntry(stringSearch, data, searchTerm)
     local searchType = stringSearch._searchType
     if searchType == nil then return end
+d("[pChat]ChatCopyOptions:ProcessItemEntry-type: " ..tos(searchType))
 
     if searchType == SEARCH_TYPE_MESSAGE then
-        if zo_plainstrfind(data.rawMessage, searchTerm) then
+        if zo_plainstrfind(strlow(data.rawMessage), strlow(searchTerm)) then
             return true
         end
     elseif searchType == SEARCH_TYPE_FROM then
-        if zo_plainstrfind(data.rawFrom, searchTerm) then
+        if zo_plainstrfind(strlow(data.rawFrom), strlow(searchTerm)) then
             return true
         end
     end
@@ -1460,7 +1462,9 @@ function ChatCopyOptions:ApplyFilters()
         --Reset the buttons "prev"/"next" etc.
         self:UpdateEditAndButtons()
 
-        self:UpdateSearchUI()
+        if self.openedSearchUICount > 1 then
+            self:UpdateSearchUI()
+        end
     end
 end
 
@@ -1515,24 +1519,29 @@ function ChatCopyOptions:ChangeFiltersState(doEnable, filterType)
 end
 
 function ChatCopyOptions:ShowSearchUI()
-   --For debugging!
-    self.control:GetNamedChild("ModalUnderlay"):SetHidden(true)
-
     self.isSearchUIShown = true
+    self.openedSearchUICount = self.openedSearchUICount + 1
+
     self.searchUIToggleButton:SetText(GetString(PCHAT_TOGGLE_SEARCH_UI_OFF))
---d("[pChat]ChatCopyOptions-SearchUI - SHOWN")
+    --d("[pChat]ChatCopyOptions-SearchUI - SHOWN")
     self.control:ClearAnchors()
     self.control:SetAnchor(RIGHT, GuiRoot, CENTER, 0, 0)
 
     self.searchUI:ClearAnchors()
-    self.searchUI:SetAnchor(TOPLEFT, self.control, TOPRIGHT, 0, 0)
-    self.searchUI:SetAnchor(BOTTOMLEFT, self.control, BOTTOMRIGHT, 0, 0)
+    self.searchUI:SetAnchor(TOPLEFT, self.control, TOPRIGHT, -1, 0)
+    self.searchUI:SetAnchor(BOTTOMLEFT, self.control, BOTTOMRIGHT, -1, 0)
     self.searchUI:SetWidth(900)
     self.searchUI:SetHidden(false)
 
     --Prepare the ZO_SortFilterList's masterList table and add the relevant date, from and message information
     --> Will be done at function CopyWholeChat if param "updateShownDialog" is true -> table pChat_searchUIMasterList will be filled with relevant db.lineStrings
-    self:UpdateSearchUI()
+    if self.openedSearchUICount > 1 then
+        --Apply the filter buttons, if changed
+        self:ApplyFilters()
+    else
+        --On first open just refresh the scroll list
+        self:UpdateSearchUI()
+    end
 end
 
 function ChatCopyOptions:ClearSearchUIInternalData()
@@ -1776,11 +1785,13 @@ function pChat.InitializeCopyHandler(control)
                 end
             end
 
-            if db.sendMailContextMenuAtChat == true then
+            if db.sendMailContextMenuAtChat == true and playerName ~= nil and playerName ~= "" and playerName ~= "nil" then
         --d("[3]Mail to check")
-                AddCustomMenuItem(GetString(SI_SOCIAL_MENU_SEND_MAIL) .. " \'" .. playerNameStr .."\'" , function()
-                    MAIL_SEND:ComposeMailTo(playerName)
-                end)
+                if pChat.isMonsterChatChannel(chanNumber, numLine) == false then
+                    AddCustomMenuItem(GetString(SI_SOCIAL_MENU_SEND_MAIL) .. " \'" .. playerNameStr .."\'" , function()
+                        MAIL_SEND:ComposeMailTo(playerName)
+                    end)
+                end
             end
 
             --Teleport to features

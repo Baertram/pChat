@@ -383,4 +383,22 @@ do
         end
         return false
     end
+
+
+    function pChat.isMonsterChatChannel(chanNumber, numLine)
+        local monsterChatChannels = CONSTANTS.MONSTER_CHAT_CHANNELS
+
+        if chanNumber == nil and numLine == nil then return false end
+        if chanNumber == nil then
+            --Get channel by number of the line
+            local chatLine = pChat.db.LineStrings[numLine]
+            if chatLine ~= nil then
+                chanNumber = chatLine.channel
+            end
+        end
+        if chanNumber ~= nil and monsterChatChannels[chanNumber] then
+            return true
+        end
+        return false
+    end
 end
