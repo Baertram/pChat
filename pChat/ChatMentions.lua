@@ -27,7 +27,6 @@ local tcon = table.concat
 --#13 Chat mentions shows mentions in NPC chatter
 cm.excludedChatChannels = {
 	[CHAT_CHANNEL_UNUSED_1] = true,
-	[CHAT_CHANNEL_EMOTE] = true,
 	[CHAT_CHANNEL_SYSTEM] = true,
 	[CHAT_CHANNEL_MONSTER_EMOTE] = true,
 	[CHAT_CHANNEL_MONSTER_SAY] = true,
