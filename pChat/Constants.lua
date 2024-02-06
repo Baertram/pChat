@@ -7,7 +7,7 @@ pChat = pChat or {}
     --AddOn information
     local CONSTANTS = {
         ADDON_NAME          = "pChat",
-        ADDON_VERSION       = "10.0.4.5",
+        ADDON_VERSION       = "10.0.4.6",
 
         API_VERSION         = GetAPIVersion(),
 
@@ -47,6 +47,9 @@ pChat = pChat or {}
     -->Saved data of lastChar changes at call of function pChat.SaveChatConfig(), at the end, see line db.chatConfSync[CONSTANTS.chatConfigSyncLastChar] = db.chatConfSync[charId]
     CONSTANTS.chatConfigSyncLastChar = "lastChar"
 
+    --Chat tabs that got no name will be saved/shown as this -> To ensure data consistency with saved chatTabIndices
+    CONSTANTS.chatTabNoName = "- n/a -"
+
     --Lookup table with the chat channels and their names
     local COMBINED_CHANNELS = {
         [CHAT_CATEGORY_WHISPER_INCOMING] = {parentChannel = CHAT_CATEGORY_WHISPER_INCOMING, name = SI_CHAT_CHANNEL_NAME_WHISPER},
@@ -78,15 +81,21 @@ pChat = pChat or {}
     CONSTANTS.SEARCH_TYPE_MESSAGE = 1
     CONSTANTS.SEARCH_TYPE_FROM = 2
 
+
+
+------------------------------------------------------------------------------------------------------------------------
     --Add constants to pChat namespace
     pChat.CONSTANTS = CONSTANTS
 
 
 
+
+------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------
 ------------------------------------------------------------------------------------------------------------------------
 -- Helper and updater fuctions for the constants
-
 do
+
     --pChat internally uses some chat_channel codes differently from ZOs standard codes,
     --e.g.instead of CHAT_CHANNEL_SAY (0) -> CONSTANTS.PCHAT_CHANNEL_SAY (98) -> maybe because of 0 based table indices?
     local function mapChatChannelToPChatChannel(chatChannel)

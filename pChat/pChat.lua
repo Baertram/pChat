@@ -70,16 +70,18 @@ ZO_KeyboardChatWindowTemplate1Buffer_LinkMouseUp:3: in function '(main chunk)'
 
 --Working on:
 
-
 --=======================================================================================================================================
--- Changelog version: 10.0.4.5 (last version 10.0.4.4)
+-- Changelog version: 10.0.4.6 (last version 10.0.4.5)
 --=======================================================================================================================================
 --Fixed:
+--Fix: Chat tabs without name lead to lua error in LAM (pChat.tabIndices and pChat.tabNames [2] were missing (SavedVariables tab name 2 was '')
 
 --Changed:
 
 
 --Added:
+--Added .slug font files for PTS
+--Requested: Additional option to hide chat only in some menus (old way, before change to v10.0.4.3)
 
 --Added on request:
 
@@ -186,6 +188,9 @@ local function PrepareVars()
     --Tables with character ID as key
     pChat.characterId2Name = pChat.getCharactersOfAccount(false, true)
     pChat.characterId2NameRaw = pChat.getCharactersOfAccount(false, false)
+
+    pChat.tabNames = {}
+    pChat.tabIndices = {}
 
     --Update the available sounds from the game
     pChat.sounds = {}

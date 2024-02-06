@@ -118,6 +118,97 @@ function pChat.InitializeChatHandlers()
         end
     end
 
+    --Executed when EVENT_PVP_KILL_FEED_DEATH triggers
+    --[[
+    local DEFAULT_FROM_DISPLAY_NAME = nil
+    local DEFAULT_RAW_MESSAGE_TEXT = nil
+    local DEFAULT_TARGET_CHANNEL = nil
+
+    local g_pvpKillFeedDeathRecurrenceTracker --local in chathandlers.ua at esoui sources so we cannot use tis function here "yet" and need some way to get access to that local!
+
+    local function OnPVPKillFeed(killLocation, killerDisplayName, killerCharacterName, killerAlliance, killerRank, victimDisplayName, victimCharacterName, victimAlliance, victimRank, isKillLocation)
+        logger:Debug("OnPVPKillFeed: ", string.format("killLocation: %s, killerDisplayName: %s, killerCharacterName: %s, killerAlliance: %s, killerRank: %s, victimDisplayName: %s, victimCharacterName: %s, victimAlliance: %s, victimRank: %s, isKillLocation: %s", tostring(killLocation), tostring(killerDisplayName), tostring(killerCharacterName), tostring(killerAlliance), tostring(killerRank), tostring(victimDisplayName), tostring(victimCharacterName), tostring(victimAlliance), tostring(victimRank), tostring(isKillLocation)))
+
+        local showKillFeedNotifications = GetSetting_Bool(SETTING_TYPE_UI, UI_SETTING_SHOW_PVP_KILL_FEED_NOTIFICATIONS)
+        if not showKillFeedNotifications then
+            return nil
+        end
+
+        local messageKeySuffix = string.format("%s___%s", killerDisplayName, victimDisplayName)
+        local messageKeyLocal = "L" .. messageKeySuffix
+        local messageKeyKillLocation = "B" .. messageKeySuffix
+        if isKillLocation then
+            -- This message was kill location sourced.
+            if g_pvpKillFeedDeathRecurrenceTracker:RemoveValue(messageKeyLocal) ~= nil then
+                -- The same message was already shown as a result of a local message;
+                -- remove the original message from the tracker and suppress this message.
+                return nil
+            end
+            -- Track this kill location sourced message.
+            g_pvpKillFeedDeathRecurrenceTracker:AddValue(messageKeyKillLocation)
+        else
+            -- This message was locally sourced.
+            if g_pvpKillFeedDeathRecurrenceTracker:RemoveValue(messageKeyKillLocation) ~= nil then
+                -- The same message was already shown as a result of a kill location message;
+                -- remove the original message from the tracker and suppress this message.
+                return nil
+            end
+            -- Track this locally sourced message.
+            g_pvpKillFeedDeathRecurrenceTracker:AddValue(messageKeyLocal)
+        end
+
+        local isBattleground = IsActiveWorldBattleground()
+        local killerAllianceColor
+        local victimAllianceColor
+        if isBattleground then
+            killerAllianceColor = GetBattlegroundAllianceColor(killerAlliance):GetBright()
+            victimAllianceColor = GetBattlegroundAllianceColor(victimAlliance):GetBright()
+        else
+            killerAllianceColor = GetAllianceColor(killerAlliance):GetBright()
+            victimAllianceColor = GetAllianceColor(victimAlliance):GetBright()
+        end
+
+        local ICON_SIZE = 24
+        local killerIcon
+        local victimIcon
+        if isBattleground then
+            killerIcon = ZO_GetBattlegroundIconMarkup(killerAlliance, ICON_SIZE)
+            victimIcon = ZO_GetBattlegroundIconMarkup(victimAlliance, ICON_SIZE)
+        else
+            killerIcon = ZO_GetColoredAvARankIconMarkup(killerRank, killerAlliance, ICON_SIZE)
+            victimIcon = ZO_GetColoredAvARankIconMarkup(victimRank, victimAlliance, ICON_SIZE)
+        end
+
+        local killerAllianceName
+        local victimAllianceName
+        if isBattleground then
+            killerAllianceName = GetString("SI_BATTLEGROUNDALLIANCE", killerAlliance)
+            victimAllianceName = GetString("SI_BATTLEGROUNDALLIANCE", victimAlliance)
+        else
+            killerAllianceName = ZO_CachedStrFormat(SI_ALLIANCE_NAME, GetAllianceName(killerAlliance))
+            victimAllianceName = ZO_CachedStrFormat(SI_ALLIANCE_NAME, GetAllianceName(victimAlliance))
+        end
+
+        local killerName = ZO_GetPrimaryPlayerName(killerDisplayName, killerCharacterName)
+        local victimName = ZO_GetPrimaryPlayerName(victimDisplayName, victimCharacterName)
+
+        local killerGender = GetGenderFromNameDescriptor(killerCharacterName)
+        local victimGender = GetGenderFromNameDescriptor(victimCharacterName)
+
+        local killerRankName = GetAvARankName(killerGender, killerRank)
+        local victimRankName = GetAvARankName(victimGender, victimRank)
+
+        local hasLocation = killLocation and killLocation ~= ""
+        local messageStringId = hasLocation and SI_PVP_KILL_FEED_DEATH_AND_LOCATION or SI_PVP_KILL_FEED_DEATH
+        local message = zo_strformat(messageStringId, killerAllianceColor:Colorize(killerName), killerIcon, victimAllianceColor:Colorize(victimName), victimIcon, killLocation)
+
+        local narrationStringId = hasLocation and SI_PVP_KILL_FEED_DEATH_AND_LOCATION_NARRATION or SI_PVP_KILL_FEED_DEATH_NARRATION
+        local narrationMessage = zo_strformat(narrationStringId, killerAllianceName, killerRankName, killerName, victimAllianceName, victimRankName, victimName, killLocation)
+        --return message, DEFAULT_TARGET_CHANNEL, DEFAULT_FROM_DISPLAY_NAME, DEFAULT_RAW_MESSAGE_TEXT, narrationMessage, ZO_WHITE
+        return FormatSysMessage(message), DEFAULT_TARGET_CHANNEL, DEFAULT_FROM_DISPLAY_NAME, DEFAULT_RAW_MESSAGE_TEXT, narrationMessage, ZO_WHITE
+    end
+    ]]
+
     local function OnGroupMemberLeft(_, reason, isLocalPlayer, _, _, actionRequiredVote)
         logger:Debug("OnGroupMemberLeft: ", string.format("reason: %s, isLocalPlayer: %s, actionRequiredVote: %s", tostring(reason), tostring(isLocalPlayer), tostring(actionRequiredVote)))
 
@@ -233,6 +324,12 @@ function pChat.InitializeChatHandlers()
         CHAT_ROUTER:RegisterMessageFormatter(EVENT_GUILD_KEEP_ATTACK_UPDATE, OnKeepAttackUpdate)
         CM:FireCallbacks("pChat_Initialized_EVENT_GUILD_KEEP_ATTACK_UPDATE", function() return OnKeepAttackUpdate end)
     end
+    --[[ 2024-01-30 g_pvpKillFeedDeathRecurrenceTracker is local in chathandlers.lua of ESOUI source so we cannot add the timestamps properly at the handler by overwriting the function
+    if db.usePVPKillFeedChatHandler == true then
+        CHAT_ROUTER:RegisterMessageFormatter(EVENT_PVP_KILL_FEED_DEATH, OnPVPKillFeed)
+        CM:FireCallbacks("pChat_Initialized_EVENT_PVP_KILL_FEED_DEATH", function() return OnPVPKillFeed end)
+    end
+    ]]
 
 	--20211222 @Coorbin - Init CharCount functionality
 	pChat.charCount = {

@@ -1,43 +1,123 @@
 local CONSTANTS = pChat.CONSTANTS
-local ADDON_NAME = CONSTANTS.ADDON_NAME
+--local ADDON_NAME = CONSTANTS.ADDON_NAME
 
 local ChatSys = CONSTANTS.CHAT_SYSTEM
+
+local constChatTabNoName = CONSTANTS.chatTabNoName
 
 local validateChatChannelHooked = false
 local handleTabClickHooked = false
 local createNewChatTabHooked = false
 
-function pChat.InitializeChatTabs()
-    pChat.tabNames = {}
-    pChat.tabIndices = {}
+--Check if any tabName or index is missing (gaps) or is empty in total, and reset the chat tabs then
+--or insert a "- n/a - " as tabName + the correct index then
+local function checkAndReOrderMissingChatTabs()
+--d("[pChat]checkAndReOrderMissingChatTabs")
+    local tabNames = pChat.tabNames
+    local tabIndices = pChat.tabIndices
 
-    local function getTabNames()
-        ChatSys = CONSTANTS.CHAT_SYSTEM
-        local totalTabs = ChatSys.tabPool.m_Active
-        if totalTabs ~= nil and #totalTabs >= 1 then
-            pChat.tabNames = {}
-            pChat.tabIndices = {}
-            for idx, tmpTab in pairs(totalTabs) do
-                local tabLabel = tmpTab:GetNamedChild("Text")
-                if tabLabel ~= nil then
-                    local tmpTabName = tabLabel:GetText()
-                    if tmpTabName ~= nil and tmpTabName ~= "" then
-                        pChat.tabIndices[idx] = idx
-                        pChat.tabNames[idx] = tmpTabName
-                    end
+    if ZO_IsTableEmpty(tabNames) then
+        pChat.tabNames = {}
+        pChat.tabIndices = {}
+--d("<1")
+        return
+    end
+    if ZO_IsTableEmpty(tabIndices) then
+        pChat.tabNames = {}
+        pChat.tabIndices = {}
+--d"<2")
+        return
+    end
+
+    local countTabNames = NonContiguousCount(tabNames)
+    local countTabIndices = NonContiguousCount(tabIndices)
+--d(">countNames: " ..tostring(countTabNames) .. ", countIndices: " ..tostring(countTabIndices))
+    if countTabNames ~= countTabIndices then
+        if countTabIndices > countTabNames then
+            for idx, indexIdx in pairs(tabIndices) do
+                if indexIdx == "" or indexIdx ~= idx then
+--d(">1-indexIdx not equal idx: " .. tostring(idx))
+                    pChat.tabIndices[idx] = idx
+                end
+
+                local tabName = tabNames[idx]
+                if tabName == nil or tabName == "" then
+--d(">1-tabName nil or empty: " .. tostring(idx))
+                    pChat.tabNames[idx] = constChatTabNoName
+                end
+            end
+        else
+            for idx, tabName in pairs(tabNames) do
+                if tabName == "" then
+--d(">2-tabName nil or empty: " .. tostring(idx))
+                    pChat.tabNames[idx] = constChatTabNoName
+                end
+
+                local indexEntry = tabIndices[idx]
+                if indexEntry == nil then
+--d(">2-index nil: " .. tostring(idx))
+                    pChat.tabIndices[idx] = idx
                 end
             end
         end
+    else
+        for idx, tabName in pairs(tabNames) do
+            if tabName == "" then
+--d(">3-tabName nil or empty: " .. tostring(idx))
+                pChat.tabNames[idx] = constChatTabNoName
+            end
+
+            local indexEntry = tabIndices[idx]
+            if indexEntry == nil then
+--d(">3-index nil: " .. tostring(idx))
+                pChat.tabIndices[idx] = idx
+            end
+        end
+    end
+end
+
+function pChat.InitializeChatTabs()
+    local function getTabNames()
+--d("[pChat]getTabNames")
+        pChat.tabNames = {}
+        pChat.tabIndices = {}
+
+        ChatSys = CONSTANTS.CHAT_SYSTEM
+        local totalTabs = ChatSys.tabPool.m_Active
+        if totalTabs ~= nil and #totalTabs >= 1 then
+            for idx, tmpTab in ipairs(totalTabs) do
+                local tabLabel = tmpTab:GetNamedChild("Text")
+                if tabLabel ~= nil then
+                    local tmpTabName = tabLabel:GetText()
+--d(">idx: " .. tostring(idx) ..", tmpTabName: " ..tostring(tmpTabName))
+                    if tmpTabName ~= nil then
+                        if tmpTabName == "" then
+                            tmpTabName = constChatTabNoName
+                        end
+                        pChat.tabIndices[idx] = idx
+                        pChat.tabNames[idx] = tmpTabName
+                    else
+                        tmpTabName = constChatTabNoName
+                        pChat.tabIndices[idx] = idx
+                        pChat.tabNames[idx] = tmpTabName
+                    end
+                --else
+--d("<tabLabel = nil!")
+                end
+            end
+        --else
+--d("<totalTabs = nil!")
+        end
+        checkAndReOrderMissingChatTabs()
     end
     pChat.getTabNames = getTabNames
 
-    --TODO: Not needed anymore. Remove?
     local function getTabIndexByName(tabName)
-        pChat.tabNames = pChat.tabNames or {}
-        if #pChat.tabNames == 0 then
+        if ZO_IsTableEmpty(pChat.tabNames) then
             getTabNames()
         end
         local chatTabNames = pChat.tabNames
+        if ZO_IsTableEmpty(chatTabNames) then return 1 end
         local totalTabs = ChatSys.tabPool.m_Active
         for i = 1, #totalTabs do
             if chatTabNames[i] == tabName then
@@ -49,8 +129,8 @@ function pChat.InitializeChatTabs()
     end
     pChat.getTabIndexByName = getTabIndexByName
 
-    local function SetSwitchToNextBinding()
 
+    local function SetSwitchToNextBinding()
         -- get SwitchTab Keybind params
         local layerIndex, categoryIndex, actionIndex = GetActionIndicesFromName("PCHAT_SWITCH_TAB")
         --If exists

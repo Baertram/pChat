@@ -6,6 +6,8 @@ local WM = WINDOW_MANAGER
 
 local ChatSys = CONSTANTS.CHAT_SYSTEM
 
+local constChatTabNoName = CONSTANTS.chatTabNoName
+
 function pChat.InitializeChatConfig()
     local pChatData = pChat.pChatData
     pChat.pChatData.wasManuallyMinimized = pChat.pChatData.wasManuallyMinimized or false
@@ -284,7 +286,9 @@ function pChat.InitializeChatConfig()
                 end
 
                 -- GetTabName
-                db.chatConfSync[charId].tabs[numTab].name = primaryContainer:GetTabName(numTab)
+                local chatTabName = primaryContainer:GetTabName(numTab)
+                if chatTabName == nil or chatTabName == "" then chatTabName = constChatTabNoName end
+                db.chatConfSync[charId].tabs[numTab].name = chatTabName
 
                 -- Enabled categories
                 db.chatConfSync[charId].tabs[numTab].enabledCategories = {}
@@ -343,13 +347,16 @@ function pChat.InitializeChatConfig()
         ]]
 
         ZO_PreHook(MINIMIZE_CHAT_FRAGMENT, "Show", function()
---d("[pChat]MINIMIZE_CHAT_FRAGMENT:Show")
+            --d("[pChat]MINIMIZE_CHAT_FRAGMENT:Show")
+            --Do minimizing of the chat just like old pChat did, without any fragment checks! Only via the hud scene and other chat functions
+            if db.chatMinimizedInMenusOldMode == true then return false end
+
             --Do not minimize chat if pChat settings say to keep the chat maximized
             if not db.chatMinimizedInMenus then
-                MINIMIZE_CHAT_FRAGMENT:OnShown()
-                return true
+                MINIMIZE_CHAT_FRAGMENT:OnShown() --> Do NOT minimize the chat, only call the fragment's OnShow to update the controls and variables etc. properly
+                return true --Abort here now, without minimizing
             end
-            return false --Call original func
+            return false --Call original func -> Minimize the chat
         end)
         ZO_PreHook(MINIMIZE_CHAT_FRAGMENT, "Hide", function()
 --d("[pChat]MINIMIZE_CHAT_FRAGMENT:Hide")
@@ -358,7 +365,7 @@ function pChat.InitializeChatConfig()
                 MINIMIZE_CHAT_FRAGMENT:OnHidden()
                 return true
             end
-            return false --Call original func
+            return false --Call original func -> Maximize the chat
         end)
 
         -- RegisterCallback for Maximize/Minimize chat when entering/leaving scenes

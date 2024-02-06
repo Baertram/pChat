@@ -493,7 +493,9 @@ SafeAddString(PCHAT_CHATHANDLER_IGNORE_ADDED                , "Ignorierte Spiele
 SafeAddString(PCHAT_CHATHANDLER_IGNORE_REMOVED              , "Ignorierte Spieler entfernt", 1)
 SafeAddString(PCHAT_CHATHANDLER_GROUP_MEMBER_LEFT           , "Gruppen Mitglied verlassen", 1)
 SafeAddString(PCHAT_CHATHANDLER_GROUP_TYPE_CHANGED          , "Gruppen Typ geändert", 1)
-SafeAddString(PCHAT_CHATHANDLER_KEEP_ATTACK_UPDATE          , "Keep Angriff Aktualisierung", 1)
+SafeAddString(PCHAT_CHATHANDLER_KEEP_ATTACK_UPDATE          , "AvA Keep Angriff Aktualisierung", 1)
+SafeAddString(PCHAT_CHATHANDLER_PVP_KILL_FEED               , "AvA Tötungs-Mitteilung",1)
+
 
 SafeAddString(PCHAT_SETTINGS_EDITBOX_HOOKS 					, "Chat Text Eingabefeld", 1)
 SafeAddString(PCHAT_SETTINGS_EDITBOX_HOOK_CTRL_BACKSPACE 	, "STRG + <-: Wort löschen", 1)

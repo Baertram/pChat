@@ -81,6 +81,7 @@ function pChat.InitializeChatHistory()
         if not db.chatTabChannel then db.chatTabChannel = {} end
         if not db.LineStrings then db.LineStrings = {} end
         if not pChat.tabNames then pChat.tabNames = {} end
+        if not pChat.tabIndices then pChat.tabIndices = {} end
     end
 
     local function SaveChatHistory(typeOf)

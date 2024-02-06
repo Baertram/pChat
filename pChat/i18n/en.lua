@@ -166,7 +166,10 @@ local strings = {
 	PCHAT_CHATMINIMIZEDATLAUNCHTT = "Minimize chat window on the left side of the screen when the game starts",
 
 	PCHAT_CHATMINIMIZEDINMENUS = "Chat minimized in menus",
-	PCHAT_CHATMINIMIZEDINMENUSTT = "Minimize chat window on the left of the screen when you enter in menus (Guild, Stats, Crafting, etc)",
+	PCHAT_CHATMINIMIZEDINMENUSTT = "Minimize chat window when you enter in menus (Guild, Stats, Crafting, etc)",
+
+	PCHAT_CHATMINIMIZEDINMENUS_HALF = "Old minimize mode",
+	PCHAT_CHATMINIMIZEDINMENUS_HALFTT = "Do not minimize the chat window at all menus, but only in some of the menus (e.g. leave it open at inventory menu)",
 
 	PCHAT_CHATMAXIMIZEDAFTERMENUS = "Restore chat after exiting menus",
 	PCHAT_CHATMAXIMIZEDAFTERMENUSTT = "Always restore the chat window after exiting menus",
@@ -484,6 +487,7 @@ local strings = {
 	PCHAT_CHATHANDLER_GROUP_MEMBER_LEFT = "Group member left",
 	PCHAT_CHATHANDLER_GROUP_TYPE_CHANGED = "Group type changed",
 	PCHAT_CHATHANDLER_KEEP_ATTACK_UPDATE = "Keep attack update",
+	PCHAT_CHATHANDLER_PVP_KILL_FEED = "PVP kill feed",
 
 	PCHAT_SETTINGS_EDITBOX_HOOKS 					= "Chat editbox",
 	PCHAT_SETTINGS_EDITBOX_HOOK_CTRL_BACKSPACE 		= "CTRL + backspace: Remove word",

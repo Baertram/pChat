@@ -22,6 +22,8 @@ CONSTANTS.ADDON_SV_VERSION 	= ADDON_SV_VERSION
 
 local apiVersion = CONSTANTS.API_VERSION
 
+local constChatTabNoName = CONSTANTS.chatTabNoName
+
 --Initialize the SavedVariables and LAM settings menu
 function pChat.InitializeSettings()
 	local pChatData = pChat.pChatData
@@ -73,6 +75,7 @@ function pChat.InitializeSettings()
 		disableBrackets = true,
 		chatMinimizedAtLaunch = false,
 		chatMinimizedInMenus = false,
+		chatMinimizedInMenusOldMode = false,
 		chatMaximizedAfterMenus = false,
 		chatMaximizedAfterMove = false,
 		windowDarkness = 6,
@@ -176,6 +179,8 @@ function pChat.InitializeSettings()
 		useGroupMemberLeftChatHandler = true,
 		useGroupTypeChangedChatHandler = true,
 		useKeepAttackUpdateChatHandler = true,
+		usePVPKillFeedChatHandler = true,
+
 		chatEditBoxOnBackspaceHook = true,
 		backupYourSavedVariablesReminder = true,
 		backupYourSavedVariablesReminderDone = {},
@@ -280,6 +285,34 @@ function pChat.InitializeSettings()
 		end
 	end
 
+	local function checkDefaultTabExists(defaultTab)
+--d("[pChat]checkDefaultTabExists-defaultTab: " .. tostring(defaultTab))
+		if defaultTab == nil then
+			defaultTab = defaults.defaultTab
+--d("<1")
+		end
+		if defaultTab == defaults.defaultTab then
+--d("<2")
+			return defaultTab
+		end
+
+		--Loop given chat tabs and check if the defaultTab exist-> Else reset to chat tab 1
+        ChatSys = CONSTANTS.CHAT_SYSTEM
+        local totalTabs = ChatSys.tabPool.m_Active
+		if totalTabs ~= nil and #totalTabs >= 1 then
+			if totalTabs[defaultTab] == nil then
+--d("<3")
+				defaultTab = defaults.defaultTab
+			end
+		else
+--d("<4")
+			defaultTab = defaults.defaultTab
+		end
+--d("<defaultTabNew: " ..tostring(defaultTab))
+		return defaultTab
+	end
+
+
 	-- Build LAM Option Table, used when AddonLoads or when a player join/leave a guild
 	local function BuildLAMPanel()
 		pChat.updateChatChannelNames()
@@ -319,7 +352,14 @@ function pChat.InitializeSettings()
 		-- ChatSys.primaryContainer.windows doesn't exists yet at OnAddonLoaded. So using the pChat reference.
 		local arrayTab = {}
 		if db.chatConfSync and db.chatConfSync[charId] and db.chatConfSync[charId].tabs then
-			for numTab, _ in pairs (db.chatConfSync[charId].tabs) do
+			for numTab, numTabData in pairs (db.chatConfSync[charId].tabs) do
+				--Fix .name, if it's empty -> make it "- n/a -"
+				if numTabData.name == nil or numTabData.name == "" then
+					local errorStr = "(BuildLAMPanel)ERROR: Fixed numTabData.name == nil! numTab: " ..tostring(numTab)
+					d("[pChat]"..errorStr)
+					if logger ~= nil then logger:Debug(errorStr) end
+					numTabData.name = constChatTabNoName
+				end
 				table.insert(arrayTab, numTab)
 			end
 		else
@@ -328,11 +368,8 @@ function pChat.InitializeSettings()
 
 		--Check if the chat tabs were updated -> Rebuild the settings tables
 		pChat.getTabNames()
-		--No default tab chosen in SavedVariables yet? Use the first tab	--Update the available sounds from the game
-		if not db.defaultTab then
-			db.defaultTab = 1
-		end
-
+		--No default tab chosen in SavedVariables yet? Use the first tab
+		db.defaultTab = checkDefaultTabExists(db.defaultTab)
 
 		-- Coorbin20211222
 		------------------------------------------------------------------------------------------------------------------------
@@ -767,7 +804,7 @@ function pChat.InitializeSettings()
 							width = "full",
 							default = defaults.chatMinimizedAtLaunch,
 						},
-						{-- Minimize Menues
+						{-- Minimize Menus
 							type = "checkbox",
 							name = GetString(PCHAT_CHATMINIMIZEDINMENUS),
 							tooltip = GetString(PCHAT_CHATMINIMIZEDINMENUSTT),
@@ -775,6 +812,16 @@ function pChat.InitializeSettings()
 							setFunc = function(newValue) db.chatMinimizedInMenus = newValue end,
 							width = "full",
 							default = defaults.chatMinimizedInMenus,
+						},
+						{-- Minimize Menus
+							type = "checkbox",
+							name = GetString(PCHAT_CHATMINIMIZEDINMENUS_HALF),
+							tooltip = GetString(PCHAT_CHATMINIMIZEDINMENUS_HALFTT),
+							getFunc = function() return db.chatMinimizedInMenusOldMode end,
+							setFunc = function(newValue) db.chatMinimizedInMenusOldMode = newValue end,
+							width = "full",
+							default = defaults.chatMinimizedInMenusOldMode,
+							disabled = function() return not db.chatMinimizedInMenus end
 						},
 						{ -- Maximize After Menus
 							type = "checkbox",
@@ -889,6 +936,19 @@ function pChat.InitializeSettings()
 							requiresReload = true,
 							default = defaults.useKeepAttackUpdateChatHandler,
 						},
+
+    --[[ 2024-01-30 g_pvpKillFeedDeathRecurrenceTracker is local in chathandlers.lua of ESOUI source so we cannot add the timestamps properly at the handler by overwriting the function
+						{-- LAM Option enable PVP kill feed chat message handler
+							type = "checkbox",
+							name = GetString(PCHAT_CHATHANDLER_PVP_KILL_FEED),
+							tooltip = string.format(GetString(PCHAT_CHATHANDLER_TEMPLATETT), GetString(PCHAT_CHATHANDLER_PVP_KILL_FEED)),
+							getFunc = function() return db.usePVPKillFeedChatHandler end,
+							setFunc = function(newValue) db.usePVPKillFeedChatHandler = newValue end,
+							width = "full",
+							requiresReload = true,
+							default = defaults.usePVPKillFeedChatHandler,
+						},
+	]]
 
 					}, --controls Chat message handlers
 
@@ -1533,10 +1593,10 @@ function pChat.InitializeSettings()
 					choices = pChat.tabNames,
 					choicesValues = pChat.tabIndices,
 					width = "full",
-					getFunc = function() return db.defaultTab end,
+					getFunc = function() return	checkDefaultTabExists(db.defaultTab) end,
 					setFunc = function(choice)
 						db.defaultTab = choice
-						--logger:Debug(choice)
+						--logger:Debug("Default tab selected: " ..tos(choice))
 					end,
 					default = defaults.defaultTab,
 					scrollable = true,

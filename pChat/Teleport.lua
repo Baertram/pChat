@@ -492,7 +492,7 @@ local function getPortTypeFromName(playerName, rawName)
     if portType == nil then
 --d(">check guilds:")
         local guildMemberDisplayname
-        guildMemberDisplayname, guildIndexFound, _ = checkDisplayName(playerName, "guild", nil, nil)
+        guildMemberDisplayname, guildIndexFound = checkDisplayName(playerName, "guild", nil, nil)
 --d(">guildMemberDisplayname: " ..tos(guildMemberDisplayname) .. "; guildIndexFound: " ..tos(guildIndexFound))
         --port to guild member
         if guildMemberDisplayname ~= nil then
