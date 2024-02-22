@@ -81,9 +81,9 @@ ZO_KeyboardChatWindowTemplate1Buffer_LinkMouseUp:3: in function '(main chunk)'
 
 --Added:
 --Added .slug font files for PTS
---Requested: Additional option to hide chat only in some menus (old way, before change to v10.0.4.3)
 
 --Added on request:
+--Additional option to hide chat only in some menus (old way, before change to v10.0.4.3)
 
 
 --=======================================================================================================================================

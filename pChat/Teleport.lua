@@ -299,6 +299,8 @@ local function checkDisplayName(displayName, portType, p_guildIndex, p_guildInde
     local args
     local isAccountName = false
 
+    local friendIndex
+
     --Was the guildIndex passed in from a slash command as 1st param and the displayName is the 2nd param then?
     if wasGuildIndexInDisplayName == true then
         args = parseSlashCommands(displayName, false)
@@ -359,23 +361,30 @@ local function checkDisplayName(displayName, portType, p_guildIndex, p_guildInde
 
                     if friendDisplayName ~= nil and strf(friendDisplayName, possibleDisplayName, 1, true) ~= nil then
                         friendsDisplayname = data.displayName
+                        friendIndex = k
                         --d(">>>found online friend: " ..tos(friendsDisplayname))
                         break
                     elseif friendCharName ~= nil and strf(friendCharName, possibleDisplayName, 1, true) ~= nil then
                         friendsDisplayname = data.displayName
+                        friendIndex = k
                         --d(">>>found online friend by charName: " ..tos(friendsDisplayname) .. ", charName: " .. tos(friendCharName))
+                        break
                     end
                 end
             end
             if friendsDisplayname ~= nil and not IsFriend(friendsDisplayname) then
                 friendsDisplayname = nil
+                friendIndex = nil
             end
         else
             friendsDisplayname = possibleDisplayNameNormal
         end
         isStrDisplayName = isDisplayName(friendsDisplayname)
-        if not isStrDisplayName then friendsDisplayname = nil end
-        return friendsDisplayname
+        if not isStrDisplayName then
+            friendsDisplayname = nil
+            friendIndex = nil
+        end
+        return friendsDisplayname, friendIndex
 
     ------------------------------------------------------------------------------------------------------------------------
     elseif portType == "guild" then
@@ -383,11 +392,12 @@ local function checkDisplayName(displayName, portType, p_guildIndex, p_guildInde
         return isPlayerInAnyOfYourGuilds(displayName, possibleDisplayNameNormal, possibleDisplayName, p_guildIndex, p_guildIndexIteratorStart)
     end
 end
+pChat.checkDisplayName = checkDisplayName
 
 function pChat.PortToGroupLeader()
     if not canTeleport() then return end
     local unitTag, groupLeaderTag
-    if not IsUnitGrouped("player") or IsUnitGroupLeader(playerTag) then return end
+    if not IsUnitGrouped(playerTag) or IsUnitGroupLeader(playerTag) then return end
     groupLeaderTag = GetGroupLeaderUnitTag()
     if groupLeaderTag == nil or groupLeaderTag == "" then
         return
@@ -408,7 +418,7 @@ end
 
 function pChat.PortToGroupMember(displayName)
     if displayName == nil or displayName == "" or not canTeleport() then return end
-    if not IsUnitGrouped("player") then return end
+    if not IsUnitGrouped(playerTag) then return end
     displayName = checkDisplayName(displayName, "group")
     portToDisplayname(displayName, "group")
 end
@@ -477,10 +487,10 @@ local function getPortTypeFromName(playerName, rawName)
     end
 
     --Group member
-    local localPlayerIsGrouped = IsUnitGrouped("player")
+    local localPlayerIsGrouped = IsUnitGrouped(playerTag)
 --d(">Are we grouped: " ..tos(localPlayerIsGrouped))
     if portType == nil and localPlayerIsGrouped == true then
-        if IsPlayerInGroup(rawName) then
+        if rawName ~= nil and IsPlayerInGroup(rawName) then
 --d(">>player is in group!")
             --port to group member
             portType = "group"
@@ -508,7 +518,7 @@ local function getPortTypeFromName(playerName, rawName)
 --[[
         --Group leader
         if localPlayerIsGrouped == true then
-            if not IsUnitGroupLeader("player") then
+            if not IsUnitGroupLeader(playerTag) then
 d(">>port to group leader")
                 --port to group leader
                 portType = "groupLeader"
@@ -539,7 +549,11 @@ local function pChat_PlayerContextMenuCallback(playerName, rawName)
         local chanNumber, numLine --todo how to get those from clicked line?
         if pChat.isMonsterChatChannel(chanNumber, numLine) == false then
             AddMenuItem(GetString(SI_SOCIAL_MENU_SEND_MAIL) .. playerNameStr , function()
-                MAIL_SEND:ComposeMailTo(playerName)
+                if MAIL_SEND_SCENE:IsShowing() then
+                    MAIL_SEND:SetReply(playerName)
+                else
+                    MAIL_SEND:ComposeMailTo(playerName)
+                end
             end)
             wasAdded = wasAdded +1
         end
@@ -642,8 +656,8 @@ function pChat.TeleportChanges()
 
             -- Add to/Remove from Group
             if IsGroupModificationAvailable() then
-                local localPlayerIsGrouped = IsUnitGrouped("player")
-                local localPlayerIsGroupLeader = IsUnitGroupLeader("player")
+                local localPlayerIsGrouped = IsUnitGrouped(playerTag)
+                local localPlayerIsGroupLeader = IsUnitGroupLeader(playerTag)
                 local otherPlayerIsInPlayersGroup = IsPlayerInGroup(rawName)
                 if not localPlayerIsGrouped or (localPlayerIsGroupLeader and not otherPlayerIsInPlayersGroup) then
                     AddMenuItem(GetString(SI_CHAT_PLAYER_CONTEXT_ADD_GROUP), function()

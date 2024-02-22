@@ -322,7 +322,8 @@ function pChat.InitializeChatConfig()
 
     local function MinimizeChatInMenus()
 
-        --TODO #14 Chat minimizes in menus (left side menus like Settings or full screen like Champion Points, not inventory and bank et such) even though setting says to not minimize in menus
+        --TODO #14 Chat minimizes in menus (left side menus like Settings or full screen like Champion Points / not right side menus of inventory and bank et such)
+        --TODO      even though setting (db.chatMinimizedInMenus == false) says to not minimize (keep maximized) in menus
         --MINIMIZE_CHAT_FRAGMENT is added to some scenes
         --So overwrite the Show and hide functions to let it work with pChat too
         --[[
@@ -347,12 +348,17 @@ function pChat.InitializeChatConfig()
         ]]
 
         ZO_PreHook(MINIMIZE_CHAT_FRAGMENT, "Show", function()
-            --d("[pChat]MINIMIZE_CHAT_FRAGMENT:Show")
-            --Do minimizing of the chat just like old pChat did, without any fragment checks! Only via the hud scene and other chat functions
-            if db.chatMinimizedInMenusOldMode == true then return false end
+--d("[pChat]MINIMIZE_CHAT_FRAGMENT:Show")
+            local chatMinimizedInMenus = db.chatMinimizedInMenus
+            --Or: do minimizing of the chat just like old pChat did -> without any fragment checks! Only via the hud scene and other chat functions
+            if chatMinimizedInMenus == false and db.chatMinimizedInMenusOldMode == true then
+--d(">!!!Minimize chat now OLD MODE!")
+                return false --Call original func -> Minimize the chat
+            end
 
             --Do not minimize chat if pChat settings say to keep the chat maximized
-            if not db.chatMinimizedInMenus then
+            if chatMinimizedInMenus == false then
+--d(">!!!Keep chat opened in menus!!!")
                 MINIMIZE_CHAT_FRAGMENT:OnShown() --> Do NOT minimize the chat, only call the fragment's OnShow to update the controls and variables etc. properly
                 return true --Abort here now, without minimizing
             end
@@ -360,8 +366,14 @@ function pChat.InitializeChatConfig()
         end)
         ZO_PreHook(MINIMIZE_CHAT_FRAGMENT, "Hide", function()
 --d("[pChat]MINIMIZE_CHAT_FRAGMENT:Hide")
+            --Or: do minimizing of the chat just like old pChat did -> without any fragment checks! Only via the hud scene and other chat functions
+            if db.chatMinimizedInMenusOldMode == true then
+--d(">!!!Minimize chat now OLD MODE!")
+                return false --Call original func -> Minimize the chat
+            end
+
             --Do not maximize chat if pChat settings say to keep the chat minimized (or non changed)
-            if not db.chatMaximizedAfterMenus then
+            if db.chatMaximizedAfterMenus == false then
                 MINIMIZE_CHAT_FRAGMENT:OnHidden()
                 return true
             end
@@ -373,7 +385,7 @@ function pChat.InitializeChatConfig()
         local hudScene = SCENE_MANAGER:GetScene("hud")
         hudScene:RegisterCallback("StateChange", function(oldState, newState)
 --d("[pChat]HUD Scene State: " ..tostring(newState) .. ", chatMin: " ..tostring(ChatSys:IsMinimized()))
-                if db.chatMinimizedInMenus == true then
+                if db.chatMinimizedInMenus == true then --or db.chatMinimizedInMenusOldMode == true then
                     if newState == SCENE_HIDDEN and SCENE_MANAGER:GetNextScene():GetName() ~= "hudui" then
 --d(">chat hidden")
                         if ChatSys:IsMinimized() then
@@ -389,7 +401,7 @@ function pChat.InitializeChatConfig()
                 if not ChatSys:IsMinimized() then return end
 --d(">>chat showing")
                     if db.chatMaximizedAfterMenus == true then
-    --d(">max after menu - wasManuallyMinimized: " ..tostring(wasManuallyMinimized))
+--d(">max after menu - wasManuallyMinimized: " ..tostring(wasManuallyMinimized))
                         --Do not show the chat if we are just moving and no menu was opened before
     --[[
                         if wasManuallyMinimized == true then
@@ -399,7 +411,7 @@ function pChat.InitializeChatConfig()
                             end
                         end
     ]]
-    --d("<<Not moving, menu closed: Maximize now!!")
+--d("<<Not moving, menu closed: Maximize now!!")
                         ChatSys:Maximize()
                     end
 --[[

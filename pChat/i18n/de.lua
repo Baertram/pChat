@@ -185,8 +185,11 @@ SafeAddString(PCHAT_WINDOWDARKNESSTT								, "Erhöhen Sie die Verdunkelung des
 SafeAddString(PCHAT_CHATMINIMIZEDATLAUNCH							, "Chat beim Start minimiert", 1)
 SafeAddString(PCHAT_CHATMINIMIZEDATLAUNCHTT						, "Chat-Fenster auf der linken Seite des Bildschirms minimieren, wenn das Spiel startet", 1)
 
-SafeAddString(PCHAT_CHATMINIMIZEDINMENUS							, "Chat in Menüs minimiert", 1)
-SafeAddString(PCHAT_CHATMINIMIZEDINMENUSTT						, "Chat-Fenster auf der linken Seite des Bildschirms minimieren, wenn Menüs (Gilde, Charakter, Handwerk, etc.) geöffnet werden", 1)
+SafeAddString(PCHAT_CHATMINIMIZEDINMENUS							, "Chat in allen Menüs minimiert", 1)
+SafeAddString(PCHAT_CHATMINIMIZEDINMENUSTT						, "Chat-Fenster auf der linken Seite des Bildschirms minimieren, wenn Menüs (Gilde, Charakter, Handwerk, Inventar, etc.) geöffnet werden", 1)
+
+SafeAddString(PCHAT_CHATMINIMIZEDINMENUS_HALF,                  "Chat nur in einigen Menüs minimiert", 1)
+SafeAddString(PCHAT_CHATMINIMIZEDINMENUS_HALFTT,                "Der Chat wird nur in einigen der Menüs minimiert (z.B. Champion Punkte, Einstellungen)", 1)
 
 SafeAddString(PCHAT_CHATMAXIMIZEDAFTERMENUS						, "Chat nach Menüs wieder herstellen", 1)
 SafeAddString(PCHAT_CHATMAXIMIZEDAFTERMENUSTT					, "Zeigt das Chat Fenster, nach dem Verlassen von Menüs, wieder an", 1)
@@ -212,6 +215,7 @@ SafeAddString(PCHAT_SOUNDFORINCWHISPSCHOICE3						, "Schreiben", 1)
 -- Restore chat settings
 
 SafeAddString(PCHAT_RESTORECHATH										, "Chat wiederherstellen", 1)
+
 
 SafeAddString(PCHAT_RESTOREONRELOADUI								, "Nach ReloadUI", 1)
 SafeAddString(PCHAT_RESTOREONRELOADUITT							, "Nach dem Neuladen der Benutzeroberfläche (/reloadui) wird pChat den vorherigen Chat + Historie wieder herstellen. Sie können somit Ihre vorherige Konversation wieder aufnehmen.", 1)
@@ -242,6 +246,9 @@ SafeAddString(PCHAT_RESTOREWHISPS_NO_NOTIFY_TT                      , "Zeige kei
 
 SafeAddString(PCHAT_RESTORETEXTENTRYHISTORYATLOGOUTQUIT		        , "Text wiederherstellen bei Pfeiltasten Historie", 1)
 SafeAddString(PCHAT_RESTORETEXTENTRYHISTORYATLOGOUTQUITTT	        , "Stellt die Historie wieder her beim verwenden der Tastatur Pfeiltasten. Die Historie ist nach einem /ReloadUI immer wiederhergestellt.", 1)
+
+SafeAddString(PCHAT_RESTOREHISTORY_SHOWACTUALZONENAME               , "[pChat]Historie wiederhergestellt: %s in %s", 1)
+
 
 -- Anti Spam settings
 
@@ -514,6 +521,10 @@ SafeAddString(PCHAT_RESTORESHOWNAMEANDZONE_TT, "Zeige den aktuell eingeloggten @
 SafeAddString(PCHAT_CHATCONTEXTMENU, "Chat Kontextmenü", 1)
 SafeAddString(PCHAT_SHOWACCANDCHARATCONTEXTMENU, "@Account/CharakterName im Kontextmenü", 1)
 SafeAddString(PCHAT_SHOWACCANDCHARATCONTEXTMENU_TT, "Zeige den @AccountName/CharakterName im Kopier Kontextmenü an.\nEs werden nur beide angezeigt wenn auch die Option der Namensformate im entsprechenden Chat Kanal beide anzeigt! Flüster Nachrichten sind davon ausgenommen weil hier nicht beide Werte vorhanden sind.", 1)
+SafeAddString(PCHAT_SHOWCHARLEVELATCONTEXTMENU, "Character Level im Kontextmenü", 1)
+SafeAddString(PCHAT_SHOWCHARLEVELATCONTEXTMENU_TT, "Zeige das Level des Charakters im Kopier Kontextmenü an.\nFunktioniert nur, wenn die @Account/CharakterName Kopfzeile aktiv ist, und der Charakter Name in der Anzeige aktiviert wurde, und der Charakter aktuell in der Gruppe, Gilde oder auf der Freundesliste online ist!", 1)
+
+
 SafeAddString(PCHAT_ASKBEFOREIGNORE					,'Zeige \'!WARNUNG!\' für ignorierte Spieler',1)
 SafeAddString(PCHAT_ASKBEFOREIGNORETT					,'Fügt eine Warnung Kopfzeile zum Chat Kontextmenü hinzu, wenn der Spieler auf deiner Ignorieren Liste steht',1)
 SafeAddString(PCHAT_SHOWIGNOREDWARNINGCONTEXTMENU	, "Frage Ja/Nein vor dem Ignorieren (Chat, Freundesliste, ...)",1)

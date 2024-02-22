@@ -106,7 +106,7 @@
 		 	4. A text field containing the message text block (current split)
 		 	5. A "next" button to get to the next chat message block (next split)
 		 	6. "Apply filter" and "Close" buttons -->
-		<TopLevelControl name="pChatCopyOptionsDialog" inherits="ZO_CustomDialogBase">
+		<TopLevelControl name="pChatCopyOptionsDialog" inherits="ZO_CustomDialogBase" resizeToFitDescendents="false">
 			<OnInitialized>
 				pChat_ChatCopyOptions_OnInitialized(self)
 			</OnInitialized>

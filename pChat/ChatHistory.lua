@@ -7,6 +7,9 @@ local mapChatChannelToPChatChannel  = pChat.mapChatChannelToPChatChannel
 local mapPChatChannelToChatChannel  = pChat.mapPChatChannelToChatChannel
 local SetToChatChannelAndTarget     = pChat.SetToChatChannelAndTarget
 
+local currentlyLoggedInAccountName = GetDisplayName()
+
+
 function pChat.InitializeChatHistory()
     local pChatData = pChat.pChatData
     local db = pChat.db
@@ -143,7 +146,10 @@ function pChat.InitializeChatHistory()
         local lastInsertionWas = 0
         local restoredPrefix = GetString(PCHAT_RESTORED_PREFIX)
 
+        --restore currently logegd in account history
         if db.LineStrings then
+
+            local addHistoryRestoredPrefix = db.addHistoryRestoredPrefix
 
             local historyIndex = 1
             local categories = ZO_ChatSystem_GetEventCategoryMappings()
@@ -185,8 +191,8 @@ function pChat.InitializeChatHistory()
                                         if not db.chatConfSync[charId].tabs[tabIndex].notBefore or db.LineStrings[historyIndex].rawTimestamp > db.chatConfSync[charId].tabs[tabIndex].notBefore then
                                             local restoredChatRawText = db.LineStrings[historyIndex].rawValue
                                             if restoredChatRawText and restoredChatRawText ~= "" then
-                                                if db.addHistoryRestoredPrefix == true then
-                                                    --If the message was restored from history then add a prefix [H] )for history) to it!
+                                                if addHistoryRestoredPrefix == true then
+                                                    --If the message was restored from history then add a prefix [H] (for history) to it!
                                                     restoredChatRawText = restoredPrefix .. restoredChatRawText
                                                 end
                                                 ChatSys.containers[containerIndex]:AddEventMessageToWindow(ChatSys.containers[containerIndex].windows[tabIndex], pChat.AddLinkHandler(restoredChatRawText, channelToRestore, historyIndex), category)
@@ -248,6 +254,7 @@ function pChat.InitializeChatHistory()
 
         end
 
+
         -- Restore TextEntry History
         if (wasReloadUI or db.restoreTextEntryHistoryAtLogOutQuit) and db.history.textEntry then
 
@@ -265,6 +272,7 @@ function pChat.InitializeChatHistory()
 
         end
         pChatData.preventWhisperNotificationsFromHistory = false
+
     end
 
     --**** Issue
@@ -336,7 +344,39 @@ function pChat.InitializeChatHistory()
 		-- @Baertram - By Ernest Bagwell 2023-02-10 Added this line to show the player name and zone, it will be added once the add-on has loaded the historical chats ######
         -- CHAT_SYSTEM:AddMessage(string.format("pChat loaded: %s in %s", GetUnitName("player"), ZO_WorldMapTitle:GetText()))
         if db.restoreShowCurrentNameAndZone == true then
-            CHAT_SYSTEM:AddMessage(string.format("[pChat]History restored: %s in %s", GetDisplayName()  .. " - " .. zo_strformat(SI_UNIT_NAME, GetUnitName("player")), ZO_WorldMapTitle:GetText()))
+            local zoneStoryId = ZO_ExplorationUtils_GetZoneStoryZoneIdForCurrentMap()
+            local zoneNameById = (zoneStoryId ~= nil and zoneStoryId > 0 and GetZoneNameById(zoneStoryId)) or nil
+            local zoneName = (zoneNameById ~= nil and zoneNameById ~= "" and zo_strformat(SI_UNIT_NAME, zoneNameById)) or nil
+            local zoneMapPartName = ZO_WorldMapTitle:GetText()
+            local zoneOutputStr
+            if zoneMapPartName ~= nil then
+                zoneOutputStr = zoneMapPartName
+            end
+            if zoneName ~= nil then
+                local zoneStrToAdd
+                if zoneMapPartName ~= nil then
+                    if zoneMapPartName == zoneName and zoneStoryId ~= nil then
+                        --Get parent zone name
+                        local parentZoneId = GetParentZoneId(zoneStoryId)
+                        zoneStrToAdd = (parentZoneId ~= nil and parentZoneId > 0 and parentZoneId ~= zoneStoryId and zo_strformat(SI_UNIT_NAME, parentZoneId)) or nil
+                    else
+                        zoneStrToAdd = zoneName
+                    end
+                else
+                    zoneStrToAdd = zoneName
+                end
+
+                if zoneStrToAdd ~= nil then
+                    if zoneOutputStr ~= nil then
+                        zoneOutputStr = zoneOutputStr .. ", " .. zoneStrToAdd
+                    else
+                        zoneOutputStr = zoneStrToAdd
+                    end
+                end
+            end
+            if zoneOutputStr ~= nil then
+                CHAT_SYSTEM:AddMessage(string.format(GetString(PCHAT_RESTOREHISTORY_SHOWACTUALZONENAME), GetDisplayName()  .. " - " .. zo_strformat(SI_UNIT_NAME, GetUnitName("player")), zoneOutputStr))
+            end
         end
     end
     pChat.RestoreChatHistory = RestoreChatHistory

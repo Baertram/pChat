@@ -131,6 +131,9 @@ pChat.IsDisplayName = IsDisplayName
 -- Get the @Account and charatcerName from the actual right clicked line
 local function GetAccountAndCharacterNameFromLine(numLine, chatChannel)
     local db = pChat.db
+    local characterLevel
+    local showCharacterLevelInContextMenuAtChat = db.showCharacterLevelInContextMenuAtChat
+    local guildId
 
     if not numLine or not db.LineStrings then return end
     local lineData = db.LineStrings[numLine]
@@ -185,7 +188,7 @@ local function GetAccountAndCharacterNameFromLine(numLine, chatChannel)
                     --local subString = strsub(rawValue, startPos)
                     local endPos = strfin(rawValue, "%|h%:", startPos) --find the |h:
                     accountAndMaybeCharName = strsub(rawValue, startPos + 2, endPos - 1)
-        --d(">ACCOUNT startPos2: " .. tostring(startPos) .. ", endPos2: " ..tostring(endPos) ..", accountAndMaybeCharName: " ..tostring(accountAndMaybeCharName))
+--d(">ACCOUNT startPos2: " .. tostring(startPos) .. ", endPos2: " ..tostring(endPos) ..", accountAndMaybeCharName: " ..tostring(accountAndMaybeCharName))
                 end
             end
         end
@@ -238,7 +241,7 @@ local function GetAccountAndCharacterNameFromLine(numLine, chatChannel)
                 --Get the guildId by help of the chat channel
                 local guildIndex = chatChannelGuildToGuildIndex[chatChannel]
                 if guildIndex ~= nil and guildIndex >= 1 and guildIndex <= MAX_GUILDS then
-                    local guildId = GetGuildId(guildIndex)
+                    guildId = GetGuildId(guildIndex)
                     if guildId ~= 0 then
                         currentSettingOfFormatNameVar = db[dbFormatNameVar][guildId]
                     end
@@ -296,13 +299,118 @@ local function GetAccountAndCharacterNameFromLine(numLine, chatChannel)
         end
     end
 
+    local characterNameOrig = characterName
+    local accountNameOrig = accountName
+
+--d(">accountNameOrig: " ..tos(accountNameOrig) ..", characterNameOrig: " ..tos(characterNameOrig))
+
     local accountAndCharName = ""
     if accountName ~= nil and accountName ~= "" then
-        accountName = zo_strformat(SI_UNIT_NAME, accountName)
         accountAndCharName = accountName
     end
     if characterName ~= nil and characterName ~= "" then
         characterName = zo_strformat(SI_UNIT_NAME, characterName)
+
+        if showCharacterLevelInContextMenuAtChat == true and characterNameOrig ~= nil then
+
+            --Group
+            if characterLevel == nil and IsUnitGrouped("player") == true and IsPlayerInGroup(characterNameOrig) == true then
+                local groupSize = GetGroupSize()
+                local groupMemberUnitTagOfChar
+--d(">>groupSize: " ..tos(groupSize))
+                for i=1, groupSize, 1 do
+                    if groupMemberUnitTagOfChar == nil then
+                        local groupMemberUnitTag = GetGroupUnitTagByIndex(i)
+                        if groupMemberUnitTag ~= nil then
+                            local characterNameRaw = GetUnitName(groupMemberUnitTag)
+                            local characterNameNonRaw = zo_strformat(SI_UNIT_NAME, characterNameRaw)
+--d(">>>groupMemberUnitTag: " ..tos(groupMemberUnitTag) .. ", characterNameRaw: " .. tos(characterNameRaw))
+                            if characterNameRaw ~= nil and (characterNameRaw == characterNameOrig or characterNameNonRaw == characterName) then
+                                groupMemberUnitTagOfChar = groupMemberUnitTag
+                                break
+                            end
+                        end
+                    end
+                end
+
+                if groupMemberUnitTagOfChar ~= nil then
+--d(">>>>found character at group")
+                    local level = GetUnitLevel(groupMemberUnitTagOfChar)
+                    local championRank = GetUnitEffectiveChampionPoints(groupMemberUnitTagOfChar)
+--d(">>>>level: " ..tos(level) .. ", cp: " ..tos(championRank))
+                    if championRank > 0 or level >= GetMaxLevel() then
+                        characterLevel = "CP" .. tos(championRank)
+                    else
+                        characterLevel = level
+                    end
+                end
+            end
+
+
+            --Guild was determined?
+            if characterLevel == nil and guildId ~= nil and accountNameOrig ~= nil then
+--d(">>guildId: " ..tos(guildId))
+                --Get guildMemberData from guildRoster, compare account and charName and get it's level then
+                local memberIndex = GetGuildMemberIndexFromDisplayName(guildId, accountName)
+                if memberIndex ~= nil then
+                    local hasCharacter, charName, _zoneName, _classType, _alliance, level, championRank = GetGuildMemberCharacterInfo(guildId, memberIndex)
+--d(">>>hasCharacter: " .. tos(hasCharacter) .. ", memberIndex: " ..tos(memberIndex) .. ", charName: " ..tos(charName) .. "/characterName: " ..tos(characterName) .. "/characterNameOrig:" .. tos(characterNameOrig) .. ", level: " ..tos(level) .. ", cp: " ..tos(championRank))
+                    local charNameClean = zo_strformat(SI_UNIT_NAME, charName)
+                    --Charactername logged in is different at the moment (compared to the chat message char name): So show the new "last logged in" one
+                    local charNameMatches = (charNameClean == characterName or charNameClean == characterNameOrig or charName == characterName or charName == characterNameOrig and true) or false
+                    if hasCharacter == true and charNameMatches then
+--d(">>>>found matching character at guild")
+                        if championRank > 0 or level >= GetMaxLevel() then
+                            characterLevel = "CP" .. tos(championRank)
+                        else
+                            characterLevel = level
+                        end
+                    elseif hasCharacter == true and not charNameMatches then
+--d(">>>>found another logged in character at guild: " ..tos(charNameClean))
+                        characterName = charNameClean
+
+                        if championRank > 0 or level >= GetMaxLevel() then
+                            characterLevel = "CP" .. tos(championRank)
+                        else
+                            characterLevel = level
+                        end
+                    end
+                end
+            end
+
+            --Friendslist
+            if characterLevel == nil and accountNameOrig ~= nil then
+                local friendsDisplayName, friendIndex = pChat.checkDisplayName(accountNameOrig, "friend")
+--d(">>friendsDisplayName: " ..tos(friendsDisplayName))
+                if friendsDisplayName ~= nil and friendIndex ~= nil then
+                    local hasCharacter, charName, _zoneName, _classType, _alliance, level, championRank = GetFriendCharacterInfo(friendIndex)
+--d(">>>friendIndex: " ..tos(friendIndex) .. ", charName: " ..tos(charName) .. "/characterName: " ..tos(characterName) .. "/characterNameOrig:" .. tos(characterNameOrig) .. ", level: " ..tos(level) .. ", cp: " ..tos(championRank))
+                    local charNameClean = zo_strformat(SI_UNIT_NAME, charName)
+                    --Charactername logged in is different at the moment (compared to the chat message char name): So show the new "last logged in" one
+                    local charNameMatches = (charNameClean == characterName or charNameClean == characterNameOrig or charName == characterName or charName == characterNameOrig and true) or false
+                    if hasCharacter == true and charNameMatches then
+--d(">>>>found character at friendslist")
+                        if championRank > 0 or level >= GetMaxLevel() then
+                            characterLevel = "CP" .. tos(championRank)
+                        else
+                            characterLevel = level
+                        end
+                    elseif hasCharacter == true and not charNameMatches then
+--d(">>>>found another logged in character at friendslist: " ..tos(charNameClean))
+                        characterName = charNameClean
+
+                        if championRank > 0 or level >= GetMaxLevel() then
+                            characterLevel = "CP" .. tos(championRank)
+                        else
+                            characterLevel = level
+                        end
+                    end
+                end
+            end
+        end
+
+--d("<<<1 characterLevel: " ..tos(characterLevel))
+
         if characterName ~= accountName then
             if accountAndCharName == "" then
                 accountAndCharName = characterName
@@ -311,7 +419,8 @@ local function GetAccountAndCharacterNameFromLine(numLine, chatChannel)
             end
         end
     end
-    return accountAndCharName, rawFrom, accountName, characterName
+--d("<<<2 characterLevel: " ..tos(characterLevel))
+    return accountAndCharName, rawFrom, accountName, characterName, characterLevel
 end
 
 -- Copy message (only message)
@@ -1785,49 +1894,81 @@ function pChat.InitializeCopyHandler(control)
     -- Show contextualMenu when clicking on a pChatLink
     local function ShowContextMenuOnHandlers(numLine, chanNumber)
 --d("pChat ShowContextMenuOnHandlers, chanNumber: "..tostring(chanNumber))
+        db = pChat.db
         ClearMenu()
 
         if not ZO_Dialogs_IsShowingDialog() then
-            local accountAndCharacterName, rawFrom, accountName, characterName = GetAccountAndCharacterNameFromLine(numLine, chanNumber)
-            if accountName ~= nil and pChat.IsDisplayName(accountName) == false then
-                accountName = "@" .. accountName
-            end
-            local playerName = (accountName ~= nil and accountName) or characterName
-            local playerNameStr = tostring(playerName)
+            local sendMailContextMenuAtChat = db.sendMailContextMenuAtChat
+            local teleportContextMenuAtChat = db.teleportContextMenuAtChat
+            local showAccountAndCharAtContextMenu = db.showAccountAndCharAtContextMenu
+            local showIgnoredInfoInContextMenuAtChat = db.showIgnoredInfoInContextMenuAtChat
+            local characterNameRaw2Id = pChat.characterNameRaw2Id
 
-            if db.showAccountAndCharAtContextMenu then
+            local accountAndCharacterName, rawFrom, accountName, characterName, characterLevel, playerName, playerNameStr
+
+            if showAccountAndCharAtContextMenu == true or sendMailContextMenuAtChat == true or showIgnoredInfoInContextMenuAtChat or teleportContextMenuAtChat == true then
+                accountAndCharacterName, rawFrom, accountName, characterName, characterLevel = GetAccountAndCharacterNameFromLine(numLine, chanNumber)
+--d(">>accountAndCharacterName: " ..tos(accountAndCharacterName) ..", accountName: " .. tos(accountName) .. ", charName: " ..tos(characterName) .. ", characterLevel: " ..tos(characterLevel))
+                if accountName ~= nil and pChat.IsDisplayName(accountName) == false then
+                    accountName = "@" .. accountName
+                end
+                playerName = (accountName ~= nil and accountName) or characterName
+                playerNameStr = tostring(playerName)
+            end
+
+            local playerNameIsValid = (playerName ~= nil and playerName ~= "" and playerName ~= "nil" and true) or false
+            local isAccountOrCharNameOwnPlayer = (playerNameIsValid == true and ((accountName ~= nil and accountName == GetDisplayName()) or characterNameRaw2Id[playerName] ~= nil) and true) or false
+
+
+            --@Account and character name headline at context menu entry
+            if showAccountAndCharAtContextMenu == true then
+                local charLevelStr = ""
+                if db.showCharacterLevelInContextMenuAtChat == true and characterLevel ~= nil then
+                    charLevelStr = " (" .. GetString(SI_FRIENDS_LIST_PANEL_TOOLTIP_LEVEL) .. ": " .. tos(characterLevel) ..")"
+                end
                 if accountAndCharacterName ~= nil and accountAndCharacterName ~= "" then
-                    AddCustomMenuItem(accountAndCharacterName, function() end, MENU_ADD_OPTION_HEADER) --@AccountName / Character name
+--d(">add menu item: account/charName")
+                    AddCustomMenuItem(accountAndCharacterName .. charLevelStr, function() end, MENU_ADD_OPTION_HEADER) --@AccountName / Character name (optional: Level: <levelOfChar>)
                 end
             end
+
+
+            --Copy message text context menu entries
             AddCustomMenuItem(GetString(PCHAT_COPYMESSAGECT), function() CopyMessage(numLine) end)
             AddCustomMenuItem(GetString(PCHAT_COPYLINECT), function() CopyLine(numLine) end)
             AddCustomMenuItem(GetString(PCHAT_COPYDISCUSSIONCT), function() CopyDiscussion(chanNumber, numLine) end)
             AddCustomMenuItem(GetString(PCHAT_ALLCT), CopyWholeChat)
 
-            if db.showIgnoredInfoInContextMenuAtChat == true then
-        --d("[1]IsIgnored check")
+
+            --Ignored information context menu entry
+            if isAccountOrCharNameOwnPlayer == false and showIgnoredInfoInContextMenuAtChat == true and playerNameIsValid == true then
+                --d("[1]IsIgnored check")
                 if IsIgnored(playerName) then
                     AddCustomMenuItem(GetString(PCHAT_CHATCONTEXTMENUWARNIGNORE), function()  end)
                 end
             end
 
-            if db.sendMailContextMenuAtChat == true and playerName ~= nil and playerName ~= "" and playerName ~= "nil" then
-        --d("[3]Mail to check")
+
+            --Send email context menu entry
+            if isAccountOrCharNameOwnPlayer == false and sendMailContextMenuAtChat == true and playerNameIsValid == true then
+                --d("[3]Mail to check")
                 if pChat.isMonsterChatChannel(chanNumber, numLine) == false then
                     AddCustomMenuItem(GetString(SI_SOCIAL_MENU_SEND_MAIL) .. " \'" .. playerNameStr .."\'" , function()
-                        MAIL_SEND:ComposeMailTo(playerName)
+                        if MAIL_SEND_SCENE:IsShowing() then
+                            MAIL_SEND:SetReply(playerName)
+                        else
+                            MAIL_SEND:ComposeMailTo(playerName)
+                        end
                     end)
                 end
             end
 
+
             --Teleport to features
-            if db.teleportContextMenuAtChat == true then
-
-
-        --d("[2]Teleport to check")
+            if isAccountOrCharNameOwnPlayer == false and teleportContextMenuAtChat == true and playerNameIsValid == true then
+                --d("[2]Teleport to check")
                 local portType, playerTypeStr, guildIndexFound = pChat.GetPortTypeFromName(playerName, rawFrom)
-        --d(">portType: " ..tos(portType) .. "; playerTypeStr: " ..tos(playerTypeStr))
+                --d(">portType: " ..tos(portType) .. "; playerTypeStr: " ..tos(playerTypeStr))
                 if portType ~= nil then
                     AddCustomMenuItem(GetString(PCHAT_CHATCONTEXTMENUTPTO), function() end, MENU_ADD_OPTION_HEADER)
 
@@ -1846,14 +1987,13 @@ function pChat.InitializeCopyHandler(control)
                 end
             end
         end
-
+--d(">got here: ShowMenu")
         ShowMenu()
-
     end
 
     -- Triggers when right clicking on a LinkHandler
     local function OnLinkClicked(rawLink, mouseButton, linkText, color, linkType, lineNumber, chanCode)
-
+--d("[pChat]OnLinkClicked-mouseButton: " ..tos(mouseButton) .. ", linkText: " ..tos(linkText) ..", linkType: " .. tos(linkType) .. ", lineNumber: " .. tos(lineNumber) .. ", chanCode: " ..tos(chanCode))
         -- Only executed on LinkType = CONSTANTS.PCHAT_LINK
         if linkType == CONSTANTS.PCHAT_LINK then
 
@@ -1862,7 +2002,7 @@ function pChat.InitializeCopyHandler(control)
             -- CONSTANTS.PCHAT_LINK also handle a linkable channel feature for linkable channels
 
             -- Context Menu
-            if chanCode and mouseButton == MOUSE_BUTTON_INDEX_LEFT then
+            if chanCode ~= nil and mouseButton == MOUSE_BUTTON_INDEX_LEFT then
 
                 -- Only Linkable channel - TODO use .channelLinkable
                 if chanNumber == CHAT_CHANNEL_SAY
@@ -1897,16 +2037,16 @@ function pChat.InitializeCopyHandler(control)
                 ShowContextMenuOnHandlers(numLine, chanNumber)
             end
 
-            -- Don't execute LinkHandler code
+            -- Don't execute original LinkHandler code
             return true
-
         end
 
     end
 
+
     if db.enablecopy then
+--d("=== [pChat]LinkHandlers LINK_CLICKED_EVENT and LINK_MOUSE_UP_EVENT registered ===")
         LINK_HANDLER:RegisterCallback(LINK_HANDLER.LINK_CLICKED_EVENT, OnLinkClicked)
         LINK_HANDLER:RegisterCallback(LINK_HANDLER.LINK_MOUSE_UP_EVENT, OnLinkClicked)
     end
-
 end

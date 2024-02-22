@@ -165,11 +165,11 @@ local strings = {
 	PCHAT_CHATMINIMIZEDATLAUNCH = "Chat minimized at startup",
 	PCHAT_CHATMINIMIZEDATLAUNCHTT = "Minimize chat window on the left side of the screen when the game starts",
 
-	PCHAT_CHATMINIMIZEDINMENUS = "Chat minimized in menus",
-	PCHAT_CHATMINIMIZEDINMENUSTT = "Minimize chat window when you enter in menus (Guild, Stats, Crafting, etc)",
+	PCHAT_CHATMINIMIZEDINMENUS = "Chat minimized in all menus",
+	PCHAT_CHATMINIMIZEDINMENUSTT = "Minimize chat window when you enter in menus (Guild, Stats, Crafting, Inventory, etc)",
 
-	PCHAT_CHATMINIMIZEDINMENUS_HALF = "Old minimize mode",
-	PCHAT_CHATMINIMIZEDINMENUS_HALFTT = "Do not minimize the chat window at all menus, but only in some of the menus (e.g. leave it open at inventory menu)",
+	PCHAT_CHATMINIMIZEDINMENUS_HALF = "Only minimize in some menus",
+	PCHAT_CHATMINIMIZEDINMENUS_HALFTT = "Do not minimize the chat window at all menus, but only in some of the menus (e.g. Champion points, settings)",
 
 	PCHAT_CHATMAXIMIZEDAFTERMENUS = "Restore chat after exiting menus",
 	PCHAT_CHATMAXIMIZEDAFTERMENUSTT = "Always restore the chat window after exiting menus",
@@ -228,6 +228,8 @@ local strings = {
 
 	PCHAT_RESTORETEXTENTRYHISTORYATLOGOUTQUIT  = "Restore Text entry history",
 	PCHAT_RESTORETEXTENTRYHISTORYATLOGOUTQUITTT  = "Restore Text entry history available with arrow keys after logoff, disconnect or quit. History of text entry is always restored after a ReloadUI()",
+
+	PCHAT_RESTOREHISTORY_SHOWACTUALZONENAME = "[pChat]History restored: %s in %s",
 
 	-- Anti Spam settings
 
@@ -506,6 +508,8 @@ local strings = {
 	PCHAT_CHATCONTEXTMENU = "Chat context menu",
 	PCHAT_SHOWACCANDCHARATCONTEXTMENU = "@Account/Charname at context menu",
 	PCHAT_SHOWACCANDCHARATCONTEXTMENU_TT = "Show the @AccountName/Charname at the copy context menu.\nThis will only show both if you have enabled the name formatting of that chat channel to show both too!\nAnd some chat channels like whisper does not provide both!",
+	PCHAT_SHOWCHARLEVELATCONTEXTMENU = "Character level at context menu",
+	PCHAT_SHOWCHARLEVELATCONTEXTMENU_TT = "Show the character's level at the copy context menu.\nOnly works if the @AccountName/CharName headline is activated, the character name is enabled to show at the chat messages, and the character is currently online in your group, guild or friends list!",
 	PCHAT_ASKBEFOREIGNORE					= 'Show extra \'!WARNING!\' for ignored players',
 	PCHAT_ASKBEFOREIGNORETT					= 'Adds a warning text entry to the chat context menu if the player is on your ignore list.',
 	PCHAT_SHOWIGNOREDWARNINGCONTEXTMENU	= "Add yes/no dialog to \'Ignore\' player (chat, friends, ...)",

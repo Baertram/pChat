@@ -74,9 +74,9 @@ function pChat.InitializeSettings()
 		groupLeader = false,
 		disableBrackets = true,
 		chatMinimizedAtLaunch = false,
-		chatMinimizedInMenus = false,
+		chatMinimizedInMenus = true,
 		chatMinimizedInMenusOldMode = false,
-		chatMaximizedAfterMenus = false,
+		chatMaximizedAfterMenus = true,
 		chatMaximizedAfterMove = false,
 		windowDarkness = 6,
 		chatSyncConfig = false,
@@ -92,7 +92,6 @@ function pChat.InitializeSettings()
 		restoreSystemOnly = false,
 		restoreWhisps = true,
 		restoreTextEntryHistoryAtLogOutQuit = false,
-		restoreShowCurrentNameAndZone = false,
 		addChannelAndTargetToHistory = true,
 		timeBeforeRestore = 2,
 		notifyIM = false,
@@ -169,6 +168,25 @@ function pChat.InitializeSettings()
 		},
 		doNotNotifyOnRestoredWhisperFromHistory = false,
 		addHistoryRestoredPrefix = false,
+		restoreShowCurrentNameAndZone = false,
+
+		chatEditBoxOnBackspaceHook = true,
+		backupYourSavedVariablesReminder = true,
+		backupYourSavedVariablesReminderDone = {},
+
+		showAccountAndCharAtContextMenu = false,
+		showCharacterLevelInContextMenuAtChat = false,
+		teleportContextMenuAtChat = false,
+        sendMailContextMenuAtChat = false,
+        ignoreWithDialogContextMenuAtChat = false,
+        showIgnoredInfoInContextMenuAtChat = false,
+
+		chatSearchHistory = {
+			[CONSTANTS.SEARCH_TYPE_MESSAGE] = {},
+			[CONSTANTS.SEARCH_TYPE_FROM] = {},
+		},
+
+
 		-- Not LAM
 		chatConfSync = {},
 		--Chat handlers
@@ -181,20 +199,6 @@ function pChat.InitializeSettings()
 		useKeepAttackUpdateChatHandler = true,
 		usePVPKillFeedChatHandler = true,
 
-		chatEditBoxOnBackspaceHook = true,
-		backupYourSavedVariablesReminder = true,
-		backupYourSavedVariablesReminderDone = {},
-		showAccountAndCharAtContextMenu = false,
-
-		teleportContextMenuAtChat = false,
-        sendMailContextMenuAtChat = false,
-        ignoreWithDialogContextMenuAtChat = false,
-        showIgnoredInfoInContextMenuAtChat = false,
-
-		chatSearchHistory = {
-			[CONSTANTS.SEARCH_TYPE_MESSAGE] = {},
-			[CONSTANTS.SEARCH_TYPE_FROM] = {},
-		},
 
 	-- Coorbin20200708
 		-- Chat Mentions
@@ -400,6 +404,7 @@ function pChat.InitializeSettings()
 
 		--The LAM options data table
 		local optionsData = {}
+
 
 		------------------------------------------------------------------------------------------------------------------------
 		--  Guild Stuff -- table "controlsForGuildSubmenu" will be added further down
@@ -813,7 +818,7 @@ function pChat.InitializeSettings()
 							width = "full",
 							default = defaults.chatMinimizedInMenus,
 						},
-						{-- Minimize Menus
+						{-- Minimize Menus - Keep some open (old way, before MINIMIZE_CHAT_FRAGMENT was used, see CopyHandler.lua)
 							type = "checkbox",
 							name = GetString(PCHAT_CHATMINIMIZEDINMENUS_HALF),
 							tooltip = GetString(PCHAT_CHATMINIMIZEDINMENUS_HALFTT),
@@ -821,7 +826,7 @@ function pChat.InitializeSettings()
 							setFunc = function(newValue) db.chatMinimizedInMenusOldMode = newValue end,
 							width = "full",
 							default = defaults.chatMinimizedInMenusOldMode,
-							disabled = function() return not db.chatMinimizedInMenus end
+							disabled = function() return db.chatMinimizedInMenus end
 						},
 						{ -- Maximize After Menus
 							type = "checkbox",
@@ -1911,6 +1916,7 @@ function pChat.InitializeSettings()
 			type = "submenu",
 			name = GetString(PCHAT_RESTORECHATH),
 			controls = {
+
 				{-- LAM Option Restore: Add prefix [H] for restored messages
 					type = "checkbox",
 					name = GetString(PCHAT_RESTOREPREFIX),
@@ -2035,12 +2041,22 @@ function pChat.InitializeSettings()
 				{-- Context menu headline: @Account/characterName
 					type = "checkbox",
 					name = GetString(PCHAT_SHOWACCANDCHARATCONTEXTMENU),
-					tooltip = GetString(PCHAT_SHOWACCANDCHARATCONTEXTMENUTT),
+					tooltip = GetString(PCHAT_SHOWACCANDCHARATCONTEXTMENU_TT),
 					getFunc = function() return db.showAccountAndCharAtContextMenu end,
 					setFunc = function(newValue) db.showAccountAndCharAtContextMenu = newValue end,
 					width = "full",
 					default = defaults.showAccountAndCharAtContextMenu,
 					disabled = function() return not db.enablecopy end,
+				},
+				{-- Context menu headline: Character level (only if @Account/characterName is enabled)
+					type = "checkbox",
+					name = GetString(PCHAT_SHOWCHARLEVELATCONTEXTMENU),
+					tooltip = GetString(PCHAT_SHOWCHARLEVELATCONTEXTMENU_TT),
+					getFunc = function() return db.showCharacterLevelInContextMenuAtChat end,
+					setFunc = function(newValue) db.showCharacterLevelInContextMenuAtChat = newValue end,
+					width = "full",
+					default = defaults.showCharacterLevelInContextMenuAtChat,
+					disabled = function() return not db.enablecopy or not db.showAccountAndCharAtContextMenu end,
 				},
 				{
 					type           = "checkbox",
@@ -2050,7 +2066,6 @@ function pChat.InitializeSettings()
 					setFunc        = function(value) db.showIgnoredInfoInContextMenuAtChat = value
 					end,
 					default        = defaults.showIgnoredInfoInContextMenuAtChat,
-					requiresReload = true,
 					width          = "full",
 				},
 
@@ -2062,7 +2077,6 @@ function pChat.InitializeSettings()
 					setFunc        = function(value) db.ignoreWithDialogContextMenuAtChat = value
 					end,
 					default        = defaults.ignoreWithDialogContextMenuAtChat,
-					requiresReload = true,
 					width          = "full",
 				},
 
@@ -2074,7 +2088,6 @@ function pChat.InitializeSettings()
 					setFunc        = function(value) db.sendMailContextMenuAtChat = value
 					end,
 					default        = defaults.sendMailContextMenuAtChat,
-					requiresReload = true,
 					width          = "full",
 				},
 
@@ -2086,7 +2099,6 @@ function pChat.InitializeSettings()
 					setFunc        = function(value) db.teleportContextMenuAtChat = value
 					end,
 					default        = defaults.teleportContextMenuAtChat,
-					requiresReload = true,
 					width          = "full",
 				},
 			}
@@ -2686,6 +2698,9 @@ function pChat.InitializeSettings()
 		if db.defaultchannel == nil or db.defaultchannel == "" then
 			db.defaultchannel = CONSTANTS.PCHAT_CHANNEL_NONE
 		end
+
+		--Preset the currently logged in account at the chat history restore accounts
+		db.historyRestoreAccounts[GetDisplayName()] = true
 
 		getLastBackupSVReminderText()
 	end
