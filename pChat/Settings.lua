@@ -2699,9 +2699,6 @@ function pChat.InitializeSettings()
 			db.defaultchannel = CONSTANTS.PCHAT_CHANNEL_NONE
 		end
 
-		--Preset the currently logged in account at the chat history restore accounts
-		db.historyRestoreAccounts[GetDisplayName()] = true
-
 		getLastBackupSVReminderText()
 	end
 
