@@ -279,6 +279,9 @@ function pChat.InitializeChatHistory()
     local function SetDefaultTab(tabToSet)
         logger:Debug("DefaultTab", "START, tabToSet: " ..tostring(tabToSet))
         if not ChatSys or not ChatSys.primaryContainer or not ChatSys.primaryContainer.windows then return end
+        --Check if the chat tab still exists and if not, change it to the default tab
+        tabToSet = pChat.CheckDefaultTabExists(tabToSet)
+
         --OLD CODE
         --[[
         -- Search in all tabs the good name

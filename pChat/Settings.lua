@@ -293,28 +293,30 @@ function pChat.InitializeSettings()
 --d("[pChat]checkDefaultTabExists-defaultTab: " .. tostring(defaultTab))
 		if defaultTab == nil then
 			defaultTab = defaults.defaultTab
---d("<1")
+--d("<defaultTab reset to defaults")
+			return defaultTab
 		end
 		if defaultTab == defaults.defaultTab then
---d("<2")
+--d("<defaultTab is = defaults")
 			return defaultTab
 		end
 
 		--Loop given chat tabs and check if the defaultTab exist-> Else reset to chat tab 1
         ChatSys = CONSTANTS.CHAT_SYSTEM
-        local totalTabs = ChatSys.tabPool.m_Active
+        local totalTabs = (ChatSys ~= nil and ChatSys.tabPool ~= nil and ChatSys.tabPool.m_Active) or nil
 		if totalTabs ~= nil and #totalTabs >= 1 then
 			if totalTabs[defaultTab] == nil then
---d("<3")
+--d("<Chat tab " .. tostring(defaultTab) .." does not exist anymore -> resetting to default!")
 				defaultTab = defaults.defaultTab
 			end
 		else
---d("<4")
-			defaultTab = defaults.defaultTab
+--d("<TotalTabs nil!")
+			--defaultTab = defaults.defaultTab
 		end
 --d("<defaultTabNew: " ..tostring(defaultTab))
 		return defaultTab
 	end
+	pChat.CheckDefaultTabExists = checkDefaultTabExists
 
 
 	-- Build LAM Option Table, used when AddonLoads or when a player join/leave a guild
@@ -372,8 +374,6 @@ function pChat.InitializeSettings()
 
 		--Check if the chat tabs were updated -> Rebuild the settings tables
 		pChat.getTabNames()
-		--No default tab chosen in SavedVariables yet? Use the first tab
-		db.defaultTab = checkDefaultTabExists(db.defaultTab)
 
 		-- Coorbin20211222
 		------------------------------------------------------------------------------------------------------------------------
