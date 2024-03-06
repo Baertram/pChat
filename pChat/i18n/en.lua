@@ -118,7 +118,7 @@ local strings = {
 	PCHAT_ADDCHANNELANDTARGETTOHISTORYTT = "Switch the channel when using arrow keys to match the channel previously used.",
 
 	PCHAT_URLHANDLING = "Detect URLs/links",
-	PCHAT_URLHANDLINGTT = "If a URL starting with http(s):// is linked in chat pChat will detect it and you'll be able to click on it to directly open the link with your system set standard web browser.\Attention: ESO will always ask if you want to open the external link first.",
+	PCHAT_URLHANDLINGTT = "If a URL starting with http(s):// is linked in chat pChat will detect it and you'll be able to click on it to directly open the link with your system set standard web browser.\nAttention: ESO will always ask if you want to open the external link first.",
 
 	PCHAT_ENABLECOPY = "Enable copy",
 	PCHAT_ENABLECOPYTT = "Enable copy with a right click on text - Also enable the channel switch with a left click. Disable this option if you got problems to display links in chat",
@@ -503,7 +503,8 @@ local strings = {
 	PCHAT_SETTINGS_WARNING_REMINDER_LOGOUT_BEFORE	= "Remember to LOGOUT first!",
 
 	PCHAT_RESTORESHOWNAMEANDZONE = "After restore: Show name & zone",
-	PCHAT_RESTORESHOWNAMEANDZONE_TT = "Afficher @Account actuellement connecté - Nom et zone du personnage dans le chat, après la restauration de l'historique du chat.",
+	PCHAT_RESTORESHOWNAMEANDZONE_TT = "Show currently logged in @Account - Character name & zone/area in chat, after restoring chat history.",
+
 
 	PCHAT_CHATCONTEXTMENU = "Chat context menu",
 	PCHAT_SHOWACCANDCHARATCONTEXTMENU = "@Account/Charname at context menu",

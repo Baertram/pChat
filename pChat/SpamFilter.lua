@@ -165,10 +165,21 @@ function pChat.InitializeSpamFilter()
         spammableChannels[CHAT_CHANNEL_ZONE] = true
         spammableChannels[CHAT_CHANNEL_EMOTE] = true
 
+        --[[
         local spamStrings = {
             ["[Ll]ooking [Ff]or ([Nn]ew+) [Mm]embers"] = 5, -- looking for (new) members
-            ["%d%d%d\+"] = 5, -- 398+
-            ["%d%d%d\/500"] = 5, -- 398/500
+            ["%d%d%d\+"] = 5, -- 398+                   --Wrong escaped by \ instead lua pattern % escape char
+            ["%d%d%d\/500"] = 5, -- 398/500             --Wrong escaped by \ instead lua pattern % escape char
+            ["gilde"] = 1, -- 398/500
+            ["guild"] = 1, -- 398/500
+            ["[Tt][Ee][Aa][Mm][Ss][Pp][Ee][Aa][Kk]"] = 1,
+        }
+        ]]
+
+        local spamStrings = {
+            ["[Ll]ooking [Ff]or ([Nn]ew+) [Mm]embers"] = 5, -- looking for (new) members
+            ["%d%d%d%+"] = 5, -- 398+
+            ["%d%d%d%/500"] = 5, -- 398/500
             ["gilde"] = 1, -- 398/500
             ["guild"] = 1, -- 398/500
             ["[Tt][Ee][Aa][Mm][Ss][Pp][Ee][Aa][Kk]"] = 1,
