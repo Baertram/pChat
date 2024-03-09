@@ -130,6 +130,8 @@ function pChat.InitializeChatTabs()
     pChat.getTabIndexByName = getTabIndexByName
 
 
+    --[[
+    --Do not preset SHIFt+TAB as default "Next tab" keybind
     local function SetSwitchToNextBinding()
         -- get SwitchTab Keybind params
         local layerIndex, categoryIndex, actionIndex = GetActionIndicesFromName("PCHAT_SWITCH_TAB")
@@ -153,6 +155,7 @@ function pChat.InitializeChatTabs()
             end
         end
     end
+    ]]
 
     local alreadyHookedFadeOutContainers = {}
     local function CreateNewChatTabPostHook()
@@ -271,7 +274,7 @@ function pChat.InitializeChatTabs()
         end
 
         -- Will set Keybind for "switch to next tab" if needed
-        SetSwitchToNextBinding()
+        --SetSwitchToNextBinding()
 
         -- Show 1000 lines instead of 200 & Change fade delay
         if not createNewChatTabHooked then

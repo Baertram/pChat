@@ -71,19 +71,18 @@ ZO_KeyboardChatWindowTemplate1Buffer_LinkMouseUp:3: in function '(main chunk)'
 --Working on:
 
 --=======================================================================================================================================
--- Changelog version: 10.0.4.6 (last version 10.0.4.5)
+-- Changelog version: 10.0.5.0 (last version 10.0.4.9)
 --=======================================================================================================================================
 --Fixed:
---Fix: Chat tabs without name lead to lua error in LAM (pChat.tabIndices and pChat.tabNames [2] were missing (SavedVariables tab name 2 was '')
+--EN translations wrong used \
+--Guild spam detection lua patterns, wrong used escape cahracter \ instead of %
 
 --Changed:
-
+--Default keybind for "Next chat tab" removed (was harcoded to be SHIFT+TAB)
 
 --Added:
---Added .slug font files for PTS
 
 --Added on request:
---Additional option to hide chat only in some menus (old way, before change to v10.0.4.3)
 
 
 --=======================================================================================================================================
