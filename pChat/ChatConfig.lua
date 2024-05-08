@@ -149,6 +149,8 @@ function pChat.InitializeChatConfig()
         end
         KEYBOARD_CHAT_SYSTEM:SetMinAlpha(chatTransparencyWhileminimize / 100)
 
+        KEYBOARD_CHAT_SYSTEM:RefreshVisibility()
+
         --Compatibility for PerfectPixel
         if PP ~= nil and PP.UpdateBackgrounds ~= nil then
             PP:UpdateBackgrounds('ChatWindow')
