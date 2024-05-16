@@ -613,7 +613,7 @@ function pChat.InitializeMessageFormatters()
     -- WARNING : See FormatSysMessage()
     local function AddLinkHandlerToLine(text, chanCode, numLine)
         local rawText = ReformatSysMessages(text) -- FUCK YOU
-        logger:Debug(strfor("[pChat]AddLinkHandlerToLine - text: %s, rawText: %s", tostring(text), tostring(rawText)))
+        logger:Verbose(strfor("[pChat]AddLinkHandlerToLine - text: %s, rawText: %s", tostring(text), tostring(rawText)))
 
         local start = 1
         local rawTextlen = string.len(rawText)

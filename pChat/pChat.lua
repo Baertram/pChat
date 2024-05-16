@@ -1,7 +1,7 @@
 --=======================================================================================================================================
 --Known problems/bugs:
 --Last updated: 2024-01-26
---Total number: 12
+--Total number: 13
 ------------------------------------------------------------------------------------------------------------------------
 --#2	2020-02-28 Baetram, bug: New selection for @accountName/character chat prefix will only show /charactername (@accountName is missing) during whispers,
 --		if clicked on a character in the chat to whisper him/her
@@ -64,21 +64,35 @@ ZO_KeyboardChatWindowTemplate1Buffer_LinkMouseUp:3: in function '(main chunk)'
 |caaaaaa<Locals> self = ud, linkData = "1:p:393:14", linkText = "|H1:p:393:14|h[22:41:19] |h", button = 2, ctrl = F, alt = F, shift = F, command = F </Locals>|r
 ]]
 
+--#13 Chat config sync fixes (check if any addon could overwrite "last logged in character's chat settings" savedvars before pChat loads it to the next logged in char
+--[[
+Functions and timings used to save "last logged in character's chat settings" to the SavedVars:
 
+timing                          function                    Description
+------------------------------------------------------------------------------------------------------------------------------------------
+login -> EVENT_PLAYER_ACTIVATED pChat.ApplyChatConfig()     Calls SyncChatConfig to load the chat config of DB.chatConfSync[CONSTANTS.chatConfigSyncLastChar] to the currently logged in character's chat config
+SetCVar                         pChat.SaveChatConfig()      Save the currently logged in character's chat config to DB.chatConfSync[CONSTANTS.chatConfigSyncLastChar]
+ReloadUI                        pChat.SaveChatConfig()      Save the currently logged in character's chat config to DB.chatConfSync[CONSTANTS.chatConfigSyncLastChar]
+Logout                          pChat.SaveChatConfig()      Save the currently logged in character's chat config to DB.chatConfSync[CONSTANTS.chatConfigSyncLastChar]
+Quit                            pChat.SaveChatConfig()      Save the currently logged in character's chat config to DB.chatConfSync[CONSTANTS.chatConfigSyncLastChar]
+ZO_ChatOptions_ToggleChannel    pChat.SaveChatConfig()      Save the currently logged in character's chat config to DB.chatConfSync[CONSTANTS.chatConfigSyncLastChar]
+
+
+
+]]
 
 --=======================================================================================================================================
 
 --Working on:
+--#13
 
 --=======================================================================================================================================
--- Changelog version: 10.0.5.0 (last version 10.0.4.9)
+-- Changelog version: 10.0.5.2 (last version 10.0.5.1)
 --=======================================================================================================================================
 --Fixed:
---EN translations wrong used \
---Guild spam detection lua patterns, wrong used escape cahracter \ instead of %
+--
 
 --Changed:
---Default keybind for "Next chat tab" removed (was harcoded to be SHIFT+TAB)
 
 --Added:
 
@@ -89,6 +103,7 @@ ZO_KeyboardChatWindowTemplate1Buffer_LinkMouseUp:3: in function '(main chunk)'
 
 --  pChat object
 pChat = pChat or {}
+local pChatData = pChat.pChatData
 
 --======================================================================================================================
 -- AddOn Constants
@@ -109,8 +124,6 @@ local chatChannelLangToLangStr = CONSTANTS.chatChannelLangToLangStr
 --======================================================================================================================
 --pChat Variables--
 --======================================================================================================================
--- pChatData will receive variables and objects.
-local pChatData = {}
 -- Logged in char name
 pChatData.localPlayer = GetUnitName("player")
 -- Logged in @Account name
@@ -418,6 +431,8 @@ end
 -- Registers the formatMessage function.
 -- Unregisters itself from the player activation event with the event manager.
 local OnPlayerActivated
+local onPlayerActivatedUpdaterName = ADDON_NAME .. "Debug_Event_Player_Activated"
+
 OnPlayerActivated = function()
     logger:Debug("EVENT_PLAYER_ACTIVATED - Start")
     CONSTANTS.CHAT_SYSTEM = CONSTANTS.CHAT_SYSTEM or CHAT_SYSTEM
@@ -426,8 +441,10 @@ OnPlayerActivated = function()
     --And do we need a reloadui here?
     checkSavedVariablesMigrationTasks()
 
+    local isAddonLoaded = pChatData.isAddonLoaded
+
     --Addon was loaded via EVENT_ADD_ON_LOADED and we are not already doing some EVENT_PLAYER_ACTIVATED tasks
-    if pChatData.isAddonLoaded and not eventPlayerActivatedCheckRunning then
+    if isAddonLoaded == true and not eventPlayerActivatedCheckRunning then
         pChatData.sceneFirst = false
 
         pChat.InitializeChatHandlers()
@@ -438,18 +455,18 @@ OnPlayerActivated = function()
     if eventPlayerActivatedChecksDone <= 12 and (CHAT_SYSTEM == nil or CHAT_SYSTEM.primaryContainer == nil) then
         logger:Debug("EVENT_PLAYER_ACTIVATED: CHAT_SYSTEM.primaryContainer is missing!")
         if not eventPlayerActivatedCheckRunning then
-            EM:RegisterForUpdate(ADDON_NAME .. "Debug_Event_Player_Activated", 250, function()
+            EM:RegisterForUpdate(onPlayerActivatedUpdaterName, 250, function()
                 eventPlayerActivatedChecksDone = eventPlayerActivatedChecksDone + 1
                 eventPlayerActivatedCheckRunning = true
-                OnPlayerActivated()
+                OnPlayerActivated() --Recursiveley call the current function
             end)
         end
     else
         logger:Debug("EVENT_PLAYER_ACTIVATED: Found CHAT_SYSTEM.primaryContainer!")
         eventPlayerActivatedCheckRunning = false
-        EM:UnregisterForUpdate(ADDON_NAME .. "Debug_Event_Player_Activated")
+        EM:UnregisterForUpdate(onPlayerActivatedUpdaterName)
 
-        if pChatData.isAddonLoaded then
+        if isAddonLoaded == true then
 
             --local fontPath = ZoFontChat:GetFontInfo()
             --chat:Print(fontPath)
@@ -518,22 +535,22 @@ local function LoadHooks()
     -- PreHook ReloadUI, SetCVar, LogOut & Quit to handle Chat Import/Export
     ZO_PreHook("ReloadUI", function()
         pChat.SaveChatHistory(1)
-        pChat.SaveChatConfig()
+        pChat.SaveChatConfig("RelaodUI")
     end)
 
     ZO_PreHook("SetCVar", function()
         pChat.SaveChatHistory(1)
-        pChat.SaveChatConfig()
+        pChat.SaveChatConfig("SetCVar")
     end)
 
     ZO_PreHook("Logout", function()
         pChat.SaveChatHistory(2)
-        pChat.SaveChatConfig()
+        pChat.SaveChatConfig("Logout")
     end)
 
     ZO_PreHook("Quit", function()
         pChat.SaveChatHistory(3)
-        pChat.SaveChatConfig()
+        pChat.SaveChatConfig("Quit")
     end)
 
     --Scroll to bottom in Chat: Secure post hook to hide the Whisper Notifications
@@ -676,7 +693,7 @@ local function OnAddonLoaded(_, addonName)
         eventPlayerActivatedChecksDone = 0
 
         --Pointers to pChatData and SavedVariables
-        pChat.pChatData = pChatData
+        --pChat.pChatData = pChatData -> Moved to constants!
         pChat.db = db
 
         --Prepare variables

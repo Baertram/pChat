@@ -53,7 +53,7 @@ function pChat.InitializeChatHandlers()
 
     -- triggers when EVENT_FRIEND_PLAYER_STATUS_CHANGED
     local function OnFriendPlayerStatusChanged(displayName, characterName, oldStatus, newStatus)
-        logger:Debug("OnFriendPlayerStatusChanged: ", string.format("Account: %s, character: %s, oldStatus: %s, newStatus: %s", displayName, characterName, tostring(oldStatus), tostring(newStatus)))
+        logger:Verbose("OnFriendPlayerStatusChanged: ", string.format("Account: %s, character: %s, oldStatus: %s, newStatus: %s", displayName, characterName, tostring(oldStatus), tostring(newStatus)))
 
         local statusMessage
 
@@ -95,7 +95,7 @@ function pChat.InitializeChatHandlers()
 
     -- Executed when EVENT_GUILD_KEEP_ATTACK_UPDATE triggers
     local function OnKeepAttackUpdate(channel, numGuardsKilled, numAttackers, location)
-        logger:Debug("OnKeepAttackUpdate: ", string.format("channel: %s, numGuardsKilled: %s, numAttackers: %s, location: %s", tostring(channel), tostring(numGuardsKilled), tostring(numAttackers), tostring(location)))
+        logger:Verbose("OnKeepAttackUpdate: ", string.format("channel: %s, numGuardsKilled: %s, numAttackers: %s, location: %s", tostring(channel), tostring(numGuardsKilled), tostring(numAttackers), tostring(location)))
 
         if tonumber(GetSetting(SETTING_TYPE_UI, UI_SETTING_SHOW_AVA_NOTIFICATIONS)) ~= AVA_NOTIFICATIONS_SETTING_CHOICE_DONT_SHOW and
             tonumber(GetSetting(SETTING_TYPE_UI, UI_SETTING_SHOW_GUILD_KEEP_NOTICES)) == GUILD_KEEP_NOTICES_SETTING_CHOICE_CHAT then
@@ -231,7 +231,7 @@ function pChat.InitializeChatHandlers()
     -- Listens for EVENT_CHAT_MESSAGE_CHANNEL event from ZO_ChatSystem
     --Parameter: (number eventCode, MsgChannelType channelType, string fromName, string text, boolean isCustomerService, string fromDisplayName)
     local function pChatChatHandlersMessageChannelReceiver(channelID, from, text, isCustomerService, fromDisplayName)
-        logger:Debug("MessageChannelReceiver-channelID: %s, from: %s, text: %s, isCustomerService: %s, fromDisplayName: %s", tostring(channelID), tostring(from), tostring(text), tostring(isCustomerService), tostring(fromDisplayName))
+        logger:Verbose("MessageChannelReceiver-channelID: %s, from: %s, text: %s, isCustomerService: %s, fromDisplayName: %s", tostring(channelID), tostring(from), tostring(text), tostring(isCustomerService), tostring(fromDisplayName))
         local message
         local DDSBeforeAll = ""
         local TextBeforeAll = ""
@@ -272,7 +272,7 @@ function pChat.InitializeChatHandlers()
 
     --For chat messages send to the system channel CHAT_CHANNEL_SYSTEM
     local function pChatOnSystemMessage(statusMessage)
-        logger:Debug("pChatOnSystemMessage, message: " ..tostring(statusMessage))
+        logger:Verbose("pChatOnSystemMessage, message: " ..tostring(statusMessage))
         -- Function to format system messages (add timestamp e.g.)
         local message = FormatSysMessage(statusMessage)
         if not message then return statusMessage end

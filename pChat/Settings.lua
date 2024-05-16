@@ -1810,16 +1810,21 @@ function pChat.InitializeSettings()
 			type = "submenu",
 			name = GetString(PCHAT_SYNCH),
 			controls = {
-				{-- Sync ON
+				{-- Chat config Sync -> Copy currently logged in chat config to next logged in chat config
+					-->See functions pChat.SyncChatConfig and SaveChatConfig
 					type = "checkbox",
 					name = GetString(PCHAT_CHATSYNCCONFIG),
 					tooltip = GetString(PCHAT_CHATSYNCCONFIGTT),
 					getFunc = function() return db.chatSyncConfig end,
-					setFunc = function(newValue) db.chatSyncConfig = newValue end,
+					setFunc = function(newValue)
+						db.chatSyncConfig = newValue
+						--todo #13 20240405 Save the currently logged in character's chatSyncConfig now explicitly or will this be done at logout/exit?
+						pChat.SaveChatConfig("LAM_Setting")
+					end,
 					width = "full",
 					default = defaults.chatSyncConfig,
 				},
-				{-- Config Import From
+				{-- Chat config Import From other character id
 					type = "dropdown",
 					name = GetString(PCHAT_CHATSYNCCONFIGIMPORTFROM),
 					tooltip = GetString(PCHAT_CHATSYNCCONFIGIMPORTFROMTT),

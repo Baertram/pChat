@@ -7,7 +7,7 @@ pChat = pChat or {}
     --AddOn information
     local CONSTANTS = {
         ADDON_NAME          = "pChat",
-        ADDON_VERSION       = "10.0.5.1",
+        ADDON_VERSION       = "10.0.5.2",
 
         API_VERSION         = GetAPIVersion(),
 
@@ -180,3 +180,58 @@ do
     --Get the chat category and channel names now
     updateChatChannelNames()
 end
+
+
+
+
+
+--======================================================================================================================
+-- AddOn pChatData
+--======================================================================================================================
+-- pChatData will receive variables and objects.
+local pChatData = {}
+pChat.pChatData = pChatData
+
+--Chat categories for the chat config sync etc.
+pChatData.chatCategories = {
+    CHAT_CATEGORY_SAY,
+    CHAT_CATEGORY_YELL,
+    CHAT_CATEGORY_WHISPER_INCOMING,
+    CHAT_CATEGORY_WHISPER_OUTGOING,
+    CHAT_CATEGORY_ZONE,
+    CHAT_CATEGORY_PARTY,
+    CHAT_CATEGORY_EMOTE,
+    CHAT_CATEGORY_SYSTEM,
+    CHAT_CATEGORY_GUILD_1,
+    CHAT_CATEGORY_GUILD_2,
+    CHAT_CATEGORY_GUILD_3,
+    CHAT_CATEGORY_GUILD_4,
+    CHAT_CATEGORY_GUILD_5,
+    CHAT_CATEGORY_OFFICER_1,
+    CHAT_CATEGORY_OFFICER_2,
+    CHAT_CATEGORY_OFFICER_3,
+    CHAT_CATEGORY_OFFICER_4,
+    CHAT_CATEGORY_OFFICER_5,
+    CHAT_CATEGORY_ZONE_ENGLISH,
+    CHAT_CATEGORY_ZONE_FRENCH,
+    CHAT_CATEGORY_ZONE_GERMAN,
+    CHAT_CATEGORY_ZONE_JAPANESE,
+    CHAT_CATEGORY_ZONE_RUSSIAN,
+    CHAT_CATEGORY_ZONE_SPANISH,
+    CHAT_CATEGORY_MONSTER_SAY,
+    CHAT_CATEGORY_MONSTER_YELL,
+    CHAT_CATEGORY_MONSTER_WHISPER,
+    CHAT_CATEGORY_MONSTER_EMOTE,
+}
+pChatData.guildCategories = {
+    CHAT_CATEGORY_GUILD_1,
+    CHAT_CATEGORY_GUILD_2,
+    CHAT_CATEGORY_GUILD_3,
+    CHAT_CATEGORY_GUILD_4,
+    CHAT_CATEGORY_GUILD_5,
+    CHAT_CATEGORY_OFFICER_1,
+    CHAT_CATEGORY_OFFICER_2,
+    CHAT_CATEGORY_OFFICER_3,
+    CHAT_CATEGORY_OFFICER_4,
+    CHAT_CATEGORY_OFFICER_5,
+}

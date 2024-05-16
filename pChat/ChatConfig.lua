@@ -7,6 +7,7 @@ local WM = WINDOW_MANAGER
 local ChatSys = CONSTANTS.CHAT_SYSTEM
 
 local constChatTabNoName = CONSTANTS.chatTabNoName
+local constChatConfigSyncLastChar = CONSTANTS.chatConfigSyncLastChar
 
 function pChat.InitializeChatConfig()
     local pChatData = pChat.pChatData
@@ -15,99 +16,41 @@ function pChat.InitializeChatConfig()
 
     local db = pChat.db
 
-    pChatData.chatCategories = {
-        CHAT_CATEGORY_SAY,
-        CHAT_CATEGORY_YELL,
-        CHAT_CATEGORY_WHISPER_INCOMING,
-        CHAT_CATEGORY_WHISPER_OUTGOING,
-        CHAT_CATEGORY_ZONE,
-        CHAT_CATEGORY_PARTY,
-        CHAT_CATEGORY_EMOTE,
-        CHAT_CATEGORY_SYSTEM,
-        CHAT_CATEGORY_GUILD_1,
-        CHAT_CATEGORY_GUILD_2,
-        CHAT_CATEGORY_GUILD_3,
-        CHAT_CATEGORY_GUILD_4,
-        CHAT_CATEGORY_GUILD_5,
-        CHAT_CATEGORY_OFFICER_1,
-        CHAT_CATEGORY_OFFICER_2,
-        CHAT_CATEGORY_OFFICER_3,
-        CHAT_CATEGORY_OFFICER_4,
-        CHAT_CATEGORY_OFFICER_5,
-        CHAT_CATEGORY_ZONE_ENGLISH,
-        CHAT_CATEGORY_ZONE_FRENCH,
-        CHAT_CATEGORY_ZONE_GERMAN,
-        CHAT_CATEGORY_ZONE_JAPANESE,
-        CHAT_CATEGORY_MONSTER_SAY,
-        CHAT_CATEGORY_MONSTER_YELL,
-        CHAT_CATEGORY_MONSTER_WHISPER,
-        CHAT_CATEGORY_MONSTER_EMOTE,
-    }
-    if CHAT_CATEGORY_ZONE_SPANISH ~= nil then
-        table.insert(pChatData.chatCategories, 23, CHAT_CATEGORY_ZONE_SPANISH)
-    end
     local chatCategories = pChatData.chatCategories
+    local guildCategories = pChatData.guildCategories
 
-    pChatData.guildCategories = {
-        CHAT_CATEGORY_GUILD_1,
-        CHAT_CATEGORY_GUILD_2,
-        CHAT_CATEGORY_GUILD_3,
-        CHAT_CATEGORY_GUILD_4,
-        CHAT_CATEGORY_GUILD_5,
-        CHAT_CATEGORY_OFFICER_1,
-        CHAT_CATEGORY_OFFICER_2,
-        CHAT_CATEGORY_OFFICER_3,
-        CHAT_CATEGORY_OFFICER_4,
-        CHAT_CATEGORY_OFFICER_5,
-    }
+    --[[
+        -- TODO what is needed to finish this or can it be removed?
+        local function UndockTextEntry()
+            local charId = GetCurrentCharacterId()
+            -- Unfinshed
+            if not db.chatConfSync[charId].TextEntryPoint then
+                db.chatConfSync[charId].TextEntryPoint = CENTER
+                db.chatConfSync[charId].TextEntryRelPoint = CENTER
+                db.chatConfSync[charId].TextEntryX = 0
+                db.chatConfSync[charId].TextEntryY = -300
+                db.chatConfSync[charId].TextEntryWidth = 200
+            end
 
-    -- TODO unused. remove
-    pChatData.defaultChannels = {
-        CONSTANTS.PCHAT_CHANNEL_NONE,
-        CHAT_CHANNEL_ZONE,
-        CHAT_CHANNEL_SAY,
-        CHAT_CHANNEL_GUILD_1,
-        CHAT_CHANNEL_GUILD_2,
-        CHAT_CHANNEL_GUILD_3,
-        CHAT_CHANNEL_GUILD_4,
-        CHAT_CHANNEL_GUILD_5,
-        CHAT_CHANNEL_OFFICER_1,
-        CHAT_CHANNEL_OFFICER_2,
-        CHAT_CHANNEL_OFFICER_3,
-        CHAT_CHANNEL_OFFICER_4,
-        CHAT_CHANNEL_OFFICER_5,
-    }
+            ZO_ChatWindowTextEntry:ClearAnchors()
+            ZO_ChatWindowTextEntry:SetAnchor(db.chatConfSync[charId].TextEntryPoint, GuiRoot, db.chatConfSync[charId].TextEntryRelPoint, db.chatConfSync[charId].TextEntryX, 300)
+            ZO_ChatWindowTextEntry:SetDimensions(400, 27)
+            ZO_ChatWindowTextEntry:SetMovable(false)
 
-    local function UndockTextEntry()
-        local charId = GetCurrentCharacterId()
-        -- Unfinshed
-        if not db.chatConfSync[charId].TextEntryPoint then
-            db.chatConfSync[charId].TextEntryPoint = CENTER
-            db.chatConfSync[charId].TextEntryRelPoint = CENTER
-            db.chatConfSync[charId].TextEntryX = 0
-            db.chatConfSync[charId].TextEntryY = -300
-            db.chatConfSync[charId].TextEntryWidth = 200
+            local undockedTexture = WM:CreateControl("UndockedBackground", ZO_ChatWindowTextEntry, CT_TEXTURE)
+            undockedTexture:SetTexture("EsoUI/Art/Performance/StatusMeterMunge.dds")
+            undockedTexture:SetAnchor(CENTER, ZO_ChatWindowTextEntry, CENTER, 0, 0)
+            undockedTexture:SetDimensions(800, 250)
         end
 
-        ZO_ChatWindowTextEntry:ClearAnchors()
-        ZO_ChatWindowTextEntry:SetAnchor(db.chatConfSync[charId].TextEntryPoint, GuiRoot, db.chatConfSync[charId].TextEntryRelPoint, db.chatConfSync[charId].TextEntryX, 300)
-        ZO_ChatWindowTextEntry:SetDimensions(400, 27)
-        ZO_ChatWindowTextEntry:SetMovable(false)
-
-        local undockedTexture = WM:CreateControl("UndockedBackground", ZO_ChatWindowTextEntry, CT_TEXTURE)
-        undockedTexture:SetTexture("EsoUI/Art/Performance/StatusMeterMunge.dds")
-        undockedTexture:SetAnchor(CENTER, ZO_ChatWindowTextEntry, CENTER, 0, 0)
-        undockedTexture:SetDimensions(800, 250)
-    end
-
-    -- TODO what is needed to finish this or can it be removed?
-    --local function RedockTextEntry()
-    --    -- Unfinished
-    --    ZO_ChatWindowTextEntry:ClearAnchors()
-    --    ZO_ChatWindowTextEntry:SetAnchor(BOTTOMLEFT, ZO_ChatWindowMinimize, BOTTOMRIGHT, -6, -13)
-    --    ZO_ChatWindowTextEntry:SetAnchor(BOTTOMRIGHT, ZO_ChatWindow, BOTTOMRIGHT, -23, -13)
-    --    ZO_ChatWindowTextEntry:SetMovable(false)
-    --end
+        local function RedockTextEntry()
+            -- Unfinished
+            ZO_ChatWindowTextEntry:ClearAnchors()
+            ZO_ChatWindowTextEntry:SetAnchor(BOTTOMLEFT, ZO_ChatWindowMinimize, BOTTOMRIGHT, -6, -13)
+            ZO_ChatWindowTextEntry:SetAnchor(BOTTOMRIGHT, ZO_ChatWindow, BOTTOMRIGHT, -23, -13)
+            ZO_ChatWindowTextEntry:SetMovable(false)
+        end
+    ]]
 
     -- Change ChatWindow Darkness by modifying its <Center> & <Edge>. Originally defined in virtual object ZO_ChatContainerTemplate in sharedchatsystem.xml
     local texturePathEdgeDependingOnWindowDarknessTemplate =    "pChat/dds/chat_bg_edge_%d.dds"
@@ -162,7 +105,6 @@ function pChat.InitializeChatConfig()
     local function ChangeChatFont(change)
 
         local fontSize = GetChatFontSize()
-
         if db.fonts == "ESO Standard Font" or db.fonts == "Univers 57" then
             return
         else
@@ -182,7 +124,8 @@ function pChat.InitializeChatConfig()
 
     -- Save chat configuration of currently logged in characterId
     -->Called at ReloadUI/SetCVar/Logout/Quit and at login once, and at ZO_ChatOptions_ToggleChannel (At the tabs)
-    local function SaveChatConfig()
+    local function SaveChatConfig(comingFrom)
+        comingFrom = comingFrom or ""
 
         if not pChatData.tabNotBefore then
             pChatData.tabNotBefore = {} -- Init here or in SyncChatConfig depending if the "Clear Tab" has been used
@@ -190,125 +133,143 @@ function pChat.InitializeChatConfig()
 
         if pChatData.isAddonLoaded and ChatSys ~= nil and ChatSys.primaryContainer ~= nil then -- Some addons calls SetCVar before
             local charId = GetCurrentCharacterId()
-
+            local loggerCat = "SaveChatConfig - "..tostring(comingFrom)
+            local loggerCurrentlyLoggedIn = tostring(charId) .. "[" .. zo_strformat(SI_UNIT_NAME, GetUnitName("player")) .."]"
             if pChat.logger ~= nil then
-                pChat.logger:Debug("SaveChatConfig", "Saving chat and tab config for characterId: " ..tostring(charId) .. "[" .. zo_strformat(SI_UNIT_NAME, GetUnitName("player")) .."]")
+                pChat.logger:Debug(loggerCat, "Saving chat and tab config for character: " .. loggerCurrentlyLoggedIn)
             end
 
             local primaryContainer = ChatSys.primaryContainer
+            local primaryContainerSettings = primaryContainer.settings
 
             -- Rewrite the whole char tab
             db.chatConfSync[charId] = {}
+            local chatConfSyncOfCurrentlyLoggedInCharacterId = db.chatConfSync[charId]
 
             -- Save Chat positions
-            local primaryContainerSettings = primaryContainer.settings
             if primaryContainerSettings ~= nil then
-                db.chatConfSync[charId].relPoint =  primaryContainerSettings.relPoint
-                db.chatConfSync[charId].x =         primaryContainerSettings.x
-                db.chatConfSync[charId].y =         primaryContainerSettings.y
-                db.chatConfSync[charId].height =    primaryContainerSettings.height
-                db.chatConfSync[charId].width =     primaryContainerSettings.width
-                db.chatConfSync[charId].point =     primaryContainerSettings.point
+                --> TODO #13 20240405: What if the chat is currently minimized? Should we maximize it to save proper values?
+                --Is the chat currently minimized? Then do not save the positions and anchors!
+                if not ChatSys:IsMinimized() then
+                    chatConfSyncOfCurrentlyLoggedInCharacterId.relPoint =  primaryContainerSettings.relPoint
+                    chatConfSyncOfCurrentlyLoggedInCharacterId.x =         primaryContainerSettings.x
+                    chatConfSyncOfCurrentlyLoggedInCharacterId.y =         primaryContainerSettings.y
+                    chatConfSyncOfCurrentlyLoggedInCharacterId.height =    primaryContainerSettings.height
+                    chatConfSyncOfCurrentlyLoggedInCharacterId.width =     primaryContainerSettings.width
+                    chatConfSyncOfCurrentlyLoggedInCharacterId.point =     primaryContainerSettings.point
+                end
+            else
+                if pChat.logger ~= nil then
+                    pChat.logger:Debug(loggerCat, ">> Abort Saving of chat config! Reason: Chat container settings are nil!")
+                end
+                return --abort here so we do not update the SavedVars chat container's height etc. wrong!
             end
 
-            --db.chatConfSync[charId].textEntryDocked = true
+            --chatConfSyncOfCurrentlyLoggedInCharacterId.textEntryDocked = true
 
             -- Don't overflow screen, remove 10px.
-            if primaryContainer.settings.height >= ( ChatSys.maxContainerHeight - 15 ) then
+            if primaryContainerSettings.height >= ( ChatSys.maxContainerHeight - 15 ) then
                 if pChat.logger ~= nil then
-                    pChat.logger:Debug("SyncChatConfig", ">> Chat container height too high: " ..tostring(primaryContainer.settings.height) .. "/" ..tostring(ChatSys.maxContainerHeight - 15))
+                    pChat.logger:Debug(loggerCat, ">> Chat container height too high: " ..tostring(primaryContainerSettings.height) .. "/" ..tostring(ChatSys.maxContainerHeight - 15))
                 end
-                db.chatConfSync[charId].height = ( ChatSys.maxContainerHeight - 15 )
+                chatConfSyncOfCurrentlyLoggedInCharacterId.height = ( ChatSys.maxContainerHeight - 15 )
             else
-                db.chatConfSync[charId].height = primaryContainer.settings.height
+                chatConfSyncOfCurrentlyLoggedInCharacterId.height = primaryContainerSettings.height
             end
 
             -- Same
-            if primaryContainer.settings.width >= ( ChatSys.maxContainerWidth - 15 ) then
+            if primaryContainerSettings.width >= ( ChatSys.maxContainerWidth - 15 ) then
                 if pChat.logger ~= nil then
-                    pChat.logger:Debug("SyncChatConfig", ">> Chat container width too wide: " ..tostring(primaryContainer.settings.width) .. "/" ..tostring(ChatSys.maxContainerWidth - 15))
+                    pChat.logger:Debug(loggerCat, ">> Chat container width too wide: " ..tostring(primaryContainerSettings.width) .. "/" ..tostring(ChatSys.maxContainerWidth - 15))
                 end
-                db.chatConfSync[charId].width = ( ChatSys.maxContainerWidth - 15 )
+                chatConfSyncOfCurrentlyLoggedInCharacterId.width = ( ChatSys.maxContainerWidth - 15 )
             else
-                db.chatConfSync[charId].width = primaryContainer.settings.width
+                chatConfSyncOfCurrentlyLoggedInCharacterId.width = primaryContainerSettings.width
             end
 
             -- Save Colors
-            db.chatConfSync[charId].colors = {}
+            chatConfSyncOfCurrentlyLoggedInCharacterId.colors = {}
 
             for _, category in ipairs (chatCategories) do
                 local r, g, b = GetChatCategoryColor(category)
-                db.chatConfSync[charId].colors[category] = { red = r, green = g, blue = b }
+                chatConfSyncOfCurrentlyLoggedInCharacterId.colors[category] = { red = r, green = g, blue = b }
             end
 
             -- Save Font Size
-            db.chatConfSync[charId].fontSize = GetChatFontSize()
+            chatConfSyncOfCurrentlyLoggedInCharacterId.fontSize = GetChatFontSize()
 
             -- Save Tabs
-            db.chatConfSync[charId].tabs = {}
+            chatConfSyncOfCurrentlyLoggedInCharacterId.tabs = {}
 
             -- GetNumChatContainerTabs(1) don't refresh its number before a ReloadUI
             -- for numTab = 1, GetNumChatContainerTabs(1) do
             for numTab in ipairs (primaryContainer.windows) do
 
-                db.chatConfSync[charId].tabs[numTab] = {}
+                chatConfSyncOfCurrentlyLoggedInCharacterId.tabs[numTab] = {}
 
                 -- Save "Clear Tab" flag
                 if pChatData.tabNotBefore[numTab] then
-                    db.chatConfSync[charId].tabs[numTab].notBefore = pChatData.tabNotBefore[numTab]
+                    chatConfSyncOfCurrentlyLoggedInCharacterId.tabs[numTab].notBefore = pChatData.tabNotBefore[numTab]
                 end
 
                 -- No.. need a ReloadUI     local name, isLocked, isInteractable, isCombatLog, areTimestampsEnabled = GetChatContainerTabInfo(1, numTab)
                 -- IsLocked
                 if primaryContainer:IsLocked(numTab) then
-                    db.chatConfSync[charId].tabs[numTab].isLocked = true
+                    chatConfSyncOfCurrentlyLoggedInCharacterId.tabs[numTab].isLocked = true
                 else
-                    db.chatConfSync[charId].tabs[numTab].isLocked = false
+                    chatConfSyncOfCurrentlyLoggedInCharacterId.tabs[numTab].isLocked = false
                 end
 
                 -- IsInteractive
                 if primaryContainer:IsInteractive(numTab) then
-                    db.chatConfSync[charId].tabs[numTab].isInteractable = true
+                    chatConfSyncOfCurrentlyLoggedInCharacterId.tabs[numTab].isInteractable = true
                 else
-                    db.chatConfSync[charId].tabs[numTab].isInteractable = false
+                    chatConfSyncOfCurrentlyLoggedInCharacterId.tabs[numTab].isInteractable = false
                 end
 
                 -- IsCombatLog
                 if primaryContainer:IsCombatLog(numTab) then
-                    db.chatConfSync[charId].tabs[numTab].isCombatLog = true
+                    chatConfSyncOfCurrentlyLoggedInCharacterId.tabs[numTab].isCombatLog = true
                     -- AreTimestampsEnabled
                     if primaryContainer:AreTimestampsEnabled(numTab) then
-                        db.chatConfSync[charId].tabs[numTab].areTimestampsEnabled = true
+                        chatConfSyncOfCurrentlyLoggedInCharacterId.tabs[numTab].areTimestampsEnabled = true
                     else
-                        db.chatConfSync[charId].tabs[numTab].areTimestampsEnabled = false
+                        chatConfSyncOfCurrentlyLoggedInCharacterId.tabs[numTab].areTimestampsEnabled = false
                     end
                 else
-                    db.chatConfSync[charId].tabs[numTab].isCombatLog = false
-                    db.chatConfSync[charId].tabs[numTab].areTimestampsEnabled = false
+                    chatConfSyncOfCurrentlyLoggedInCharacterId.tabs[numTab].isCombatLog = false
+                    chatConfSyncOfCurrentlyLoggedInCharacterId.tabs[numTab].areTimestampsEnabled = false
                 end
 
                 -- GetTabName
                 local chatTabName = primaryContainer:GetTabName(numTab)
                 if chatTabName == nil or chatTabName == "" then chatTabName = constChatTabNoName end
-                db.chatConfSync[charId].tabs[numTab].name = chatTabName
+                chatConfSyncOfCurrentlyLoggedInCharacterId.tabs[numTab].name = chatTabName
 
                 -- Enabled categories
-                db.chatConfSync[charId].tabs[numTab].enabledCategories = {}
+                chatConfSyncOfCurrentlyLoggedInCharacterId.tabs[numTab].enabledCategories = {}
 
                 for _, category in ipairs (chatCategories) do
                     local isEnabled = IsChatContainerTabCategoryEnabled(1, numTab, category)
-                    db.chatConfSync[charId].tabs[numTab].enabledCategories[category] = isEnabled
+                    chatConfSyncOfCurrentlyLoggedInCharacterId.tabs[numTab].enabledCategories[category] = isEnabled
                 end
 
             end
 
-            --Update the "lastChar" entry with the currently saved data for the charaacterId loged in,
-            --so next logegd in character can reuse that "lastChar" for the "Chat config sync"!
-            db.chatConfSync[CONSTANTS.chatConfigSyncLastChar] = db.chatConfSync[charId]
+            --db.chatConfSync[charId] = chatConfSyncOfCurrentlyLoggedInCharacterId --> Is this needed here? Shouldn't be
+            local copyOfChatConfigOfCurrentlyLoggedInCharacter = ZO_ShallowTableCopy(chatConfSyncOfCurrentlyLoggedInCharacterId)
+            --Update the "lastChar" entry with the currently saved data for the characterId loged in,
+            --so next logged in character can reuse that "lastChar" for the "Chat config sync"!
+            -->Unlink the 2 tables so updating db.chatConfSync[charId] won#t automatically update db.chatConfSync[constChatConfigSyncLastChar]
+            db.chatConfSync[constChatConfigSyncLastChar] = copyOfChatConfigOfCurrentlyLoggedInCharacter
+            if pChat.logger ~= nil then
+                pChat.logger:Debug(loggerCat, ">>" ..tostring(constChatConfigSyncLastChar) .. " saved with currently logged in chat config, character: " .. loggerCurrentlyLoggedIn)
+            end
         end
 
     end
     pChat.SaveChatConfig = SaveChatConfig
+
 
     -- Function for Minimizing chat at launch
     local function MinimizeChatAtLaunch()
@@ -443,22 +404,25 @@ function pChat.InitializeChatConfig()
             if db.chatConfSync ~= nil and db.chatConfSync[whichCharId] ~= nil and ChatSys ~= nil and ChatSys.primaryContainer ~= nil then
 
                 if pChat.logger ~= nil then
-                    pChat.logger:Debug("SyncChatConfig", "Syncing chat config and tabs to characterId: " ..tostring(whichCharId) .. "[" .. zo_strformat(SI_UNIT_NAME, GetUnitName("player")) .."]")
+                    pChat.logger:Debug("SyncChatConfig", "Syncing chat config and tabs to character: " ..tostring(whichCharId) .. "[" .. zo_strformat(SI_UNIT_NAME, GetUnitName("player")) .."]")
                 end
 
-                local primaryContainer = ChatSys.primaryContainer
 
                 local chatConfSyncForCharId = db.chatConfSync[whichCharId]
                 local chatSysControl = ChatSys.control
-                if chatSysControl ~= nil then
-                    -- Position and width/height
+                if chatSysControl ~= nil and chatConfSyncForCharId.point and chatConfSyncForCharId.relPoint and chatConfSyncForCharId.width and chatConfSyncForCharId.height then
+                    chatConfSyncForCharId.x = chatConfSyncForCharId.x or 0
+                    chatConfSyncForCharId.y = chatConfSyncForCharId.y or 0
+
+                    -- Anchor and position
                     chatSysControl:SetAnchor(chatConfSyncForCharId.point, GuiRoot, chatConfSyncForCharId.relPoint, chatConfSyncForCharId.x, chatConfSyncForCharId.y)
                     -- Height / Width
                     chatSysControl:SetDimensions(chatConfSyncForCharId.width, chatConfSyncForCharId.height)
                 end
 
                 -- Save settings immediatly (to check, maybe call function which do this)
-                local primaryContainerSettings = CHAT_SYSTEM.primaryContainer.settings
+                local primaryContainer = ChatSys.primaryContainer
+                local primaryContainerSettings = primaryContainer and ChatSys.primaryContainer.settings
                 if primaryContainerSettings then
                     primaryContainerSettings.height = chatConfSyncForCharId.height
                     primaryContainerSettings.point = chatConfSyncForCharId.point
@@ -583,7 +547,7 @@ function pChat.InitializeChatConfig()
         -- New chars get automaticaly "lastChar" config (last logged in user's saved settings)
         if GetIsNewCharacter() then
             --Obverite with "true" -> Even if disabled in the settings menu!
-            SyncChatConfig(true, CONSTANTS.chatConfigSyncLastChar)
+            SyncChatConfig(true, constChatConfigSyncLastChar)
             return true
         end
         return false
@@ -714,12 +678,12 @@ function pChat.InitializeChatConfig()
 
         for numTab in ipairs (ChatSys.primaryContainer.windows) do
 
-            for _, category in ipairs (pChatData.guildCategories) do
+            for _, category in ipairs (guildCategories) do
                 local isEnabled = IsChatContainerTabCategoryEnabled(1, numTab, category)
                 if db.chatConfSync[charId].tabs[numTab] then
                     db.chatConfSync[charId].tabs[numTab].enabledCategories[category] = isEnabled
                 else
-                    SaveChatConfig()
+                    SaveChatConfig("SaveTabsCategories")
                 end
             end
 
@@ -775,14 +739,14 @@ function pChat.InitializeChatConfig()
         if not pChatData.isAddonInitialized then
             -- Get chat and tab's settings for new created character -> From last logged in character
             local isNewCharacterSynced = AutoSyncSettingsForNewPlayer()
-            -- Chat Config synchronization - Only if not done before already because this is a new created character
-            -- Load the config of the last logged in character (before the current one was logged in), if the chat sync is enabled at the settings
 
+            -- Chat Config synchronization - Only if not done before already because the currently logged in char is a new created character:
+            -- Load the config of the last logged in character (before the current one was logged in), if the chat sync is enabled at the settings
             if isNewCharacterSynced == false then
-                SyncChatConfig(db.chatSyncConfig, CONSTANTS.chatConfigSyncLastChar)
+                SyncChatConfig(db.chatSyncConfig, constChatConfigSyncLastChar)
             end
             --Save the actual chat and tabs config now for the currently logged in char
-            SaveChatConfig()
+            SaveChatConfig("ApplyChatConfig")
 
             -- Should we minimize? Call this AFTER saving the actual chat config!!! Else the minimized data might get saved
             -- and makes the chat look weird at other characters
@@ -795,5 +759,4 @@ function pChat.InitializeChatConfig()
             SetToDefaultChannel()
         end
     end
-
 end
