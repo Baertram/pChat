@@ -9,6 +9,10 @@ local ChatSys = CONSTANTS.CHAT_SYSTEM
 local constChatTabNoName = CONSTANTS.chatTabNoName
 local constChatConfigSyncLastChar = CONSTANTS.chatConfigSyncLastChar
 
+local function refreshKeyboardChatVisibility()
+    KEYBOARD_CHAT_SYSTEM:RefreshVisibility()
+end
+
 function pChat.InitializeChatConfig()
     local pChatData = pChat.pChatData
     pChat.pChatData.wasManuallyMinimized = pChat.pChatData.wasManuallyMinimized or false
@@ -91,8 +95,6 @@ function pChat.InitializeChatConfig()
             chatTransparencyWhileminimize = zo_clamp(chatTransparencyWhileminimize, 0, 100)
         end
         KEYBOARD_CHAT_SYSTEM:SetMinAlpha(chatTransparencyWhileminimize / 100)
-
-        KEYBOARD_CHAT_SYSTEM:RefreshVisibility()
 
         --Compatibility for PerfectPixel
         if PP ~= nil and PP.UpdateBackgrounds ~= nil then
@@ -392,7 +394,7 @@ function pChat.InitializeChatConfig()
                 end
 ]]
             end
-
+            refreshKeyboardChatVisibility()
         end)
 
     end
@@ -754,6 +756,9 @@ function pChat.InitializeChatConfig()
 
             -- Change Window apparence
             ChangeChatWindowDarkness()
+
+            --Check if keyboard chat should be shown (e.g. hidden if settings in gamepad mode prefer the gamepad chat)
+            refreshKeyboardChatVisibility()
 
             -- Set default channel at login
             SetToDefaultChannel()
