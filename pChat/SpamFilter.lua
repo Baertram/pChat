@@ -120,16 +120,31 @@ function pChat.InitializeSpamFilter()
         if db.wantToProtect then
             -- "w.T S"
             if zo_strfind(text, "[wW][%s.]?[tT][%s.]?[bBsStT]") then
---d("[pChat]WTS/b/t detected (%s)", text)
+                --d("[pChat]WTS/b/t detected (%s)", text)
                 -- Item Handler
                 if zo_strfind(text, "|H(.-):item:(.-)|h(.-)|h") then
                     -- Match
                     logger:Debug("WTS with item detected (%s)", text)
                     return true
-                elseif zo_strfind(text, "[Ww][Ww][%s]+[Bb][Ii][Tt][Ee]") then
+                    --link achievement
+                elseif zo_strfind(text, "|H(.-):achievement:(.-)|h(.-)|h") then
                     -- Match
-                    logger:Debug("WTS Werewolf bite detected (%s)", text)
+                    logger:Debug("WTS with achievement detected (%s)", text)
                     return true
+                end
+
+                if  db.wantToProtectWWandVamp then
+                    --Werewolf bite
+                    if (zo_strfind(text, "[Ww][Ww][%s]+[Bb][Ii][Tt][Ee]") or zo_strfind(text, "[Ww][Ee][Rr][Ee][Ww][Oo][Ll]")) then
+                        -- Match
+                        logger:Debug("WTS Werewolf bite detected (%s)", text)
+                        return true
+                        --Vampire bite
+                    elseif zo_strfind(text, "[Vv][Aa][Mm][Pp](.*)[%s]+[Bb][Ii][Tt][Ee]") then
+                        -- Match
+                        logger:Debug("WTS Vampire bite detected (%s)", text)
+                        return true
+                    end
                 end
             end
         end

@@ -247,6 +247,9 @@ local strings = {
 	PCHAT_WANTTOPROTECT = "Ignore Commercial messages",
 	PCHAT_WANTTOPROTECTTT = "Ignore messages from players looking to buy, sell or trade",
 
+	PCHAT_WANTTOPROTECTWWANDVAMP = "Ignore commercial Werewolv & Vampire bite",
+	PCHAT_WANTTOPROTECTWWANDVAMPTT = "Ignore messages from players selling or buying Werewolve or Vampire bites",
+
 	PCHAT_WANTTOPROTECT_GOLDCROWNSSPAM = "Ignore Gold & Crown messages",
 	PCHAT_WANTTOPROTECT_GOLDCROWNSSPAMTT = "Ignore messages from players looking to sell crowns for gold",
 

@@ -1,7 +1,7 @@
 --=======================================================================================================================================
 --Known problems/bugs:
 --Last updated: 2024-06-09
---Total number: 18
+--Total number: 19
 ------------------------------------------------------------------------------------------------------------------------
 --#2	2020-02-28 Baetram, bug: New selection for @accountName/character chat prefix will only show /charactername (@accountName is missing) during whispers,
 --		if clicked on a character in the chat to whisper him/her
@@ -98,6 +98,7 @@ ZO_ChatOptions_ToggleChannel    pChat.SaveChatConfig()      Save the currently l
 --Added:
 
 --Added on request:
+--#19 New setting to block commercial (WTS, WTB) messages of players about a Werewolv or Vampire bite
 
 
 --=======================================================================================================================================

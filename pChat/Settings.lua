@@ -1890,6 +1890,16 @@ function pChat.InitializeSettings()
 				},
 				{
 					type = "checkbox",
+					name = GetString(PCHAT_WANTTOPROTECTWWANDVAMP),
+					tooltip = GetString(PCHAT_WANTTOPROTECTWWANDVAMPTT),
+					getFunc = function() return db.wantToProtectWWandVamp end,
+					setFunc = function(newValue) db.wantToProtectWWandVamp = newValue end,
+					width = "full",
+					default = defaults.wantToProtectWWandVamp,
+					disabled = function() return not db.wantToProtect end
+				},
+				{
+					type = "checkbox",
 					name = GetString(PCHAT_WANTTOPROTECT_GOLDCROWNSSPAM),
 					tooltip = GetString(PCHAT_WANTTOPROTECT_GOLDCROWNSSPAMTT),
 					getFunc = function() return db.wantToProtectGoldCrownSpam end,

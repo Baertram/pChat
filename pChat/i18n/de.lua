@@ -266,6 +266,10 @@ SafeAddString(PCHAT_LOOKINGFORPROTECTTT							, "Ignoriert Nachrichten, mit dene
 SafeAddString(PCHAT_WANTTOPROTECT									, "Ignoriere Handelsnachrichten ", 1)
 SafeAddString(PCHAT_WANTTOPROTECTTT									, "Ignoriert Nachrichten von Spielern, die etwas handeln oder ver-/kaufen möchten", 1)
 
+SafeAddString(PCHAT_WANTTOPROTECTWWANDVAMP                          , "Ignoriere Handel: Werewolf & Vampir Bisse", 1)
+SafeAddString(PCHAT_WANTTOPROTECTWWANDVAMPTT                        , "Ignoriere Nachrichten on Spielern, die einen Werewof oder Vampir Biss verkaufen oder kaufen wollen", 1)
+
+
 SafeAddString(PCHAT_WANTTOPROTECT_GOLDCROWNSSPAM                    , "Ignoriere Gold & Kronen Verkaufsnachrichten", 1)
 SafeAddString(PCHAT_WANTTOPROTECT_GOLDCROWNSSPAMTT                  , "Ignoriert Nachrichten von Spielern, die Kronen für Gold verkaufen möchten", 1)
 
