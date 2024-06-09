@@ -84,6 +84,7 @@ function pChat.InitializeSettings()
 		floodGracePeriod = 30,
 		lookingForProtect = false,
 		wantToProtect = false,
+		wantToProtectWWandVamp = false,
 		wantToProtectGoldCrownSpam = false,
 		restoreOnReloadUI = true,
 		restoreOnLogOut = true,
