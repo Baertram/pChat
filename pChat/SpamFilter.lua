@@ -117,21 +117,37 @@ function pChat.InitializeSpamFilter()
 
     -- Return true/false if text is a WTT message
     local function SpamWantTo(text)
-        -- "w.T S"
-        if string.find(text, "[wW][%s.]?[tT][%s.]?[bBsStT]") then
+        if db.wantToProtect then
+            -- "w.T S"
+            if zo_strfind(text, "[wW][%s.]?[tT][%s.]?[bBsStT]") then
+--d("[pChat]WTS/b/t detected (%s)", text)
+                -- Item Handler
+                if zo_strfind(text, "|H(.-):item:(.-)|h(.-)|h") then
+                    -- Match
+                    logger:Debug("WTS with item detected (%s)", text)
+                    return true
+                elseif zo_strfind(text, "[Ww][Ww][%s]+[Bb][Ii][Tt][Ee]") then
+                    -- Match
+                    logger:Debug("WTS Werewolf bite detected (%s)", text)
+                    return true
+                end
+            end
+        end
 
-            -- Item Handler
-            if string.find(text, "|H(.-):item:(.-)|h(.-)|h") then
+        --2024-06-03 - by DackJaniels - #14  Crown selling protection
+        if db.wantToProtectGoldCrownSpam then
+            -- Adding detection for gold and crown sales messages
+            -- Pattern matches phrases like "G O L D + S W A T , C, 0 , M >>> Gold and Crown For Sale >>> Cheap <> Fast <> Safe8215GCWgo", or "sell ing"
+            if (zo_strfind(text, "[Gg][%s.]?[Oo][%s.]?[Ll][%s.]?[Dd]") and zo_strfind(text, "[Cc][%s.]?[Rr][%s.]?[Oo][%s.]?[Ww][%s.]?[Nn]"))
+                    and (zo_strfind(text, "[Ww][%s.]?[Tt][%s.]?[Ss]") or zo_strfind(text, "[Ss][%s.]?[Aa][%s.]?[Ll][%s.]?[Ee]") or zo_strfind(text, "[Ss][%s.]?[Ee][%s.]?[Ll][%s.]?[Ll]")) then
                 -- Match
-                --logger:Debug("WT detected (%s)", text)
-                return true
-            elseif string.find(text, "[Ww][Ww][%s]+[Bb][Ii][Tt][Ee]") then
-                -- Match
-                --logger:Debug("WT WW Bite detected (%s)", text)
+                logger:Debug("Gold/Crown sale detected (%s)", text)
+
+--d("[pChat]Gold/Crown sale detected (%s)", text)
                 return true
             end
-
         end
+
         return false
     end
 
@@ -303,7 +319,7 @@ function pChat.InitializeSpamFilter()
                 -- WTT
         elseif category == "WantTo" then
             -- Enabled in Options?
-            if db.wantToProtect then
+            if db.wantToProtect or db.wantToProtectGoldCrownSpam then
                 -- Enabled in reality?
                 if pChatData.spamWantToEnabled then
                     --logger:Debug("wantToProtect enabled")

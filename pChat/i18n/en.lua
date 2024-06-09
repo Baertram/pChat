@@ -247,6 +247,10 @@ local strings = {
 	PCHAT_WANTTOPROTECT = "Ignore Commercial messages",
 	PCHAT_WANTTOPROTECTTT = "Ignore messages from players looking to buy, sell or trade",
 
+	PCHAT_WANTTOPROTECT_GOLDCROWNSSPAM = "Ignore Gold & Crown messages",
+	PCHAT_WANTTOPROTECT_GOLDCROWNSSPAMTT = "Ignore messages from players looking to sell crowns for gold",
+
+
 	PCHAT_SPAMGRACEPERIOD = "Temporarily stopping the spam",
 	PCHAT_SPAMGRACEPERIODTT = "When you make yourself a research group message or trade, spam temporarily disables the function you have overridden the time to have an answer. It reactivates automatically after a period that can be set (in minutes)",
 

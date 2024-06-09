@@ -266,6 +266,10 @@ SafeAddString(PCHAT_LOOKINGFORPROTECTTT							, "Ignoriert Nachrichten, mit dene
 SafeAddString(PCHAT_WANTTOPROTECT									, "Ignoriere Handelsnachrichten ", 1)
 SafeAddString(PCHAT_WANTTOPROTECTTT									, "Ignoriert Nachrichten von Spielern, die etwas handeln oder ver-/kaufen möchten", 1)
 
+SafeAddString(PCHAT_WANTTOPROTECT_GOLDCROWNSSPAM                    , "Ignoriere Gold & Kronen Verkaufsnachrichten", 1)
+SafeAddString(PCHAT_WANTTOPROTECT_GOLDCROWNSSPAMTT                  , "Ignoriert Nachrichten von Spielern, die Kronen für Gold verkaufen möchten", 1)
+
+
 SafeAddString(PCHAT_SPAMGRACEPERIOD									, "Anti-Flood temporär deaktivieren", 1)
 SafeAddString(PCHAT_SPAMGRACEPERIODTT								, "Wenn Sie selber eine Gruppe suchen, einen Handel oder Ver-/Kauf über den Chat kommunizieren, wird der Anti-Flood Schutz temporär aufgehoben.\nDiese Einstellung legt die Minuten fest, nachdem der Anti-Flood Schutz wieder aktiviert wird.", 1)
 

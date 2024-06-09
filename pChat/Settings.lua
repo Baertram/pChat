@@ -84,6 +84,7 @@ function pChat.InitializeSettings()
 		floodGracePeriod = 30,
 		lookingForProtect = false,
 		wantToProtect = false,
+		wantToProtectGoldCrownSpam = false,
 		restoreOnReloadUI = true,
 		restoreOnLogOut = true,
 		restoreOnQuit = false,
@@ -1886,6 +1887,15 @@ function pChat.InitializeSettings()
 					setFunc = function(newValue) db.wantToProtect = newValue end,
 					width = "full",
 					default = defaults.wantToProtect,
+				},
+				{
+					type = "checkbox",
+					name = GetString(PCHAT_WANTTOPROTECT_GOLDCROWNSSPAM),
+					tooltip = GetString(PCHAT_WANTTOPROTECT_GOLDCROWNSSPAMTT),
+					getFunc = function() return db.wantToProtectGoldCrownSpam end,
+					setFunc = function(newValue) db.wantToProtectGoldCrownSpam = newValue end,
+					width = "full",
+					default = defaults.wantToProtectGoldCrownSpam,
 				},
 				{
 					type = "slider",

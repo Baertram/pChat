@@ -1,7 +1,7 @@
 --=======================================================================================================================================
 --Known problems/bugs:
---Last updated: 2024-01-26
---Total number: 13
+--Last updated: 2024-06-09
+--Total number: 18
 ------------------------------------------------------------------------------------------------------------------------
 --#2	2020-02-28 Baetram, bug: New selection for @accountName/character chat prefix will only show /charactername (@accountName is missing) during whispers,
 --		if clicked on a character in the chat to whisper him/her
@@ -84,15 +84,16 @@ ZO_ChatOptions_ToggleChannel    pChat.SaveChatConfig()      Save the currently l
 --=======================================================================================================================================
 
 --Working on:
---#13
 
 --=======================================================================================================================================
--- Changelog version: 10.0.5.2 (last version 10.0.5.1)
+-- Changelog version: 10.0.5.4 (last version 10.0.5.3)
 --=======================================================================================================================================
 --Fixed:
---
+--#16 Font filenames changed to .slug again (were reset to otf/ttf by accident)
+--#17 Spam detection for gold/crowns recognizes spaces or a dot between the words now
 
 --Changed:
+--#18 Font XML defs changes from name to string (for backup font compatibility)
 
 --Added:
 

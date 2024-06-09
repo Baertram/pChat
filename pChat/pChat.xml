@@ -26,11 +26,11 @@
 			<Dimensions x="600" y="30" />
 			<Controls>
 				<Texture name="$(parent)BG" inherits="ZO_ThinListBgStrip" />
-				<Label name="$(parent)Name" font="ZoFontGame" verticalAlignment="CENTER">
+				<Label name="$(parent)Name" font="$(MEDIUM_FONT)|$(KB_18)|soft-shadow-thin" verticalAlignment="CENTER">
 					<Dimensions x="150" y="30" />
 					<Anchor point="TOPLEFT" relativeTo="$(parent)" />
 				</Label>
-				<Label name="$(parent)Message" font="ZoFontGame" verticalAlignment="CENTER">
+				<Label name="$(parent)Message" font="$(MEDIUM_FONT)|$(KB_18)|soft-shadow-thin" verticalAlignment="CENTER">
 					<Dimensions x="440" y="30" />
 					<Anchor point="TOPLEFT" relativeTo="$(parent)Name" relativePoint="TOPRIGHT" />
 				</Label>
@@ -40,8 +40,7 @@
 		<TopLevelControl name="pChatXMLAutoMsg" inherits="ZO_RightPanelFootPrint" hidden="true">
 			<Dimensions x="600" y="650" />
 			<Controls>
-				
-				<Label name="$(parent)Warning" font="ZoFontHeader3" mouseEnabled="true" horizontalAlignment="CENTER">
+				<Label name="$(parent)Warning" font="$(BOLD_FONT)|$(KB_24)|soft-shadow-thick" mouseEnabled="true" horizontalAlignment="CENTER">
 					<Anchor point="TOPLEFT" relativeTo="$(parent)" relativePoint="TOPLEFT" offsetX="-175" offsetY="75" />
 				</Label>
 				
@@ -51,7 +50,7 @@
 					<Controls>
 						<Control name="$(parent)Name" inherits="ZO_SortHeader">
 							<OnInitialized>
-								ZO_SortHeader_Initialize(self, "Name", "name", ZO_SORT_ORDER_DOWN, TEXT_ALIGN_LEFT, "ZoFontGameLargeBold")
+								ZO_SortHeader_Initialize(self, "Name", "name", ZO_SORT_ORDER_DOWN, TEXT_ALIGN_LEFT, "$(BOLD_FONT)|$(KB_18)|soft-shadow-thick")
 							</OnInitialized>
 							<Anchor point="TOPLEFT" relativeTo="$(parent)" />
 							<Dimensions x="150" y="32" />
@@ -59,7 +58,7 @@
 						
 						<Control name="$(parent)Message" inherits="ZO_SortHeader">
 							<OnInitialized>
-								ZO_SortHeader_Initialize(self, "Message", "message", ZO_SORT_ORDER_DOWN, TEXT_ALIGN_LEFT, "ZoFontGameLargeBold")
+								ZO_SortHeader_Initialize(self, "Message", "message", ZO_SORT_ORDER_DOWN, TEXT_ALIGN_LEFT, "$(BOLD_FONT)|$(KB_18)|soft-shadow-thick")
 							</OnInitialized>
 							<Anchor point="TOPLEFT" relativeTo="$(parent)Name" relativePoint="TOPRIGHT"/>
 							<Dimensions x="440" y="32" />
@@ -78,8 +77,7 @@
 		
 		<TopLevelControl name="pChatXMLAutoMsgDialog" inherits="ZO_CustomDialogBase" hidden="true">
 			<Controls>
-				<Label name="$(parent)NameHeader" inherits="ZO_DialogContentAnchors" color="INTERFACE_COLOR_TYPE_TEXT_COLORS:INTERFACE_TEXT_COLOR_NORMAL" font="ZoFontGame" text="PCHAT_AUTOMSG_NAME_HEADER"/>
-
+				<Label name="$(parent)NameHeader" inherits="ZO_DialogContentAnchors" color="INTERFACE_COLOR_TYPE_TEXT_COLORS:INTERFACE_TEXT_COLOR_NORMAL" font="$(MEDIUM_FONT)|$(KB_18)|soft-shadow-thin" text="PCHAT_AUTOMSG_NAME_HEADER" />
 				<Backdrop name="$(parent)Name" inherits="ZO_EditBackdrop">
 					<Anchor point="TOPLEFT" relativeTo="$(parent)NameHeader" relativePoint="BOTTOMLEFT" offsetY="10"/>
 					<Anchor point="TOPRIGHT" relativeTo="$(parent)NameHeader" relativePoint="BOTTOMRIGHT" offsetY="10"/>
@@ -98,7 +96,7 @@
 					</Controls>
 				</Backdrop>                
 
-				<Label name="$(parent)MessageHeader" color="INTERFACE_COLOR_TYPE_TEXT_COLORS:INTERFACE_TEXT_COLOR_NORMAL" font="ZoFontGame" text="PCHAT_AUTOMSG_MESSAGE_HEADER">
+				<Label name="$(parent)MessageHeader" color="INTERFACE_COLOR_TYPE_TEXT_COLORS:INTERFACE_TEXT_COLOR_NORMAL" font="$(MEDIUM_FONT)|$(KB_18)|soft-shadow-thin" text="PCHAT_AUTOMSG_MESSAGE_HEADER">
 					<Anchor point="TOPLEFT" relativeTo="$(parent)Name" relativePoint="BOTTOMLEFT" offsetY="25" />
 					<Anchor point="TOPRIGHT" relativeTo="$(parent)Name" relativePoint="BOTTOMRIGHT" offsetY="25" />
 				</Label>
@@ -112,15 +110,15 @@
 								ZO_EditDefaultText_Initialize(self, GetString(PCHAT_AUTOMSG_MESSAGE_DEFAULT_TEXT))
 							</OnInitialized>
 						</EditBox>
-						<Label name="$(parent)Tip1" color="INTERFACE_COLOR_TYPE_TEXT_COLORS:INTERFACE_TEXT_COLOR_NORMAL" font="ZoFontGame" text="PCHAT_AUTOMSG_MESSAGE_TIP1_TEXT">
+						<Label name="$(parent)Tip1" color="INTERFACE_COLOR_TYPE_TEXT_COLORS:INTERFACE_TEXT_COLOR_NORMAL" font="$(MEDIUM_FONT)|$(KB_18)|soft-shadow-thin" text="PCHAT_AUTOMSG_MESSAGE_TIP1_TEXT">
 							<Dimensions x="400"/>
 							<Anchor point="TOPLEFT" relativeTo="$(parent)Edit" relativePoint="BOTTOMLEFT" offsetY="20" offsetX="-25" />
 						</Label>
-						<Label name="$(parent)Tip2" color="INTERFACE_COLOR_TYPE_TEXT_COLORS:INTERFACE_TEXT_COLOR_NORMAL" font="ZoFontGame" text="PCHAT_AUTOMSG_MESSAGE_TIP2_TEXT">
+						<Label name="$(parent)Tip2" color="INTERFACE_COLOR_TYPE_TEXT_COLORS:INTERFACE_TEXT_COLOR_NORMAL" font="$(MEDIUM_FONT)|$(KB_18)|soft-shadow-thin" text="PCHAT_AUTOMSG_MESSAGE_TIP2_TEXT">
 							<Dimensions x="400"/>
 							<Anchor point="TOPLEFT" relativeTo="$(parent)Tip1" relativePoint="BOTTOMLEFT" offsetY="15" />
 						</Label>
-						<Label name="$(parent)Tip3" color="INTERFACE_COLOR_TYPE_TEXT_COLORS:INTERFACE_TEXT_COLOR_NORMAL" font="ZoFontGame" text="PCHAT_AUTOMSG_MESSAGE_TIP3_TEXT">
+						<Label name="$(parent)Tip3" color="INTERFACE_COLOR_TYPE_TEXT_COLORS:INTERFACE_TEXT_COLOR_NORMAL" font="$(MEDIUM_FONT)|$(KB_18)|soft-shadow-thin" text="PCHAT_AUTOMSG_MESSAGE_TIP3_TEXT">
 							<Dimensions x="400"/>
 							<Anchor point="TOPLEFT" relativeTo="$(parent)Tip2" relativePoint="BOTTOMLEFT" offsetY="15" />
 						</Label>
@@ -148,8 +146,7 @@
 				</Texture>
 			</Controls>
 		</Button>
-		
-		<Button name="ZO_ChatWindowIMLabel" font="ZoFontWinH5" inherits="ZO_ButtonBehaviorClickSound" hidden="true" tier="MEDIUM" layer="CONTROLS" level="1">
+		<Button name="ZO_ChatWindowIMLabel" font="$(BOLD_FONT)|$(KB_16)|soft-shadow-thick" inherits="ZO_ButtonBehaviorClickSound" hidden="true" tier="MEDIUM" layer="CONTROLS" level="1">
 			<Dimensions x="90" y="16" />
 			<FontColors
 				normalColor="INTERFACE_COLOR_TYPE_TEXT_COLORS:INTERFACE_TEXT_COLOR_NORMAL"
@@ -166,10 +163,8 @@
 				pChat_AddIMLabel(self)
 			</OnInitialized>
 		</Button>
-		
-		<Button name="ZO_ChatWindowIMLabelMin" font="ZoFontWinH5" inherits="ZO_ButtonBehaviorClickSound" text="IM" hidden="true" tier="MEDIUM" layer="CONTROLS" level="1">
+		<Button name="ZO_ChatWindowIMLabelMin" font="$(BOLD_FONT)|$(KB_16)|soft-shadow-thick" inherits="ZO_ButtonBehaviorClickSound" text="IM" hidden="true" tier="MEDIUM" layer="CONTROLS" level="1">
 			<Dimensions x="24" y="24" />
-			
 			<FontColors
 				normalColor="INTERFACE_COLOR_TYPE_TEXT_COLORS:INTERFACE_TEXT_COLOR_FAILED"
 				pressedColor="INTERFACE_COLOR_TYPE_TEXT_COLORS:INTERFACE_TEXT_COLOR_SELECTED"

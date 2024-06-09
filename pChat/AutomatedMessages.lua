@@ -297,15 +297,15 @@ function pChat.InitializeAutomatedMessages()
             {
                 name = GetString(PCHAT_AUTOMSG_ADD_AUTO_MSG),
                 keybind = "UI_SHORTCUT_PRIMARY",
-                control = self, -- TODO self is not defined here
-                callback = function(descriptor) ZO_Dialogs_ShowDialog("PCHAT_AUTOMSG_SAVE_MSG", nil, {mainTextParams = {functionName}}) end, -- TODO functionName is not defined here
+                --control = self, -- TODO self is not defined here
+                callback = function(descriptor) ZO_Dialogs_ShowDialog("PCHAT_AUTOMSG_SAVE_MSG", nil, {mainTextParams = {}}) end,
                 visible = function(descriptor) return true end
             },
             {
                 name = GetString(PCHAT_AUTOMSG_EDIT_AUTO_MSG),
                 keybind = "UI_SHORTCUT_SECONDARY",
-                control = self, -- TODO self is not defined here
-                callback = function(descriptor) ZO_Dialogs_ShowDialog("PCHAT_AUTOMSG_EDIT_MSG", nil, {mainTextParams = {functionName}}) end, -- TODO functionName is not defined here
+                --control = self, -- TODO self is not defined here
+                callback = function(descriptor) ZO_Dialogs_ShowDialog("PCHAT_AUTOMSG_EDIT_MSG", nil, {mainTextParams = {}}) end,
                 visible = function(descriptor)
                     if pChatData.autoMessagesShowKeybind then
                         return true
@@ -317,7 +317,7 @@ function pChat.InitializeAutomatedMessages()
             {
                 name = GetString(PCHAT_AUTOMSG_REMOVE_AUTO_MSG),
                 keybind = "UI_SHORTCUT_NEGATIVE",
-                control = self, -- TODO self is not defined here
+                --control = self, -- TODO self is not defined here
                 callback = function(descriptor) RemoveAutomatedMessage() end,
                 visible = function(descriptor)
                     if pChatData.autoMessagesShowKeybind then

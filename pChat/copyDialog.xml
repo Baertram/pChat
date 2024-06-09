@@ -1,9 +1,8 @@
 <GuiXml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sir.insidi.at/or/schema/esoui.xsd">
 <!-- pChat Search UI - Font definitions -->
 	<Font name="MyFontGame16" font="$(MEDIUM_FONT)|$(KB_16)|soft-shadow-thin" />
-    <Font name="MyFontGame18" font="$(BOLD_FONT)|$(KB_18)|soft-shadow-thik" />
-    <Font name="MyFontGame20" font="$(BOLD_FONT)|$(KB_20)|soft-shadow-thik" />
-
+	<Font name="MyFontGame18" font="$(BOLD_FONT)|$(KB_18)|soft-shadow-thik" />
+	<Font name="MyFontGame20" font="$(BOLD_FONT)|$(KB_20)|soft-shadow-thik" />
 	<Controls>
 		<!-- Virutal template for chat options checkbox -->
 		<Control name="pChat_ChatCopyOptionsFilterEntry" virtual="true">
@@ -21,7 +20,7 @@
 		<Control name="pChat_ChatCopyOptionsGuildFilters" virtual="true">
             <Dimensions x="150" y="70" />
             <Controls>
-                <Label name="$(parent)GuildName" inherits="ZO_TooltipIfTruncatedLabel" font="ZoFontWinH4" color="INTERFACE_COLOR_TYPE_TEXT_COLORS:INTERFACE_TEXT_COLOR_NORMAL">
+                <Label name="$(parent)GuildName" inherits="ZO_TooltipIfTruncatedLabel" font="$(BOLD_FONT)|$(KB_18)|soft-shadow-thick" color="INTERFACE_COLOR_TYPE_TEXT_COLORS:INTERFACE_TEXT_COLOR_NORMAL">
                     <Dimensions y="24" />
                     <DimensionConstraints maxX="210" />
                     <Anchor point="TOPLEFT" />
@@ -117,8 +116,7 @@
 			<!--<DimensionConstraints maxX="830" maxY="670" /> -->
 			<Dimensions x="830" y="670" />
 			<Controls>
-				<Label name="$(parent)Label" inherits="ZO_DialogContentAnchors" horizontalAlignment="CENTER" color="INTERFACE_COLOR_TYPE_TEXT_COLORS:INTERFACE_TEXT_COLOR_NORMAL" font="ZoFontHeader3"/>
-
+				<Label name="$(parent)Label" inherits="ZO_DialogContentAnchors" horizontalAlignment="CENTER" color="INTERFACE_COLOR_TYPE_TEXT_COLORS:INTERFACE_TEXT_COLOR_NORMAL" font="$(BOLD_FONT)|$(KB_24)|soft-shadow-thick" />
 				<Label name="$(parent)FilterLabel" inherits="ZO_ChatOptionsSectionLabel" text="SI_CHAT_OPTIONS_FILTERS">
 					<Anchor point="TOPLEFT" relativePoint="TOPLEFT" relativeTo="$(parent)" offsetX="10" offsetY="100" />
 				</Label>
@@ -255,7 +253,7 @@
                             <Controls>
                                 <Control name="$(parent)Time" inherits="pChatSearchUISortHeader">
                                     <OnInitialized>
-                                        ZO_SortHeader_Initialize(self, GetString(PCHAT_SEARCHUI_HEADER_TIME), "rawTimestamp", ZO_SORT_ORDER_UP, TEXT_ALIGN_LEFT, "ZoFontGame")
+                                        ZO_SortHeader_Initialize(self, GetString(PCHAT_SEARCHUI_HEADER_TIME), "rawTimestamp", ZO_SORT_ORDER_UP, TEXT_ALIGN_LEFT, "$(MEDIUM_FONT)|$(KB_18)|soft-shadow-thin")
                                     </OnInitialized>
                                     <Anchor point="TOPLEFT" />
                                     <Dimensions y="30" />
@@ -263,7 +261,7 @@
                                 </Control>
                                 <Control name="$(parent)From" inherits="pChatSearchUISortHeader">
                                     <OnInitialized>
-                                        ZO_SortHeader_Initialize(self, GetString(PCHAT_SEARCHUI_HEADER_FROM), "rawFrom", ZO_SORT_ORDER_UP, TEXT_ALIGN_LEFT, "ZoFontGameLargeBold")
+                                        ZO_SortHeader_Initialize(self, GetString(PCHAT_SEARCHUI_HEADER_FROM), "rawFrom", ZO_SORT_ORDER_UP, TEXT_ALIGN_LEFT, "$(BOLD_FONT)|$(KB_18)|soft-shadow-thick")
                                     </OnInitialized>
                                     <Anchor point="TOPLEFT" relativePoint="TOPRIGHT" relativeTo="$(parent)Time" />
                                     <Dimensions y="30" />
@@ -271,7 +269,7 @@
                                 </Control>
                                 <Control name="$(parent)ChatChannel" inherits="pChatSearchUISortHeader">
                                     <OnInitialized>
-                                        ZO_SortHeader_Initialize(self, GetString(PCHAT_SEARCHUI_HEADER_CHATCHANNEL), "chatChannel", ZO_SORT_ORDER_UP, TEXT_ALIGN_LEFT, "ZoFontGameLargeBold")
+                                        ZO_SortHeader_Initialize(self, GetString(PCHAT_SEARCHUI_HEADER_CHATCHANNEL), "chatChannel", ZO_SORT_ORDER_UP, TEXT_ALIGN_LEFT, "$(BOLD_FONT)|$(KB_18)|soft-shadow-thick")
                                     </OnInitialized>
                                     <Anchor point="TOPLEFT" relativePoint="TOPRIGHT" relativeTo="$(parent)From" />
                                     <Dimensions y="30" />
@@ -279,7 +277,7 @@
                                 </Control>
                                 <Control name="$(parent)Message" inherits="pChatSearchUISortHeader">
                                     <OnInitialized>
-                                        ZO_SortHeader_Initialize(self, GetString(PCHAT_SEARCHUI_HEADER_MESSAGE), "rawMessage", ZO_SORT_ORDER_UP, TEXT_ALIGN_LEFT, "ZoFontGameLargeBold")
+                                        ZO_SortHeader_Initialize(self, GetString(PCHAT_SEARCHUI_HEADER_MESSAGE), "rawMessage", ZO_SORT_ORDER_UP, TEXT_ALIGN_LEFT, "$(BOLD_FONT)|$(KB_18)|soft-shadow-thick")
                                     </OnInitialized>
                                     <Anchor point="TOPLEFT" relativePoint="TOPRIGHT" relativeTo="$(parent)ChatChannel" />
                                     <Anchor point="TOPRIGHT" relativePoint="TOPRIGHT" relativeTo="$(parent)" offsetX="-20" />
