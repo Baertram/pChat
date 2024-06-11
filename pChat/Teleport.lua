@@ -541,7 +541,7 @@ pChat.GetPortTypeFromName = getPortTypeFromName
 local wasPlayerContextMenuShown = false
 local function pChat_PlayerContextMenuCallback(playerName, rawName)
      --#21 Fix context menu not shown on first click? That's coming from BeamMeUp function BMU.PortalHandlerLayerPushed -> BMU.HideTeleporter()	 -> ClearMenu() and needs to be fixed in BMU
-    d("[pChat]PlayerContextMenuCallback-playerName: " ..tos(playerName) ..", rawName: " ..tos(rawName))
+    --d("[pChat]PlayerContextMenuCallback-playerName: " ..tos(playerName) ..", rawName: " ..tos(rawName))
     --DO NOT CALL ClearMenu() HERE AS ORIGINAL VANILLA/ZOs PLAYER CONTEXT MENU ENTRIES WOULD BE REMOVED THEN!
 
     --[[
@@ -577,10 +577,10 @@ d("======== [pChat]ClearMenu was called! =======")
         if pChat.isMonsterChatChannel(chanNumber, numLine) == false then
             AddMenuItem(GetString(SI_SOCIAL_MENU_SEND_MAIL) .. playerNameStr , function()
                 if MAIL_SEND_SCENE:IsShowing() then
-                    d(">mail scene shown - SetReply")
+                    --d(">mail scene shown - SetReply")
                     MAIL_SEND:SetReply(playerName)
                 else
-                    d(">ComposeMail")
+                    --d(">ComposeMail")
                     MAIL_SEND:ComposeMailTo(playerName)
                 end
             end)
