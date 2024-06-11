@@ -121,7 +121,8 @@ local function isPlayerInAnyOfYourGuilds(displayName, possibleDisplayNameNormal,
 --d("[pChat]isPlayerInAnyOfYourGuilds-displayName: " ..tos(displayName) ..", possibleDisplayName: " ..tos(possibleDisplayNameNormal) .."/"..tos(possibleDisplayName) ..", p_guildIndex: " ..tos(p_guildIndex) .. ", p_guildIndexIteratorStart: " ..tos(p_guildIndexIteratorStart))
 
     local numGuilds = GetNumGuilds()
-    if numGuilds == 0 then return nil, nil, nil end
+    local isOnline = false
+    if numGuilds == 0 then return nil, nil, nil, nil end
 --d(">numGuilds: " ..tos(numGuilds))
 
     --Save the currently selected guildId/index
@@ -151,12 +152,13 @@ local function isPlayerInAnyOfYourGuilds(displayName, possibleDisplayNameNormal,
         if ZO_IsTableEmpty(guildsList.data) then
 --d("<<[3- ABORT NOW]guildsList.data is empty")
             resetGuildToOldData()
-            return true
+            return true, false
         end
-        for k, v in ipairs(guildsList.data) do
+        for _, v in ipairs(guildsList.data) do
             local data = v.data
-            if guildMemberDisplayname == nil and data.online == true then
+            if guildMemberDisplayname == nil then --and data.online == true then
                 if data.displayName ~= ownDisplayName then
+                    local l_isOnline = data.online
 
 --d(">k: " ..tos(k) .. "data.displayName: " ..tos(data.displayName) .. "; charName: " ..tos(data.characterName))
                     local guildCharName = strlow(data.characterName)
@@ -166,17 +168,17 @@ local function isPlayerInAnyOfYourGuilds(displayName, possibleDisplayNameNormal,
                         guildMemberDisplayname = data.displayName
 --d(">>>found online guild by displayName: " ..tos(guildMemberDisplayname))
                         guildIndexFound = pl_guildIndex
-                        return true
+                        return true, l_isOnline
                     elseif guildCharName ~= nil and strf(guildCharName, possibleDisplayName, 1, true) ~= nil then
                         guildMemberDisplayname = data.displayName
 --d(">>>found online guild by charName: " ..tos(guildMemberDisplayname) .. ", charName: " .. tos(guildCharName))
                         guildIndexFound = pl_guildIndex
-                        return true
+                        return true, l_isOnline
                     end
                 end
             end
         end
-        return false
+        return false, false
     end
     ------------------------------------------------------------------------------------------------------------------------
 
@@ -188,7 +190,7 @@ local function isPlayerInAnyOfYourGuilds(displayName, possibleDisplayNameNormal,
             if guildMemberDisplayname ~= nil then
 --d("<<[1-ABORT NOW]guildMemberDisplayname was found: " ..tos(guildMemberDisplayname))
                 resetGuildToOldData()
-                return guildMemberDisplayname, guildIndexFound, nil
+                return guildMemberDisplayname, guildIndexFound, nil, isOnline
             end
 
             --Select the guild
@@ -224,7 +226,7 @@ local function isPlayerInAnyOfYourGuilds(displayName, possibleDisplayNameNormal,
                         if not isStrDisplayName then guildMemberDisplayname = nil end
                         if guildMemberDisplayname ~= nil then
                             resetGuildToOldData()
-                            return guildMemberDisplayname, guildIndexFound, nil
+                            return guildMemberDisplayname, guildIndexFound, nil, isOnline
                         end
                     end
                 end)
@@ -234,13 +236,15 @@ local function isPlayerInAnyOfYourGuilds(displayName, possibleDisplayNameNormal,
 --d(">>>Refreshing guild list data")
 
                 --Check guild data update
-                if onGuildDataLoaded(guildIndex) == true then
+                local dataLoaded
+                dataLoaded, isOnline = onGuildDataLoaded(guildIndex)
+                if dataLoaded == true then
                     isStrDisplayName = isDisplayName(guildMemberDisplayname)
                     if not isStrDisplayName then guildMemberDisplayname = nil end
                     if guildMemberDisplayname ~= nil then
 --d("<<[2- ABORT NOW]guildMemberDisplayname was found: " ..tos(guildMemberDisplayname))
                         resetGuildToOldData()
-                        return guildMemberDisplayname, guildIndexFound, nil
+                        return guildMemberDisplayname, guildIndexFound, nil, isOnline
                     end
                 end
 
@@ -286,7 +290,7 @@ local function isPlayerInAnyOfYourGuilds(displayName, possibleDisplayNameNormal,
         end --if p_guildIndex == nil or p_guildIndex == guildIndex then
     end -- for guildIndex, numGuilds, 1 do
     resetGuildToOldData()
-    return guildMemberDisplayname, guildIndexFound, nil
+    return guildMemberDisplayname, guildIndexFound, isOnline
 end
 
 --Check if the displayName is a @displayName, partial displayName or any other name like a character name -> Try to find a matching display name via
@@ -300,6 +304,7 @@ local function checkDisplayName(displayName, portType, p_guildIndex, p_guildInde
     local isAccountName = false
 
     local friendIndex
+    local isOnline = false
 
     --Was the guildIndex passed in from a slash command as 1st param and the displayName is the 2nd param then?
     if wasGuildIndexInDisplayName == true then
@@ -354,19 +359,21 @@ local function checkDisplayName(displayName, portType, p_guildIndex, p_guildInde
             end
             for k, v in ipairs(friendsList.data) do
                 local data = v.data
-                if friendsDisplayname == nil and data.online == true then
-                    --d(">k: " ..tos(k) .. "v.data.displayName: " ..tos(v.data.displayName))
+                local fr_index = data.friendIndex
+                if friendsDisplayname == nil then --and data.online == true then
+        --d(">index: " ..tos(fr_index) .. "v.data.displayName: " ..tos(v.data.displayName))
                     local friendCharName = strlow(data.characterName)
                     local friendDisplayName = strlow(data.displayName)
 
                     if friendDisplayName ~= nil and strf(friendDisplayName, possibleDisplayName, 1, true) ~= nil then
                         friendsDisplayname = data.displayName
-                        friendIndex = k
+                        friendIndex = fr_index
                         --d(">>>found online friend: " ..tos(friendsDisplayname))
                         break
                     elseif friendCharName ~= nil and strf(friendCharName, possibleDisplayName, 1, true) ~= nil then
                         friendsDisplayname = data.displayName
-                        friendIndex = k
+                        friendIndex = fr_index
+                        isOnline = data.online
                         --d(">>>found online friend by charName: " ..tos(friendsDisplayname) .. ", charName: " .. tos(friendCharName))
                         break
                     end
@@ -384,7 +391,7 @@ local function checkDisplayName(displayName, portType, p_guildIndex, p_guildInde
             friendsDisplayname = nil
             friendIndex = nil
         end
-        return friendsDisplayname, friendIndex
+        return friendsDisplayname, friendIndex, isOnline
 
     ------------------------------------------------------------------------------------------------------------------------
     elseif portType == "guild" then
@@ -477,6 +484,7 @@ local function getPortTypeFromName(playerName, rawName)
     local playerTypeStr = GetString(SI_OUTFIT_PLAYER_SUB_TAB) --"Player"
     local portType = nil
     local guildIndexFound
+    local zoneNameOfPlayer
 
     --Friend
     if IsFriend(playerName) then
@@ -502,7 +510,7 @@ local function getPortTypeFromName(playerName, rawName)
     if portType == nil then
 --d(">check guilds:")
         local guildMemberDisplayname
-        guildMemberDisplayname, guildIndexFound = checkDisplayName(playerName, "guild", nil, nil)
+        guildMemberDisplayname, guildIndexFound, zoneNameOfPlayer = checkDisplayName(playerName, "guild", nil, nil)
 --d(">guildMemberDisplayname: " ..tos(guildMemberDisplayname) .. "; guildIndexFound: " ..tos(guildIndexFound))
         --port to guild member
         if guildMemberDisplayname ~= nil then
@@ -526,12 +534,31 @@ d(">>port to group leader")
             end
         end
 ]]
-    return portType, playerTypeStr, guildIndexFound
+    return portType, playerTypeStr, guildIndexFound, zoneNameOfPlayer
 end
 pChat.GetPortTypeFromName = getPortTypeFromName
 
+local wasPlayerContextMenuShown = false
 local function pChat_PlayerContextMenuCallback(playerName, rawName)
---d("[pChat]PlayerContextMenuCallback-playerName: " ..tos(playerName) ..", rawName: " ..tos(rawName))
+     --#21 Fix context menu not shown on first click? That's coming from BeamMeUp function BMU.PortalHandlerLayerPushed -> BMU.HideTeleporter()	 -> ClearMenu() and needs to be fixed in BMU
+    d("[pChat]PlayerContextMenuCallback-playerName: " ..tos(playerName) ..", rawName: " ..tos(rawName))
+    --DO NOT CALL ClearMenu() HERE AS ORIGINAL VANILLA/ZOs PLAYER CONTEXT MENU ENTRIES WOULD BE REMOVED THEN!
+
+    --[[
+     --#21 Fix context menu not shown on first click? Try to open it once again now directly
+    --This does not fix it, so somehow the later called code below closes the menu below?
+    -->[pChat]OnLinkClicked-mouseButton: 2, linkText: @Unn_Cygnus/Featherpaws, linkType: display, lineNumber: @Unn_Cygnus, chanCode: nil
+    if not wasPlayerContextMenuShown then
+        wasPlayerContextMenuShown = true
+        SecurePostHook("ClearMenu", function()
+d("======== [pChat]ClearMenu was called! =======")
+            d(ZO_GetCallerFunctionName())
+        end)
+    end
+    ]]
+
+
+
     local settings = pChat.db
     local wasAdded = 0
     local playerNameStr = " \'" .. tos(playerName) .. "\'"
@@ -545,13 +572,15 @@ local function pChat_PlayerContextMenuCallback(playerName, rawName)
     end
 
     if settings.sendMailContextMenuAtChat == true and playerName ~= nil and playerName ~= "" and playerName ~= "nil" then
---d("[3]Mail to check")
+--d("[3]Mail to check - playerName: " ..tos(playerName))
         local chanNumber, numLine --todo how to get those from clicked line?
         if pChat.isMonsterChatChannel(chanNumber, numLine) == false then
             AddMenuItem(GetString(SI_SOCIAL_MENU_SEND_MAIL) .. playerNameStr , function()
                 if MAIL_SEND_SCENE:IsShowing() then
+                    d(">mail scene shown - SetReply")
                     MAIL_SEND:SetReply(playerName)
                 else
+                    d(">ComposeMail")
                     MAIL_SEND:ComposeMailTo(playerName)
                 end
             end)
@@ -561,20 +590,30 @@ local function pChat_PlayerContextMenuCallback(playerName, rawName)
 
     if settings.teleportContextMenuAtChat == true then
 --d("[2]Teleport to check")
-        local portType, playerTypeStr, guildIndexFound = getPortTypeFromName(playerName, rawName)
---d(">portType: " ..tos(portType) .. "; playerTypeStr: " ..tos(playerTypeStr))
+        local portType, playerTypeStr, guildIndexFound, zoneNameOfPlayer = getPortTypeFromName(playerName, rawName)
+        --d(">portType: " ..tos(portType) .. "; playerTypeStr: " ..tos(playerTypeStr))
         if portType ~= nil then
             AddMenuItem(GetString(SI_GAMEPAD_HELP_UNSTUCK_TELEPORT_KEYBIND_TEXT) .. ": " .. playerTypeStr .. playerNameStr, function()
                 portToDisplayname(playerName, portType, guildIndexFound)
             end)
             wasAdded = wasAdded +1
+
+            if settings.whereIsPlayerContextMenuAtChat == true and zoneNameOfPlayer ~= nil then
+                AddCustomMenuItem("> " .. zoneNameOfPlayer, function()
+                    portToDisplayname(playerName, portType, guildIndexFound)
+                end, MENU_ADD_OPTION_LABEL)
+                wasAdded = wasAdded +1
+            end
         end
     end
 
-    --The menu must show even if no entry was added
-    --if wasAdded >= 1 then
-        --ShowMenu()
-    --end
+    --This will add the new entries to the chat player context menu
+    --> But original showmenu will be called either way at SharedChatSystem:ShowPlayerContextMenu(playerName, rawName)
+    --> if ZO_Menu_GetNumMenuItems() > 0 then ShowMenu() end
+    if wasAdded > 0 then
+--d(">> !ShowMenu!")
+        ShowMenu()
+    end
 end
 
 local ignorePlayerStr = GetString(SI_CHAT_PLAYER_CONTEXT_ADD_IGNORE)
@@ -703,8 +742,12 @@ function pChat.TeleportChanges()
         --Try to Posthook the ZO_Menu_GetNumMenuItems funtion to check if it's the menu that opens at character and replace the ignore entry with the one that
         --calls the security dialog
         local function IgnoreSelectedPlayer(p_playerName)
-            --Ask before ignore dialog show
-            ignorePlayerDialog(p_playerName)
+            if pChat.db.ignoreWithDialogContextMenuAtChat == true then
+                --Ask before ignore dialog show
+                ignorePlayerDialog(p_playerName)
+            else
+                doIgnorePlayerNow(p_playerName)
+            end
         end
 
         local playerNameAtContextMenuChat = nil
@@ -721,8 +764,10 @@ function pChat.TeleportChanges()
 
 
         SecurePostHook("ZO_Menu_GetNumMenuItems", function()
---d("[pChat]ZO_Menu_GetNumMenuItems-playerNameAtContextMenuChat: " ..tos(playerNameAtContextMenuChat))
+            --d("[pChat]ZO_Menu_GetNumMenuItems-playerNameAtContextMenuChat: " ..tos(playerNameAtContextMenuChat))
             if playerNameAtContextMenuChat == nil then return end
+            if not pChat.db.ignoreWithDialogContextMenuAtChat then return end
+
             local menuItems = ZO_Menu.items
             if #menuItems == 0 then return end
 
@@ -739,7 +784,7 @@ function pChat.TeleportChanges()
                 end
             end
             if ignorePlayerContextMenuIndex ~= nil and ignorePlayerContextMenuDataOrig ~= nil then
---d(">found ignore enry at index: " ..tos(ignorePlayerContextMenuIndex))
+                --d(">found ignore enry at index: " ..tos(ignorePlayerContextMenuIndex))
                 local playerNameAtContextMenuChatCopy = playerNameAtContextMenuChat
 
                 local ignorePlayerContextMenuDataWithIgnoreDialogCallback = ZO_ShallowTableCopy(ignorePlayerContextMenuDataOrig)
@@ -763,16 +808,21 @@ function pChat.TeleportChanges()
                 --Do not show dialog again, just call original func
                 addIgnoreOrig(playerName)
             else
-                --Ask before ignore dialog show
-                ignorePlayerDialog(playerName)
+                if pChat.db.ignoreWithDialogContextMenuAtChat then
+                    --Ask before ignore dialog show
+                    ignorePlayerDialog(playerName)
+                else
+                    --Do not show dialog again, just call original func
+                    addIgnoreOrig(playerName)
+                end
             end
             return true --Suppress original function call
         end)
     end
 
 
-    if settings.showIgnoredInfoInContextMenuAtChat == true or settings.teleportContextMenuAtChat == true or settings.sendMailContextMenuAtChat == true then
---d(">teleport context menu at chat, or send mail")
+    if settings.showIgnoredInfoInContextMenuAtChat == true or settings.teleportContextMenuAtChat == true or settings.sendMailContextMenuAtChat == true then --or settings.showAccountAndCharAtContextMenu
+--d("[pChat]teleport context menu at chat, or send mail enabled")
         --Add "Teleport to" and "Send mail to" and "!WARNING! Player is ignored" to chat character/displayName context menu entries
         LCM:RegisterPlayerContextMenu(pChat_PlayerContextMenuCallback, LCM.CATEGORY_LATE)
     end

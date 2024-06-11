@@ -131,6 +131,11 @@ function pChat.InitializeSpamFilter()
                     -- Match
                     logger:Debug("WTS with achievement detected (%s)", text)
                     return true
+                    --link collectible
+                elseif zo_strfind(text, "|H(.-):collectible:(.-)|h(.-)|h") then
+                    -- Match
+                    logger:Debug("WTS with collectible detected (%s)", text)
+                    return true
                 end
 
                 if  db.wantToProtectWWandVamp then

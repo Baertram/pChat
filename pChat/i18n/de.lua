@@ -533,14 +533,16 @@ SafeAddString(PCHAT_SHOWCHARLEVELATCONTEXTMENU, "Character Level im Kontextmenü
 SafeAddString(PCHAT_SHOWCHARLEVELATCONTEXTMENU_TT, "Zeige das Level des Charakters im Kopier Kontextmenü an.\nFunktioniert nur, wenn die @Account/CharakterName Kopfzeile aktiv ist, und der Charakter Name in der Anzeige aktiviert wurde, und der Charakter aktuell in der Gruppe, Gilde oder auf der Freundesliste online ist!", 1)
 
 
-SafeAddString(PCHAT_ASKBEFOREIGNORE					,'Zeige \'!WARNUNG!\' für ignorierte Spieler',1)
-SafeAddString(PCHAT_ASKBEFOREIGNORETT					,'Fügt eine Warnung Kopfzeile zum Chat Kontextmenü hinzu, wenn der Spieler auf deiner Ignorieren Liste steht',1)
-SafeAddString(PCHAT_SHOWIGNOREDWARNINGCONTEXTMENU	, "Frage Ja/Nein vor dem Ignorieren (Chat, Freundesliste, ...)",1)
-SafeAddString(PCHAT_SHOWIGNOREDWARNINGCONTEXTMENUTT	, "Fügt einen Dialog hinzu welcher mit Ja/Nein Knöpfem fragt, ob der Spieler tatsächlich ignoriert werden soll. Damit kannst du nicht mehr aus Versehen jemanden auf deine Ignorieren Liste setzen, weil du dich verklickt hast (z.B. wolltest du ihn anflüstern über das Chat Kontextmenü).",1)
+SafeAddString(PCHAT_SHOWIGNOREDWARNINGCONTEXTMENU					,'Zeige \'!WARNUNG!\' für ignorierte Spieler',1)
+SafeAddString(PCHAT_SHOWIGNOREDWARNINGCONTEXTMENUTT					,'Fügt eine Warnung Kopfzeile zum Chat Kontextmenü hinzu, wenn der Spieler auf deiner Ignorieren Liste steht',1)
+SafeAddString(PCHAT_ASKBEFOREIGNORE	, "Frage Ja/Nein vor dem Ignorieren (Chat, Freundesliste, ...)",1)
+SafeAddString(PCHAT_ASKBEFOREIGNORETT	, "Fügt einen Dialog hinzu welcher mit Ja/Nein Knöpfem fragt, ob der Spieler tatsächlich ignoriert werden soll. Damit kannst du nicht mehr aus Versehen jemanden auf deine Ignorieren Liste setzen, weil du dich verklickt hast (z.B. wolltest du ihn anflüstern über das Chat Kontextmenü).",1)
 SafeAddString(PCHAT_SHOWSENDMAILCONTEXTMENU			, "Füge \'Sende Mail\' Eintrag hinzu",1)
 SafeAddString(PCHAT_SHOWSENDMAILCONTEXTMENUTT			, "Fügt einen extra Eintrag im Chat Kontextmenü hinzu mit welchem du direkt eine neue Mail an den Spieler erstellen kannst.",1)
 SafeAddString(PCHAT_SHOWTELEPORTTOCONTEXTMENU		, "Füge \'Teleportiere zu\' Eintrag hinzu",1)
 SafeAddString(PCHAT_SHOWTELEPORTTOCONTEXTMENUTT		, "Fügt einen extra Eintrag im Chat Kontextmenü ein mit welchem du zum Gruppenmitglied/Freund/Gildenmitglied teleportieren kannst. Dies funktioniert nicht bei normalen Zonen Spielern, welche nicht in deiner Gruppe, Gilde oder auf deiner Freundesliste stehen!", 1)
+SafeAddString(PCHAT_SHOWWHERECONTEXTMENU		, "Zeige wo der Spieler ist", 1)
+SafeAddString(PCHAT_SHOWWHERECONTEXTMENUTT		, "Fügt einen extra Eintrag im Chat Kontextmenü ein welcher anzeigt wo sich der Spieler gerade befindet. Dies funktioniert nicht bei normalen Zonen Spielern, welche nicht in deiner Gruppe, Gilde oder auf deiner Freundesliste stehen!", 1)
 SafeAddString(PCHAT_CHATCONTEXTMENUTPTO , "Teleportieren zu", 1)
 SafeAddString(PCHAT_CHATCONTEXTMENUTPFRIEND , "Freund %q", 1)
 SafeAddString(PCHAT_CHATCONTEXTMENUTPGUILD , "Gilden #%s Mitglied %q", 1)
@@ -549,6 +551,8 @@ SafeAddString(PCHAT_CHATCONTEXTMENUTPGROUPLEADER , "Gruppenanführer", 1)
 SafeAddString(PCHAT_CHATCONTEXTMENUWARNIGNORE, "[|c00FF00!WARNUNG!|r] Du ignorierst diesen Spieler!", 1)
 SafeAddString(PCHAT_CHATCONTEXTMENUTYPEFRIEND, "Freund", 1)
 SafeAddString(PCHAT_TELEPORTINGTO, "Teleportiere zu: ", 1)
+
+
 
 SafeAddString(PCHAT_TOGGLE_SEARCH_UI_ON, "Suche AN", 1)
 SafeAddString(PCHAT_TOGGLE_SEARCH_UI_OFF, "Suche AUS", 1)

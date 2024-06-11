@@ -1,7 +1,5 @@
 --=======================================================================================================================================
---Known problems/bugs:
---Last updated: 2024-06-09
---Total number: 19
+-- Bugs  / Features list
 ------------------------------------------------------------------------------------------------------------------------
 --#2	2020-02-28 Baetram, bug: New selection for @accountName/character chat prefix will only show /charactername (@accountName is missing) during whispers,
 --		if clicked on a character in the chat to whisper him/her
@@ -81,24 +79,32 @@ ZO_ChatOptions_ToggleChannel    pChat.SaveChatConfig()      Save the currently l
 
 ]]
 
+
+--=======================================================================================================================================
+--Known problems/bugs:
+--Last updated: 2024-06-10
+--Total number: 25
 --=======================================================================================================================================
 
 --Working on:
+--#22 Context menu from chat character name "Send mail" does not fill the receiver at the 2nd time used
+--> BMU.PortalHandlerLayerPushed' is calling ClearMenu once! Asked @DeadSoon for a removal of ClearMenu there
 
 --=======================================================================================================================================
--- Changelog version: 10.0.5.4 (last version 10.0.5.3)
+-- Changelog version: 10.0.5.5 (last version 10.0.5.4)
 --=======================================================================================================================================
 --Fixed:
---#16 Font filenames changed to .slug again (were reset to otf/ttf by accident)
---#17 Spam detection for gold/crowns recognizes spaces or a dot between the words now
+--#20 Translation fixes (e.g. "player")
+--#21 Context menu from chat character name does not show if "Character level at context menu" is enabled in settings
+--#24 Ask before ignore dialog from chat context menu will disable itsself now properly according to the settings
+--#25 Fixed mixed up settings texts
 
 --Changed:
---#18 Font XML defs changes from name to string (for backup font compatibility)
 
 --Added:
+--#23 Setting to show the current zone of the right clicked player in the context menu (only guild, friend, or group member)
 
 --Added on request:
---#19 New setting to block commercial (WTS, WTB) messages of players about a Werewolv or Vampire bite
 
 
 --=======================================================================================================================================

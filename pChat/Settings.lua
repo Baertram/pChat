@@ -179,6 +179,7 @@ function pChat.InitializeSettings()
 		showAccountAndCharAtContextMenu = false,
 		showCharacterLevelInContextMenuAtChat = false,
 		teleportContextMenuAtChat = false,
+		whereIsPlayerContextMenuAtChat = false,
         sendMailContextMenuAtChat = false,
         ignoreWithDialogContextMenuAtChat = false,
         showIgnoredInfoInContextMenuAtChat = false,
@@ -2084,7 +2085,7 @@ function pChat.InitializeSettings()
 					default = defaults.showCharacterLevelInContextMenuAtChat,
 					disabled = function() return not db.enablecopy or not db.showAccountAndCharAtContextMenu end,
 				},
-				{
+				{ --Only accounts for history messages as new messages of ignored players won't reach you!
 					type           = "checkbox",
 					name           = GetString(PCHAT_SHOWIGNOREDWARNINGCONTEXTMENU),--'Show extra \'!WARNING!\' for ignored players',
 					tooltip        = GetString(PCHAT_SHOWIGNOREDWARNINGCONTEXTMENUTT),--'Adds a warning text entry to the chat context menu if the player is on your ignore list. Clicking this entry oes nothing, it\'s just there to show the information to you.',
@@ -2094,11 +2095,10 @@ function pChat.InitializeSettings()
 					default        = defaults.showIgnoredInfoInContextMenuAtChat,
 					width          = "full",
 				},
-
 				{
 					type           = "checkbox",
 					name           = GetString(PCHAT_ASKBEFOREIGNORE),--'Add yes/no dialog to \'Ignore\' player (chat, friends, ...)',
-					tooltip        = GetString(PCHAT_ASKBEFOREIGNORETT),--'Adds a dialog with yes/no buttons to the Ignore player context menu (at chat, friend list, etc.) so you do not accidently ignore a palyer that you wanted to whisper (miss clicked)',
+					tooltip        = GetString(PCHAT_ASKBEFOREIGNORETT),--'Adds a dialog with yes/no buttons to the Ignore player context menu (at chat, friend list, etc.) so you do not accidently ignore a player that you wanted to whisper (miss clicked)',
 					getFunc        = function() return db.ignoreWithDialogContextMenuAtChat end,
 					setFunc        = function(value) db.ignoreWithDialogContextMenuAtChat = value
 					end,
@@ -2125,6 +2125,17 @@ function pChat.InitializeSettings()
 					setFunc        = function(value) db.teleportContextMenuAtChat = value
 					end,
 					default        = defaults.teleportContextMenuAtChat,
+					width          = "full",
+				},
+				{
+					type           = "checkbox",
+					name           = GetString(PCHAT_SHOWWHERECONTEXTMENU),--'Add entry to show where player is
+					tooltip        = GetString(PCHAT_SHOWWHERECONTEXTMENUTT),
+					getFunc        = function() return db.whereIsPlayerContextMenuAtChat end,
+					setFunc        = function(value) db.whereIsPlayerContextMenuAtChat = value
+					end,
+					default        = defaults.whereIsPlayerContextMenuAtChat,
+					disabled	   = function() return not db.teleportContextMenuAtChat end,
 					width          = "full",
 				},
 			}
