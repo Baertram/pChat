@@ -4,6 +4,7 @@ local apiVersion = CONSTANTS.API_VERSION
 local chatChannelLangToLangStr = CONSTANTS.chatChannelLangToLangStr
 
 do
+
     --Get the class's icon texture
     local function getClassIcon(classId)
         --* GetClassInfo(*luaindex* _index_)
@@ -51,11 +52,8 @@ do
         end
         return charactersOfAccount
     end
-
     pChat.getCharactersOfAccount = getCharactersOfAccount
-end
 
-do
     -- Turn a ([0,1])^3 RGB colour to "|cABCDEF" form. We could use ZO_ColorDef, but we have so many colors so we don't do it.
     local function ConvertRGBToHex(r, g, b)
         return string.format("|c%.2x%.2x%.2x", zo_floor(r * 255), zo_floor(g * 255), zo_floor(b * 255))
@@ -178,9 +176,8 @@ do
     pChat.LightenRGBColor = LightenRGBColor
     -- For compatibility. Called by others addons.
     pChat_GetChannelColors = GetChannelColors
-end
 
-do
+
     -- Return a formatted time
     local function CreateTimestamp(timeStr, formatStr)
         formatStr = formatStr or pChat.db.timestampFormat
@@ -216,10 +213,8 @@ do
     end
 
     pChat.CreateTimestamp = CreateTimestamp
-end
 
 
-do
     local logger = pChat.logger
     local ChannelInfo = ZO_ChatSystem_GetChannelInfo()
     local g_switchLookup = ZO_ChatSystem_GetChannelSwitchLookupTable()
@@ -311,9 +306,8 @@ do
 
     pChat.AddCustomChannelSwitches = AddCustomChannelSwitches
     pChat.RemoveCustomChannelSwitches = RemoveCustomChannelSwitches
-end
 
-do
+
     --Chat Tab template names
     local CONTROL_NAME_TEMPLATE = "ZO_ChatWindowTabTemplate%dText"
 
@@ -322,10 +316,10 @@ do
     end
 
     pChat.GetTabTextControl = GetTabTextControl
-end
+
+
 
 --Baertram, 2021-06-06
-do
     local function showBackupReminder()
         local doShowReminderDialog = false
         local settings = pChat.db
@@ -372,9 +366,7 @@ do
 		end
     end
     pChat.ShowBackupReminder = showBackupReminder
-end
 
-do
     --local diceRollTemplateStr = GetString(SI_RANDOM_ROLL_RANGE_RESULT)
     local RANDOM_ROLL_TEXTURE = zo_iconFormat("EsoUI/Art/Miscellaneous/roll_dice.dds")
     function pChat.IsDiceRollSystemMessage(messageTxt)
@@ -384,8 +376,7 @@ do
         return false
     end
 
-
-    function pChat.isMonsterChatChannel(chanNumber, numLine)
+    function pChat.IsMonsterChatChannel(chanNumber, numLine)
         local monsterChatChannels = CONSTANTS.MONSTER_CHAT_CHANNELS
 
         if chanNumber == nil and numLine == nil then return false end
@@ -401,4 +392,16 @@ do
         end
         return false
     end
-end
+
+    function pChat.SendMailToPlayer(playerOrDisplayName)
+        if playerOrDisplayName == nil or playerOrDisplayName == "" then return end
+        if MAIL_SEND_SCENE:IsShowing() then
+            --d(">mail scene shown - SetReply")
+            MAIL_SEND:SetReply(playerOrDisplayName)
+        else
+            --d(">ComposeMail")
+            MAIL_SEND:ComposeMailTo(playerOrDisplayName)
+        end
+    end
+
+end --do

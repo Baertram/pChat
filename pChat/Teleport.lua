@@ -15,6 +15,8 @@ local parseSlashCommands = pChat.ParseSlashCommands
 local LCM = LibCustomMenu
 
 local isDisplayName = pChat.IsDisplayName
+local isMonsterChatChannel = pChat.IsMonsterChatChannel
+local sendMailToPlayer = pChat.SendMailToPlayer
 
 
 --pChat - Teleport functions
@@ -538,7 +540,7 @@ d(">>port to group leader")
 end
 pChat.GetPortTypeFromName = getPortTypeFromName
 
-local wasPlayerContextMenuShown = false
+--local wasPlayerContextMenuShown = false
 local function pChat_PlayerContextMenuCallback(playerName, rawName)
      --#21 Fix context menu not shown on first click? That's coming from BeamMeUp function BMU.PortalHandlerLayerPushed -> BMU.HideTeleporter()	 -> ClearMenu() and needs to be fixed in BMU
     --d("[pChat]PlayerContextMenuCallback-playerName: " ..tos(playerName) ..", rawName: " ..tos(rawName))
@@ -557,55 +559,53 @@ d("======== [pChat]ClearMenu was called! =======")
     end
     ]]
 
-
-
     local settings = pChat.db
     local wasAdded = 0
     local playerNameStr = " \'" .. tos(playerName) .. "\'"
 
-    if settings.showIgnoredInfoInContextMenuAtChat == true then
---d("[1]IsIgnored check")
-        if IsIgnored(playerName) then
-            AddMenuItem(GetString(PCHAT_CHATCONTEXTMENUWARNIGNORE), function()  end)
-            wasAdded = wasAdded +1
-        end
-    end
+    local playerNameIsValid = (playerName ~= nil and playerName ~= "" and playerName ~= "nil" and true) or false
+    if playerNameIsValid == true then
 
-    if settings.sendMailContextMenuAtChat == true and playerName ~= nil and playerName ~= "" and playerName ~= "nil" then
---d("[3]Mail to check - playerName: " ..tos(playerName))
-        local chanNumber, numLine --todo how to get those from clicked line?
-        if pChat.isMonsterChatChannel(chanNumber, numLine) == false then
-            AddMenuItem(GetString(SI_SOCIAL_MENU_SEND_MAIL) .. playerNameStr , function()
-                if MAIL_SEND_SCENE:IsShowing() then
-                    --d(">mail scene shown - SetReply")
-                    MAIL_SEND:SetReply(playerName)
-                else
-                    --d(">ComposeMail")
-                    MAIL_SEND:ComposeMailTo(playerName)
-                end
-            end)
-            wasAdded = wasAdded +1
-        end
-    end
 
-    if settings.teleportContextMenuAtChat == true then
---d("[2]Teleport to check")
-        local portType, playerTypeStr, guildIndexFound, zoneNameOfPlayer = getPortTypeFromName(playerName, rawName)
-        --d(">portType: " ..tos(portType) .. "; playerTypeStr: " ..tos(playerTypeStr))
-        if portType ~= nil then
-            AddMenuItem(GetString(SI_GAMEPAD_HELP_UNSTUCK_TELEPORT_KEYBIND_TEXT) .. ": " .. playerTypeStr .. playerNameStr, function()
-                portToDisplayname(playerName, portType, guildIndexFound)
-            end)
-            wasAdded = wasAdded +1
-
-            if settings.whereIsPlayerContextMenuAtChat == true and zoneNameOfPlayer ~= nil then
-                AddCustomMenuItem("> " .. zoneNameOfPlayer, function()
-                    portToDisplayname(playerName, portType, guildIndexFound)
-                end, MENU_ADD_OPTION_LABEL)
+        if settings.showIgnoredInfoInContextMenuAtChat == true then
+    --d("[1]IsIgnored check")
+            if IsIgnored(playerName) then
+                AddMenuItem(GetString(PCHAT_CHATCONTEXTMENUWARNIGNORE), function()  end)
                 wasAdded = wasAdded +1
             end
         end
-    end
+
+        if settings.sendMailContextMenuAtChat == true then
+    --d("[3]Mail to check - playerName: " ..tos(playerName))
+            local chanNumber, numLine --todo how to get those from clicked line?
+            if isMonsterChatChannel(chanNumber, numLine) == false then
+                AddMenuItem(GetString(SI_SOCIAL_MENU_SEND_MAIL) .. playerNameStr , function()
+                    sendMailToPlayer(playerName)
+                end)
+                wasAdded = wasAdded +1
+            end
+        end
+
+        if settings.teleportContextMenuAtChat == true then
+    --d("[2]Teleport to check")
+            local portType, playerTypeStr, guildIndexFound, zoneNameOfPlayer = getPortTypeFromName(playerName, rawName)
+            --d(">portType: " ..tos(portType) .. "; playerTypeStr: " ..tos(playerTypeStr))
+            if portType ~= nil then
+                AddMenuItem(GetString(SI_GAMEPAD_HELP_UNSTUCK_TELEPORT_KEYBIND_TEXT) .. ": " .. playerTypeStr .. playerNameStr, function()
+                    portToDisplayname(playerName, portType, guildIndexFound)
+                end)
+                wasAdded = wasAdded +1
+
+                if settings.whereIsPlayerContextMenuAtChat == true and zoneNameOfPlayer ~= nil then
+                    AddCustomMenuItem("> " .. zoneNameOfPlayer, function()
+                        portToDisplayname(playerName, portType, guildIndexFound)
+                    end, MENU_ADD_OPTION_LABEL)
+                    wasAdded = wasAdded +1
+                end
+            end
+        end
+
+    end --if playerNameIsValid == true then
 
     --This will add the new entries to the chat player context menu
     --> But original showmenu will be called either way at SharedChatSystem:ShowPlayerContextMenu(playerName, rawName)

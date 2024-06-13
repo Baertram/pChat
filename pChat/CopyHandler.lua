@@ -23,13 +23,18 @@ pChat.ChatCopyOptions = nil
 local mapChatChannelToPChatChannel = pChat.mapChatChannelToPChatChannel
 local mapPChatChannelToChatChannel = pChat.mapPChatChannelToChatChannel
 
+
 local chatChannelLangToLangStr = CONSTANTS.chatChannelLangToLangStr
 local chatChannel2Name = CONSTANTS.chatChannel2Name
 
 --Search UI
-
 local pChat_searchUIMasterList = {}
+
+--Functions
+local isMonsterChatChannel = pChat.IsMonsterChatChannel
+local sendMailToPlayer = pChat.SendMailToPlayer
 local checkDisplayName
+local getPortTypeFromName
 
 -------------------------------------------------------------
 -- Helper functions --
@@ -146,7 +151,7 @@ local function GetAccountAndCharacterNameFromLine(numLine, chatChannel)
     if not lineData then return end
 
     local rawFrom = lineData.rawFrom
-    local accountName
+    local accountName, accountNameGuildOrFriend
     local characterName --db.LineStrings[numLine].rawLine -- rawLine may contain "[20:45:49] Dead Shot x: vrg 2t  4dd link achive", or "[20:45:38] [FTS] @Baerkloppt/Gammal Björn: Is any crafter available depending on your pChat settings :-(
 
     if rawFrom ~= nil and rawFrom ~= "" then
@@ -159,6 +164,8 @@ local function GetAccountAndCharacterNameFromLine(numLine, chatChannel)
     end
 --d(">RAWFROM: " .. tostring(rawFrom) .. ", characterName: " ..tostring(characterName) ..", accountName: " ..tostring(accountName))
 
+--------------------------------------------------------------------------------------------------------------------
+--- Get the @account and character name from caht line (respecting ESO and pChat settings - how is it currently setup at that chat channel)
     local accountAndMaybeCharName
     --rawValue contains the link for the displayName, guild etc., depending on the chatChannel
     --e.g. could be |H0:display:@Baerkloppt|h, or "|c8F8F8F[20:46:09] |r|cb99e5a|H0:character:Bubamara O^Mx|h or "|c8F8F8F[20:46:30] |r|cb99e5a|H0:character:grey'ar^Fx|hGrey'ar|h: |r|cbeae82|H1:guild:732024|hCadwell's Gefolge|h etc.
@@ -315,6 +322,8 @@ local function GetAccountAndCharacterNameFromLine(numLine, chatChannel)
         charNameIsAccountName = true
     end
 
+--------------------------------------------------------------------------------------------------------------------
+--- Get the character level / CPs, zoneName etc.
 --d(">accountNameOrig: " ..tos(accountNameOrig) ..", characterNameOrig: " ..tos(characterNameOrig) .. ", accountName: " .. tos(accountName) .. ", characterName: " ..tos(characterName) .. ", charNameIsAccountName: " ..tos(charNameIsAccountName))
 
     local accountAndCharName = ""
@@ -366,14 +375,21 @@ local function GetAccountAndCharacterNameFromLine(numLine, chatChannel)
 
 
             --Guild was determined?
+            accountNameGuildOrFriend = nil
             if characterLevel == nil then
                 --d(">>guildId: " ..tos(guildId) .. ", accountName: " .. tos(accountName))
                 if guildId == nil then
                     if (accountName == nil or guildIndex == nil) and characterName ~= nil then
-                        accountName, guildIndex, isOnline = checkDisplayName(characterName, "guild", guildIndex)
+                        accountNameGuildOrFriend, guildIndex, isOnline = checkDisplayName(characterName, "guild", guildIndex)
+                        if accountNameGuildOrFriend ~= nil then
+                            accountName = accountNameGuildOrFriend
+                        end
                     end
                     if guildIndex == nil then
-                        accountName, guildIndex, isOnline = checkDisplayName(accountName, "guild", guildIndex)
+                        accountNameGuildOrFriend, guildIndex, isOnline = checkDisplayName(accountName, "guild", guildIndex)
+                        if accountNameGuildOrFriend ~= nil then
+                            accountName = accountNameGuildOrFriend
+                        end
                     end
                     if guildIndex ~= nil then
                         guildId = GetGuildId(guildIndex)
@@ -420,16 +436,23 @@ local function GetAccountAndCharacterNameFromLine(numLine, chatChannel)
             end
 
             --Friendslist
+            accountNameGuildOrFriend = nil
             if characterLevel == nil then
-                local friendsDisplayName, friendIndex
+                local friendIndex
                 if accountNameOrig ~= nil then
-                    friendsDisplayName, friendIndex, isOnline = checkDisplayName(accountNameOrig, "friend")
+                    accountNameGuildOrFriend, friendIndex, isOnline = checkDisplayName(accountNameOrig, "friend")
+                    if accountNameGuildOrFriend ~= nil then
+                        accountName = accountNameGuildOrFriend
+                    end
                 end
-                if (friendsDisplayName == nil or friendIndex == nil) and characterName ~= nil then
-                    friendsDisplayName, friendIndex, isOnline = checkDisplayName(characterName, "friend")
+                if (accountNameGuildOrFriend == nil or friendIndex == nil) and characterName ~= nil then
+                    accountNameGuildOrFriend, friendIndex, isOnline = checkDisplayName(characterName, "friend")
+                    if accountNameGuildOrFriend ~= nil then
+                        accountName = accountNameGuildOrFriend
+                    end
                 end
                 --d(">>friendsDisplayName: " ..tos(friendsDisplayName) .. ", friendIndex: " .. tos(friendIndex))
-                if friendsDisplayName ~= nil and friendIndex ~= nil then
+                if accountNameGuildOrFriend ~= nil and friendIndex ~= nil then
                     local hasCharacter, charName, _zoneName, _classType, _alliance, level, championRank = GetFriendCharacterInfo(friendIndex)
                     if not isOnline then
                         local name, note, rankIndex, playerStatus, secsSinceLogoff = GetFriendInfo(friendIndex)
@@ -2014,15 +2037,9 @@ function pChat.InitializeCopyHandler(control)
             --Send email context menu entry
             if isAccountOrCharNameOwnPlayer == false and sendMailContextMenuAtChat == true and playerNameIsValid == true then
 --d("[3]Mail to check - playerName: " ..tos(playerName))
-                if pChat.isMonsterChatChannel(chanNumber, numLine) == false then
+                if isMonsterChatChannel(chanNumber, numLine) == false then
                     AddCustomMenuItem(GetString(SI_SOCIAL_MENU_SEND_MAIL) .. " \'" .. playerNameStr .."\'" , function()
-                        if MAIL_SEND_SCENE:IsShowing() then
---d(">mail send scene showing: SetRepy used")
-                            MAIL_SEND:SetReply(playerName)
-                        else
---d(">Mail compose used")
-                            MAIL_SEND:ComposeMailTo(playerName)
-                        end
+                        sendMailToPlayer(playerName)
                     end)
                 end
             end
@@ -2031,7 +2048,8 @@ function pChat.InitializeCopyHandler(control)
             --Teleport to features
             if isAccountOrCharNameOwnPlayer == false and teleportContextMenuAtChat == true and playerNameIsValid == true and isOnline == true then
 --d("[2]Teleport to check")
-                local portType, playerTypeStr, guildIndexFound = pChat.GetPortTypeFromName(playerName, rawFrom)
+                getPortTypeFromName = getPortTypeFromName or pChat.GetPortTypeFromName
+                local portType, playerTypeStr, guildIndexFound = getPortTypeFromName(playerName, rawFrom)
 --d(">portType: " ..tos(portType) .. "; playerTypeStr: " ..tos(playerTypeStr))
                 if portType ~= nil then
                     AddCustomMenuItem(GetString(PCHAT_CHATCONTEXTMENUTPTO), function() end, MENU_ADD_OPTION_HEADER)
