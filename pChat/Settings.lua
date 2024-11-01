@@ -78,7 +78,7 @@ function pChat.InitializeSettings()
 		chatMinimizedInMenusOldMode = false,
 		chatMaximizedAfterMenus = true,
 		chatMaximizedAfterMove = false,
-		windowDarkness = 6,
+		windowDarkness = 1,
 		chatSyncConfig = false,
 		floodProtect = true,
 		floodGracePeriod = 30,

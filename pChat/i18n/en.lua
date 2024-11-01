@@ -160,7 +160,7 @@ local strings = {
 	PCHAT_APPARENCEMH = "Chat window settings",
 
 	PCHAT_WINDOWDARKNESS = "Chat window darkness",
-	PCHAT_WINDOWDARKNESSTT = "Increase the darkening of the chat window. 0 = No darkness\nWill affect the inactive & the active chat window!",
+	PCHAT_WINDOWDARKNESSTT = "Increase the darkening of the chat window. 0 = Transparent/1 = Default/2 to 11 = more darkness\nWill affect the inactive & the active chat window!",
 
 	PCHAT_CHATMINIMIZEDATLAUNCH = "Chat minimized at startup",
 	PCHAT_CHATMINIMIZEDATLAUNCHTT = "Minimize chat window on the left side of the screen when the game starts",

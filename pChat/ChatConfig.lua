@@ -57,28 +57,28 @@ function pChat.InitializeChatConfig()
     ]]
 
     -- Change ChatWindow Darkness by modifying its <Center> & <Edge>. Originally defined in virtual object ZO_ChatContainerTemplate in sharedchatsystem.xml
+    local transparentTexture = "/esoui/art/icons/heraldrycrests_misc_blank_01.dds"
     local texturePathEdgeDependingOnWindowDarknessTemplate =    "pChat/dds/chat_bg_edge_%d.dds"
     local texturePathCenterDependingOnWindowDarknessTemplate =  "pChat/dds/chat_bg_center_%d.dds"
     local function ChangeChatWindowDarkness()
         --New dynamic code
+        db = pChat.db
+
         local chatWindowDarknesssSetting = db.windowDarkness
         --Default chat window darkness
         if chatWindowDarknesssSetting == 0 then
-            --[[
-                <Edge file="EsoUI/Art/ChatWindow/chat_BG_edge.dds" edgeFileWidth="256" edgeFileHeight="256" edgeSize="32"/>
-                <Center file="EsoUI/Art/ChatWindow/chat_BG_center.dds" />
-                <Insets left="32" top="32" right="-32" bottom="-32" />
-            ]]
+            --Transparent
+            ZO_ChatWindowBg:SetEdgeTexture(transparentTexture, 256, 256, 32)
+            ZO_ChatWindowBg:SetCenterTexture(transparentTexture)
+            ZO_ChatWindowBg:SetInsets(32, 32, -32, -32)
+
+        elseif chatWindowDarknesssSetting == 1 then
+            --Default ESO chat BG color
             ZO_ChatWindowBg:SetEdgeTexture("EsoUI/Art/ChatWindow/chat_BG_edge.dds", 256, 256, 32)
             ZO_ChatWindowBg:SetCenterTexture("EsoUI/Art/ChatWindow/chat_BG_center.dds")
             ZO_ChatWindowBg:SetInsets(32, 32, -32, -32)
-        --[[
-        elseif chatWindowDarknesssSetting == 1 then
-            ZO_ChatWindowBg:SetCenterColor(0, 0, 0, 0)
-            ZO_ChatWindowBg:SetEdgeColor(0, 0, 0, 0)
-            ZO_ChatWindowBg:SetInsets(32, 32, -32, -32)
-        ]]
-        else--if chatWindowDarknesssSetting > 1 then
+
+        elseif chatWindowDarknesssSetting >= 2 then
             local textureStringMultiValue = tonumber((chatWindowDarknesssSetting - 1) * 10)
             if textureStringMultiValue == nil then return end
             textureStringMultiValue = zo_clamp(textureStringMultiValue, 10, 100)

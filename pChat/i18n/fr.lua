@@ -145,7 +145,7 @@ SafeAddString(PCHAT_CHATSYNCCONFIGIMPORTFROMTT					, "Vous pouvez à tout moment
 SafeAddString(PCHAT_APPARENCEMH										, "Apparence de la fenêtre de chat", 1)
 				
 SafeAddString(PCHAT_WINDOWDARKNESS									, "Transparence de la fenêtre de chat", 1)
-SafeAddString(PCHAT_WINDOWDARKNESSTT								, "Augmenter l'assombrissement de la fenêtre de chat", 1)
+SafeAddString(PCHAT_WINDOWDARKNESSTT								, "Augmenter l'assombrissement de la fenêtre de chat\n0 = Invisible/1 = Default/2 - 11 = plus d'assombrissement", 1)
 				
 SafeAddString(PCHAT_CHATMINIMIZEDATLAUNCH							, "Minimiser le chat au lancement du jeu", 1)
 SafeAddString(PCHAT_CHATMINIMIZEDATLAUNCHTT						, "Minimiser la fenêtre de chat sur la gauche au lancement du jeu", 1)

@@ -180,7 +180,7 @@ SafeAddString(PCHAT_TABWARNING										, "Neue Nachricht Warnung", 1)
 SafeAddString(PCHAT_TABWARNINGTT										, "Legen Sie die Farbe für die Warnmeldung im Chat Reiter fest.", 1)
 
 SafeAddString(PCHAT_WINDOWDARKNESS									, "Hintergrund Dunkelheit Chat-Fenster", 1)
-SafeAddString(PCHAT_WINDOWDARKNESSTT								, "Erhöhen Sie die Verdunkelung des Chat-Fensters. 0 = Keine Verdunklung.\nDies verändert den inaktiven & den aktiven Chat!", 1)
+SafeAddString(PCHAT_WINDOWDARKNESSTT								, "Erhöhen Sie die Verdunkelung des Chat-Fensters. 0 = Durchsichtig/1 = Default/2 - 11 = mehr Verdunklung.\nDies verändert den inaktiven & den aktiven Chat!", 1)
 
 SafeAddString(PCHAT_CHATMINIMIZEDATLAUNCH							, "Chat beim Start minimiert", 1)
 SafeAddString(PCHAT_CHATMINIMIZEDATLAUNCHTT						, "Chat-Fenster auf der linken Seite des Bildschirms minimieren, wenn das Spiel startet", 1)
