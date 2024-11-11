@@ -945,7 +945,7 @@ function pChat.InitializeSettings()
 							default = defaults.useKeepAttackUpdateChatHandler,
 						},
 
-    --[[ 2024-01-30 g_pvpKillFeedDeathRecurrenceTracker is local in chathandlers.lua of ESOUI source so we cannot add the timestamps properly at the handler by overwriting the function
+    -- 2024-01-30 g_pvpKillFeedDeathRecurrenceTracker is local in chathandlers.lua of ESOUI source so we cannot add the timestamps properly at the handler by overwriting the function
 						{-- LAM Option enable PVP kill feed chat message handler
 							type = "checkbox",
 							name = GetString(PCHAT_CHATHANDLER_PVP_KILL_FEED),
@@ -956,7 +956,6 @@ function pChat.InitializeSettings()
 							requiresReload = true,
 							default = defaults.usePVPKillFeedChatHandler,
 						},
-	]]
 
 					}, --controls Chat message handlers
 

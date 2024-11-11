@@ -18,6 +18,8 @@ function pChat.InitializeChatHandlers()
     local logger = pChat.logger
     logger:Debug("InitializeChatHandlers", "Start")
 
+    local formatters = CHAT_ROUTER:GetRegisteredMessageFormatters()
+
     local FormatMessage = pChat.FormatMessage
     local FormatSysMessage = pChat.formatSysMessage
 
@@ -98,7 +100,7 @@ function pChat.InitializeChatHandlers()
         logger:Verbose("OnKeepAttackUpdate: ", string.format("channel: %s, numGuardsKilled: %s, numAttackers: %s, location: %s", tostring(channel), tostring(numGuardsKilled), tostring(numAttackers), tostring(location)))
 
         if tonumber(GetSetting(SETTING_TYPE_UI, UI_SETTING_SHOW_AVA_NOTIFICATIONS)) ~= AVA_NOTIFICATIONS_SETTING_CHOICE_DONT_SHOW and
-            tonumber(GetSetting(SETTING_TYPE_UI, UI_SETTING_SHOW_GUILD_KEEP_NOTICES)) == GUILD_KEEP_NOTICES_SETTING_CHOICE_CHAT then
+                tonumber(GetSetting(SETTING_TYPE_UI, UI_SETTING_SHOW_GUILD_KEEP_NOTICES)) == GUILD_KEEP_NOTICES_SETTING_CHOICE_CHAT then
             local ChannelInfo = ZO_ChatSystem_GetChannelInfo()
             local channelInfo = ChannelInfo[channel]
 
@@ -119,95 +121,20 @@ function pChat.InitializeChatHandlers()
     end
 
     --Executed when EVENT_PVP_KILL_FEED_DEATH triggers
-    --[[
-    local DEFAULT_FROM_DISPLAY_NAME = nil
-    local DEFAULT_RAW_MESSAGE_TEXT = nil
-    local DEFAULT_TARGET_CHANNEL = nil
-
-    local g_pvpKillFeedDeathRecurrenceTracker --local in chathandlers.ua at esoui sources so we cannot use tis function here "yet" and need some way to get access to that local!
-
+    --local g_pvpKillFeedDeathRecurrenceTracker --local in chathandlers.lua at esoui sources so we cannot use tis function here "yet" and need some way to get access to that local!
+    local pvpKillFeedFuncProvided = false
+    local origPvpKillFeedEventMessageHandler = formatters[EVENT_PVP_KILL_FEED_DEATH]
+    if type(origPvpKillFeedEventMessageHandler) == "function" then
+        pvpKillFeedFuncProvided = true
+    end
     local function OnPVPKillFeed(killLocation, killerDisplayName, killerCharacterName, killerAlliance, killerRank, victimDisplayName, victimCharacterName, victimAlliance, victimRank, isKillLocation)
         logger:Debug("OnPVPKillFeed: ", string.format("killLocation: %s, killerDisplayName: %s, killerCharacterName: %s, killerAlliance: %s, killerRank: %s, victimDisplayName: %s, victimCharacterName: %s, victimAlliance: %s, victimRank: %s, isKillLocation: %s", tostring(killLocation), tostring(killerDisplayName), tostring(killerCharacterName), tostring(killerAlliance), tostring(killerRank), tostring(victimDisplayName), tostring(victimCharacterName), tostring(victimAlliance), tostring(victimRank), tostring(isKillLocation)))
+--df("[pChat]OnPVPKillFeed - killLocation: %s, killerDisplayName: %s, killerCharacterName: %s, killerAlliance: %s, killerRank: %s, victimDisplayName: %s, victimCharacterName: %s, victimAlliance: %s, victimRank: %s, isKillLocation: %s", tostring(killLocation), tostring(killerDisplayName), tostring(killerCharacterName), tostring(killerAlliance), tostring(killerRank), tostring(victimDisplayName), tostring(victimCharacterName), tostring(victimAlliance), tostring(victimRank), tostring(isKillLocation))
+        --message, DEFAULT_TARGET_CHANNEL, DEFAULT_FROM_DISPLAY_NAME, DEFAULT_RAW_MESSAGE_TEXT, narrationMessage, ZO_WHITE
+        local message, targetChan, fromDisplayName, rawMessageText, narrationMessage, colorVar = origPvpKillFeedEventMessageHandler(killLocation, killerDisplayName, killerCharacterName, killerAlliance, killerRank, victimDisplayName, victimCharacterName, victimAlliance, victimRank, isKillLocation)
 
-        local showKillFeedNotifications = GetSetting_Bool(SETTING_TYPE_UI, UI_SETTING_SHOW_PVP_KILL_FEED_NOTIFICATIONS)
-        if not showKillFeedNotifications then
-            return nil
-        end
-
-        local messageKeySuffix = string.format("%s___%s", killerDisplayName, victimDisplayName)
-        local messageKeyLocal = "L" .. messageKeySuffix
-        local messageKeyKillLocation = "B" .. messageKeySuffix
-        if isKillLocation then
-            -- This message was kill location sourced.
-            if g_pvpKillFeedDeathRecurrenceTracker:RemoveValue(messageKeyLocal) ~= nil then
-                -- The same message was already shown as a result of a local message;
-                -- remove the original message from the tracker and suppress this message.
-                return nil
-            end
-            -- Track this kill location sourced message.
-            g_pvpKillFeedDeathRecurrenceTracker:AddValue(messageKeyKillLocation)
-        else
-            -- This message was locally sourced.
-            if g_pvpKillFeedDeathRecurrenceTracker:RemoveValue(messageKeyKillLocation) ~= nil then
-                -- The same message was already shown as a result of a kill location message;
-                -- remove the original message from the tracker and suppress this message.
-                return nil
-            end
-            -- Track this locally sourced message.
-            g_pvpKillFeedDeathRecurrenceTracker:AddValue(messageKeyLocal)
-        end
-
-        local isBattleground = IsActiveWorldBattleground()
-        local killerAllianceColor
-        local victimAllianceColor
-        if isBattleground then
-            killerAllianceColor = GetBattlegroundAllianceColor(killerAlliance):GetBright()
-            victimAllianceColor = GetBattlegroundAllianceColor(victimAlliance):GetBright()
-        else
-            killerAllianceColor = GetAllianceColor(killerAlliance):GetBright()
-            victimAllianceColor = GetAllianceColor(victimAlliance):GetBright()
-        end
-
-        local ICON_SIZE = 24
-        local killerIcon
-        local victimIcon
-        if isBattleground then
-            killerIcon = ZO_GetBattlegroundIconMarkup(killerAlliance, ICON_SIZE)
-            victimIcon = ZO_GetBattlegroundIconMarkup(victimAlliance, ICON_SIZE)
-        else
-            killerIcon = ZO_GetColoredAvARankIconMarkup(killerRank, killerAlliance, ICON_SIZE)
-            victimIcon = ZO_GetColoredAvARankIconMarkup(victimRank, victimAlliance, ICON_SIZE)
-        end
-
-        local killerAllianceName
-        local victimAllianceName
-        if isBattleground then
-            killerAllianceName = GetString("SI_BATTLEGROUNDALLIANCE", killerAlliance)
-            victimAllianceName = GetString("SI_BATTLEGROUNDALLIANCE", victimAlliance)
-        else
-            killerAllianceName = ZO_CachedStrFormat(SI_ALLIANCE_NAME, GetAllianceName(killerAlliance))
-            victimAllianceName = ZO_CachedStrFormat(SI_ALLIANCE_NAME, GetAllianceName(victimAlliance))
-        end
-
-        local killerName = ZO_GetPrimaryPlayerName(killerDisplayName, killerCharacterName)
-        local victimName = ZO_GetPrimaryPlayerName(victimDisplayName, victimCharacterName)
-
-        local killerGender = GetGenderFromNameDescriptor(killerCharacterName)
-        local victimGender = GetGenderFromNameDescriptor(victimCharacterName)
-
-        local killerRankName = GetAvARankName(killerGender, killerRank)
-        local victimRankName = GetAvARankName(victimGender, victimRank)
-
-        local hasLocation = killLocation and killLocation ~= ""
-        local messageStringId = hasLocation and SI_PVP_KILL_FEED_DEATH_AND_LOCATION or SI_PVP_KILL_FEED_DEATH
-        local message = zo_strformat(messageStringId, killerAllianceColor:Colorize(killerName), killerIcon, victimAllianceColor:Colorize(victimName), victimIcon, killLocation)
-
-        local narrationStringId = hasLocation and SI_PVP_KILL_FEED_DEATH_AND_LOCATION_NARRATION or SI_PVP_KILL_FEED_DEATH_NARRATION
-        local narrationMessage = zo_strformat(narrationStringId, killerAllianceName, killerRankName, killerName, victimAllianceName, victimRankName, victimName, killLocation)
-        --return message, DEFAULT_TARGET_CHANNEL, DEFAULT_FROM_DISPLAY_NAME, DEFAULT_RAW_MESSAGE_TEXT, narrationMessage, ZO_WHITE
-        return FormatSysMessage(message), DEFAULT_TARGET_CHANNEL, DEFAULT_FROM_DISPLAY_NAME, DEFAULT_RAW_MESSAGE_TEXT, narrationMessage, ZO_WHITE
+        return FormatSysMessage(message), targetChan, fromDisplayName, rawMessageText, narrationMessage, colorVar
     end
-    ]]
 
     local function OnGroupMemberLeft(_, reason, isLocalPlayer, _, _, actionRequiredVote)
         logger:Debug("OnGroupMemberLeft: ", string.format("reason: %s, isLocalPlayer: %s, actionRequiredVote: %s", tostring(reason), tostring(isLocalPlayer), tostring(actionRequiredVote)))
@@ -258,12 +185,12 @@ function pChat.InitializeChatHandlers()
         -- Function to format message
         message = FormatMessage(channelID, from, text, isCustomerService, fromDisplayName, originalFrom, originalText, DDSBeforeAll, TextBeforeAll, DDSBeforeSender, TextBeforeSender, TextAfterSender, DDSAfterSender, DDSBeforeText, TextBeforeText, TextAfterText, DDSAfterText)
         if not message then return end
-		
-		--12/22/21 @Coorbin - CharCount handler
-		if (db.useCharCount == true or db.charCountZonePostTracker == true) and fromClean == pChat.pChatData.localPlayer and channelID == CHAT_CHANNEL_ZONE then
-				pChat.charCount.postedstr =  " Z@" .. pChat.CreateTimestamp(GetTimeString())
-				pChat.charCount.updateLabelText()
-		end
+
+        --12/22/21 @Coorbin - CharCount handler
+        if (db.useCharCount == true or db.charCountZonePostTracker == true) and fromClean == pChat.pChatData.localPlayer and channelID == CHAT_CHANNEL_ZONE then
+            pChat.charCount.postedstr =  " Z@" .. pChat.CreateTimestamp(GetTimeString())
+            pChat.charCount.updateLabelText()
+        end
 
         return message, info.saveTarget
 
@@ -286,8 +213,8 @@ function pChat.InitializeChatHandlers()
 
     if db.useSystemMessageChatHandler == true then
         if LibChatMessage then
-            local formatters = CHAT_ROUTER:GetRegisteredMessageFormatters()
-            local originalLCMFormatter = formatters["LibChatMessage"]
+            local currentFormatters    = CHAT_ROUTER:GetRegisteredMessageFormatters()
+            local originalLCMFormatter = currentFormatters["LibChatMessage"]
             if originalLCMFormatter then
                 logger:Debug("pChatMessageFormatter", "Re-registered \'LibChatMessage\' system messages")
                 CHAT_ROUTER:RegisterMessageFormatter("LibChatMessage", function(...)
@@ -324,87 +251,88 @@ function pChat.InitializeChatHandlers()
         CHAT_ROUTER:RegisterMessageFormatter(EVENT_GUILD_KEEP_ATTACK_UPDATE, OnKeepAttackUpdate)
         CM:FireCallbacks("pChat_Initialized_EVENT_GUILD_KEEP_ATTACK_UPDATE", function() return OnKeepAttackUpdate end)
     end
-    --[[ 2024-01-30 g_pvpKillFeedDeathRecurrenceTracker is local in chathandlers.lua of ESOUI source so we cannot add the timestamps properly at the handler by overwriting the function
+    -- 2024-01-30 g_pvpKillFeedDeathRecurrenceTracker is local in chathandlers.lua of ESOUI source so we cannot add the timestamps properly at the handler by overwriting the function
     if db.usePVPKillFeedChatHandler == true then
+        if not pvpKillFeedFuncProvided then return end
         CHAT_ROUTER:RegisterMessageFormatter(EVENT_PVP_KILL_FEED_DEATH, OnPVPKillFeed)
         CM:FireCallbacks("pChat_Initialized_EVENT_PVP_KILL_FEED_DEATH", function() return OnPVPKillFeed end)
     end
-    ]]
 
-	--20211222 @Coorbin - Init CharCount functionality
-	pChat.charCount = {
-		postedstr = "",
-		control = nil,
-		hookedOTC = false,
-		updateLabelText = function()
-			if pChat.charCount ~= nil and pChat.charCount.control ~= nil then
-				if db.useCharCount == true then
+
+    --20211222 @Coorbin - Init CharCount functionality
+    pChat.charCount = {
+        postedstr = "",
+        control = nil,
+        hookedOTC = false,
+        updateLabelText = function()
+            if pChat.charCount ~= nil and pChat.charCount.control ~= nil then
+                if db.useCharCount == true then
                     local currentChatEditBoxStr = ZO_ChatWindowTextEntryEditBox:GetText()
                     local currentChatEditBoxStrLen = string.len(currentChatEditBoxStr)
                     local hideCharCountLabel = (currentChatEditBoxStrLen == nil or currentChatEditBoxStrLen == 0 and true) or false
                     local chatCharCountTextBase = tostring(currentChatEditBoxStrLen) .. "/" .. maxChatCharCount
-					if db.charCountZonePostTracker == true then
-						pChat.charCount.control:SetText(chatCharCountTextBase .. pChat.charCount.postedstr)
-					else
-						pChat.charCount.control:SetText(chatCharCountTextBase)
-					end
+                    if db.charCountZonePostTracker == true then
+                        pChat.charCount.control:SetText(chatCharCountTextBase .. pChat.charCount.postedstr)
+                    else
+                        pChat.charCount.control:SetText(chatCharCountTextBase)
+                    end
                     pChat.charCount.control:SetHidden(hideCharCountLabel)
-				else
-					if db.charCountZonePostTracker == true then
-						pChat.charCount.control:SetText(pChat.charCount.postedstr)
+                else
+                    if db.charCountZonePostTracker == true then
+                        pChat.charCount.control:SetText(pChat.charCount.postedstr)
                         pChat.charCount.control:SetHidden(false)
-					else
-						pChat.charCount.control:SetText("")
+                    else
+                        pChat.charCount.control:SetText("")
                         pChat.charCount.control:SetHidden(true)
-					end
-				end
-			end
-		end,
-		curr = ZO_ChatWindowTextEntryEditBox:GetHandler("OnTextChanged"),
-		createControl = function()
-			pChat.charCount.control = WINDOW_MANAGER:CreateControl("charcount", ZO_ChatWindow, CT_LABEL)
-			pChat.charCount.control:SetFont("ZoFontWinH4")
-			pChat.charCount.control:SetHeight(33)
-			pChat.charCount.control:SetWrapMode(TEXT_WRAP_MODE_ELLIPSIS)
-			pChat.charCount.control:SetAnchor(CENTER, ZO_ChatWindow, TOP, 0, 30)
-			pChat.charCount.updateLabelText()
-		end,
-		setHandlers = function()
-			if db.useCharCount == true then
-				if pChat.charCount.hookedOTC ~= true then
-					ZO_ChatWindowTextEntryEditBox:SetHandler("OnTextChanged", function(self)
-						pChat.charCount.updateLabelText()
-						if pChat.charCount.curr ~= nil then
-							pChat.charCount.curr(self)
-						end
-					end)
-					pChat.charCount.hookedOTC = true
-				end
-			else
-				if pChat.charCount.hookedOTC == true and pChat.charCount.curr ~= nil then
-					ZO_ChatWindowTextEntryEditBox:SetHandler("OnTextChanged", pChat.charCount.curr)
-				end
-				pChat.charCount.hookedOTC = false
-			end
-			if db.charCountZonePostTracker == true then
-				if pChat.charCount.hookedEPA ~= true then
-					EVENT_MANAGER:RegisterForEvent("pChat.charCount", EVENT_PLAYER_ACTIVATED, function()
-						pChat.charCount.postedstr = ""
-						pChat.charCount.updateLabelText()
-					end)
-					pChat.charCount.hookedEPA = true
-				end
-			else
-				if pChat.charCount.hookedEPA == true then
-					EVENT_MANAGER:UnregisterForEvent("pChat.charCount", EVENT_PLAYER_ACTIVATED)
-				end
-				pChat.charCount.hookedEPA = false
-			end
-			pChat.charCount.updateLabelText()
-		end,
-	}
-	pChat.charCount.createControl()
-	pChat.charCount.setHandlers()
+                    end
+                end
+            end
+        end,
+        curr = ZO_ChatWindowTextEntryEditBox:GetHandler("OnTextChanged"),
+        createControl = function()
+            pChat.charCount.control = WINDOW_MANAGER:CreateControl("charcount", ZO_ChatWindow, CT_LABEL)
+            pChat.charCount.control:SetFont("ZoFontWinH4")
+            pChat.charCount.control:SetHeight(33)
+            pChat.charCount.control:SetWrapMode(TEXT_WRAP_MODE_ELLIPSIS)
+            pChat.charCount.control:SetAnchor(CENTER, ZO_ChatWindow, TOP, 0, 30)
+            pChat.charCount.updateLabelText()
+        end,
+        setHandlers = function()
+            if db.useCharCount == true then
+                if pChat.charCount.hookedOTC ~= true then
+                    ZO_ChatWindowTextEntryEditBox:SetHandler("OnTextChanged", function(self)
+                        pChat.charCount.updateLabelText()
+                        if pChat.charCount.curr ~= nil then
+                            pChat.charCount.curr(self)
+                        end
+                    end)
+                    pChat.charCount.hookedOTC = true
+                end
+            else
+                if pChat.charCount.hookedOTC == true and pChat.charCount.curr ~= nil then
+                    ZO_ChatWindowTextEntryEditBox:SetHandler("OnTextChanged", pChat.charCount.curr)
+                end
+                pChat.charCount.hookedOTC = false
+            end
+            if db.charCountZonePostTracker == true then
+                if pChat.charCount.hookedEPA ~= true then
+                    EVENT_MANAGER:RegisterForEvent("pChat.charCount", EVENT_PLAYER_ACTIVATED, function()
+                        pChat.charCount.postedstr = ""
+                        pChat.charCount.updateLabelText()
+                    end)
+                    pChat.charCount.hookedEPA = true
+                end
+            else
+                if pChat.charCount.hookedEPA == true then
+                    EVENT_MANAGER:UnregisterForEvent("pChat.charCount", EVENT_PLAYER_ACTIVATED)
+                end
+                pChat.charCount.hookedEPA = false
+            end
+            pChat.charCount.updateLabelText()
+        end,
+    }
+    pChat.charCount.createControl()
+    pChat.charCount.setHandlers()
 end
 
 

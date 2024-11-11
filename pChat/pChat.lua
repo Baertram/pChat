@@ -82,7 +82,7 @@ ZO_ChatOptions_ToggleChannel    pChat.SaveChatConfig()      Save the currently l
 
 --=======================================================================================================================================
 --Known problems/bugs:
---Last updated: 2024-06-10
+--Last updated: 2024-11-11
 --Total number: 25
 --=======================================================================================================================================
 
@@ -91,18 +91,14 @@ ZO_ChatOptions_ToggleChannel    pChat.SaveChatConfig()      Save the currently l
 --> BMU.PortalHandlerLayerPushed' is calling ClearMenu once! Asked @DeadSoon for a removal of ClearMenu there
 
 --=======================================================================================================================================
--- Changelog version: 10.0.5.5 (last version 10.0.5.4)
+-- Changelog version: 10.0.5.6 (last version 10.0.5.5)
 --=======================================================================================================================================
 --Fixed:
---#20 Translation fixes (e.g. "player")
---#21 Context menu from chat character name does not show if "Character level at context menu" is enabled in settings
---#24 Ask before ignore dialog from chat context menu will disable itsself now properly according to the settings
---#25 Fixed mixed up settings texts
 
 --Changed:
 
 --Added:
---#23 Setting to show the current zone of the right clicked player in the context menu (only guild, friend, or group member)
+--Setting for AVA kill feed messages
 
 --Added on request:
 
