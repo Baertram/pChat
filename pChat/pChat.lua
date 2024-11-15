@@ -82,23 +82,22 @@ ZO_ChatOptions_ToggleChannel    pChat.SaveChatConfig()      Save the currently l
 
 --=======================================================================================================================================
 --Known problems/bugs:
---Last updated: 2024-11-11
---Total number: 25
+--Last updated: 2024-11-15
+--Total number: 26
 --=======================================================================================================================================
 
 --Working on:
---#22 Context menu from chat character name "Send mail" does not fill the receiver at the 2nd time used
---> BMU.PortalHandlerLayerPushed' is calling ClearMenu once! Asked @DeadSoon for a removal of ClearMenu there
 
 --=======================================================================================================================================
--- Changelog version: 10.0.5.6 (last version 10.0.5.5)
+-- Changelog version: 10.0.5.7 (last version 10.0.5.6)
 --=======================================================================================================================================
 --Fixed:
+--Fixed chat minimize on start
 
 --Changed:
 
 --Added:
---Setting for AVA kill feed messages
+
 
 --Added on request:
 
@@ -509,6 +508,7 @@ OnPlayerActivated = function()
 
             -- Set default tab at login
             pChat.SetDefaultTab(db.defaultTab)
+            pChat.MinimizeChatAtLaunch()
 
             pChatData.isAddonInitialized = true
 

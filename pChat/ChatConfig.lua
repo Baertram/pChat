@@ -275,20 +275,20 @@ function pChat.InitializeChatConfig()
 
     -- Function for Minimizing chat at launch
     local function MinimizeChatAtLaunch()
---d("[pChat]MinimizeChatAtLaunch")
-        if db.chatMinimizedAtLaunch then
+        if db.chatMinimizedAtLaunch == true then
 --d(">minimizing at launch")
             ChatSys:Minimize()
         end
     end
+    pChat.MinimizeChatAtLaunch = MinimizeChatAtLaunch
 
     --todo debugging only!
     --db.chatMaximizedAfterMove = false
 
     local function MinimizeChatInMenus()
 
-        --TODO #14 Chat minimizes in menus (left side menus like Settings or full screen like Champion Points / not right side menus of inventory and bank et such)
-        --TODO      even though setting (db.chatMinimizedInMenus == false) says to not minimize (keep maximized) in menus
+        --#14 Chat minimizes in menus (left side menus like Settings or full screen like Champion Points / not right side menus of inventory and bank et such)
+        --    even though setting (db.chatMinimizedInMenus == false) says to not minimize (keep maximized) in menus
         --MINIMIZE_CHAT_FRAGMENT is added to some scenes
         --So overwrite the Show and hide functions to let it work with pChat too
         --[[
@@ -750,10 +750,6 @@ function pChat.InitializeChatConfig()
             --Save the actual chat and tabs config now for the currently logged in char
             SaveChatConfig("ApplyChatConfig")
 
-            -- Should we minimize? Call this AFTER saving the actual chat config!!! Else the minimized data might get saved
-            -- and makes the chat look weird at other characters
-            MinimizeChatAtLaunch()
-
             -- Change Window apparence
             ChangeChatWindowDarkness()
 
@@ -762,6 +758,10 @@ function pChat.InitializeChatConfig()
 
             -- Set default channel at login
             SetToDefaultChannel()
+
+            -- Should we minimize? Call this AFTER saving the actual chat config!!! Else the minimized data might get saved
+            -- and makes the chat look weird at other characters
+            MinimizeChatAtLaunch()
         end
     end
 end

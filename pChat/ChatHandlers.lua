@@ -290,7 +290,7 @@ function pChat.InitializeChatHandlers()
         end,
         curr = ZO_ChatWindowTextEntryEditBox:GetHandler("OnTextChanged"),
         createControl = function()
-            pChat.charCount.control = WINDOW_MANAGER:CreateControl("charcount", ZO_ChatWindow, CT_LABEL)
+            pChat.charCount.control = WINDOW_MANAGER:CreateControl("PCHAT_CHAT_CHARCOUNT", ZO_ChatWindow, CT_LABEL)
             pChat.charCount.control:SetFont("ZoFontWinH4")
             pChat.charCount.control:SetHeight(33)
             pChat.charCount.control:SetWrapMode(TEXT_WRAP_MODE_ELLIPSIS)

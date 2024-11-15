@@ -9,8 +9,8 @@
 ## Description: pChat overhauls the way text is displayed in the chatbox
 ## Author: Ayantir, DesertDwellers, Baertram
 ## APIVersion: 101044 101045
-## Version: 10.0.5.6
-## AddOnVersion: 10005060
+## Version: 10.0.5.7
+## AddOnVersion: 10005070
 ## SavedVariables: PCHAT_OPTS
 ## DependsOn: LibAddonMenu-2.0>=37 LibAddonMenuSoundSlider>=5 LibCustomMenu>=722 LibDebugLogger>=263 LibMainMenu-2.0>=40400 LibMediaProvider-1.0>=32
 ## OptionalDependsOn: LibCustomTitles LibChatMessage>=100
