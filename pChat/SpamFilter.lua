@@ -12,6 +12,32 @@ function pChat.InitializeSpamFilter()
     local localPlayer = pChatData.localPlayer
     local localAccount = pChatData.localAccount
 
+
+    --Do not spam check in these chat channels
+    local noSpamCheckChatChannels = {
+        [CHAT_CHANNEL_SYSTEM] = true,
+        [CHAT_CHANNEL_MONSTER_SAY] = true,
+        [CHAT_CHANNEL_MONSTER_YELL] = true,
+        [CHAT_CHANNEL_MONSTER_WHISPER] = true,
+        [CHAT_CHANNEL_MONSTER_EMOTE] = true,
+        [CHAT_CHANNEL_GUILD_1] = true,
+        [CHAT_CHANNEL_GUILD_2] = true,
+        [CHAT_CHANNEL_GUILD_3] = true,
+        [CHAT_CHANNEL_GUILD_4] = true,
+        [CHAT_CHANNEL_GUILD_5] = true,
+        [CHAT_CHANNEL_OFFICER_1] = true,
+        [CHAT_CHANNEL_OFFICER_2] = true,
+        [CHAT_CHANNEL_OFFICER_3] = true,
+        [CHAT_CHANNEL_OFFICER_4] = true,
+        [CHAT_CHANNEL_OFFICER_5] = true,
+        [CHAT_CHANNEL_PARTY] = true,
+    }
+    --Do not flood spam check in these chat channels
+    local noSpamCheckFloodMessagesChatChannels = {
+        [CHAT_CHANNEL_PARTY] = true,
+    }
+
+
     -- Return true/false if text is a flood
     local function SpamFlood(from, text, chanCode)
         -- 2+ messages identiqual in less than 30 seconds on Character channels = spam
@@ -396,14 +422,18 @@ function pChat.InitializeSpamFilter()
             return false
         end
 
-        -- CHAT_CHANNEL_PARTY is not spamfiltered, party leader get its own antispam tool (= kick)
-        if chanCode == CHAT_CHANNEL_PARTY then
-            return false
-        end
-
         -- "I" or anyone do not flood
         if IsSpamEnabledForCategory("Flood") then
+            --Chat channel should not be spam checked against flooding?
+            if noSpamCheckFloodMessagesChatChannels[chanCode] then
+                return false
+            end
             if SpamFlood(from, text, chanCode) then return true end
+        end
+
+        --Chat channel should not be spam checked?
+        if noSpamCheckChatChannels[chanCode] then
+            return false
         end
 
         -- But "I" can have exceptions
@@ -453,10 +483,12 @@ function pChat.InitializeSpamFilter()
 
         end
 
+        --[[ Duplicate codeß Flood protection was done in lines 428 already
         -- Spam
         if IsSpamEnabledForCategory("Flood") then
             if SpamFlood(from, text, chanCode) then return true end
         end
+        ]]
 
         -- Looking For
         if IsSpamEnabledForCategory("LookingFor") then
