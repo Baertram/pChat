@@ -1,7 +1,15 @@
 local CONSTANTS = pChat.CONSTANTS
 local ADDON_NAME = CONSTANTS.ADDON_NAME
 
-local strfor                   = string.format
+local tos = tostring
+local strfor = string.format
+local strsub = string.sub
+local strgsub = string.gsub
+local strfind = string.find
+local strmatch = string.match
+local strlen = string.len 
+local strbyte = string.byte
+
 local chatChannelLangToLangStr = CONSTANTS.chatChannelLangToLangStr
 
 local isDiceRollSystemMessage = pChat.IsDiceRollSystemMessage
@@ -60,7 +68,7 @@ function pChat.InitializeMessageFormatters()
 
     --Detect the QuickChat messages |s<number><number:optional><number:optional><number:optional>|s
     local function detectQuickChat(text, start)
-        local startcolQuickChat, _ = string.find(text, "|s%d(.*)|s", start)
+        local startcolQuickChat, _ = strfind(text, "|s%d(.*)|s", start)
         return startcolQuickChat
     end
 
@@ -253,7 +261,7 @@ function pChat.InitializeMessageFormatters()
     local function SplitTextForLinkHandler(text, numLine, chanCode)
 
         local newText = ""
-        local textLen = string.len(text)
+        local textLen = strlen(text)
         local MAX_LEN = 100
 
         -- LinkHandle does not handle text > 106 chars, so we need to split
@@ -273,8 +281,8 @@ function pChat.InitializeMessageFormatters()
                     local splittedEnd = splittedStart + MAX_LEN
                     splittedString = text:sub(splittedStart, splittedEnd) -- We can "cut" characters by doing this
 
-                    local lastByte = string.byte(splittedString, -1)
-                    local beforeLastByte = string.byte(splittedString, -2, -2)
+                    local lastByte = strbyte(splittedString, -1)
+                    local beforeLastByte = strbyte(splittedString, -2, -2)
 
                     -- Characters can be into 1, 2 or 3 bytes. Lua don't support UTF natively. We only handle 3 bytes chars.
                     -- http://www.utf8-chartable.de/unicode-utf8-table.pl
@@ -357,15 +365,15 @@ function pChat.InitializeMessageFormatters()
 
             noColorlen = textToCheck:len()
 
-            local startpos, endpos = string.find(textToCheck, "|H(.-):(.-)|h(.-)|h", 1)
+            local startpos, endpos = strfind(textToCheck, "|H(.-):(.-)|h(.-)|h", 1)
             -- LinkHandler not found
             if not startpos then
                 -- If nil, then we won't have new link after startposition = startNoColor , so add ours util the end
 
                 -- Some addons use table.insert() and chat convert to a CRLF
                 -- First, drop the final CRLF if we are at the end of the text
-                if string.sub(textToCheck, -2) == "\r\n" then
-                    textToCheck = string.sub(textToCheck, 1, -2)
+                if strsub(textToCheck, -2) == "\r\n" then
+                    textToCheck = strsub(textToCheck, 1, -2)
                 end
                 -- MultiCRLF is handled in .addLinkHandler()
 
@@ -452,9 +460,9 @@ function pChat.InitializeMessageFormatters()
 
             noDDSlen = textToCheck:len()
 
-            local startpos, endpos = string.find(textToCheck, "|t%-?%d+%%?:%-?%d+%%?:.-|t", 1)
+            local startpos, endpos = strfind(textToCheck, "|t%-?%d+%%?:%-?%d+%%?:.-|t", 1)
             if startpos == nil and endpos == nil then
-                startpos, endpos = string.find(textToCheck, "|tnil:nil:.-|t", 1) --"|tnil:nil:EsoUI/Art/Miscellaneous/roll_dice.dds|t"
+                startpos, endpos = strfind(textToCheck, "|tnil:nil:.-|t", 1) --"|tnil:nil:EsoUI/Art/Miscellaneous/roll_dice.dds|t"
             end
             -- DDS not found
             if startpos == nil then
@@ -534,8 +542,8 @@ function pChat.InitializeMessageFormatters()
         rawSys = rawSys:gsub("||([Cc])", "%1") -- | is the escape char for |, so if an user type |c it will be sent as ||c by the game which will lead to an infinite loading screen because xxxxx||xxxxxx is a lua pattern operator and few gsub will broke the code
 
         --Search for Color tags
-        startColSys, endColSys = string.find(rawSys, "|[cC]%x%x%x%x%x%x", 1)
-        notNeeded, count = string.gsub(rawSys, "|[cC]%x%x%x%x%x%x", "")
+        startColSys, endColSys = strfind(rawSys, "|[cC]%x%x%x%x%x%x", 1)
+        notNeeded, count = strgsub(rawSys, "|[cC]%x%x%x%x%x%x", "")
 
         -- No color tags in the SysMessage
         if startColSys then
@@ -543,28 +551,28 @@ function pChat.InitializeMessageFormatters()
             -- Searching for |r after tag color
 
             -- First destroy tags with nothing inside
-            rawSys = string.gsub(rawSys, "|[cC]%x%x%x%x%x%x|[rR]", "")
+            rawSys = strgsub(rawSys, "|[cC]%x%x%x%x%x%x|[rR]", "")
 
-            notNeeded, countR = string.gsub(rawSys, "|[cC]%x%x%x%x%x%x(.-)|[rR]", "")
+            notNeeded, countR = strgsub(rawSys, "|[cC]%x%x%x%x%x%x(.-)|[rR]", "")
 
             -- Start tag found but end tag ~= start tag
             if count ~= countR then
 
                 -- Add |r before the tag
-                rawSys = string.gsub(rawSys, "|[cC]%x%x%x%x%x%x", "|r%1")
-                firstIsR = string.find(rawSys, "|[cC]%x%x%x%x%x%x")
+                rawSys = strgsub(rawSys, "|[cC]%x%x%x%x%x%x", "|r%1")
+                firstIsR = strfind(rawSys, "|[cC]%x%x%x%x%x%x")
 
                 --No |r tag at the start of the text if start was |cXXXXXX
                 if firstIsR == 3 then
-                    rawSys = string.sub(rawSys, 3)
+                    rawSys = strsub(rawSys, 3)
                 end
 
                 -- Replace
-                rawSys = string.gsub(rawSys, "|r|r", "|r")
-                rawSys = string.gsub(rawSys, "|r |r", " |r")
+                rawSys = strgsub(rawSys, "|r|r", "|r")
+                rawSys = strgsub(rawSys, "|r |r", " |r")
 
-                lastTag = string.match(rawSys, "^.*()|[cC]%x%x%x%x%x%x")
-                lastR = string.match(rawSys, "^.*()|r")
+                lastTag = strmatch(rawSys, "^.*()|[cC]%x%x%x%x%x%x")
+                lastR = strmatch(rawSys, "^.*()|r")
 
                 -- |r tag found
                 if lastR ~= nil then
@@ -579,18 +587,18 @@ function pChat.InitializeMessageFormatters()
 
                 -- Double check
 
-                findC = string.find(rawSys, "|[cC]%x%x%x%x%x%x")
-                findR = string.find(rawSys, "|[rR]")
+                findC = strfind(rawSys, "|[cC]%x%x%x%x%x%x")
+                findR = strfind(rawSys, "|[rR]")
 
                 while findR ~= nil and findC ~= nil do
 
                     if findC then
                         if findR < findC then
-                            rawSys = string.sub(rawSys, 1, findR - 1) .. string.sub(rawSys, findR + 2)
+                            rawSys = strsub(rawSys, 1, findR - 1) .. strsub(rawSys, findR + 2)
                         end
 
-                        findC = string.find(rawSys, "|[cC]%x%x%x%x%x%x", findR)
-                        findR = string.find(rawSys, "|[rR]", findR + 2)
+                        findC = strfind(rawSys, "|[cC]%x%x%x%x%x%x", findR)
+                        findR = strfind(rawSys, "|[rR]", findR + 2)
                     end
 
                 end
@@ -599,10 +607,10 @@ function pChat.InitializeMessageFormatters()
 
         end
         -- Added |u search
-        startColSys, endColSys = string.find(rawSys, "|u%-?%d+%%?:%-?%d+%%?:.-:|u",1)
+        startColSys, endColSys = strfind(rawSys, "|u%-?%d+%%?:%-?%d+%%?:.-:|u",1)
         -- if found
         if startColSys then
-            rawSys = string.gsub(rawSys,"|u%-?%d+%%?:%-?%d+%%?:.-:|u","")
+            rawSys = strgsub(rawSys,"|u%-?%d+%%?:%-?%d+%%?:.-:|u","")
         end
 
         return rawSys
@@ -613,10 +621,10 @@ function pChat.InitializeMessageFormatters()
     -- WARNING : See FormatSysMessage()
     local function AddLinkHandlerToLine(text, chanCode, numLine)
         local rawText = ReformatSysMessages(text) -- FUCK YOU
-        logger:Verbose(strfor("[pChat]AddLinkHandlerToLine - text: %s, rawText: %s", tostring(text), tostring(rawText)))
+        logger:Verbose(strfor("[pChat]AddLinkHandlerToLine - text: %s, rawText: %s", tos(text), tos(rawText)))
 
         local start = 1
-        local rawTextlen = string.len(rawText)
+        local rawTextlen = strlen(rawText)
         local stillToParseCol = true
         local formattedText
         local noColorText = ""
@@ -639,32 +647,32 @@ function pChat.InitializeMessageFormatters()
             if preventLoops > maxLoops then
                 -- If we hit the limit, return the remaining text as-is
                 if start <= rawTextlen then
-                    local remaining = string.sub(rawText, start)
+                    local remaining = strsub(rawText, start)
                     newText = newText .. remaining
                 end
-                logger:Debug(strfor("Hit loop prevention limit at position %d of %d while processing message: %s", start, rawTextlen, string.sub(text, 1, 100) .. "..."))
+                logger:Debug(strfor("Hit loop prevention limit at position %d of %d while processing message: %s", start, rawTextlen, strsub(text, 1, 100) .. "..."))
                 stillToParseCol = false
                 break
             end
             preventLoops = preventLoops + 1
 
             -- Handling Colors, search for color tag
-            local startcol, endcol = string.find(rawText, "|[cC]%x%x%x%x%x%x(.-)|r", start)
+            local startcol, endcol = strfind(rawText, "|[cC]%x%x%x%x%x%x(.-)|r", start)
 
             -- Not Found
             if startcol == nil then
                 startColortag = ""
-                textToCheck = string.sub(rawText, start)
+                textToCheck = strsub(rawText, start)
                 stillToParseCol = false
                 newText = newText .. AddLinkHandlerToString(textToCheck, numLine, chanCode)
             else
                 -- Add safety check for malformed color tags
                 if endcol and endcol <= rawTextlen then
-                    startColortag = string.sub(rawText, startcol, startcol + 7)
+                    startColortag = strsub(rawText, startcol, startcol + 7)
                     -- pChat format all strings
                     if start == startcol then
                         -- textToCheck is only (.-)
-                        textToCheck = string.sub(rawText, (startcol + 8), (endcol - 2))
+                        textToCheck = strsub(rawText, (startcol + 8), (endcol - 2))
                         -- Change our start -> pos of (.-)
                         start = endcol + 1
                         newText = newText .. startColortag .. AddLinkHandlerToString(textToCheck, numLine, chanCode) .. "|r"
@@ -676,14 +684,14 @@ function pChat.InitializeMessageFormatters()
                         end
                     else
                         -- We will check colorized text at next loop
-                        textToCheck = string.sub(rawText, start, startcol - 1)
+                        textToCheck = strsub(rawText, start, startcol - 1)
                         start = startcol
                         -- Tag color found but need to check some strings before
                         newText = newText .. AddLinkHandlerToString(textToCheck, numLine, chanCode)
                     end
                 else
                     -- Handle malformed tags by treating remaining text as non-colored
-                    textToCheck = string.sub(rawText, start)
+                    textToCheck = strsub(rawText, start)
                     stillToParseCol = false
                     newText = newText .. AddLinkHandlerToString(textToCheck, numLine, chanCode)
                 end
@@ -724,9 +732,9 @@ function pChat.InitializeMessageFormatters()
 
             -- No CRLF
             -- ESO LUA Messages output \n instead of \r\n
-            local crtext = string.gsub(text, "\r\n", "\n")
+            local crtext = strgsub(text, "\r\n", "\n")
             -- Find multilines
-            local cr = string.find(crtext, "\n")
+            local cr = strfind(crtext, "\n")
 
             if not cr then
                 formattedText = AddLinkHandlerToLine(text, chanCode, numLine)
@@ -739,7 +747,7 @@ function pChat.InitializeMessageFormatters()
                 for _, line in pairs(lines) do
 
                     -- Only if there something to display
-                    if string.len(line) > 0 then
+                    if strlen(line) > 0 then
 
                         if first then
                             formattedText = AddLinkHandlerToLine(line, chanCode, numLine)
@@ -772,7 +780,7 @@ function pChat.InitializeMessageFormatters()
     -- Executed when EVENT_CHAT_MESSAGE_CHANNEL triggers
     -- Formats the message
     local function FormatMessage(chanCode, from, text, isCS, fromDisplayName, originalFrom, originalText, DDSBeforeAll, TextBeforeAll, DDSBeforeSender, TextBeforeSender, TextAfterSender, DDSAfterSender, DDSBeforeText, TextBeforeText, TextAfterText, DDSAfterText)
-        logger.verbose:Debug(strfor("FormatMessage-Line#: %s, channel %s: %s(%s/%s) %s (orig: %s)", tostring(db.lineNumber), tostring(chanCode), tostring(originalFrom), tostring(fromDisplayName), tostring(from), tostring(text), tostring(originalText)))
+        logger.verbose:Debug(strfor("FormatMessage-Line#: %s, channel %s: %s(%s/%s) %s (orig: %s)", tos(db.lineNumber), tos(chanCode), tos(originalFrom), tos(fromDisplayName), tos(from), tos(text), tos(originalText)))
         local notHandled = false
 
         -- Will calculate if this message is a spam
@@ -875,7 +883,7 @@ function pChat.InitializeMessageFormatters()
             local timeStampData = pChat.CreateTimestamp(GetTimeString())
             local timestamp = ZO_LinkHandler_CreateLink(timeStampData, nil, CONSTANTS.PCHAT_LINK, db.lineNumber .. ":" .. chanCode) .. " "
 
-            logger:Debug(">showTimestamp:", strfor("timecol: %s, timestamp: %s", tostring(timecol), tostring(timestamp)))
+            logger:Debug(">showTimestamp:", strfor("timecol: %s, timestamp: %s", tos(timecol), tos(timestamp)))
 
             -- Timestamp color
             message = message .. strfor("%s%s|r", timecol, timestamp)
@@ -904,7 +912,7 @@ function pChat.InitializeMessageFormatters()
                 local isQuickChat = (isSayChannel == true and detectQuickChat(text, 1) ~= nil and true) or false
                 if isQuickChat == true then
                     --QuickChat message found
-                    logger:Debug(">QuickChat message found, text: " ..tostring(text))
+                    logger:Debug(">QuickChat message found, text: " ..tos(text))
                     addLinkNow = false
                 end
             end
@@ -932,11 +940,11 @@ function pChat.InitializeMessageFormatters()
                 --[[
                 if isSayChannel then
                     logger:Debug(strfor(">SAY - lineNo: %s, rawFrom: %s, text: %s, linkedText: %s, rawValue: %s",
-                            tostring(db.lineNumber),
-                            tostring(db.LineStrings[db.lineNumber].rawFrom),
-                            tostring(text),
-                            tostring(linkedText),
-                            tostring(db.LineStrings[db.lineNumber].rawValue)
+                            tos(db.lineNumber),
+                            tos(db.LineStrings[db.lineNumber].rawFrom),
+                            tos(text),
+                            tos(linkedText),
+                            tos(db.LineStrings[db.lineNumber].rawValue)
                         )
                     )
                 end
@@ -1134,7 +1142,7 @@ function pChat.InitializeMessageFormatters()
     end
 
     local function FormatSysMessage(statusMessage)
---d("[pChat]FormatSysMessage: " ..tostring(statusMessage))
+--d("[pChat]FormatSysMessage: " ..tos(statusMessage))
         logger.verbose:Debug("FormatSysMessage:", statusMessage)
 
         -- Display Timestamp if needed
@@ -1183,7 +1191,7 @@ function pChat.InitializeMessageFormatters()
         if statusMessage then
 
             -- Only if there something to display
-            if string.len(statusMessage) > 0 then
+            if strlen(statusMessage) > 0 then
 
                 local sysMessage
 
