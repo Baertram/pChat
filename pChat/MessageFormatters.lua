@@ -625,20 +625,32 @@ function pChat.InitializeMessageFormatters()
         local startColortag = ""
 
         local preventLoops = 0
+        local maxLoops = 100 -- This is the max count of items you can deconstruct at a time as well, so in theory, you could use MAX_ITEM_SLOTS_PER_DECONSTRUCTION as the constant here.
         local colorizedText = true
         local newText = ""
 
-        while stillToParseCol do
+        -- Add safety check for empty or invalid input
+        if not rawText or rawTextlen == 0 then
+            return text
+        end
 
+        while stillToParseCol do
             -- Prevent infinite loops while its still in beta
-            if preventLoops > 10 then
+            if preventLoops > maxLoops then
+                -- If we hit the limit, return the remaining text as-is
+                if start <= rawTextlen then
+                    local remaining = string.sub(rawText, start)
+                    newText = newText .. remaining
+                end
+                logger:Debug(strfor("Hit loop prevention limit at position %d of %d while processing message: %s", start, rawTextlen, string.sub(text, 1, 100) .. "..."))
                 stillToParseCol = false
-            else
-                preventLoops = preventLoops + 1
+                break
             end
+            preventLoops = preventLoops + 1
 
             -- Handling Colors, search for color tag
             local startcol, endcol = string.find(rawText, "|[cC]%x%x%x%x%x%x(.-)|r", start)
+
             -- Not Found
             if startcol == nil then
                 startColortag = ""
@@ -646,34 +658,39 @@ function pChat.InitializeMessageFormatters()
                 stillToParseCol = false
                 newText = newText .. AddLinkHandlerToString(textToCheck, numLine, chanCode)
             else
-                startColortag = string.sub(rawText, startcol, startcol + 7)
-                -- pChat format all strings
-                if start == startcol then
-                    -- textToCheck is only (.-)
-                    textToCheck = string.sub(rawText, (startcol + 8), (endcol - 2))
-                    -- Change our start -> pos of (.-)
-                    start = endcol + 1
-                    newText = newText .. startColortag .. AddLinkHandlerToString(textToCheck, numLine, chanCode) .. "|r"
+                -- Add safety check for malformed color tags
+                if endcol and endcol <= rawTextlen then
+                    startColortag = string.sub(rawText, startcol, startcol + 7)
+                    -- pChat format all strings
+                    if start == startcol then
+                        -- textToCheck is only (.-)
+                        textToCheck = string.sub(rawText, (startcol + 8), (endcol - 2))
+                        -- Change our start -> pos of (.-)
+                        start = endcol + 1
+                        newText = newText .. startColortag .. AddLinkHandlerToString(textToCheck, numLine, chanCode) .. "|r"
 
-                    -- Do we need to continue ?
-                    if endcol == rawTextlen then
-                        -- We're at the end
-                        stillToParseCol = false
+                        -- Do we need to continue ?
+                        if endcol == rawTextlen then
+                            -- We're at the end
+                            stillToParseCol = false
+                        end
+                    else
+                        -- We will check colorized text at next loop
+                        textToCheck = string.sub(rawText, start, startcol - 1)
+                        start = startcol
+                        -- Tag color found but need to check some strings before
+                        newText = newText .. AddLinkHandlerToString(textToCheck, numLine, chanCode)
                     end
-
                 else
-                    -- We will check colorized text at next loop
-                    textToCheck = string.sub(rawText, start, startcol-1)
-                    start = startcol
-                    -- Tag color found but need to check some strings before
+                    -- Handle malformed tags by treating remaining text as non-colored
+                    textToCheck = string.sub(rawText, start)
+                    stillToParseCol = false
                     newText = newText .. AddLinkHandlerToString(textToCheck, numLine, chanCode)
                 end
             end
-
         end
 
         return newText
-
     end
 
 
