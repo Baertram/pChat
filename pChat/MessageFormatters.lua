@@ -625,7 +625,7 @@ function pChat.InitializeMessageFormatters()
         local startColortag = ""
 
         local preventLoops = 0
-        local maxLoops = 50 -- Increased further to handle complex messages
+        local maxLoops = 100 -- This is the max count of items you can deconstruct at a time as well, so in theory, you could use MAX_ITEM_SLOTS_PER_DECONSTRUCTION as the constant here.
         local colorizedText = true
         local newText = ""
 
