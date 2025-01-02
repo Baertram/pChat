@@ -1,0 +1,13 @@
+# Auto detect text files and perform LF normalization
+* text=auto
+
+*.txt  eol=crlf
+*.lua  eol=crlf
+
+*.dds binary
+*.DDS binary
+*.png binary
+*.ico binary
+*.ttf binary
+*.otf binary
+*.slug binary 
