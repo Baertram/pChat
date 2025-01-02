@@ -200,6 +200,7 @@ do
         end
 
         -- create new one
+        -->If you add new formats make sure to update the tooltip at PCHAT_TIMESTAMPFORMATTT too
         local timestamp = formatStr
         timestamp = timestamp:gsub("HH", hours)
         timestamp = timestamp:gsub("H", hoursNoLead)
@@ -211,7 +212,6 @@ do
         timestamp = timestamp:gsub("a", pLow)
         return timestamp
     end
-
     pChat.CreateTimestamp = CreateTimestamp
 
 

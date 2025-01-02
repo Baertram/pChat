@@ -207,11 +207,6 @@ SafeAddString(PCHAT_SOUNDFORINCWHISPSTT							, "Wählen Sie Sound, der abgespie
 SafeAddString(PCHAT_NOTIFYIM											, "Visuelle Hinweise anzeigen", 1)
 SafeAddString(PCHAT_NOTIFYIMTT										, "Wenn Sie eine Flüsternachricht verpassen, wird eine Meldung in der oberen rechten Ecke des Chat-Fenster angezeigt. Wenn Sie auf diese Meldung klicken werden Sie direkt zur Flüsternachricht im Chat gebracht.\nWar Ihr Chat zum Zeitpunkt des Nachrichteneinganges minimiert, wird in der Chat Mini-Leiste ebenfalls eine Benachrichtigung angezeigt.", 1)
 
-SafeAddString(PCHAT_SOUNDFORINCWHISPSCHOICE0						, "-KEIN TON-", 1)
-SafeAddString(PCHAT_SOUNDFORINCWHISPSCHOICE1						, "Benachrichtigung", 1)
-SafeAddString(PCHAT_SOUNDFORINCWHISPSCHOICE2						, "Klicken", 1)
-SafeAddString(PCHAT_SOUNDFORINCWHISPSCHOICE3						, "Schreiben", 1)
-
 -- Restore chat settings
 
 SafeAddString(PCHAT_RESTORECHATH										, "Chat wiederherstellen", 1)
@@ -295,7 +290,7 @@ SafeAddString(PCHAT_TIMESTAMPCOLORISLCOL							, "Zeitstempel und Namen gleich f
 SafeAddString(PCHAT_TIMESTAMPCOLORISLCOLTT						, "Für den Zeitstempel gilt die gleiche Farbeinstellung wie für den Spielernamen, oder Nicht-Spieler-Charakter (NSC / NPC)", 1)
 
 SafeAddString(PCHAT_TIMESTAMPFORMAT									, "Zeitstempelformat", 1)
-SafeAddString(PCHAT_TIMESTAMPFORMATTT								, "FORMAT:\nHH: Stunden (24)\nhh: Stunden (12)\nH: Stunde (24, keine vorangestellte 0)\nh: Stunde (12, keine vorangestellte 0)\nA: AM/PM\na: am/pm\nm: Minuten\ns: Sekunden", 1)
+SafeAddString(PCHAT_TIMESTAMPFORMATTT								, "FORMAT:\nHH: Stunden (24)\nhh: Stunden (12)\nH: Stunde (24, keine vorangestellte 0)\nh: Stunde (12, keine vorangestellte 0)\nA: AM/PM\na: am/pm\nm: Minuten\ns: Sekunden\nms: Millisekunden", 1)
 
 SafeAddString(PCHAT_TIMESTAMP											, "Zeitstempel", 1)
 SafeAddString(PCHAT_TIMESTAMPTT										, "Legt die Farbe des Zeitstempels fest.", 1)
@@ -379,6 +374,8 @@ SafeAddString(PCHAT_GROUPCHATTT										, "Legt die Farbe der Nachrichten im Ch
 -- Other colors
 
 SafeAddString(PCHAT_OTHERCOLORSH										, "Sonstige Farben", 1)
+SafeAddString(PCHAT_USEESOCOLORS_INFO                                   , "Ist die Option \'" .. GetString(PCHAT_USEESOCOLORS) .."\' aktiviert (siehe Untermenü \'" .. GetString(PCHAT_MESSAGEOPTIONSCOLORH) .."\') können die Farben hier nicht verändert werden", 1)
+SafeAddString(PCHAT_USEESOCOLORS_SUBMENU_INFO                           , GetString(PCHAT_USEESOCOLORS_INFO) .. "\nIst die Option \'" .. GetString(PCHAT_ALLZONESSAMECOLOUR) .."\' aktiviert (siehe Untermenü \'" .. GetString(PCHAT_MESSAGEOPTIONSCOLORH) .."\') können die Farben der Zonen nicht individuell verändert werden.\nIst die Option \'" .. GetString(PCHAT_USEONECOLORFORLINES) .. "\' aktiviert können die Farben für Spieler und Nachricht nicht individuell verändert werden.", 1)
 
 SafeAddString(PCHAT_EMOTES												, "'Emotes' - Name", 1)
 SafeAddString(PCHAT_EMOTESTT											, "Legt die Farbe für den Spieler Namen bei ausgeführten 'Emotes' fest.", 1)

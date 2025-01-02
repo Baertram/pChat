@@ -1197,12 +1197,20 @@ function pChat.InitializeSettings()
 							disabled = function() return db.diffforESOcolors == 0 or db.oneColour end,
 						},
 						------------------------------------------------------------------------------------------------------------------------
+						{
+							type="description",
+							text = GetString(PCHAT_USEESOCOLORS_INFO),
+						},
 						-- Chat channel colors
 						{
 							type = "submenu",
 							name = GetString(PCHAT_CHATCOLORSH),
 							disabled = function() return db.useESOcolors end,
 							controls = {
+								{
+									type="description",
+									text = GetString(PCHAT_USEESOCOLORS_SUBMENU_INFO),
+								},
 								{-- Say players
 									type = "colorpicker",
 									name = GetString(PCHAT_SAY),
@@ -1470,6 +1478,7 @@ function pChat.InitializeSettings()
 						{
 							type = "submenu",
 							name = GetString(PCHAT_OTHERCOLORSH),
+							disabled = function() return db.useESOcolors end,
 							controls = {
 								{
 									type="description",
@@ -1833,7 +1842,6 @@ function pChat.InitializeSettings()
 					choices = pChatData.chatConfSyncChoices,
 					choicesValues = pChatData.chatConfSyncChoicesCharIds,
 					sort = "name-up",
-					scrollable = true,
 					width = "full",
 					getFunc = function() return GetCurrentCharacterId() end,
 					setFunc = function(p_charId)

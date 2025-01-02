@@ -202,7 +202,9 @@ function cm.cm_convertHexToRGBAPacked(colourString)
 end
 
 function cm.cm_split(text)
-	local spat, epat, buf, quoted = [=[^(['"])]=], [=[(['"])$]=]
+	local buf, quoted
+	local spat, epat = [=[^(['"])]=], [=[(['"])$]=]
+
 	local retval = {}
 	for str in text:gmatch("%S+") do
 		local squoted = str:match(spat)

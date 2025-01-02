@@ -190,11 +190,6 @@ local strings = {
 	PCHAT_NOTIFYIM = "Visual notification",
 	PCHAT_NOTIFYIMTT = "If you miss a whisp, a notification will appear in the top right corner of the chat allowing you to quickly access to it. Plus, if your chat was minimized at that time, a notification will be displayed in the minibar",
 
-	PCHAT_SOUNDFORINCWHISPSCHOICE1 = "None",
-	PCHAT_SOUNDFORINCWHISPSCHOICE2 = "Notification",
-	PCHAT_SOUNDFORINCWHISPSCHOICE3 = "Click",
-	PCHAT_SOUNDFORINCWHISPSCHOICE4 = "Write",
-
 	-- Restore chat settings
 
 	PCHAT_RESTORECHATH = "Restore chat",
@@ -275,7 +270,7 @@ local strings = {
 	PCHAT_TIMESTAMPCOLORISLCOLTT = "Ignore timestamp color and colorize timestamp same as player / NPC name",
 
 	PCHAT_TIMESTAMPFORMAT = "Timestamp format",
-	PCHAT_TIMESTAMPFORMATTT = "FORMAT:\nHH: hours (24)\nhh: hours (12)\nH: hour (24, no leading 0)\nh: hour (12, no leading 0)\nA: AM/PM\na: am/pm\nm: minutes\ns: seconds",
+	PCHAT_TIMESTAMPFORMATTT = "FORMAT:\nHH: hours (24)\nhh: hours (12)\nH: hour (24, no leading 0)\nh: hour (12, no leading 0)\nA: AM/PM\na: am/pm\nm: minutes\ns: seconds\nms: milliseconds",
 
 	PCHAT_TIMESTAMP = "Timestamp",
 	PCHAT_TIMESTAMPTT = "Set color for the timestamp",
@@ -359,6 +354,8 @@ local strings = {
 	-- Other colors
 
 	PCHAT_OTHERCOLORSH = "Other Colors",
+	PCHAT_USEESOCOLORS_INFO = "If the option \'" .. GetString(PCHAT_USEESOCOLORS) .."\' is activated (see submenu \'" .. GetString(PCHAT_MESSAGEOPTIONSCOLORH) .."\') the colors below cannot be changed!",
+	PCHAT_USEESOCOLORS_SUBMENU_INFO = GetString(PCHAT_USEESOCOLORS_INFO) .. "\nIf the option \'" .. GetString(PCHAT_ALLZONESSAMECOLOUR) .."\' is activated (see submenu \'" .. GetString(PCHAT_MESSAGEOPTIONSCOLORH) .."\'), you cannot change the colors of the zones individually.\nIf the option \'" .. GetString(PCHAT_USEONECOLORFORLINES) .. "\' is activated, you cannot change the color of the player and the chat message individually.",
 
 	PCHAT_EMOTES = "Emotes - name",
 	PCHAT_EMOTESTT = "Set player name color for emotes",

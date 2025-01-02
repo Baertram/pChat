@@ -1532,7 +1532,8 @@ function ChatCopyOptions:CheckForMatch(data, searchInputMessage, searchInputFrom
 end
 
 
-function ChatCopyOptions:ProcessItemEntry(stringSearch, data, searchTerm)
+function ChatCopyOptions:ProcessItemEntry(stringSearch, data, searchTerm, cache)
+    --cache should be data.cache if ZO_StringSearch:GetFromCache was used to build that -> Cleared bvia ZO_StringSearch:ClearCache()
     local searchType = stringSearch._searchType
     if searchType == nil then return end
 --d("[pChat]ChatCopyOptions:ProcessItemEntry-type: " ..tos(searchType))
