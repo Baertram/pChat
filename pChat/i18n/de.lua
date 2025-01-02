@@ -207,10 +207,10 @@ SafeAddString(PCHAT_SOUNDFORINCWHISPSTT							, "Wählen Sie Sound, der abgespie
 SafeAddString(PCHAT_NOTIFYIM											, "Visuelle Hinweise anzeigen", 1)
 SafeAddString(PCHAT_NOTIFYIMTT										, "Wenn Sie eine Flüsternachricht verpassen, wird eine Meldung in der oberen rechten Ecke des Chat-Fenster angezeigt. Wenn Sie auf diese Meldung klicken werden Sie direkt zur Flüsternachricht im Chat gebracht.\nWar Ihr Chat zum Zeitpunkt des Nachrichteneinganges minimiert, wird in der Chat Mini-Leiste ebenfalls eine Benachrichtigung angezeigt.", 1)
 
-SafeAddString(PCHAT_SOUNDFORINCWHISPSCHOICE0						, "-KEIN TON-", 1)
-SafeAddString(PCHAT_SOUNDFORINCWHISPSCHOICE1						, "Benachrichtigung", 1)
-SafeAddString(PCHAT_SOUNDFORINCWHISPSCHOICE2						, "Klicken", 1)
-SafeAddString(PCHAT_SOUNDFORINCWHISPSCHOICE3						, "Schreiben", 1)
+SafeAddString(PCHAT_SOUNDFORINCWHISPSCHOICE1						, "-KEIN TON-", 1)
+SafeAddString(PCHAT_SOUNDFORINCWHISPSCHOICE2						, "Benachrichtigung", 1)
+SafeAddString(PCHAT_SOUNDFORINCWHISPSCHOICE3						, "Klicken", 1)
+SafeAddString(PCHAT_SOUNDFORINCWHISPSCHOICE4						, "Schreiben", 1)
 
 -- Restore chat settings
 
