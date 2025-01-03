@@ -373,8 +373,9 @@ function pChat.InitializeAutomatedMessages()
 
             Add another auto completion for entries in pChat's /msg table
         ]]
-        local MAX_AUTO_COMPLETION_RESULTS = 10
 
+        --[[
+        local MAX_AUTO_COMPLETION_RESULTS = 10
         local function pChat_AutomatedMessages_GetAutoCompletionResults(selfVar, text)
             --d("[pChat]pChatAutoMsgAutoComplete:GetAutoCompletionResults - text: " ..tostring(text))
             if #text < 2 then
@@ -403,6 +404,7 @@ function pChat.InitializeAutomatedMessages()
             end
             return nil
         end
+        ]]
 
 
 
@@ -548,9 +550,9 @@ function pChat.InitializeAutomatedMessages()
 
 
 
-        else
+        --else
 
-
+            --[[ !!! Raises an insecure error at chat editbox if e.g. !bear2 is selected!!!
 
             local pChatAutoMsgAutoComplete = ZO_AutoComplete:Subclass()
 
@@ -618,6 +620,7 @@ function pChat.InitializeAutomatedMessages()
             chatTextEntry.pChatMsgAutoComplete = pChatAutoMsgAutoComplete:New(chatTextEntry.editControl, NO_INCLUDE_FLAGS, NO_EXCLUDE_FLAGS, DEFAULT_ONLINE_ONLY, MAX_AUTO_COMPLETION_RESULTS, AUTO_COMPLETION_AUTOMATIC_MODE, nil)
 
             pChat.OnpChatAutoMsgAutoCompleteUpdated()
+            ]]
         end
         -- =====================================================================================================================
     end
