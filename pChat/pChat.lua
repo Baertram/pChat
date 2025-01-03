@@ -510,6 +510,9 @@ OnPlayerActivated = function()
             pChat.SetDefaultTab(db.defaultTab)
             pChat.MinimizeChatAtLaunch()
 
+            --Add the auto completion at the chat editbox (via LibSlashCommander or without) for the /msg automated messages
+            pChat.InitAutomatedMessagesAutoCompletion()
+
             pChatData.isAddonInitialized = true
 
             EM:UnregisterForEvent(ADDON_NAME, EVENT_PLAYER_ACTIVATED)

@@ -352,8 +352,9 @@ function pChat.InitializeAutomatedMessages()
         CleanAutomatedMessageListForDB()
 
         pChatData.automatedMessagesList.keybindStripDescriptor = pChatData.autoMsgDescriptor
+    end
 
-
+    function pChat.InitAutomatedMessagesAutoCompletion()
         -- =====================================================================================================================
         -- 20250103 Auto completion at chat editbox - Including pChat's /msg custom ! prefixed "slash commands"
         -- =====================================================================================================================
@@ -544,7 +545,12 @@ function pChat.InitializeAutomatedMessages()
                 end,
             })
             pChat_LSC_AutoMessageCommand:SetAutoComplete(pChatAutoMsgAutoComplete:New(resultsList, lookupList))
+
+
+
         else
+
+
 
             local pChatAutoMsgAutoComplete = ZO_AutoComplete:Subclass()
 
@@ -563,7 +569,7 @@ function pChat.InitializeAutomatedMessages()
                 self:SetKeepFocusOnCommit(true)
 
                 local function OnAutoCompleteEntrySelected(name, selectionMethod)
-                    editControl:SetText(name)
+                    StartChatInput(name)
                 end
 
                 self:RegisterCallback(ZO_AutoComplete.ON_ENTRY_SELECTED, OnAutoCompleteEntrySelected)
