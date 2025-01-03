@@ -290,7 +290,7 @@ SafeAddString(PCHAT_TIMESTAMPCOLORISLCOL							, "Zeitstempel und Namen gleich f
 SafeAddString(PCHAT_TIMESTAMPCOLORISLCOLTT						, "Für den Zeitstempel gilt die gleiche Farbeinstellung wie für den Spielernamen, oder Nicht-Spieler-Charakter (NSC / NPC)", 1)
 
 SafeAddString(PCHAT_TIMESTAMPFORMAT									, "Zeitstempelformat", 1)
-SafeAddString(PCHAT_TIMESTAMPFORMATTT								, "FORMAT:\nHH: Stunden (24)\nhh: Stunden (12)\nH: Stunde (24, keine vorangestellte 0)\nh: Stunde (12, keine vorangestellte 0)\nA: AM/PM\na: am/pm\nm: Minuten\ns: Sekunden\nms: Millisekunden", 1)
+SafeAddString(PCHAT_TIMESTAMPFORMATTT								, "FORMAT:\nHH: Stunden (24)\nhh: Stunden (12)\nH: Stunde (24, keine vorangestellte 0)\nh: Stunde (12, keine vorangestellte 0)\nA: AM/PM\na: am/pm\nm: Minuten\ns: Sekunden\nxy: Millisekunden", 1)
 
 SafeAddString(PCHAT_TIMESTAMP											, "Zeitstempel", 1)
 SafeAddString(PCHAT_TIMESTAMPTT										, "Legt die Farbe des Zeitstempels fest.", 1)

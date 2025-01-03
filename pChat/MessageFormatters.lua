@@ -14,6 +14,10 @@ local chatChannelLangToLangStr = CONSTANTS.chatChannelLangToLangStr
 
 local isDiceRollSystemMessage = pChat.IsDiceRollSystemMessage
 
+local pChat_CreateTimestamp = pChat.CreateTimestamp
+local pChat_getCurrentMillisecondsFormatted = pChat.getCurrentMillisecondsFormatted
+
+
 function pChat.InitializeMessageFormatters()
     local pChatData = pChat.pChatData
     local db = pChat.db
@@ -780,6 +784,12 @@ function pChat.InitializeMessageFormatters()
     -- Executed when EVENT_CHAT_MESSAGE_CHANNEL triggers
     -- Formats the message
     local function FormatMessage(chanCode, from, text, isCS, fromDisplayName, originalFrom, originalText, DDSBeforeAll, TextBeforeAll, DDSBeforeSender, TextBeforeSender, TextAfterSender, DDSAfterSender, DDSBeforeText, TextBeforeText, TextAfterText, DDSAfterText)
+        local showTimestamp = db.showTimestamp
+        local milliseconds
+        if showTimestamp then
+            milliseconds = pChat_getCurrentMillisecondsFormatted()
+        end
+
         logger.verbose:Debug(strfor("FormatMessage-Line#: %s, channel %s: %s(%s/%s) %s (orig: %s)", tos(db.lineNumber), tos(chanCode), tos(originalFrom), tos(fromDisplayName), tos(from), tos(text), tos(originalText)))
         local notHandled = false
 
@@ -865,7 +875,7 @@ function pChat.InitializeMessageFormatters()
         local lcol, rcol = pChat.GetChannelColors(chanCode, from)
 
         -- Add timestamp
-        if db.showTimestamp then
+        if showTimestamp then
 
             -- Initialise timstamp color
             local timecol = db.colours.timestamp
@@ -880,7 +890,7 @@ function pChat.InitializeMessageFormatters()
 
             -- Message is timestamp for now
             -- Add PCHAT_HANDLER for display
-            local timeStampData = pChat.CreateTimestamp(GetTimeString())
+            local timeStampData = pChat_CreateTimestamp(GetTimeString(), nil, milliseconds)
             local timestamp = ZO_LinkHandler_CreateLink(timeStampData, nil, CONSTANTS.PCHAT_LINK, db.lineNumber .. ":" .. chanCode) .. " "
 
             logger:Debug(">showTimestamp:", strfor("timecol: %s, timestamp: %s", tos(timecol), tos(timestamp)))
@@ -1127,7 +1137,8 @@ function pChat.InitializeMessageFormatters()
 
         if not notHandled then
             -- Store message and params into an array for copy system and SpamFiltering
-            pChat.StorelineNumber(GetTimeStamp(), db.LineStrings[db.lineNumber].rawFrom, text, chanCode, originalFrom)
+                                --rawTimestamp, rawFrom, text, chanCode, originalFrom, wasTimeStampAdded
+            pChat.StorelineNumber(GetTimeStamp(), db.LineStrings[db.lineNumber].rawFrom, text, chanCode, originalFrom, false)
         end
 
         -- Needs to be after .storelineNumber()
@@ -1143,6 +1154,11 @@ function pChat.InitializeMessageFormatters()
 
     local function FormatSysMessage(statusMessage)
 --d("[pChat]FormatSysMessage: " ..tos(statusMessage))
+        local showTimestamp = db.showTimestamp
+        local milliseconds
+        if showTimestamp then
+            milliseconds = pChat_getCurrentMillisecondsFormatted()
+        end
         logger.verbose:Debug("FormatSysMessage:", statusMessage)
 
         -- Display Timestamp if needed
@@ -1151,10 +1167,10 @@ function pChat.InitializeMessageFormatters()
             local timestamp = ""
 
             -- Add timestamp
-            if db.showTimestamp then
+            if showTimestamp then
 
                 -- Timestamp formatted
-                timestamp = pChat.CreateTimestamp(GetTimeString())
+                timestamp = pChat_CreateTimestamp(GetTimeString(), nil, milliseconds)
 
                 local timecol
                 -- Timestamp color is chanCode so no coloring
@@ -1225,7 +1241,8 @@ function pChat.InitializeMessageFormatters()
                     if not db.LineStrings[db.lineNumber].rawDisplayed then db.LineStrings[db.lineNumber].rawDisplayed = sysMessage end
 
                     -- No From, rawTimestamp is in statusMessage, sent as arg for SpamFiltering even if SysMessages are not filtered
-                    pChat.StorelineNumber(GetTimeStamp(), nil, statusMessage, CHAT_CHANNEL_SYSTEM, nil, db.showTimestamp)
+                                        --rawTimestamp, rawFrom, text, chanCode, originalFrom, wasTimeStampAdded
+                    pChat.StorelineNumber(GetTimeStamp(), nil, statusMessage, CHAT_CHANNEL_SYSTEM, nil, showTimestamp)
 
                 end
 

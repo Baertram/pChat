@@ -6,6 +6,8 @@ local ChatSys = CONSTANTS.CHAT_SYSTEM
 local mapChatChannelToPChatChannel  = pChat.mapChatChannelToPChatChannel
 local mapPChatChannelToChatChannel  = pChat.mapPChatChannelToChatChannel
 local SetToChatChannelAndTarget     = pChat.SetToChatChannelAndTarget
+local pChat_CreateTimestamp = pChat.CreateTimestamp
+local pChat_getCurrentMillisecondsFormatted = pChat.getCurrentMillisecondsFormatted
 
 local currentlyLoggedInAccountName = GetDisplayName()
 
@@ -388,6 +390,11 @@ function pChat.InitializeChatHistory()
     -- Create an array for the copy functions, spam functions and revert history functions
     -- WARNING : See FormatSysMessage()
     local function StorelineNumber(rawTimestamp, rawFrom, text, chanCode, originalFrom, wasTimeStampAdded)
+        local showTimestamp = db.showTimestamp
+        local milliseconds
+        if showTimestamp then
+            milliseconds = pChat_getCurrentMillisecondsFormatted()
+        end
         logger.verbose:Debug(string.format("StoreLineNumber-Channel %s: [%s]%s(%s) %s", tostring(chanCode), tostring(rawTimestamp), tostring(originalFrom), tostring(rawFrom), tostring(text)))
         wasTimeStampAdded = wasTimeStampAdded or false
 
@@ -400,9 +407,10 @@ function pChat.InitializeChatHistory()
         local rawText = text
 
         -- Timestamp cannot be nil anymore with SpamFilter, so use the option itself
-        if not wasTimeStampAdded and db.showTimestamp then
+        --> wasTimeStampAdded can be true if system mesasge was adding a timestamp earlyier already
+        if not wasTimeStampAdded and showTimestamp then
             -- Format for Copy
-            formattedMessage = "[" .. pChat.CreateTimestamp(GetTimeString()) .. "] "
+            formattedMessage = "[" .. pChat_CreateTimestamp(GetTimeString(), nil, milliseconds) .. "] "
         end
 
         -- SysMessages does not have a from

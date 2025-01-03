@@ -243,7 +243,7 @@ SafeAddString(PCHAT_TIMESTAMPCOLORISLCOL							, "Même couleur que le nom du jo
 SafeAddString(PCHAT_TIMESTAMPCOLORISLCOLTT						, "Ignore la couleur de l'horodatage et colorie celui-ci de la même couleur que le nom du joueur / NPC", 1)
 
 SafeAddString(PCHAT_TIMESTAMPFORMAT									, "Format de l'horodatage", 1)
-SafeAddString(PCHAT_TIMESTAMPFORMATTT								, "FORMAT:\nHH: 24h\nhh: 12h\nH: 24h, sans les zéros initiaux\nh: 12h, sans les zéros initiaux\nA: AM/PM\na: am/pm\nm: minutes\ns: secondes\nms: millisecondes", 1)
+SafeAddString(PCHAT_TIMESTAMPFORMATTT								, "FORMAT:\nHH: 24h\nhh: 12h\nH: 24h, sans les zéros initiaux\nh: 12h, sans les zéros initiaux\nA: AM/PM\na: am/pm\nm: minutes\ns: secondes\nxy: millisecondes", 1)
 
 SafeAddString(PCHAT_TIMESTAMP											, "Horodatage", 1)
 SafeAddString(PCHAT_TIMESTAMPTT										, "Définir les couleurs pour l'horodatage", 1)

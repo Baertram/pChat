@@ -178,9 +178,24 @@ do
     pChat_GetChannelColors = GetChannelColors
 
 
-    -- Return a formatted time
-    local function CreateTimestamp(timeStr, formatStr)
-        formatStr = formatStr or pChat.db.timestampFormat
+    local function getCurrentMillisecondsFormatted()
+        -- Get milliseconds from game time
+        local currentTimeMs = GetGameTimeMilliseconds()
+        --todo 20250103 Any benefit by using local milliseconds = string.format here, over milliseconds = FormatTimeMilliseconds?
+        --local milliseconds = string.format("%03d", currentTimeMs % 1000)
+        return FormatTimeMilliseconds(currentTimeMs, TIME_FORMAT_STYLE_COLONS, TIME_FORMAT_PRECISION_MILLISECONDS_NO_HOURS_OR_DAYS, TIME_FORMAT_DIRECTION_NONE)
+    end
+    pChat.getCurrentMillisecondsFormatted = getCurrentMillisecondsFormatted
+
+   -- Return a formatted time
+    local function CreateTimestamp(timeStr, formatStr, milliseconds)
+        local db = pChat.db
+        local showTimestamp = db.showTimestamp
+        if showTimestamp then
+            milliseconds = milliseconds or getCurrentMillisecondsFormatted()
+        end
+        if milliseconds == nil then milliseconds = "" end
+        formatStr = formatStr or db.timestampFormat
 
         -- split up default timestamp
         local hours, minutes, seconds = zo_strmatch(timeStr, "([^%:]+):([^%:]+):([^%:]+)")
@@ -199,11 +214,6 @@ do
             pLow = "pm"
         end
 
-        -- Get milliseconds from game time
-        local currentTimeMs = GetGameTimeMilliseconds()
-        --local milliseconds = string.format("%03d", currentTimeMs % 1000)
-        local milliseconds = FormatTimeMilliseconds(currentTimeMs, TIME_FORMAT_STYLE_COLONS, TIME_FORMAT_PRECISION_MILLISECONDS_NO_HOURS_OR_DAYS, TIME_FORMAT_DIRECTION_NONE)
-
         -- create new one
         -->If you add new formats make sure to update the tooltip at PCHAT_TIMESTAMPFORMATTT too
         local timestamp = formatStr
@@ -215,7 +225,7 @@ do
         timestamp = zo_strgsub(timestamp, "s", seconds)
         timestamp = zo_strgsub(timestamp, "A", pUp)
         timestamp = zo_strgsub(timestamp, "a", pLow)
-        timestamp = zo_strgsub(timestamp, "ms", milliseconds)
+        timestamp = zo_strgsub(timestamp, "xy", milliseconds)
         return timestamp
     end
     pChat.CreateTimestamp = CreateTimestamp

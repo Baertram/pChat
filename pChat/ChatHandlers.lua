@@ -3,6 +3,10 @@ local ADDON_NAME = CONSTANTS.ADDON_NAME
 
 local maxChatCharCount = CONSTANTS.maxChatCharCount
 
+local pChat_CreateTimestamp = pChat.CreateTimestamp
+local pChat_getCurrentMillisecondsFormatted = pChat.getCurrentMillisecondsFormatted
+
+
 local CM = CALLBACK_MANAGER
 
 local function CreateChannelLink(channelInfo, overrideName)
@@ -158,6 +162,12 @@ function pChat.InitializeChatHandlers()
     -- Listens for EVENT_CHAT_MESSAGE_CHANNEL event from ZO_ChatSystem
     --Parameter: (number eventCode, MsgChannelType channelType, string fromName, string text, boolean isCustomerService, string fromDisplayName)
     local function pChatChatHandlersMessageChannelReceiver(channelID, from, text, isCustomerService, fromDisplayName)
+        local showTimestamp = db.showTimestamp
+        local milliseconds
+        if showTimestamp then
+            milliseconds = pChat_getCurrentMillisecondsFormatted()
+        end
+
         logger:Verbose("MessageChannelReceiver-channelID: %s, from: %s, text: %s, isCustomerService: %s, fromDisplayName: %s", tostring(channelID), tostring(from), tostring(text), tostring(isCustomerService), tostring(fromDisplayName))
         local message
         local DDSBeforeAll = ""
@@ -188,7 +198,7 @@ function pChat.InitializeChatHandlers()
 
         --12/22/21 @Coorbin - CharCount handler
         if (db.useCharCount == true or db.charCountZonePostTracker == true) and fromClean == pChat.pChatData.localPlayer and channelID == CHAT_CHANNEL_ZONE then
-            pChat.charCount.postedstr =  " Z@" .. pChat.CreateTimestamp(GetTimeString())
+            pChat.charCount.postedstr =  " Z@" .. pChat_CreateTimestamp(GetTimeString(), nil, milliseconds)
             pChat.charCount.updateLabelText()
         end
 

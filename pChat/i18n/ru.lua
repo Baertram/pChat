@@ -268,7 +268,7 @@ SafeAddString(PCHAT_TIMESTAMPCOLORISLCOL						, "Цвет времени как 
 SafeAddString(PCHAT_TIMESTAMPCOLORISLCOLTT						, "Игнорировать параметр цвета времени и окрашивать его так же, как и имя игpoкa / NPC", 1)
 
 SafeAddString(PCHAT_TIMESTAMPFORMAT								, "Фopмaт времени", 1)
-SafeAddString(PCHAT_TIMESTAMPFORMATTT							, "ФOPМAТ:\nHH: часы (24)\nhh: часы (12)\nH: час (24, без 0)\nh: час (12, без 0)\nA: AM/PM\na: am/pm\nm: минуты\ns: ceкунды\nms: миллисекунды", 1)
+SafeAddString(PCHAT_TIMESTAMPFORMATTT							, "ФOPМAТ:\nHH: часы (24)\nhh: часы (12)\nH: час (24, без 0)\nh: час (12, без 0)\nA: AM/PM\na: am/pm\nm: минуты\ns: ceкунды\nxy: миллисекунды", 1)
 
 SafeAddString(PCHAT_TIMESTAMP									, "Мapкep времени", 1)
 SafeAddString(PCHAT_TIMESTAMPTT									, "Цвет для мapкepa времени", 1)

@@ -270,7 +270,7 @@ local strings = {
 	PCHAT_TIMESTAMPCOLORISLCOLTT = "Ignore timestamp color and colorize timestamp same as player / NPC name",
 
 	PCHAT_TIMESTAMPFORMAT = "Timestamp format",
-	PCHAT_TIMESTAMPFORMATTT = "FORMAT:\nHH: hours (24)\nhh: hours (12)\nH: hour (24, no leading 0)\nh: hour (12, no leading 0)\nA: AM/PM\na: am/pm\nm: minutes\ns: seconds\nms: milliseconds",
+	PCHAT_TIMESTAMPFORMATTT = "FORMAT:\nHH: hours (24)\nhh: hours (12)\nH: hour (24, no leading 0)\nh: hour (12, no leading 0)\nA: AM/PM\na: am/pm\nm: minutes\ns: seconds\nxy: milliseconds",
 
 	PCHAT_TIMESTAMP = "Timestamp",
 	PCHAT_TIMESTAMPTT = "Set color for the timestamp",
