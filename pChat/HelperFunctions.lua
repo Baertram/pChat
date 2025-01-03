@@ -1,6 +1,7 @@
 local CONSTANTS = pChat.CONSTANTS
 local apiVersion = CONSTANTS.API_VERSION
 
+local strformat = string.format
 local chatChannelLangToLangStr = CONSTANTS.chatChannelLangToLangStr
 
 do
@@ -56,7 +57,7 @@ do
 
     -- Turn a ([0,1])^3 RGB colour to "|cABCDEF" form. We could use ZO_ColorDef, but we have so many colors so we don't do it.
     local function ConvertRGBToHex(r, g, b)
-        return string.format("|c%.2x%.2x%.2x", zo_floor(r * 255), zo_floor(g * 255), zo_floor(b * 255))
+        return strformat("|c%.2x%.2x%.2x", zo_floor(r * 255), zo_floor(g * 255), zo_floor(b * 255))
     end
 
     -- Convert a colour from "|cABCDEF" form to [0,1] RGB form.
@@ -181,9 +182,10 @@ do
     local function getCurrentMillisecondsFormatted()
         -- Get milliseconds from game time
         local currentTimeMs = GetGameTimeMilliseconds()
-        --todo 20250103 Any benefit by using local milliseconds = string.format here, over milliseconds = FormatTimeMilliseconds?
-        --local milliseconds = string.format("%03d", currentTimeMs % 1000)
-        return FormatTimeMilliseconds(currentTimeMs, TIME_FORMAT_STYLE_COLONS, TIME_FORMAT_PRECISION_MILLISECONDS_NO_HOURS_OR_DAYS, TIME_FORMAT_DIRECTION_NONE)
+        if currentTimeMs == nil then return end
+        return strformat("%03d", currentTimeMs % 1000)
+        --this below is localized and adds bulshit to de client: .575 m 65 s 875 ms
+        --return FormatTimeMilliseconds(GetGameTimeMilliseconds(), TIME_FORMAT_STYLE_COLONS, TIME_FORMAT_PRECISION_MILLISECONDS_NO_HOURS_OR_DAYS, TIME_FORMAT_DIRECTION_NONE)
     end
     pChat.getCurrentMillisecondsFormatted = getCurrentMillisecondsFormatted
 
@@ -267,10 +269,10 @@ do
         for switchArg in switchesToAdd:gmatch("%S+") do
             switchArg = switchArg:lower()
             if isBuiltIn[switchArg] then
-                local message = string.format(GetString(PCHAT_BUILT_IN_CHANNEL_SWITCH_WARNING), switchArg)
+                local message = strformat(GetString(PCHAT_BUILT_IN_CHANNEL_SWITCH_WARNING), switchArg)
                 ZO_Alert(UI_ALERT_CATEGORY_ERROR, SOUNDS.NEGATIVE_CLICK, message)
             elseif g_switchLookup[switchArg] then
-                local message = string.format(GetString(PCHAT_DUPLICATE_CHANNEL_SWITCH_WARNING), switchArg)
+                local message = strformat(GetString(PCHAT_DUPLICATE_CHANNEL_SWITCH_WARNING), switchArg)
                 ZO_Alert(UI_ALERT_CATEGORY_ERROR, SOUNDS.NEGATIVE_CLICK, message)
             else
                 switches[#switches + 1] = switchArg
