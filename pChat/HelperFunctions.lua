@@ -183,7 +183,7 @@ do
         formatStr = formatStr or pChat.db.timestampFormat
 
         -- split up default timestamp
-        local hours, minutes, seconds = timeStr:match("([^%:]+):([^%:]+):([^%:]+)")
+        local hours, minutes, seconds = zo_strmatch(timeStr, "([^%:]+):([^%:]+):([^%:]+)")
         local hoursNoLead = tonumber(hours) -- hours without leading zero
         local hours12NoLead = (hoursNoLead - 1)%12 + 1
         local hours12
@@ -199,17 +199,23 @@ do
             pLow = "pm"
         end
 
+        -- Get milliseconds from game time
+        local currentTimeMs = GetGameTimeMilliseconds()
+        --local milliseconds = string.format("%03d", currentTimeMs % 1000)
+        local milliseconds = FormatTimeMilliseconds(currentTimeMs, TIME_FORMAT_STYLE_COLONS, TIME_FORMAT_PRECISION_MILLISECONDS_NO_HOURS_OR_DAYS, TIME_FORMAT_DIRECTION_NONE)
+
         -- create new one
         -->If you add new formats make sure to update the tooltip at PCHAT_TIMESTAMPFORMATTT too
         local timestamp = formatStr
-        timestamp = timestamp:gsub("HH", hours)
-        timestamp = timestamp:gsub("H", hoursNoLead)
-        timestamp = timestamp:gsub("hh", hours12)
-        timestamp = timestamp:gsub("h", hours12NoLead)
-        timestamp = timestamp:gsub("m", minutes)
-        timestamp = timestamp:gsub("s", seconds)
-        timestamp = timestamp:gsub("A", pUp)
-        timestamp = timestamp:gsub("a", pLow)
+        timestamp = zo_strgsub(timestamp, "HH", hours)
+        timestamp = zo_strgsub(timestamp, "H", hoursNoLead)
+        timestamp = zo_strgsub(timestamp, "hh", hours12)
+        timestamp = zo_strgsub(timestamp, "h", hours12NoLead)
+        timestamp = zo_strgsub(timestamp, "m", minutes)
+        timestamp = zo_strgsub(timestamp, "s", seconds)
+        timestamp = zo_strgsub(timestamp, "A", pUp)
+        timestamp = zo_strgsub(timestamp, "a", pLow)
+        timestamp = zo_strgsub(timestamp, "ms", milliseconds)
         return timestamp
     end
     pChat.CreateTimestamp = CreateTimestamp
