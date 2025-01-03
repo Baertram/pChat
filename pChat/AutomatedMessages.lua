@@ -204,6 +204,8 @@ function pChat.InitializeAutomatedMessages()
 
                 ZO_ScrollList_Commit(pChatData.automatedMessagesList.list)
 
+                pChat.OnpChatAutoMsgAutoCompleteUpdated()
+
             else
                 pChatXMLAutoMsg:GetNamedChild("Warning"):SetHidden(false)
                 pChatXMLAutoMsg:GetNamedChild("Warning"):SetText(GetString(PCHAT_SAVMSGERRALREADYEXISTS))
@@ -232,6 +234,7 @@ function pChat.InitializeAutomatedMessages()
         pChatData.automatedMessagesList:RefreshData()
         CleanAutomatedMessageListForDB()
 
+        pChat.OnpChatAutoMsgAutoCompleteUpdated()
     end
 
 
@@ -266,13 +269,13 @@ function pChat.InitializeAutomatedMessages()
 
         -- Its infos
         PCHAT_MAIN_MENU_CATEGORY_DATA =
-            {
-                binding = "PCHAT_SHOW_AUTO_MSG",
-                categoryName = PCHAT_SHOW_AUTO_MSG,
-                normal = "EsoUI/Art/MainMenu/menuBar_champion_up.dds",
-                pressed = "EsoUI/Art/MainMenu/menuBar_champion_down.dds",
-                highlight = "EsoUI/Art/MainMenu/menuBar_champion_over.dds",
-            }
+        {
+            binding = "PCHAT_SHOW_AUTO_MSG",
+            categoryName = PCHAT_SHOW_AUTO_MSG,
+            normal = "EsoUI/Art/MainMenu/menuBar_champion_up.dds",
+            pressed = "EsoUI/Art/MainMenu/menuBar_champion_down.dds",
+            highlight = "EsoUI/Art/MainMenu/menuBar_champion_over.dds",
+        }
 
         MENU_CATEGORY_PCHAT = LibMainMenu2:AddCategory(PCHAT_MAIN_MENU_CATEGORY_DATA)
 
@@ -350,6 +353,267 @@ function pChat.InitializeAutomatedMessages()
 
         pChatData.automatedMessagesList.keybindStripDescriptor = pChatData.autoMsgDescriptor
 
+
+        -- =====================================================================================================================
+        -- 20250103 Auto completion at chat editbox - Including pChat's /msg custom ! prefixed "slash commands"
+        -- =====================================================================================================================
+        --[[
+            sharedchatsystem.lua
+            self.textEntry = TextEntry:New(self, control:GetNamedChild("TextEntry"), platformSettings.chatEditBufferTop, platformSettings.chatEditBufferBottom)
+            -> self = SharedChatSystem -> ZO_ChatSystem -> object = KEYBOARD_CHAT_SYSTEM
+
+
+            local NO_INCLUDE_FLAGS = nil
+            local NO_EXCLUDE_FLAGS = nil
+            local DEFAULT_ONLINE_ONLY = nil
+            local MAX_RESULTS = 8
+            self.slashCommandAutoComplete = SlashCommandAutoComplete:New(self.editControl, NO_INCLUDE_FLAGS, NO_EXCLUDE_FLAGS, DEFAULT_ONLINE_ONLY, MAX_RESULTS, AUTO_COMPLETION_AUTOMATIC_MODE, AUTO_COMPLETION_DONT_USE_ARROWS)
+            -> self = KEYBOARD_CHAT_SYSTEM.textEntry
+
+            Add another auto completion for entries in pChat's /msg table
+        ]]
+        local MAX_AUTO_COMPLETION_RESULTS = 10
+
+        local function pChat_AutomatedMessages_GetAutoCompletionResults(selfVar, text)
+            --d("[pChat]pChatAutoMsgAutoComplete:GetAutoCompletionResults - text: " ..tostring(text))
+            if #text < 2 then
+                return
+            end
+            local startChar = text:sub(1, 1)
+            if startChar ~= "!" then
+                return
+            end
+            if text:find(" ", 1, true) then
+                return
+            end
+
+            if next(selfVar.possibleMatches) == nil then
+                for _, commandData in ipairs(pChat.db.automatedMessages) do
+                    local command = commandData.name
+                    if #command > 0 then
+                        selfVar.possibleMatches[command:lower()] = command
+                    end
+                end
+            end
+
+            local results = GetTopMatchesByLevenshteinSubStringScore(selfVar.possibleMatches, text, 2, selfVar.maxResults)
+            if results then
+                return unpack(results)
+            end
+            return nil
+        end
+
+
+
+        local LSC = LibSlashCommander
+        if LSC then
+            --Currently only activates with the / slash command as prefix :(
+            local pChat_LSC_AutoMessageCommand
+
+            local commandsAutoCompleteProvidersList = {}
+
+            local resultsList = {}
+            local lookupList = {}
+
+            local function AddCommand(results, lookup, alias, description)
+                local label = LSC:GenerateLabel(alias, description)
+                if(label ~= alias) then
+                    lookup[label] = alias
+                end
+                results[zo_strlower(alias)] = label
+            end
+
+            local function getCachedResultsList()
+                if pChat.updateAutoMessageResultsList or ZO_IsTableEmpty(resultsList) then
+                    resultsList = {}
+                    lookupList = {}
+
+                    for _, commandData in ipairs(pChat.db.automatedMessages) do
+                        AddCommand(resultsList, lookupList, commandData.name, commandData.message)
+                    end
+
+                    if not ZO_IsTableEmpty(commandsAutoCompleteProvidersList) then
+                        for _, autoCompleteProvider in ipairs(commandsAutoCompleteProvidersList) do
+                            if autoCompleteProvider ~= nil then
+                                autoCompleteProvider:SetLists(resultsList, lookupList)
+                            end
+                        end
+                    end
+
+                    pChat.updateAutoMessageResultsList = nil
+                end
+            end
+            getCachedResultsList()
+
+
+
+            local pChatAutoMsgAutoComplete = LSC.AutoCompleteProvider:Subclass()
+            function pChatAutoMsgAutoComplete:New(myResultsList, myLookupList)
+                local autoCompleteProviderObject = LSC.AutoCompleteProvider.New(self)
+                autoCompleteProviderObject:SetLists(myResultsList, myLookupList)
+                autoCompleteProviderObject:SetPrefix("!")
+                return autoCompleteProviderObject
+            end
+
+            function pChatAutoMsgAutoComplete:SetLists(myResultsList, myLookupList)
+                self.resultsList = myResultsList
+                self.lookupList = myLookupList
+            end
+
+            function pChatAutoMsgAutoComplete:GetResultList()
+--d("[pChat]pChatAutoMsgAutoComplete - GetResultList")
+                return self.resultsList
+            end
+
+            function pChatAutoMsgAutoComplete:GetResultFromLabel(label)
+--d("[pChat]pChatAutoMsgAutoComplete - GetResultFromLabel - label: " .. tostring(label))
+                return self.lookupList[label] or label
+            end
+
+            function pChatAutoMsgAutoComplete:CanComplete(token)
+                local prefix = self.prefix
+                local retVar = not prefix or (token:sub(1, #prefix) == prefix)
+--d("[pChat]pChatAutoMsgAutoComplete - CanComplete - token: " .. tostring(token) .. ", retVar: " ..tostring(retVar))
+                return retVar
+            end
+
+
+
+            local function OnpChatAutoMsgAutoCompleteUpdated()
+                pChat.updateAutoMessageResultsList = true
+                getCachedResultsList()
+            end
+            pChat.OnpChatAutoMsgAutoCompleteUpdated = OnpChatAutoMsgAutoCompleteUpdated
+
+
+            local function Sanitize(value)
+                return value:gsub("[-*+?^$().[%]%%]", "%%%0") -- escape meta characters
+            end
+
+            local function RunAutoCompletion(selfVar, command, text)
+--d("[pChat]RunAutoCompletion - text: " .. tostring(text))
+                selfVar.ignoreTextEntryChangedEvent = true
+                LSC.currentCommand = command --Leave this in so GetAutoCompletionResults works properly!
+                selfVar.textEntry:AutoCompleteTarget(text) --> Calls LSC's GetAutoCompletionResults function via wrapper of selfVar.targetAutoComplete.GetAutoCompletionResults
+                selfVar.ignoreTextEntryChangedEvent = false
+            end
+
+            local function OnTextEntryChanged(selfVar, text)
+--d("[pChat]OnTextEntryChanged - text: " .. tostring(text))
+                if(selfVar.ignoreTextEntryChangedEvent or not pChat_LSC_AutoMessageCommand:ShouldAutoComplete(text)) then return end
+                LSC.currentCommand = nil
+
+                local command, token = LSC.GetCurrentCommandAndToken(pChat_LSC_AutoMessageCommand, text)
+                if(not command or not LSC.IsCommand(command)) then return end
+
+                LSC.lastInput = text:match(string.format("(.+)%%s+%s$", Sanitize(token)))
+                if(command:ShouldAutoComplete(token)) then
+                    RunAutoCompletion(selfVar, command, token)
+                    return true
+                end
+            end
+            ZO_PreHook(CHAT_SYSTEM, "OnTextEntryChanged", OnTextEntryChanged)
+
+            local function OnAutoCompleteEntrySelected(self, text)
+                local command = LSC.hasCustomResults
+                if(command and command == pChat_LSC_AutoMessageCommand)  then
+--d("[pChat]OnAutoCompleteEntrySelected - text: " .. tostring(text))
+                    text = command:GetAutoCompleteResultFromDisplayText(text)
+                    if(LSC.lastInput) then
+                        text = string.format("%s %s", LSC.lastInput, text)
+                        LSC.lastInput = nil
+                    else
+                        text = string.format("%s", text)
+                    end
+                    --Remove trailing spaces
+                    --text = string.gsub(text, '[ \t]+%f[\r\n%z]', '')
+
+                    StartChatInput(text)
+                    return true
+                end
+            end
+            ZO_PreHook(CHAT_SYSTEM, "OnAutoCompleteEntrySelected", OnAutoCompleteEntrySelected)
+
+            pChat_LSC_AutoMessageCommand = LSC.Command:New()
+            --pChat_LSC_AutoMessageCommand.subCommandAliases = resultsList
+            pChat_LSC_AutoMessageCommand.subCommandAliases = setmetatable({}, {
+                __index = function(_, key)
+                    key = zo_strlower(key)
+                    -- use the globals on the off chance an addon replaces them
+                    return resultsList[key]
+                end,
+            })
+            pChat_LSC_AutoMessageCommand:SetAutoComplete(pChatAutoMsgAutoComplete:New(resultsList, lookupList))
+        else
+
+            local pChatAutoMsgAutoComplete = ZO_AutoComplete:Subclass()
+
+            function pChatAutoMsgAutoComplete:New(...)
+                return ZO_AutoComplete.New(self, ...)
+            end
+
+            function pChatAutoMsgAutoComplete:Initialize(editControl, ...)
+                ZO_AutoComplete.Initialize(self, editControl, ...)
+
+                self.possibleMatches = {}
+
+                self:SetUseCallbacks(true)
+                self:SetAnchorStyle(AUTO_COMPLETION_ANCHOR_BOTTOM)
+                self:SetOwner(pChat.db.automatedMessages)
+                self:SetKeepFocusOnCommit(true)
+
+                local function OnAutoCompleteEntrySelected(name, selectionMethod)
+                    editControl:SetText(name)
+                end
+
+                self:RegisterCallback(ZO_AutoComplete.ON_ENTRY_SELECTED, OnAutoCompleteEntrySelected)
+
+                local selfVar = self
+                ZO_PreHook("ZO_ChatTextEntry_PreviousCommand", function(...)
+                    if not IsShiftKeyDown() and selfVar:IsOpen() then
+                        local index = selfVar:GetAutoCompleteIndex()
+                        if not index or index > 1 then
+                            selfVar:ChangeAutoCompleteIndex(-1)
+                            return true
+                        end
+                    end
+                end)
+
+                ZO_PreHook("ZO_ChatTextEntry_NextCommand", function(...)
+                    if not IsShiftKeyDown() and selfVar:IsOpen() then
+                        local index = selfVar:GetAutoCompleteIndex()
+                        if not index or index < selfVar:GetNumAutoCompleteEntries() then
+                            selfVar:ChangeAutoCompleteIndex(1)
+                            return true --Handled
+                        end
+                    end
+                end)
+
+                local function OnpChatAutoMsgAutoCompleteUpdated()
+                    selfVar:InvalidateAutoMesageCommandCache()
+                end
+                pChat.OnpChatAutoMsgAutoCompleteUpdated = OnpChatAutoMsgAutoCompleteUpdated
+            end
+
+            function pChatAutoMsgAutoComplete:InvalidateAutoMesageCommandCache()
+                self.possibleMatches = {}
+            end
+
+            function pChatAutoMsgAutoComplete:GetAutoCompletionResults(text)
+                return pChat_AutomatedMessages_GetAutoCompletionResults(self, text)
+            end
+
+            -- The pChat autocomplete object handles completions for things like ! prefixed /msg short texts
+            local NO_INCLUDE_FLAGS = nil
+            local NO_EXCLUDE_FLAGS = nil
+            local DEFAULT_ONLINE_ONLY = nil
+
+            local chatTextEntry = KEYBOARD_CHAT_SYSTEM.textEntry
+            chatTextEntry.pChatMsgAutoComplete = pChatAutoMsgAutoComplete:New(chatTextEntry.editControl, NO_INCLUDE_FLAGS, NO_EXCLUDE_FLAGS, DEFAULT_ONLINE_ONLY, MAX_AUTO_COMPLETION_RESULTS, AUTO_COMPLETION_AUTOMATIC_MODE, nil)
+
+            pChat.OnpChatAutoMsgAutoCompleteUpdated()
+        end
+        -- =====================================================================================================================
     end
 
     -- Called by XML

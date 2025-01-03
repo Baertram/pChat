@@ -12,7 +12,7 @@
 ## Version: 10.0.6.0
 ## AddOnVersion: 10006000
 ## SavedVariables: PCHAT_OPTS
-## DependsOn: LibAddonMenu-2.0>=37 LibAddonMenuSoundSlider>=5 LibCustomMenu>=722 LibDebugLogger>=263 LibMainMenu-2.0>=40400 LibMediaProvider-1.0>=32
+## DependsOn: LibAddonMenu-2.0>=37 LibAddonMenuSoundSlider>=5 LibCustomMenu>=722 LibDebugLogger>=263 LibMainMenu-2.0>=40400 LibMediaProvider-1.0>=32 LibSlashCommander>=36
 ## OptionalDependsOn: LibCustomTitles LibChatMessage>=100
 
 Constants.lua
