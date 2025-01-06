@@ -1,8 +1,8 @@
 <GuiXml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sir.insidi.at/or/schema/esoui.xsd">
 <!-- pChat Search UI - Font definitions -->
-	<Font name="MyFontGame16" font="$(MEDIUM_FONT)|$(KB_16)|soft-shadow-thin" />
-	<Font name="MyFontGame18" font="$(BOLD_FONT)|$(KB_18)|soft-shadow-thik" />
-	<Font name="MyFontGame20" font="$(BOLD_FONT)|$(KB_20)|soft-shadow-thik" />
+	<Font name="pChatSearchUIFontGame16" font="$(MEDIUM_FONT)|$(KB_16)|soft-shadow-thin" />
+	<Font name="pChatSearchUIFontGame18" font="$(BOLD_FONT)|$(KB_18)|soft-shadow-thick" />
+	<!-- <Font name="pChatSearchUIFontGame20" font="$(BOLD_FONT)|$(KB_20)|soft-shadow-thick" /> -->
 	<Controls>
 		<!-- Virutal template for chat options checkbox -->
 		<Control name="pChat_ChatCopyOptionsFilterEntry" virtual="true">
@@ -42,7 +42,7 @@
         <!-- Virtual Sort headers -->
         <Control name="pChatSearchUISortHeader" inherits="ZO_SortHeaderBehavior" virtual="true" level="2">
             <Controls>
-                <Label name="$(parent)Name" font="MyFontGame18" color="INTERFACE_COLOR_TYPE_TEXT_COLORS:INTERFACE_TEXT_COLOR_NORMAL"  horizontalAlignment="CENTER" verticalAlignment="CENTER" wrapMode="ELLIPSIS">
+                <Label name="$(parent)Name" font="pChatSearchUIFontGame18" color="INTERFACE_COLOR_TYPE_TEXT_COLORS:INTERFACE_TEXT_COLOR_NORMAL"  horizontalAlignment="CENTER" verticalAlignment="CENTER" wrapMode="ELLIPSIS">
                     <AnchorFill />
                 </Label>
             </Controls>
@@ -58,7 +58,7 @@
 			<AnchorFill />
 		</Backdrop>
 		<!-- Virtual labels -->
-        <Label name="pChatSearchUIRowLabel" font="MyFontGame16" wrapMode="ELLIPSIS" horizontalAlignment="LEFT" verticalAlignment="TOP" maxLineCount="4" newLineIndent="3" virtual="true">
+        <Label name="pChatSearchUIRowLabel" font="pChatSearchUIFontGame16" wrapMode="ELLIPSIS" horizontalAlignment="LEFT" verticalAlignment="TOP" maxLineCount="4" newLineIndent="3" virtual="true">
 			<Dimensions y="90" />
 		</Label>
 		<!-- SCROLL_LIST_NON_UNIFORM -->

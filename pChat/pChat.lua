@@ -89,17 +89,15 @@ ZO_ChatOptions_ToggleChannel    pChat.SaveChatConfig()      Save the currently l
 --Working on:
 
 --=======================================================================================================================================
--- Changelog version: 10.0.6.0 (last version 10.0.5.9)
+-- Changelog version: 10.0.6.1 (last version 10.0.6.0)
 --=======================================================================================================================================
 --Fixed:
---Some wrong translations and missing translations
+--Search UI (copydialog) xml file fonts
 
 --Changed:
---Settings menu for colors describes better why settings are disabled and where to change it (submenus are disabled in total e.g.)
+
 
 --Added:
---Timestamps with milliseconds format. Use xy in the formatting string to activate millisenconds (thanks to Dakjaniels for the idea and code)
---Auto completion for /msg: Activate LibSlashCommander and type ! in the chat to show your defined ! messages, and their text
 
 --Added on request:
 
