@@ -239,6 +239,16 @@ function pChat.InitializeChatTabs()
             ZO_PreHook(ChatSys, "ValidateChatChannel", function(self)
                 if (db.enableChatTabChannel  == true) and (self.currentChannel ~= CHAT_CHANNEL_WHISPER) then
                     local tabIndex = self.primaryContainer.currentBuffer:GetParent().tab.index
+--d("[pChat]ChatSys:ValidateChatChannel - tabIndex: " ..tostring(tabIndex) .. ", channel: " .. tostring(self.currentChannel))
+
+                    --#27 Fix chat channel saved per tab to switch to group if not in a group
+                    if self.currentChannel == CHAT_CHANNEL_PARTY then
+                        if not IsUnitGrouped("player") then
+--d("<not grouped, aborting!")
+                            return
+                        end
+                    end
+
                     db.chatTabChannel[tabIndex] = db.chatTabChannel[tabIndex] or {}
                     db.chatTabChannel[tabIndex].channel = self.currentChannel
                     db.chatTabChannel[tabIndex].target  = self.currentTarget
@@ -264,8 +274,18 @@ function pChat.InitializeChatTabs()
 
                 if (db.enableChatTabChannel == true) then
                     local tabIndex = tab.index
-                    if db.chatTabChannel[tabIndex] then
-                        ChatSys:SetChannel(db.chatTabChannel[tabIndex].channel, db.chatTabChannel[tabIndex].target)
+---d("[pChat]ChatSys.primaryContainer:HandleTabClick - tabIndex: " ..tostring(tabIndex) .. ", channel: " .. tostring(db.chatTabChannel[tabIndex].channel))
+                    local savedTabChannelData = db.chatTabChannel[tabIndex]
+                    if savedTabChannelData then
+                        --#27 Fix chat channel saved per tab to switch to group if not in a group
+                        if savedTabChannelData.channel == CHAT_CHANNEL_PARTY then
+                            if not IsUnitGrouped("player") then
+    --d("<not grouped, aborting!")
+                                return
+                            end
+                        end
+
+                        ChatSys:SetChannel(savedTabChannelData.channel, savedTabChannelData.target)
                     end
                 end
                 --ZO_TabButton_Text_RestoreDefaultColors(tab)
