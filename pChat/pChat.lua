@@ -82,22 +82,25 @@ ZO_ChatOptions_ToggleChannel    pChat.SaveChatConfig()      Save the currently l
 
 --=======================================================================================================================================
 --Known problems/bugs:
---Last updated: 2025-01-05
+--Last updated: 2025-01-25
 --Total number: 26
 --=======================================================================================================================================
 
 --Working on:
+--Fix enableChatTabChannel to switch to group if not grouped, and to switch to guild
 
 --=======================================================================================================================================
--- Changelog version: 10.0.6.1 (last version 10.0.6.0)
+-- Changelog version: 10.0.6.2 (last version 10.0.6.1)
 --=======================================================================================================================================
 --Fixed:
---Search UI (copydialog) xml file fonts
+--
 
 --Changed:
 
 
 --Added:
+--Added API table for other addons, which contains the last checked displayName of a chat player context menu: pChat.lastCheckDisplayNameData = { displayName=guildMemberDisplayname, index=guildIndexFound, isOnline=isOnline, type = "guild" or "friend"}
+
 
 --Added on request:
 

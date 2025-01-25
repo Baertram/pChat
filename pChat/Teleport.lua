@@ -192,6 +192,11 @@ local function isPlayerInAnyOfYourGuilds(displayName, possibleDisplayNameNormal,
             if guildMemberDisplayname ~= nil then
 --d("<<[1-ABORT NOW]guildMemberDisplayname was found: " ..tos(guildMemberDisplayname))
                 resetGuildToOldData()
+
+                if guildMemberDisplayname ~= nil then
+                    pChat.lastCheckDisplayNameData = { displayName=guildMemberDisplayname, index=guildIndexFound, isOnline=isOnline, type = "guild"}
+                end
+
                 return guildMemberDisplayname, guildIndexFound, nil, isOnline
             end
 
@@ -246,6 +251,11 @@ local function isPlayerInAnyOfYourGuilds(displayName, possibleDisplayNameNormal,
                     if guildMemberDisplayname ~= nil then
 --d("<<[2- ABORT NOW]guildMemberDisplayname was found: " ..tos(guildMemberDisplayname))
                         resetGuildToOldData()
+
+                        if guildMemberDisplayname ~= nil then
+                            pChat.lastCheckDisplayNameData = { displayName=guildMemberDisplayname, index=guildIndexFound, isOnline=isOnline, type = "guild"}
+                        end
+
                         return guildMemberDisplayname, guildIndexFound, nil, isOnline
                     end
                 end
@@ -292,6 +302,11 @@ local function isPlayerInAnyOfYourGuilds(displayName, possibleDisplayNameNormal,
         end --if p_guildIndex == nil or p_guildIndex == guildIndex then
     end -- for guildIndex, numGuilds, 1 do
     resetGuildToOldData()
+
+    if guildMemberDisplayname ~= nil then
+        pChat.lastCheckDisplayNameData = { displayName=guildMemberDisplayname, index=guildIndexFound, isOnline=isOnline, type = "guild"}
+    end
+
     return guildMemberDisplayname, guildIndexFound, isOnline
 end
 
@@ -393,6 +408,10 @@ local function checkDisplayName(displayName, portType, p_guildIndex, p_guildInde
             friendsDisplayname = nil
             friendIndex = nil
         end
+        if friendsDisplayname ~= nil then
+            pChat.lastCheckDisplayNameData = { displayName=friendsDisplayname, index=friendIndex, isOnline=isOnline, type = "friends"}
+        end
+
         return friendsDisplayname, friendIndex, isOnline
 
     ------------------------------------------------------------------------------------------------------------------------
@@ -558,6 +577,10 @@ d("======== [pChat]ClearMenu was called! =======")
         end)
     end
     ]]
+
+--d("[pChat]pChat_PlayerContextMenuCallback-playerName: " ..tos(playerName) ..", rawName: " .. tos(rawName))
+
+    pChat.lastCheckDisplayNameData = nil
 
     local settings = pChat.db
     local wasAdded = 0
@@ -752,8 +775,10 @@ function pChat.TeleportChanges()
 
         local playerNameAtContextMenuChat = nil
         ZO_PreHook(CHAT_SYSTEM, "ShowPlayerContextMenu", function(chatSystem, playerName, rawName)
+            pChat.lastCheckDisplayNameData = nil
+
             playerNameAtContextMenuChat = playerName
---d[pChat]CHAT_SYSTEM.ShowPlayerContextMenu-playerNameAtContextMenuChat: " ..tos(playerNameAtContextMenuChat))
+--d("[pChat]CHAT_SYSTEM.ShowPlayerContextMenu-playerName: " ..tos(playerName) ..", rawName: " .. tos(rawName))
             return false
         end)
 
