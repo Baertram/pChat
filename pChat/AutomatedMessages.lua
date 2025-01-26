@@ -426,7 +426,8 @@ function pChat.InitializeAutomatedMessages()
                 results[zo_strlower(alias)] = label
             end
 
-            local function getCachedResultsList()
+            local function getCachedResultsList(init)
+--d("[pChat]getCachedResultsList-init: " ..tostring(init) .. "; updateAutoMessageResultsList: " .. tostring(pChat.updateAutoMessageResultsList))
                 if pChat.updateAutoMessageResultsList or ZO_IsTableEmpty(resultsList) then
                     resultsList = {}
                     lookupList = {}
@@ -435,9 +436,14 @@ function pChat.InitializeAutomatedMessages()
                         AddCommand(resultsList, lookupList, commandData.name, commandData.message)
                     end
 
+                    if not init then
+                        table.insert(commandsAutoCompleteProvidersList, pChat.LSC_AutoMessageAutoComplete)
+                    end
+
                     if not ZO_IsTableEmpty(commandsAutoCompleteProvidersList) then
                         for _, autoCompleteProvider in ipairs(commandsAutoCompleteProvidersList) do
                             if autoCompleteProvider ~= nil then
+--d(">calling SetLists for autoCompleteProvider: " ..tostring(autoCompleteProvider) .. ",  pChat.LSC_AutoMessageAutoComplete: " .. tostring(pChat.LSC_AutoMessageAutoComplete))
                                 autoCompleteProvider:SetLists(resultsList, lookupList)
                             end
                         end
@@ -446,8 +452,16 @@ function pChat.InitializeAutomatedMessages()
                     pChat.updateAutoMessageResultsList = nil
                 end
             end
-            getCachedResultsList()
+            getCachedResultsList(true)
 
+            --Called if /msg was used to add/remove entries
+            local function OnpChatAutoMsgAutoCompleteUpdated()
+--d("[pChat]OnpChatAutoMsgAutoCompleteUpdated")
+                pChat.updateAutoMessageResultsList = true
+                getCachedResultsList(false)
+                --pChat.LSC_AutoMessageAutoComplete:SetLists(resultsList, lookupList) --done within getCachedResultsList already
+            end
+            pChat.OnpChatAutoMsgAutoCompleteUpdated = OnpChatAutoMsgAutoCompleteUpdated
 
 
             local pChatAutoMsgAutoComplete = LSC.AutoCompleteProvider:Subclass()
@@ -479,14 +493,6 @@ function pChat.InitializeAutomatedMessages()
 --d("[pChat]pChatAutoMsgAutoComplete - CanComplete - token: " .. tostring(token) .. ", retVar: " ..tostring(retVar))
                 return retVar
             end
-
-
-
-            local function OnpChatAutoMsgAutoCompleteUpdated()
-                pChat.updateAutoMessageResultsList = true
-                getCachedResultsList()
-            end
-            pChat.OnpChatAutoMsgAutoCompleteUpdated = OnpChatAutoMsgAutoCompleteUpdated
 
 
             local function Sanitize(value)
@@ -546,8 +552,8 @@ function pChat.InitializeAutomatedMessages()
                     return resultsList[key]
                 end,
             })
-            pChat_LSC_AutoMessageCommand:SetAutoComplete(pChatAutoMsgAutoComplete:New(resultsList, lookupList))
-
+            pChat.LSC_AutoMessageAutoComplete = pChatAutoMsgAutoComplete:New(resultsList, lookupList)
+            pChat_LSC_AutoMessageCommand:SetAutoComplete(pChat.LSC_AutoMessageAutoComplete)
 
 
         --else

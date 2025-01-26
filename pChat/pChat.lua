@@ -82,7 +82,7 @@ ZO_ChatOptions_ToggleChannel    pChat.SaveChatConfig()      Save the currently l
 
 --=======================================================================================================================================
 --Known problems/bugs:
---Last updated: 2025-01-25
+--Last updated: 2025-01-26
 --Total number: 27
 --=======================================================================================================================================
 
@@ -90,10 +90,10 @@ ZO_ChatOptions_ToggleChannel    pChat.SaveChatConfig()      Save the currently l
 --Fix enableChatTabChannel to switch to group if not grouped, and to switch to guild
 
 --=======================================================================================================================================
--- Changelog version: 10.0.6.1 (last version 10.0.6.0)
+-- Changelog version: 10.0.6.2 (last version 10.0.6.1)
 --=======================================================================================================================================
 --Fixed:
---Fix ChatTabChannelSwitch
+--Fix /msg slash command list update after adding/removing entries
 
 --Changed:
 
