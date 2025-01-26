@@ -556,7 +556,11 @@ function pChat.InitializeAutomatedMessages()
             pChat_LSC_AutoMessageCommand:SetAutoComplete(pChat.LSC_AutoMessageAutoComplete)
 
 
-        --else
+        else
+            --Dummy to not raise any error
+            function pChat.OnpChatAutoMsgAutoCompleteUpdated()
+
+            end
 
             --[[ !!! Raises an insecure error at chat editbox if e.g. !bear2 is selected!!!
 
