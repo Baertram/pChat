@@ -32,12 +32,11 @@ function pChat.InitializeAutomatedMessages()
         return self
     end
 
-    -- format ESO text to raw text
+     -- format ESO text to raw text
     -- IE : Transforms LinkHandlers into their displayed value
     local function FormatRawText(text)
-
         -- Strip colors from chat
-        local newtext = string.gsub(text, "|[cC]%x%x%x%x%x%x", ""):gsub("|r", "")
+        local strippedText = string.gsub(text, "|[cC]%x%x%x%x%x%x", ""):gsub("|r", "")
 
         -- Transforms a LinkHandler into its localized displayed value
         -- "|H(.-):(.-)|h(.-)|h" = pattern for Linkhandlers
@@ -49,49 +48,39 @@ function pChat.InitializeAutomatedMessages()
         -- Character = |H1:character:salhamandhil^Mx|h[salhamandhil]|h = text (is there anything which link Characters into a message ?) (here salhamandhil is with brackets volontary)
         -- Need to do quest_items too. |H1:quest_item:4275|h|h
 
-        newtext = string.gsub(newtext, "|H(.-):(.-)|h(.-)|h", function (linkStyle, data, text)
-            -- linkStyle = style (ignored by game, seems to be often 1)
-            -- data = data saparated by ":"
-            -- text = text displayed, used for Channels, DisplayName, Character, and some fake itemlinks (used by addons)
+        -- Process and transform LinkHandler links into displayable text
+        local formattedText = string.gsub(strippedText, "|H(.-):(.-)|h(.-)|h", function (linkStyle, data, linkDisplayText)
+            -- Reconstruct the full link from the captured groups
+            local fullLink = "|H" .. linkStyle .. ":" .. data .. "|h" .. linkDisplayText .. "|h"
+            -- Split the link data to obtain the link type and parameter
+            local linkType, param1 = zo_strsplit(":", data)
 
-            -- linktype is : item, achievement, character, channel, book, display, pchatlink
-            -- DOES NOT HANDLE ADDONS LINKTYPES
-
-            -- for all types, only param1 is important
-            local linkType, param1 = zo_strsplit(':', data)
-
-            -- param1 : itemID
-            -- Need to get
-            if linkType == ITEM_LINK_TYPE or linkType == COLLECTIBLE_LINK_TYPE then
-                -- Fakelink and GetItemLinkName
-                return "[" .. zo_strformat(SI_TOOLTIP_ITEM_NAME, GetItemLinkName("|H" .. linkStyle ..":" .. data .. "|h|h")) .. "]"
-                    -- param1 : achievementID
+            if linkType == ITEM_LINK_TYPE then
+                local itemName = GetItemLinkName(fullLink)
+                return "[" .. zo_strformat(SI_TOOLTIP_ITEM_NAME, itemName) .. "]"
+            elseif linkType == COLLECTIBLE_LINK_TYPE then
+                local collectibleId = GetCollectibleIdFromLink(fullLink)
+                local collectibleName = GetCollectibleInfo(collectibleId)
+                return "[" .. zo_strformat(SI_COLLECTIBLE_NAME_FORMATTER, collectibleName) .. "]"
             elseif linkType == ACHIEVEMENT_LINK_TYPE then
-                -- zo_strformat to avoid masculine/feminine problems
-                return "[" .. zo_strformat(GetAchievementInfo(param1)) .. "]"
-                    -- SysMessages Links CharacterNames
-            elseif linkType == CHARACTER_LINK_TYPE then
-                return text
-            elseif linkType == CHANNEL_LINK_TYPE then
-                return text
+                local achievementName = GetAchievementNameFromLink(fullLink)
+                return "[" .. zo_strformat("<<1>>", achievementName) .. "]"
+            elseif linkType == CHARACTER_LINK_TYPE or linkType == CHANNEL_LINK_TYPE or linkType == PCHAT_LINK then
+                return linkDisplayText
             elseif linkType == BOOK_LINK_TYPE then
-                return "[" .. GetLoreBookTitleFromLink(newtext) .. "]"
-                    -- SysMessages Links DysplayNames
+                local bookTitle = GetLoreBookTitleFromLink(fullLink)
+                return "[" .. bookTitle .. "]"
             elseif linkType == DISPLAY_NAME_LINK_TYPE then
-                -- No formatting here
                 return "[@" .. param1 .. "]"
-                    -- Used for Sysmessages
             elseif linkType == "quest_item" then
-                -- No formatting here
-                return "[" .. zo_strformat(SI_TOOLTIP_ITEM_NAME, GetQuestItemNameFromLink(newtext)) .. "]"
-            elseif linkType == PCHAT_LINK then
-                -- No formatting here .. maybe yes ?..
-                return text
+                local questItemName = GetQuestItemNameFromLink(fullLink)
+                return "[" .. zo_strformat(SI_TOOLTIP_ITEM_NAME, questItemName) .. "]"
+            else
+                return fullLink -- fallback: return the full link unmodified
             end
         end)
 
-        return newtext
-
+        return formattedText
     end
     pChat.FormatRawText = FormatRawText
 

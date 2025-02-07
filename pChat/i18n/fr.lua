@@ -467,7 +467,7 @@ SafeAddString(PCHAT_MENTIONS_SELFSEND_TOOLTIP, "Appliquer ou non le formatage au
 SafeAddString(PCHAT_MENTIONS_DING_NAME, "Son de ding?", 1)
 SafeAddString(PCHAT_MENTIONS_DING_TOOLTIP, "Que ce soit pour jouer ou non un son ding lorsque votre nom est mentionné.", 1)
 SafeAddString(PCHAT_MENTIONS_DING_SOUND_NAME, "Choisissez le son", 1)
-SafeAddString(PCHAT_MENTIONS_DING_SOUND_NAME_TOOLTIP, "Sélectionnez le son qui doit être joué, 1")
+SafeAddString(PCHAT_MENTIONS_DING_SOUND_NAME_TOOLTIP, "Sélectionnez le son qui doit être joué", 1)
 SafeAddString(PCHAT_MENTIONS_APPLYNAME_NAME, "Appliquer à vos noms de personnages?", 1)
 SafeAddString(PCHAT_MENTIONS_APPLYNAME_TOOLTIP, "Appliquer ou non le formatage à chaque nom (séparé par des espaces) dans le nom de votre personnage. Désactivez-le si vous utilisez un nom très courant comme 'Me' dans le nom de votre personnage.", 1)
 SafeAddString(PCHAT_MENTIONS_WHOLEWORD_NAME, "Associez vos noms à des mots entiers uniquement?", 1)
