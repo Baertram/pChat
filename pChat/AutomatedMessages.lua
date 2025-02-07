@@ -62,9 +62,13 @@ function pChat.InitializeAutomatedMessages()
 
             -- param1 : itemID
             -- Need to get
-            if linkType == ITEM_LINK_TYPE or linkType == COLLECTIBLE_LINK_TYPE then
+            if linkType == ITEM_LINK_TYPE then
                 -- Fakelink and GetItemLinkName
                 return "[" .. zo_strformat(SI_TOOLTIP_ITEM_NAME, GetItemLinkName("|H" .. linkStyle ..":" .. data .. "|h|h")) .. "]"
+            elseif linkType == COLLECTIBLE_LINK_TYPE then
+                local collectibleId = GetCollectibleIdFromLink(fullLink)
+                local collectibleName = GetCollectibleInfo(collectibleId)
+                return "[" .. zo_strformat(SI_COLLECTIBLE_NAME_FORMATTER, collectibleName) .. "]"
                     -- param1 : achievementID
             elseif linkType == ACHIEVEMENT_LINK_TYPE then
                 -- zo_strformat to avoid masculine/feminine problems
