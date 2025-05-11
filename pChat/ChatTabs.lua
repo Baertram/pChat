@@ -319,6 +319,7 @@ function pChat.NewChatTabButtonHook()
     if newWindowTab ~= nil then
         ZO_PreHookHandler(newWindowTab, "OnMouseUp",
             function(tab, button, isUpInside)
+                ZO_Tooltips_HideTextTooltip()
                 if isUpInside and not ZO_TabButton_IsDisabled(newWindowTab) then
                     if not pChat.db.modifierKeyForNewChatTab then return false end
                     if not IsShiftKeyDown() then return true end --prevent the exectuion of original function OnMouseUp if shift key is not pressed and setting that says to do so is ON
@@ -329,6 +330,10 @@ function pChat.NewChatTabButtonHook()
             if not pChat.db.modifierKeyForNewChatTab then return false end
             ZO_Tooltips_ShowTextTooltip(ctrl, TOP, GetString(PCHAT_modifierKeyForNewChatTabButtonTT))
         end
+        local function hideNewChatTabTooltip()
+            ZO_Tooltips_HideTextTooltip()
+        end
+
         if newWindowTab:GetHandler("OnMouseEnter") ~= nil then
             ZO_PreHookHandler(newWindowTab, "OnMouseEnter", function()
                 showNewChatTabTooltip(newWindowTab)
@@ -336,6 +341,15 @@ function pChat.NewChatTabButtonHook()
         else
             newWindowTab:SetHandler("OnMouseEnter", function()
                 showNewChatTabTooltip(newWindowTab)
+            end)
+        end
+        if newWindowTab:GetHandler("OnMouseExit") ~= nil then
+            ZO_PreHookHandler(newWindowTab, "OnMouseExit", function()
+                hideNewChatTabTooltip()
+            end)
+        else
+            newWindowTab:SetHandler("OnMouseExit", function()
+                hideNewChatTabTooltip()
             end)
         end
     end
