@@ -125,24 +125,27 @@ pChat.guildMemberCache = guildMemberCache --for debugging 20250511
 
 -- Helper to build or refresh the cache for a given guild
 local function buildGuildMemberCache(guildIndex)
+--d("[pChat]buildGuildMemberCache - guildIndex: " ..tos(guildIndex))
     local guildId = GetGuildId(guildIndex)
     if not guildId or guildId == 0 then return end
     guildMemberCache[guildIndex] = {}
+    local guildMemberCacheOfIndex = guildMemberCache[guildIndex]
     local numMembers = GetNumGuildMembers(guildId)
     for memberIndex = 1, numMembers do
         local displayName = GetGuildMemberInfo(guildId, memberIndex)
         if displayName then
             local name = select(1, displayName)
             if name then
-                guildMemberCache[guildIndex][strlow(name)] = memberIndex
+                guildMemberCacheOfIndex[strlow(name)] = memberIndex
             end
             -- Also cache character name if available
             local hasChar, charName = GetGuildMemberCharacterInfo(guildId, memberIndex)
             if hasChar and charName and charName ~= "" then
-                guildMemberCache[guildIndex][strlow(charName)] = memberIndex
+                guildMemberCacheOfIndex[strlow(charName)] = memberIndex
             end
         end
     end
+    pChat.guildMemberCache = guildMemberCache
 end
 
 local function updateGuildMemberDataForGuildId(guildId)
@@ -150,7 +153,7 @@ local function updateGuildMemberDataForGuildId(guildId)
     for i = 1, GetNumGuilds() do
         if guildId == -1 or GetGuildId(i) == guildId then
             buildGuildMemberCache(i)
-            return true
+            if guildId ~= -1 then return true end
         end
     end
     return false
@@ -195,15 +198,34 @@ local function OnPlayerActivated(eventId, initial)
 end
 
 local function isPlayerInAnyOfYourGuilds(displayName, possibleDisplayNameNormal, possibleDisplayName, p_guildIndex, p_guildIndexIteratorStart)
+--d("[pChat]isPlayerInAnyOfYourGuilds - displayName: " ..tos(displayName) ..", possibleDisplayNameNormal: " ..tos(possibleDisplayNameNormal) .. ", possibleDisplayName: " ..tos(possibleDisplayName) .. ", p_guildIndex: " .. tos(p_guildIndex) .. ", p_guildIndexIteratorStart: " .. tos(p_guildIndexIteratorStart))
     local numGuilds = GetNumGuilds()
     if numGuilds == 0 then return nil, nil, nil, nil end
 
     -- Build cache if missing
     if ZO_IsTableEmpty(guildMemberCache) then
+--d(">guildMemberCache is empty")
         refreshAllGuildCaches()
         if ZO_IsTableEmpty(guildMemberCache) then
             d("[" .. ADDON_NAME .."]ERROR - GuildMemberCache could not be created")
             return nil, nil, nil, nil
+        end
+    else
+        --Less cache data than guild? Update them
+        if #guildMemberCache < numGuilds then
+    --d(">#guildMemberCache: " .. tos(#guildMemberCache)  .." < numGuilds #"..tos(numGuilds) .." -> Update")
+            refreshAllGuildCaches()
+        else
+            if p_guildIndex ~= nil then
+    --d(">guildMemberCache[" ..tos(p_guildIndex).."] is empty")
+                if ZO_IsTableEmpty(guildMemberCache[p_guildIndex]) then
+                    buildGuildMemberCache(p_guildIndex)
+                    if ZO_IsTableEmpty(guildMemberCache[p_guildIndex]) then
+                        d("[" .. ADDON_NAME .."]ERROR - GuildMemberCache for guildIndex " .. tos(p_guildIndex) .. " could not be created")
+                        return nil, nil, nil, nil
+                    end
+                end
+            end
         end
     end
 
@@ -211,10 +233,11 @@ local function isPlayerInAnyOfYourGuilds(displayName, possibleDisplayNameNormal,
     local isOnline = false
     local guildIndexFound, memberIndexFound
     local guildIndexIteratorStart = p_guildIndexIteratorStart or 1
+--d(">guildIndexIteratorStart: " ..tos(guildIndexIteratorStart))
     for guildIndex = guildIndexIteratorStart, numGuilds do
         if p_guildIndex == nil or p_guildIndex == guildIndex then
             local cache = guildMemberCache[guildIndex]
-            if cache and cache[searchName] then
+            if cache ~= nil and cache[searchName] ~= nil then
                 local memberIndex = cache[searchName]
                 local guildId = GetGuildId(guildIndex)
                 local name, note, rankIndex, playerStatus = GetGuildMemberInfo(guildId, memberIndex)
@@ -223,10 +246,12 @@ local function isPlayerInAnyOfYourGuilds(displayName, possibleDisplayNameNormal,
                 guildIndexFound = guildIndex
                 memberIndexFound = memberIndex
                 pChat.lastCheckDisplayNameData = { displayName = name, index = guildIndexFound, isOnline = isOnline, type = "guild" }
+--d(">found guildIndex: " ..tos(guildIndexFound) .. "; name: " ..tos(name) ..", isOnline: " ..tos(isOnline))
                 return name, guildIndexFound, nil, isOnline
             end
         end
     end
+--d("<returning guildData with nil")
     return nil, nil, nil, nil
 end
 

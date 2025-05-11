@@ -2048,10 +2048,10 @@ function pChat.InitializeCopyHandler(control)
 
             --Teleport to features
             if isAccountOrCharNameOwnPlayer == false and teleportContextMenuAtChat == true and playerNameIsValid == true and isOnline == true then
---d("[2]Teleport to check")
+d("[2]Teleport to check")
                 getPortTypeFromName = getPortTypeFromName or pChat.GetPortTypeFromName
                 local portType, playerTypeStr, guildIndexFound = getPortTypeFromName(playerName, rawFrom)
---d(">portType: " ..tos(portType) .. "; playerTypeStr: " ..tos(playerTypeStr))
+d(">portType: " ..tos(portType) .. "; playerTypeStr: " ..tos(playerTypeStr))
                 if portType ~= nil then
                     AddCustomMenuItem(GetString(PCHAT_CHATCONTEXTMENUTPTO), function() end, MENU_ADD_OPTION_HEADER)
 
@@ -2076,7 +2076,7 @@ function pChat.InitializeCopyHandler(control)
                 end
             end
 
-    --d(">got here: ShowMenu")
+d(">got here: ShowMenu")
             ShowMenu()
         end
     end
