@@ -317,7 +317,6 @@ function pChat.NewChatTabButtonHook()
     local primaryContainer = ChatSys.primaryContainer
     local newWindowTab = primaryContainer.newWindowTab
     if newWindowTab ~= nil then
-d("[pChat]new window tab found")
         ZO_PreHookHandler(newWindowTab, "OnMouseUp",
             function(tab, button, isUpInside)
                 if isUpInside and not ZO_TabButton_IsDisabled(newWindowTab) then
@@ -325,6 +324,18 @@ d("[pChat]new window tab found")
                     if not IsShiftKeyDown() then return true end --prevent the exectuion of original function OnMouseUp if shift key is not pressed and setting that says to do so is ON
                 end
                 return false
+        end)
+        local function showNewChatTabTooltip(ctrl)
+            ZO_Tooltips_ShowTextTooltip(ctrl, TOP, GetString(PCHAT_modifierKeyForNewChatTabButtonTT))
+        end
+        if newWindowTab:GetHandler("OnMouseEnter") ~= nil then
+            ZO_PreHookHandler(newWindowTab, "OnMouseEnter", function()
+                showNewChatTabTooltip(newWindowTab)
             end)
+        else
+            newWindowTab:SetHandler("OnMouseEnter", function()
+                showNewChatTabTooltip(newWindowTab)
+            end)
+        end
     end
 end

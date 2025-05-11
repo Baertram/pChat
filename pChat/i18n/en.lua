@@ -23,7 +23,8 @@ local strings = {
 	PCHAT_enableWhisperTab = "Enable Whisper Redirect",
 	PCHAT_enableWhisperTabT = "Enable redirect your whispers to a specific tab.",
 	PCHAT_modifierKeyForNewChatTab = "SHIFT+LMB to create new chat tab",
-	PCHAT_modifierKeyForNewChatTab_TT = "Hold the SHIFT key and press with the left moue button to create a new chat tab via the \"+\" icon (to prevent accidentaly created new chat tabs).",
+	PCHAT_modifierKeyForNewChatTab_TT = "Hold the SHIFT key and press with the left mouse button to create a new chat tab via the \"+\" icon (to prevent accidentaly created new chat tabs).",
+	PCHAT_modifierKeyForNewChatTabButtonTT = "[pChat]Press SHIFT + LMB to add new chat tab",
 -- New Need Translations
 
 

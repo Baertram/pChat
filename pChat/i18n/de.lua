@@ -39,6 +39,7 @@ SafeAddString(PCHAT_enableWhisperTab							,"Aktivere Flüstern Umleitung",1)
 SafeAddString(PCHAT_enableWhisperTabT							,"Flüster Nachrichten werden zu einem bestimmten Chat Reiter umgeleitet.",1)
 SafeAddString(PCHAT_modifierKeyForNewChatTab                    , "SHIFT+LM für neuen Chat Reiter", 1)
 SafeAddString(PCHAT_modifierKeyForNewChatTab_TT                 , "Halte die SHIFT Taste während du auf den kleinen \"+\" Knopf mit links clickst, damit ein euer Chat Reiter erstellt wird (verhindert aus Versehen erstellte Chat Reiter).", 1)
+SafeAddString(PCHAT_modifierKeyForNewChatTabButtonTT            , "[pChat]SHIFT + Linksklick um neuen Chat Reiter hinzuzufügen", 1)
 
 
 -- New Need Translations
