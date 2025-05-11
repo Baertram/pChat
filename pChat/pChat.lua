@@ -82,24 +82,25 @@ ZO_ChatOptions_ToggleChannel    pChat.SaveChatConfig()      Save the currently l
 
 --=======================================================================================================================================
 --Known problems/bugs:
---Last updated: 2025-02-27
+--Last updated: 2025-05-11
 --Total number: 27
 --=======================================================================================================================================
 
 --Working on:
---Fix enableChatTabChannel to switch to group if not grouped, and to switch to guild
+--Add SHIFT + left mouse button setting: Only create a new chat tab via the small "+" button if SHIFT key was pressed
+--Improve performance of Teleport guild member lookup via a cache -> Thanks to Dakjaniels. s -> Still an issue with zone members there, name's @is shown twice?
 
 --=======================================================================================================================================
--- Changelog version: 10.0.6.3 (last version 10.0.6.4)
+-- Changelog version: 10.0.6.5 (last version 10.0.6.4)
 --=======================================================================================================================================
 --Fixed:
---Fix French translation
+--
 
 --Changed:
-
+--Improve performance of Teleport guild member lookup via a cache -> Thanks to Dakjaniels -> Still an issue with zone members there, name's @is shown twice?
 
 --Added:
---Added API table for other addons, which contains the last checked displayName of a chat player context menu: pChat.lastCheckDisplayNameData = { displayName=guildMemberDisplayname, index=guildIndexFound, isOnline=isOnline, type = "guild" or "friend"}
+--Add SHIFT + left mouse button setting: Only create a new chat tab via the small "+" button if SHIFT key was pressed
 
 
 --Added on request:
@@ -515,6 +516,9 @@ OnPlayerActivated = function()
 
             --Add the auto completion at the chat editbox (via LibSlashCommander or without) for the /msg automated messages
             pChat.InitAutomatedMessagesAutoCompletion()
+
+            --Add the chat's "+" (add new tab) button special handlers
+            pChat.NewChatTabButtonHook()
 
             pChatData.isAddonInitialized = true
 

@@ -22,7 +22,8 @@ local strings = {
 	PCHAT_enableChatTabChannelT = "Enable chat tabs to remember the last used channel, it will become the default until you opt to use a different one in that tab.",
 	PCHAT_enableWhisperTab = "Enable Whisper Redirect",
 	PCHAT_enableWhisperTabT = "Enable redirect your whispers to a specific tab.",
-	
+	PCHAT_modifierKeyForNewChatTab = "SHIFT+LMB to create new chat tab",
+	PCHAT_modifierKeyForNewChatTab_TT = "Hold the SHIFT key and press with the left moue button to create a new chat tab via the \"+\" icon (to prevent accidentaly created new chat tabs).",
 -- New Need Translations
 
 

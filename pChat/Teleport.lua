@@ -119,195 +119,115 @@ local function checkGuildIndex(displayName)
     return nil
 end
 
+-- Guild member cache to avoid repeated expensive lookups
+local guildMemberCache = {}
+pChat.guildMemberCache = guildMemberCache --for debugging 20250511
+
+-- Helper to build or refresh the cache for a given guild
+local function buildGuildMemberCache(guildIndex)
+    local guildId = GetGuildId(guildIndex)
+    if not guildId or guildId == 0 then return end
+    guildMemberCache[guildIndex] = {}
+    local numMembers = GetNumGuildMembers(guildId)
+    for memberIndex = 1, numMembers do
+        local displayName = GetGuildMemberInfo(guildId, memberIndex)
+        if displayName then
+            local name = select(1, displayName)
+            if name then
+                guildMemberCache[guildIndex][strlow(name)] = memberIndex
+            end
+            -- Also cache character name if available
+            local hasChar, charName = GetGuildMemberCharacterInfo(guildId, memberIndex)
+            if hasChar and charName and charName ~= "" then
+                guildMemberCache[guildIndex][strlow(charName)] = memberIndex
+            end
+        end
+    end
+end
+
+local function updateGuildMemberDataForGuildId(guildId)
+    if guildId == nil then return end
+    for i = 1, GetNumGuilds() do
+        if guildId == -1 or GetGuildId(i) == guildId then
+            buildGuildMemberCache(i)
+            return true
+        end
+    end
+    return false
+end
+
+local function removeGuildMemberCache(guildId)
+    if guildId == nil then return end
+    for i = 1, GetNumGuilds() do
+        if GetGuildId(i) == guildId then
+            guildMemberCache[i] = {}
+            return true
+        end
+    end
+    return false
+end
+
+-- Refresh all guild caches (call on login, guild join/leave, etc.)
+local function refreshAllGuildCaches()
+    if IsPlayerActivated() then
+        updateGuildMemberDataForGuildId(-1)
+    end
+end
+
+local function OnGuildMemberAdded(eventId, guildId, displayName)
+    updateGuildMemberDataForGuildId(guildId)
+end
+
+local function OnGuildMemberRemoved(eventId, guildId, displayName, characterName)
+    updateGuildMemberDataForGuildId(guildId)
+end
+
+local function OnGuildSelfJoined(eventId, guildServerId, characterName, guildId)
+    zo_callLater(function() updateGuildMemberDataForGuildId(guildId) end, 1000)
+end
+
+local function OnGuildSelfLeft(eventId, guildServerId, characterName, guildId)
+    removeGuildMemberCache(guildId)
+end
+
+local function OnPlayerActivated(eventId, initial)
+    refreshAllGuildCaches()
+end
+
 local function isPlayerInAnyOfYourGuilds(displayName, possibleDisplayNameNormal, possibleDisplayName, p_guildIndex, p_guildIndexIteratorStart)
---d("[pChat]isPlayerInAnyOfYourGuilds-displayName: " ..tos(displayName) ..", possibleDisplayName: " ..tos(possibleDisplayNameNormal) .."/"..tos(possibleDisplayName) ..", p_guildIndex: " ..tos(p_guildIndex) .. ", p_guildIndexIteratorStart: " ..tos(p_guildIndexIteratorStart))
-
     local numGuilds = GetNumGuilds()
-    local isOnline = false
     if numGuilds == 0 then return nil, nil, nil, nil end
---d(">numGuilds: " ..tos(numGuilds))
 
-    --Save the currently selected guildId/index
-    currentlySelectedGuildData = {}
-    currentlySelectedGuildData.guildIndex = nil
-    local currentGuildId = GUILD_SELECTOR.guildId
-    if currentGuildId ~= nil then
-        for iteratedGuildIndex=1, numGuilds, 1 do
-            local guildIdOfIterated = GetGuildId(iteratedGuildIndex)
-            if guildIdOfIterated == currentGuildId then
-                currentlySelectedGuildData.guildIndex = iteratedGuildIndex
---d(">currentGuildID: " ..tos(currentGuildId) ..", currentIndex: " ..tos(iteratedGuildIndex))
-                break
-            end
+    -- Build cache if missing
+    if ZO_IsTableEmpty(guildMemberCache) then
+        refreshAllGuildCaches()
+        if ZO_IsTableEmpty(guildMemberCache) then
+            d("[" .. ADDON_NAME .."]ERROR - GuildMemberCache could not be created")
+            return nil, nil, nil, nil
         end
     end
 
-    local guildIndexFound
-    local guildMemberDisplayname
-    local isStrDisplayName = isDisplayName(possibleDisplayNameNormal)
-
-    ------------------------------------------------------------------------------------------------------------------------
-    --Function called as guild member data was loaded
-    local function onGuildDataLoaded(pl_guildIndex)
---d("[pChat]onGuildDataLoaded-Index: " ..tos(pl_guildIndex))
-        local guildsList = GUILD_ROSTER_MANAGER.lists[1].list -- Keyboard
-        if ZO_IsTableEmpty(guildsList.data) then
---d("<<[3- ABORT NOW]guildsList.data is empty")
-            resetGuildToOldData()
-            return true, false
-        end
-        for _, v in ipairs(guildsList.data) do
-            local data = v.data
-            if guildMemberDisplayname == nil then --and data.online == true then
-                if data.displayName ~= ownDisplayName then
-                    local l_isOnline = data.online
-
---d(">k: " ..tos(k) .. "data.displayName: " ..tos(data.displayName) .. "; charName: " ..tos(data.characterName))
-                    local guildCharName = strlow(data.characterName)
-                    local guildDisplayName = strlow(data.displayName)
-
-                    if guildDisplayName ~= nil and strf(guildDisplayName, possibleDisplayName, 1, true) ~= nil then
-                        guildMemberDisplayname = data.displayName
---d(">>>found online guild by displayName: " ..tos(guildMemberDisplayname))
-                        guildIndexFound = pl_guildIndex
-                        return true, l_isOnline
-                    elseif guildCharName ~= nil and strf(guildCharName, possibleDisplayName, 1, true) ~= nil then
-                        guildMemberDisplayname = data.displayName
---d(">>>found online guild by charName: " ..tos(guildMemberDisplayname) .. ", charName: " .. tos(guildCharName))
-                        guildIndexFound = pl_guildIndex
-                        return true, l_isOnline
-                    end
-                end
-            end
-        end
-        return false, false
-    end
-    ------------------------------------------------------------------------------------------------------------------------
-
-
-    --Check all -> up to 5 guilds
+    local searchName = strlow(possibleDisplayNameNormal)
+    local isOnline = false
+    local guildIndexFound, memberIndexFound
     local guildIndexIteratorStart = p_guildIndexIteratorStart or 1
-    for guildIndex=guildIndexIteratorStart, numGuilds, 1 do
+    for guildIndex = guildIndexIteratorStart, numGuilds do
         if p_guildIndex == nil or p_guildIndex == guildIndex then
-            if guildMemberDisplayname ~= nil then
---d("<<[1-ABORT NOW]guildMemberDisplayname was found: " ..tos(guildMemberDisplayname))
-                resetGuildToOldData()
-
-                if guildMemberDisplayname ~= nil then
-                    pChat.lastCheckDisplayNameData = { displayName=guildMemberDisplayname, index=guildIndexFound, isOnline=isOnline, type = "guild"}
-                end
-
-                return guildMemberDisplayname, guildIndexFound, nil, isOnline
-            end
-
-            --Select the guild
---d(">>GuildIndex set to: " .. tos(guildIndex))
-            GUILD_SELECTOR:SelectGuildByIndex(guildIndex)
-            if not isStrDisplayName or (isStrDisplayName and (possibleDisplayNameNormal == ownDisplayName) or (GUILD_ROSTER_MANAGER:FindDataByDisplayName(possibleDisplayNameNormal) == nil)) then
---d(">>is no @displayName or no guild member")
-                --Loop all guilds and check if any displayname partially matches the entered text from slash command
-
-
-                local guildsList = GUILD_ROSTER_MANAGER.lists[1].list -- Keyboard
-                if guildsList == nil or ZO_IsTableEmpty(guildsList.data) then
---d(">>>guilds list was never created yet! Switching scene states now...")
-                    --Do once: Open and close the guilds list scene to create/update the data
-                    --local sceneGroup = SCENE_MANAGER:GetSceneGroup("guildsSceneGroup")
-                    --sceneGroup:SetActiveScene("guildHome")
-                    GUILD_ROSTER_SCENE:SetState(SCENE_SHOWING)
-                    GUILD_ROSTER_SCENE:SetState(SCENE_SHOWN)
-                    GUILD_ROSTER_SCENE:SetState(SCENE_HIDING)
-                    GUILD_ROSTER_SCENE:SetState(SCENE_HIDDEN)
-    --    d(">>>>guilds scene states update")
-                end
-
-
-
-                --Update of the guild roster needs some time now...
-                --So how are we able to delay the check until data was loaded properly?
-                --[[
-                --EVENT_GUILD_DATA_LOADED -> NO, is not used after guildIndex is switched...
-                EM:RegisterForEvent("pChat_EVENT_GUILD_DATA_LOADED", EVENT_GUILD_DATA_LOADED, function()
-                    if onGuildDataLoaded(guildIndex) == true then
-                        isStrDisplayName = isDisplayName(guildMemberDisplayname)
-                        if not isStrDisplayName then guildMemberDisplayname = nil end
-                        if guildMemberDisplayname ~= nil then
-                            resetGuildToOldData()
-                            return guildMemberDisplayname, guildIndexFound, nil, isOnline
-                        end
-                    end
-                end)
-                ]]
-                --Update the guild roster data
-                GUILD_ROSTER_KEYBOARD:RefreshData()
---d(">>>Refreshing guild list data")
-
-                --Check guild data update
-                local dataLoaded
-                dataLoaded, isOnline = onGuildDataLoaded(guildIndex)
-                if dataLoaded == true then
-                    isStrDisplayName = isDisplayName(guildMemberDisplayname)
-                    if not isStrDisplayName then guildMemberDisplayname = nil end
-                    if guildMemberDisplayname ~= nil then
---d("<<[2- ABORT NOW]guildMemberDisplayname was found: " ..tos(guildMemberDisplayname))
-                        resetGuildToOldData()
-
-                        if guildMemberDisplayname ~= nil then
-                            pChat.lastCheckDisplayNameData = { displayName=guildMemberDisplayname, index=guildIndexFound, isOnline=isOnline, type = "guild"}
-                        end
-
-                        return guildMemberDisplayname, guildIndexFound, nil, isOnline
-                    end
-                end
-
-
-                --[[
-                guildsList = GUILD_ROSTER_MANAGER.lists[1].list -- Keyboard
-                if ZO_IsTableEmpty(guildsList.data) then
-                    d(">2no guilds list data found")
-                    repeatListCheck = true
-                    resetGuildToOldData()
-                    return nil, nil, guildIndex --return the current guildIndex so the next call will go on with that guildIndex as start
-                end
-                for k, v in ipairs(guildsList.data) do
-                    local data = v.data
-                    if guildMemberDisplayname == nil and data.online == true then
-                        if data.displayName ~= ownDisplayName then
-
-                            d(">k: " ..tos(k) .. "v.data.displayName: " ..tos(v.data.displayName))
-                            local guildCharName = strlow(data.characterName)
-                            local guildDisplayName = strlow(data.displayName)
-
-                            if guildDisplayName ~= nil and strf(guildDisplayName, possibleDisplayName, 1, true) ~= nil then
-                                guildMemberDisplayname = data.displayName
-                                d(">>>found online guild: " ..tos(guildMemberDisplayname))
-                                guildIndexFound = guildIndex
-                                break
-                            elseif guildCharName ~= nil and strf(guildCharName, possibleDisplayName, 1, true) ~= nil then
-                                guildMemberDisplayname = data.displayName
-                                d(">>>found online guild by charName: " ..tos(guildMemberDisplayname) .. ", charName: " .. tos(guildCharName))
-                                guildIndexFound = guildIndex
-                                break
-                            end
-                        end
-                    end
-                end
-                ]]
-            else
-                guildMemberDisplayname = possibleDisplayNameNormal
+            local cache = guildMemberCache[guildIndex]
+            if cache and cache[searchName] then
+                local memberIndex = cache[searchName]
+                local guildId = GetGuildId(guildIndex)
+                local name, note, rankIndex, playerStatus = GetGuildMemberInfo(guildId, memberIndex)
+                local hasChar, charName = GetGuildMemberCharacterInfo(guildId, memberIndex)
+                isOnline = (playerStatus ~= PLAYER_STATUS_OFFLINE)
                 guildIndexFound = guildIndex
+                memberIndexFound = memberIndex
+                pChat.lastCheckDisplayNameData = { displayName = name, index = guildIndexFound, isOnline = isOnline, type = "guild" }
+                return name, guildIndexFound, nil, isOnline
             end
-            isStrDisplayName = isDisplayName(guildMemberDisplayname)
-            if not isStrDisplayName then guildMemberDisplayname = nil end
-        end --if p_guildIndex == nil or p_guildIndex == guildIndex then
-    end -- for guildIndex, numGuilds, 1 do
-    resetGuildToOldData()
-
-    if guildMemberDisplayname ~= nil then
-        pChat.lastCheckDisplayNameData = { displayName=guildMemberDisplayname, index=guildIndexFound, isOnline=isOnline, type = "guild"}
+        end
     end
-
-    return guildMemberDisplayname, guildIndexFound, isOnline
+    return nil, nil, nil, nil
 end
 
 --Check if the displayName is a @displayName, partial displayName or any other name like a character name -> Try to find a matching display name via
@@ -852,3 +772,14 @@ function pChat.TeleportChanges()
         LCM:RegisterPlayerContextMenu(pChat_PlayerContextMenuCallback, LCM.CATEGORY_LATE)
     end
 end
+
+
+EVENT_MANAGER:RegisterForEvent("pChat_GuildCache_EVENT_ADD_ON_LOADED", EVENT_ADD_ON_LOADED, function(eventId, addOnName)
+    if addOnName ~= ADDON_NAME then return end
+    EVENT_MANAGER:UnregisterForEvent("pChat_GuildCache_EVENT_ADD_ON_LOADED", EVENT_ADD_ON_LOADED)
+    EVENT_MANAGER:RegisterForEvent("pChat_GuildCache_EVENT_PLAYER_ACTIVATED", EVENT_PLAYER_ACTIVATED, OnPlayerActivated)
+    EVENT_MANAGER:RegisterForEvent("pChat_GuildCache_EVENT_GUILD_MEMBER_ADDED", EVENT_GUILD_MEMBER_ADDED, OnGuildMemberAdded)
+    EVENT_MANAGER:RegisterForEvent("pChat_GuildCache_EVENT_GUILD_MEMBER_REMOVED", EVENT_GUILD_MEMBER_REMOVED, OnGuildMemberRemoved)
+    EVENT_MANAGER:RegisterForEvent("pChat_GuildCache_EVENT_GUILD_SELF_JOINED_GUILD", EVENT_GUILD_SELF_JOINED_GUILD, OnGuildSelfJoined)
+    EVENT_MANAGER:RegisterForEvent("pChat_GuildCache_EVENT_GUILD_SELF_LEFT_GUILD", EVENT_GUILD_SELF_LEFT_GUILD, OnGuildSelfLeft)
+end)

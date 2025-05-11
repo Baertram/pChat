@@ -309,3 +309,22 @@ function pChat.InitializeChatTabs()
         getTabNames()
     end
 end
+
+function pChat.NewChatTabButtonHook()
+    --self = ChatContainer = SharedChatContainer -> ChatSys.primaryContainer
+    --self.newWindowTab:SetHandler("OnMouseUp", function(tab, button, isUpInside) if isUpInside and not ZO_TabButton_IsDisabled(self.newWindowTab) then  self.system:CreateNewChatTab(self) end ZO_TabButton_Unselect(tab) end)
+    if not ChatSys or not ChatSys.primaryContainer then return end
+    local primaryContainer = ChatSys.primaryContainer
+    local newWindowTab = primaryContainer.newWindowTab
+    if newWindowTab ~= nil then
+d("[pChat]new window tab found")
+        ZO_PreHookHandler(newWindowTab, "OnMouseUp",
+            function(tab, button, isUpInside)
+                if isUpInside and not ZO_TabButton_IsDisabled(newWindowTab) then
+                    if not pChat.db.modifierKeyForNewChatTab then return false end
+                    if not IsShiftKeyDown() then return true end --prevent the exectuion of original function OnMouseUp if shift key is not pressed and setting that says to do so is ON
+                end
+                return false
+            end)
+    end
+end

@@ -189,6 +189,7 @@ function pChat.InitializeSettings()
 			[CONSTANTS.SEARCH_TYPE_FROM] = {},
 		},
 
+		modifierKeyForNewChatTab = false,
 
 		-- Not LAM
 		chatConfSync = {},
@@ -1616,6 +1617,15 @@ function pChat.InitializeSettings()
 					end,
 					default = defaults.defaultTab,
 					scrollable = true,
+				},
+				{-- SHIFT+LMB to create new chat tab
+					type = "checkbox",
+					name = GetString(PCHAT_modifierKeyForNewChatTab),
+					tooltip = GetString(PCHAT_modifierKeyForNewChatTab_TT),
+					getFunc = function() return db.modifierKeyForNewChatTab end,
+					setFunc = function(newValue) db.modifierKeyForNewChatTab = newValue end,
+					width = "full",
+					default = defaults.modifierKeyForNewChatTab,
 				},
 			},
 		}
