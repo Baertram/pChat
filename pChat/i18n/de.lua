@@ -37,6 +37,8 @@ SafeAddString(PCHAT_enableChatTabChannel						,"Aktivere letzter verwendeter Kan
 SafeAddString(PCHAT_enableChatTabChannelT						,"Der Chat Reiter merkt sich den zuletzt verwendeten Chat Kanal. Dieser wird im Anschluß der standard Chat Kanal für diesen Chat Reiter, bis du einen anderen als Standard Kanal auf diesem Chat Reiter festlegst.",1)
 SafeAddString(PCHAT_enableWhisperTab							,"Aktivere Flüstern Umleitung",1)
 SafeAddString(PCHAT_enableWhisperTabT							,"Flüster Nachrichten werden zu einem bestimmten Chat Reiter umgeleitet.",1)
+SafeAddString(PCHAT_modifierKeyForNewChatTab                    , "SHIFT+LM für neuen Chat Reiter", 1)
+SafeAddString(PCHAT_modifierKeyForNewChatTab_TT                 , "Halte die SHIFT Taste während du auf den kleinen \"+\" Knopf mit links clickst, damit ein euer Chat Reiter erstellt wird (verhindert aus Versehen erstellte Chat Reiter).", 1)
 
 
 -- New Need Translations
