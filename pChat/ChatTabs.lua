@@ -326,6 +326,7 @@ function pChat.NewChatTabButtonHook()
                 return false
         end)
         local function showNewChatTabTooltip(ctrl)
+            if not pChat.db.modifierKeyForNewChatTab then return false end
             ZO_Tooltips_ShowTextTooltip(ctrl, TOP, GetString(PCHAT_modifierKeyForNewChatTabButtonTT))
         end
         if newWindowTab:GetHandler("OnMouseEnter") ~= nil then
