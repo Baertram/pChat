@@ -82,25 +82,23 @@ ZO_ChatOptions_ToggleChannel    pChat.SaveChatConfig()      Save the currently l
 
 --=======================================================================================================================================
 --Known problems/bugs:
---Last updated: 2025-05-11
---Total number: 27
+--Last updated: 2025-06-08
+--Total number: 28
 --=======================================================================================================================================
 
 --Working on:
---Add SHIFT + left mouse button setting: Only create a new chat tab via the small "+" button if SHIFT key was pressed
---Improve performance of Teleport guild member lookup via a cache -> Thanks to Dakjaniels. s -> Still an issue with zone members there, name's @is shown twice?
+
 
 --=======================================================================================================================================
 -- Changelog version: 10.0.6.5 (last version 10.0.6.4)
 --=======================================================================================================================================
 --Fixed:
---
+--ES translation, thanks to MasterZiggy
+--System chat channel not showing at chat tab configuration
 
 --Changed:
---Improve performance of Teleport guild member lookup via a cache -> Thanks to Dakjaniels -> Still an issue with zone members there, name's @is shown twice?
 
 --Added:
---Add SHIFT + left mouse button setting: Only create a new chat tab via the small "+" button if SHIFT key was pressed
 
 
 --Added on request:
