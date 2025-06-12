@@ -82,7 +82,7 @@ ZO_ChatOptions_ToggleChannel    pChat.SaveChatConfig()      Save the currently l
 
 --=======================================================================================================================================
 --Known problems/bugs:
---Last updated: 2025-06-08
+--Last updated: 2025-06-12
 --Total number: 28
 --=======================================================================================================================================
 
@@ -90,11 +90,10 @@ ZO_ChatOptions_ToggleChannel    pChat.SaveChatConfig()      Save the currently l
 
 
 --=======================================================================================================================================
--- Changelog version: 10.0.6.5 (last version 10.0.6.4)
+-- Changelog version: 10.0.6.6 (last version 10.0.6.5)
 --=======================================================================================================================================
 --Fixed:
---ES translation, thanks to MasterZiggy
---System chat channel not showing at chat tab configuration
+--Dependency LibMediaProvider (renamed library)
 
 --Changed:
 
