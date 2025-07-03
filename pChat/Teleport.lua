@@ -6,9 +6,11 @@ local EM = EVENT_MANAGER
 local tos = tostring
 local strf = string.find
 local strlow = string.lower
+local zostrf = zo_strformat
 
 local playerTag = "player"
 local ownDisplayName = GetDisplayName()
+local ownDisplayNameLower = strlow(ownDisplayName)
 
 local parseSlashCommands = pChat.ParseSlashCommands
 
@@ -54,9 +56,9 @@ end
 
 function pChat.PortToDisplayname(displayName, portType, guildIndex)
     local isCurrentlyMounted = IsMounted()
---d("[pChat]PortToDisplayname-displayName: " ..tos(displayName) .. ", portType: " ..tos(portType) .. ", guildIndex: " ..tos(guildIndex) ..", isMounted: " ..tos(isCurrentlyMounted))
-    if displayName == nil or displayName == "" then return end
+    --d("[pChat]PortToDisplayname-displayName: " ..tos(displayName) .. ", portType: " ..tos(portType) .. ", guildIndex: " ..tos(guildIndex) ..", isMounted: " ..tos(isCurrentlyMounted))
     portToDisplayname = portToDisplayname or pChat.PortToDisplayname
+    if displayName == nil or displayName == "" or strlow(displayName) == ownDisplayNameLower then return end
     if not canTeleport() then return end
 
     CancelCast()
@@ -108,16 +110,29 @@ local repeatListCheck = false
 local function checkGuildIndex(displayName)
     local numGuilds = GetNumGuilds()
 --d("[pChat]checkGuildIndex-displayName: " .. tos(displayName) .. ", numGuilds: " .. tos(numGuilds))
-    if numGuilds == 0 then return nil end
+    if numGuilds == 0 then return nil, nil end
     local args = parseSlashCommands(displayName, false)
-    if ZO_IsTableEmpty(args) or #args < 2 then return nil end
+    if ZO_IsTableEmpty(args) or #args < 2 then return nil, nil end
     local possibleGuildIndex = tonumber(args[1])
 --d(">possibleGuildIndex: " ..tos(possibleGuildIndex))
     if type(possibleGuildIndex) == "number" and possibleGuildIndex >= 1 and possibleGuildIndex <= MAX_GUILDS then
         return possibleGuildIndex
     end
-    return nil
+    return nil, nil
 end
+
+local function checkInputParamsSearchStringAndGuildIndexAreSwitched(displayName, guildIndex)
+    --Check if 1st param is a number 1 to 5, then it is the guild number to search
+    local wasGuildIndexInDisplayName = false
+    local realGuildIndex = checkGuildIndex(displayName)
+    if type(realGuildIndex) == "number" then
+        --guildIndex was in the displayName! and guildIndex is most likely empty then -> coming from SlashCommands
+        wasGuildIndexInDisplayName = true
+        guildIndex = realGuildIndex
+    end
+    return displayName, guildIndex, wasGuildIndexInDisplayName
+end
+
 
 -- Guild member cache to avoid repeated expensive lookups
 local guildMemberCache = {}
@@ -197,14 +212,15 @@ local function OnPlayerActivated(eventId, initial)
     refreshAllGuildCaches()
 end
 
-local function isPlayerInAnyOfYourGuilds(displayName, possibleDisplayNameNormal, possibleDisplayName, p_guildIndex, p_guildIndexIteratorStart)
---d("[pChat]isPlayerInAnyOfYourGuilds - displayName: " ..tos(displayName) ..", possibleDisplayNameNormal: " ..tos(possibleDisplayNameNormal) .. ", possibleDisplayName: " ..tos(possibleDisplayName) .. ", p_guildIndex: " .. tos(p_guildIndex) .. ", p_guildIndexIteratorStart: " .. tos(p_guildIndexIteratorStart))
+local function isPlayerInAnyOfYourGuilds(displayName, possibleDisplayNameNormal, possibleDisplayName, p_guildIndex, p_guildIndexIteratorStart, fromSlashCommand)
+    fromSlashCommand = fromSlashCommand or false
+    --d("[pChat]isPlayerInAnyOfYourGuilds - displayName: " ..tos(displayName) ..", possibleDisplayNameNormal: " ..tos(possibleDisplayNameNormal) .. ", possibleDisplayName: " ..tos(possibleDisplayName) .. ", p_guildIndex: " .. tos(p_guildIndex) .. ", p_guildIndexIteratorStart: " .. tos(p_guildIndexIteratorStart) .. "; fromSlashCommand: " .. tos(fromSlashCommand))
     local numGuilds = GetNumGuilds()
     if numGuilds == 0 then return nil, nil, nil, nil end
 
     -- Build cache if missing
     if ZO_IsTableEmpty(guildMemberCache) then
---d(">guildMemberCache is empty")
+        --d(">guildMemberCache is empty")
         refreshAllGuildCaches()
         if ZO_IsTableEmpty(guildMemberCache) then
             d("[" .. ADDON_NAME .."]ERROR - GuildMemberCache could not be created")
@@ -213,11 +229,11 @@ local function isPlayerInAnyOfYourGuilds(displayName, possibleDisplayNameNormal,
     else
         --Less cache data than guild? Update them
         if #guildMemberCache < numGuilds then
-    --d(">#guildMemberCache: " .. tos(#guildMemberCache)  .." < numGuilds #"..tos(numGuilds) .." -> Update")
+            --d(">#guildMemberCache: " .. tos(#guildMemberCache)  .." < numGuilds #"..tos(numGuilds) .." -> Update")
             refreshAllGuildCaches()
         else
             if p_guildIndex ~= nil then
-    --d(">guildMemberCache[" ..tos(p_guildIndex).."] is empty")
+                --d(">guildMemberCache[" ..tos(p_guildIndex).."] is empty")
                 if ZO_IsTableEmpty(guildMemberCache[p_guildIndex]) then
                     buildGuildMemberCache(p_guildIndex)
                     if ZO_IsTableEmpty(guildMemberCache[p_guildIndex]) then
@@ -230,35 +246,58 @@ local function isPlayerInAnyOfYourGuilds(displayName, possibleDisplayNameNormal,
     end
 
     local searchName = strlow(possibleDisplayNameNormal)
+    if searchName == ownDisplayNameLower then return nil, nil, nil, nil end
+
     local isOnline = false
     local guildIndexFound, memberIndexFound
     local guildIndexIteratorStart = p_guildIndexIteratorStart or 1
---d(">guildIndexIteratorStart: " ..tos(guildIndexIteratorStart))
+    --d(">guildIndexIteratorStart: " ..tos(guildIndexIteratorStart))
     for guildIndex = guildIndexIteratorStart, numGuilds do
         if p_guildIndex == nil or p_guildIndex == guildIndex then
+            local guildId = GetGuildId(guildIndex)
             local cache = guildMemberCache[guildIndex]
-            if cache ~= nil and cache[searchName] ~= nil then
-                local memberIndex = cache[searchName]
-                local guildId = GetGuildId(guildIndex)
-                local name, note, rankIndex, playerStatus = GetGuildMemberInfo(guildId, memberIndex)
-                local hasChar, charName = GetGuildMemberCharacterInfo(guildId, memberIndex)
-                isOnline = (playerStatus ~= PLAYER_STATUS_OFFLINE)
-                guildIndexFound = guildIndex
-                memberIndexFound = memberIndex
-                pChat.lastCheckDisplayNameData = { displayName = name, index = guildIndexFound, isOnline = isOnline, type = "guild" }
---d(">found guildIndex: " ..tos(guildIndexFound) .. "; name: " ..tos(name) ..", isOnline: " ..tos(isOnline))
-                return name, guildIndexFound, nil, isOnline
+            if cache ~= nil then
+                --Total name match
+                if cache[searchName] ~= nil then
+                    local memberIndex = cache[searchName]
+                    local name, note, rankIndex, playerStatus = GetGuildMemberInfo(guildId, memberIndex)
+                    local hasChar, charName = GetGuildMemberCharacterInfo(guildId, memberIndex)
+                    isOnline = (playerStatus ~= PLAYER_STATUS_OFFLINE)
+                    guildIndexFound = guildIndex
+                    memberIndexFound = memberIndex
+                    pChat.lastCheckDisplayNameData = { displayName = name, index = guildIndexFound, isOnline = isOnline, type = "guild" }
+                    --d(">found guildIndex: " ..tos(guildIndexFound) .. "; name: " ..tos(name) ..", isOnline: " ..tos(isOnline))
+                    return name, guildIndexFound, nil, isOnline
+
+                elseif fromSlashCommand == true then
+                    --Partially name match?
+                    for cachedName, memberIndex in pairs(cache) do
+                        local cachedNameLower = strlow(cachedName)
+                        local partialMatch = (cachedNameLower ~= "" and strf(zostrf("<<1>>", cachedNameLower), searchName, 0, true) ~= nil) or false
+                        --d(">name: " .. tos(zostrf("<<C:1>>", cachedNameLower)) .. ", strf: " .. tos(strf(zostrf("<<1>>", cachedNameLower), searchName, 0, true)) .. ", partialMatch: " .. tos(partialMatch))
+                        if partialMatch == true then
+                            local name, note, rankIndex, playerStatus = GetGuildMemberInfo(guildId, memberIndex)
+                            local hasChar, charName = GetGuildMemberCharacterInfo(guildId, memberIndex)
+                            isOnline = (playerStatus ~= PLAYER_STATUS_OFFLINE)
+                            guildIndexFound = guildIndex
+                            memberIndexFound = memberIndex
+                            pChat.lastCheckDisplayNameData = { displayName = name, index = guildIndexFound, isOnline = isOnline, type = "guild" }
+                            --d(">partially found guildIndex: " ..tos(guildIndexFound) .. "; name: " ..tos(name) ..", isOnline: " ..tos(isOnline))
+                            return name, guildIndexFound, nil, isOnline
+                        end
+                    end
+                end
             end
         end
     end
---d("<returning guildData with nil")
+    --d("<returning guildData with nil")
     return nil, nil, nil, nil
 end
 
 --Check if the displayName is a @displayName, partial displayName or any other name like a character name -> Try to find a matching display name via
 --friends list, group or guild member list then
 -->If it's a partial name the first found name will be teleported to!
-local function checkDisplayName(displayName, portType, p_guildIndex, p_guildIndexIteratorStart, wasGuildIndexInDisplayName)
+local function checkDisplayName(displayName, portType, p_guildIndex, p_guildIndexIteratorStart, wasGuildIndexInDisplayName, fromSlashCommand)
     wasGuildIndexInDisplayName = wasGuildIndexInDisplayName or false
     repeatListCheck = false
 
@@ -268,10 +307,10 @@ local function checkDisplayName(displayName, portType, p_guildIndex, p_guildInde
     local friendIndex
     local isOnline = false
 
-    --Was the guildIndex passed in from a slash command as 1st param and the displayName is the 2nd param then?
+    --Was the guildIndex passed in from a slash command as 1st param, and the displayName is the 2nd param then?
     if wasGuildIndexInDisplayName == true then
         args = parseSlashCommands(displayName, false)
-        table.remove(args, 1) --delete the guildIndex
+        table.remove(args, 1) --delete the guildIndex, to keep the displayname etc.
     else
         --displayName could be any passed in string from slash command
         --or from the chat message a character name with spaces in there too!
@@ -286,6 +325,15 @@ local function checkDisplayName(displayName, portType, p_guildIndex, p_guildInde
             }
         end
     end
+
+    --For debugging only:
+    --d("[pChat]???? checkDisplayName ????")
+    --[[
+    for k,v in ipairs(args) do
+        d(tos(k) .. ") " .. tos(v))
+    end
+    ]]
+    --d("?-------------------------------------?")
 
     --Only consider the first
     if ZO_IsTableEmpty(args) then return end
@@ -362,7 +410,7 @@ local function checkDisplayName(displayName, portType, p_guildIndex, p_guildInde
     ------------------------------------------------------------------------------------------------------------------------
     elseif portType == "guild" then
 --d(">>guild check")
-        return isPlayerInAnyOfYourGuilds(displayName, possibleDisplayNameNormal, possibleDisplayName, p_guildIndex, p_guildIndexIteratorStart)
+        return isPlayerInAnyOfYourGuilds(displayName, possibleDisplayNameNormal, possibleDisplayName, p_guildIndex, p_guildIndexIteratorStart, fromSlashCommand)
     end
 end
 pChat.checkDisplayName = checkDisplayName
@@ -392,12 +440,21 @@ end
 function pChat.PortToGroupMember(displayName)
     if displayName == nil or displayName == "" or not canTeleport() then return end
     if not IsUnitGrouped(playerTag) then return end
+    local searchName = strlow(displayName)
+    if searchName == ownDisplayNameLower then
+        return
+    end
+
     displayName = checkDisplayName(displayName, "group")
     portToDisplayname(displayName, "group")
 end
 
 function pChat.PortToFriend(displayName)
     if displayName == nil or displayName == "" or not canTeleport() then return end
+    local searchName = strlow(displayName)
+    if searchName == ownDisplayNameLower then
+        return
+    end
     displayName = checkDisplayName(displayName, "friend")
 
     --[[
@@ -412,33 +469,29 @@ function pChat.PortToFriend(displayName)
     portToDisplayname(displayName, "friend")
 end
 
+
+--If coming from a slash command /tpg the displayName might be the guildIndex 1 to 5 and the guildIndex might be the display or characteName!
 function pChat.PortToGuildMember(displayName, guildIndex, guildIndexIteratorStart)
+--d("[pChat.PortToGuildMember]displayName: " ..tos(displayName) .. ", guildIndex: " .. tos(guildIndex) .. ", guildIndexIteratorStart: " ..tos(guildIndexIteratorStart))
     if displayName == nil or displayName == "" or not canTeleport() then return end
-    if not canTeleport() then return end
     local numGuilds = GetNumGuilds()
     if numGuilds == 0 then return end
 
-    --Check if 1st param is a number 1 to 5, then it is the guild number to search
-    local wasGuildIndexInDisplayName = false
-    if guildIndex == nil then
-        guildIndex = checkGuildIndex(displayName)
-        if guildIndex ~= nil then
-            wasGuildIndexInDisplayName = true
+    local wasGuildIndexInDisplayName, p_guildIndexFound, p_GuildIndexIteratorStart
+    displayName, guildIndex, wasGuildIndexInDisplayName = checkInputParamsSearchStringAndGuildIndexAreSwitched(displayName, guildIndex)
+
+--d(">displayNameNow: " .. tos(displayName) .. ", guildIndexNow: " ..tos(guildIndex) .. "; wasGuildIndexInDisplayName: " .. tos(wasGuildIndexInDisplayName))
+    displayName, p_guildIndexFound, p_GuildIndexIteratorStart = checkDisplayName(displayName, "guild", guildIndex, guildIndexIteratorStart, wasGuildIndexInDisplayName, true)
+--d(">displayNameFound: " ..tos(displayName) ..", p_guildIndexFound: " ..tos(p_guildIndexFound).. ", p_GuildIndexIteratorStart: " ..tos(p_GuildIndexIteratorStart))
+
+    --Do not start teleport if player is offline
+    local lastCheckDisplayNameData = pChat.lastCheckDisplayNameData
+    if lastCheckDisplayNameData then
+        if lastCheckDisplayNameData.type == "guild" and lastCheckDisplayNameData.displayName == displayName and lastCheckDisplayNameData.index == p_guildIndexFound
+                and not lastCheckDisplayNameData.isOnline then
+            return
         end
     end
---d(">guildIndex: " ..tos(guildIndex))
-    local p_guildIndexFound, p_GuildIndexIteratorStart
-    displayName, p_guildIndexFound, p_GuildIndexIteratorStart = checkDisplayName(displayName, "guild", guildIndex, guildIndexIteratorStart, wasGuildIndexInDisplayName)
---d(">displayName: " ..tos(displayName) ..", guildIndex: " ..tos(guildIndex) ..", p_guildIndexFound: " ..tos(p_guildIndexFound))
-
-    --[[
-    if displayName == nil and repeatListCheck == true then
-        repeatListCheck = false
-        --Delay the call to the same function so the friendsListd ata is build properly
-        zo_callLater(function() pChat.PortToGuildMember(displayName, guildIndex, p_GuildIndexIteratorStart) end, 250)
-        return
-    end
-    ]]
 
     portToDisplayname(displayName, "guild", p_guildIndexFound or guildIndex)
 end

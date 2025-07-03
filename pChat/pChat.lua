@@ -82,18 +82,18 @@ ZO_ChatOptions_ToggleChannel    pChat.SaveChatConfig()      Save the currently l
 
 --=======================================================================================================================================
 --Known problems/bugs:
---Last updated: 2025-06-12
---Total number: 28
+--Last updated: 2025-07-02
+--Total number: 29
 --=======================================================================================================================================
 
 --Working on:
 
 
 --=======================================================================================================================================
--- Changelog version: 10.0.6.6 (last version 10.0.6.5)
+-- Changelog version: 10.0.6.7 (last version 10.0.6.6)
 --=======================================================================================================================================
 --Fixed:
---Dependency LibMediaProvider (renamed library)
+--#29 /tpg PartOfOnlineGuildMemberName [enter]
 
 --Changed:
 
@@ -684,15 +684,20 @@ local function LoadSlashCommands()
     SLASH_COMMANDS["/pchatdeleteoldsv"] = pChatDeleteOldNonServerDependentSVForAccount
 
     --Teleport to .... slash commands
+    --/tpgl Port to group leader
     SLASH_COMMANDS["/pchattpgl"] =  function(params) pChat.PortToGroupLeader() end
     SLASH_COMMANDS["/tpgl"] =       function(params) pChat.PortToGroupLeader() end
     SLASH_COMMANDS["/pchattppl"] =  function(params) pChat.PortToGroupLeader() end
+    --/tpgm <name> Port to group member <1st found partial or full @displayName or character name>
     SLASH_COMMANDS["/pchattpgm"] =  function(params) pChat.PortToGroupMember(params) end
     SLASH_COMMANDS["/tpgm"] =       function(params) pChat.PortToGroupMember(params) end
+    --/tpp <name> Port to group member <1st found partial or full @displayName or character name>
     SLASH_COMMANDS["/tpp"] =        function(params) pChat.PortToGroupMember(params) end
     SLASH_COMMANDS["/pchattpp"] =   function(params) pChat.PortToGroupMember(params) end
+    --/tpfr <name> Port to friend <1st found partial or full @displayName or character name>
     SLASH_COMMANDS["/pchattpfr"] =  function(params) pChat.PortToFriend(params) end
     SLASH_COMMANDS["/tpfr"] =       function(params) pChat.PortToFriend(params) end
+    -- /tpg <guildIndex 1 to 5ptional> <name> Port to guild's <guildIndex> member <1st found partial or full @displayName or character name>
     SLASH_COMMANDS["/pchattpg"] =   function(params) pChat.PortToGuildMember(params) end
     SLASH_COMMANDS["/tpg"] =        function(params) pChat.PortToGuildMember(params) end
 end
