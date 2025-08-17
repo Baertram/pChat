@@ -82,23 +82,23 @@ ZO_ChatOptions_ToggleChannel    pChat.SaveChatConfig()      Save the currently l
 
 --=======================================================================================================================================
 --Known problems/bugs:
---Last updated: 2025-07-02
---Total number: 29
+--Last updated: 2025-08-17
+--Total number: 30
 --=======================================================================================================================================
 
 --Working on:
 
 
 --=======================================================================================================================================
--- Changelog version: 10.0.6.7 (last version 10.0.6.6)
+-- Changelog version: 10.0.6.8 (last version 10.0.6.7)
 --=======================================================================================================================================
 --Fixed:
---#29 /tpg PartOfOnlineGuildMemberName [enter]
+--
 
 --Changed:
 
 --Added:
-
+--#30 Added slash command /pchats to start the search (in the copy dialog)
 
 --Added on request:
 
@@ -700,6 +700,9 @@ local function LoadSlashCommands()
     -- /tpg <guildIndex 1 to 5ptional> <name> Port to guild's <guildIndex> member <1st found partial or full @displayName or character name>
     SLASH_COMMANDS["/pchattpg"] =   function(params) pChat.PortToGuildMember(params) end
     SLASH_COMMANDS["/tpg"] =        function(params) pChat.PortToGuildMember(params) end
+
+    --Open chat search UI - #30
+    SLASH_COMMANDS["/pchats"] = function(params) pChat_ChatCopyOptions_ShowSearchUI(params) end
 end
 
 -- Please note that some things are delayed in OnPlayerActivated() because Chat isn't ready when this function triggers

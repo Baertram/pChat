@@ -641,7 +641,7 @@ local function CopyWholeChat(updateShownDialog)
             end
         end
     end
-pChat._debugSearchUIMasterList = pChat_searchUIMasterList
+--pChat._debugSearchUIMasterList = pChat_searchUIMasterList
     if filteredStringCopy then
         if updateShownDialog == true then
             return filteredStringCopy
@@ -1088,9 +1088,13 @@ local function SetupChatCopyOptionsDialog(control)
             })
 end
 
-function ChatCopyOptions:UpdateSearchUI()
+function ChatCopyOptions:UpdateSearchUI(searchTerm)
     --Refresh the ZO_SortFilterList's masterlist data and populate the entries
     if self.isSearchUIShown == true then
+        if searchTerm ~= nil then
+            --Set the search edit box for the text to the passed in search value
+            pChatCopyOptionsDialogSearchUIMessageSearchBox:SetText(tostring(searchTerm)) --#30
+        end
         self.searchUIList:RefreshData()
     end
 end
@@ -1625,7 +1629,7 @@ function ChatCopyOptions:SetCurrentChannelSelections(container, chatTabIndex, ch
     end
 end
 
-function ChatCopyOptions:ApplyFilters()
+function ChatCopyOptions:ApplyFilters(searchTerm)
 --d("[pChat]CopyDialog-ApplyFilters")
     pChat.pChatData.chatChannelsToFilter = nil
     --Filter the entries in the list now according to selected checkboxes!
@@ -1659,7 +1663,7 @@ function ChatCopyOptions:ApplyFilters()
         self:UpdateEditAndButtons()
 
         if self.openedSearchUICount > 1 then
-            self:UpdateSearchUI()
+            self:UpdateSearchUI(searchTerm)
         end
     end
 end
@@ -1714,7 +1718,7 @@ function ChatCopyOptions:ChangeFiltersState(doEnable, filterType)
     end
 end
 
-function ChatCopyOptions:ShowSearchUI()
+function ChatCopyOptions:ShowSearchUI(searchTerm)
     self.isSearchUIShown = true
     self.openedSearchUICount = self.openedSearchUICount + 1
 
@@ -1733,10 +1737,11 @@ function ChatCopyOptions:ShowSearchUI()
     --> Will be done at function CopyWholeChat if param "updateShownDialog" is true -> table pChat_searchUIMasterList will be filled with relevant db.lineStrings
     if self.openedSearchUICount > 1 then
         --Apply the filter buttons, if changed
-        self:ApplyFilters()
+        self:ApplyFilters(searchTerm)
+
     else
         --On first open just refresh the scroll list
-        self:UpdateSearchUI()
+        self:UpdateSearchUI(searchTerm)
     end
 end
 
@@ -1792,31 +1797,61 @@ function ChatCopyOptions:Hide()
 end
 
 --[[ XML Handlers ]]--
+local loc_pChat_ChatCopyOptions_OnInitialized           --#30
+local function chatCopyDialogInitializedCheck()         --#30
+--d("[pChat]chatCopyDialogInitializedCheck")
+    local pChatChatCopyOptions = pChat.ChatCopyOptions
+    if not pChatChatCopyOptions or (pChatChatCopyOptions ~= nil and not pChatChatCopyOptions.initialized) then
+--d(">Initializing chat copy dialog")
+        loc_pChat_ChatCopyOptions_OnInitialized(pChatCopyOptionsDialog)
+    end
+end
+
 function pChat_ChatCopyOptions_OnInitialized(dialogControl)
     SetupChatCopyOptionsDialog(dialogControl)
 	pChat.ChatCopyOptions = ChatCopyOptions:New(dialogControl)
 end
+loc_pChat_ChatCopyOptions_OnInitialized = pChat_ChatCopyOptions_OnInitialized       --#30
+
 
 function pChat_ChatCopyOptions_OnCommitClicked()
-	pChat.ChatCopyOptions:ApplyFilters()
+    if not pChat.ChatCopyOptions then return end
+    pChat.ChatCopyOptions:ApplyFilters()
 end
 
 function pChat_ChatCopyOptions_ToggleSearchUI()
+    if not pChat.ChatCopyOptions then return end
 	pChat.ChatCopyOptions:ToggleSearchUI()
 end
 
+function pChat_ChatCopyOptions_ShowSearchUI(searchTerm)       --#30
+--d("[pChat]pChat_ChatCopyOptions_ShowSearchUI")
+    chatCopyDialogInitializedCheck()
+    local pChatChatCopyOptions = pChat.ChatCopyOptions
+    --Copy the whole chat and open the copy dialog, then show the search UI
+    CopyWholeChat(false) -- Calls pChat_ShowCopyDialog
+    --Delay the call to the search UI show so the dialog populates first
+    zo_callLater(function()
+        pChatChatCopyOptions:ShowSearchUI(searchTerm)
+    end, 200)
+end
+
+
 function pChat_ChatCopyOptions_OnHide()
+    if not pChat.ChatCopyOptions then return end
 --d("pChat_ChatCopyOptions_OnHide")
     ZO_Dialogs_ReleaseDialog("PCHAT_CHAT_COPY_DIALOG")
     pChat.ChatCopyOptions:Hide()
 end
 
 function pChat_ChatCopyOptions_EnableAllFilters(filterType)
+    if not pChat.ChatCopyOptions then return end
     --d("[pChat]Enable all filters")
     pChat.ChatCopyOptions:ChangeFiltersState(true, filterType)
 end
 
 function pChat_ChatCopyOptions_DisableAllFilters(filterType)
+    if not pChat.ChatCopyOptions then return end
 --d("[pChat]Disable all filters")
     pChat.ChatCopyOptions:ChangeFiltersState(false, filterType)
 end
