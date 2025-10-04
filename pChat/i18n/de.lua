@@ -563,6 +563,7 @@ SafeAddString(PCHAT_SEARCHUI_HEADER_MESSAGE,"Nachricht", 1)
 SafeAddString(PCHAT_SEARCHUI_MESSAGE_SEARCH_DEFAULT_TEXT, "Gib den Suchtext der \'Nachricht\' hier ein...", 1)
 SafeAddString(PCHAT_SEARCHUI_FROM_SEARCH_DEFAULT_TEXT, "Gib den Suchtext des \'Absenders\' hier ein...", 1)
 SafeAddString(PCHAT_SEARCHUI_CLEAR_SEARCH_HISTORY, "Such Historie leeren", 1)
+SafeAddString(PCHAT_SEARCHUI_ACCOUNT_SWITCHED, "Account für die Suche wurde geändert zu %q", 1)
 
 
 -- Coorbin20200708

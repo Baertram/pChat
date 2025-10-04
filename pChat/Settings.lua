@@ -27,6 +27,9 @@ local constChatTabNoName = CONSTANTS.chatTabNoName
 --Initialize the SavedVariables and LAM settings menu
 function pChat.InitializeSettings()
 	local pChatData = pChat.pChatData
+	pChatData.accountsOfServerLookup = {}
+
+
 	local logger = pChat.logger
 	local UpdateCharCorrespondanceTableChannelNames = pChat.UpdateCharCorrespondanceTableChannelNames
 
@@ -190,6 +193,8 @@ function pChat.InitializeSettings()
 		},
 
 		modifierKeyForNewChatTab = false,
+		defaultAccountForSearch = GetDisplayName(), --#33
+		guildNames = {}, --#33 The guildIndex and the name so the search UI can show the other account's guildNames properly
 
 		-- Not LAM
 		chatConfSync = {},
@@ -322,10 +327,30 @@ function pChat.InitializeSettings()
 	end
 	pChat.CheckDefaultTabExists = checkDefaultTabExists
 
+	--##33 Save the current guild names to the SavedVariables so we can reuse it at other accounts at the search UI e.g.
+	local function updateGuildNamesToDB()
+		db.guildNames = {}
+		for guildIndex = 1, GetNumGuilds() do
+			-- Guildname
+			local guildId = GetGuildId(guildIndex)
+			local guildName = GetGuildName(guildId)
+			-- Occurs sometimes
+			if(not guildName or (guildName):len() < 1) then
+				guildName = "Guild " .. guildIndex
+			end
+			db.guildNames[guildIndex] = {
+				id = guildId,
+				name = guildName,
+				alliance = GetGuildAlliance(guildId),
+			}
+		end
+	end
+	pChat.UpdateGuildNamesToDB = updateGuildNamesToDB
 
 	-- Build LAM Option Table, used when AddonLoads or when a player join/leave a guild
 	local function BuildLAMPanel()
 		pChat.updateChatChannelNames()
+		updateGuildNamesToDB() --#33
 
 		--d("[pChat]Build LAM Panel")
 		local function UpdateSoundDescription(soundType, newSoundIndex)
@@ -350,6 +375,23 @@ function pChat.InitializeSettings()
 		local charId = GetCurrentCharacterId()
 
 		local fontsDefined = LibMediaProvider:List('font')
+
+		--#33 Accounts of the current server
+		local function getAccountsListOfServer()
+			local l_accountsOfServerList = {}
+			l_accountsOfServerList[1] = GetString(SI_ALLIANCE0)
+
+			local accountsOfServerLookup = pChatData.accountsOfServerLookup
+			for accountName, isEnabled in pairs(accountsOfServerLookup) do
+				if isEnabled then
+					l_accountsOfServerList[#l_accountsOfServerList + 1] = accountName
+				end
+			end
+			return l_accountsOfServerList
+		end
+		pChat.GetAccountsListOfServer = getAccountsListOfServer
+		local accountsOfServerList = getAccountsListOfServer()
+
 
 		local function ConvertHexToRGBAPacked(colourString)
 			local r, g, b, a = ConvertHexToRGBA(colourString)
@@ -459,20 +501,25 @@ function pChat.InitializeSettings()
 		local controlsForGuildSubmenu2 = {}
 
 		--Now add a submenu for each of the 5 guilds
-		for guild = 1, GetNumGuilds() do
+		for guildIndex = 1, GetNumGuilds() do
+			local guildId = GetGuildId(guildIndex)
 			-- Guildname
-			local guildId = GetGuildId(guild)
+			--#33 update the guildNames to the SavedVariables so other accounts can use them for the search UI
+			local guildName = (db.guildNames[guildIndex] ~= nil and db.guildNames[guildIndex].name) or GetGuildName(guildId)
+			--[[
 			local guildName = GetGuildName(guildId)
 			-- Occurs sometimes
 			if(not guildName or (guildName):len() < 1) then
 				guildName = "Guild " .. guild
 			end
+			]]
 			-- If recently added to a new guild and never go in menu db.formatguild[guildName] won't exist
 			db.formatguild = db.formatguild or {}
 			if db.formatguild[guildId] == nil then
 				-- 2 is default value
 				db.formatguild[guildId] = 2
 			end
+
 			controlsForGuildSubmenu[#controlsForGuildSubmenu + 1] = {
 				type = "submenu",
 				name = guildName,
@@ -507,7 +554,7 @@ function pChat.InitializeSettings()
 						tooltip = GetString(PCHAT_SWITCHFORTT),
 						getFunc = function() return db.switchFor[guildId] end,
 						setFunc = function(newValue)
-							local channelId = CHAT_CHANNEL_GUILD_1 - 1 + guild
+							local channelId = CHAT_CHANNEL_GUILD_1 - 1 + guildIndex
 
 							local oldValue = db.switchFor[guildId]
 							if oldValue and oldValue ~= "" then
@@ -530,7 +577,7 @@ function pChat.InitializeSettings()
 						default = "",
 						getFunc = function() return db.officerSwitchFor[guildId] end,
 						setFunc = function(newValue)
-							local channelId = CHAT_CHANNEL_OFFICER_1 - 1 + guild
+							local channelId = CHAT_CHANNEL_OFFICER_1 - 1 + guildIndex
 
 							local oldValue = db.officerSwitchFor[guildId]
 							if oldValue and oldValue ~= "" then
@@ -563,40 +610,40 @@ function pChat.InitializeSettings()
 						type = "colorpicker",
 						name = GetString(PCHAT_MEMBERS),
 						tooltip = zo_strformat(PCHAT_SETCOLORSFORTT, guildName),
-						getFunc = function() return ConvertHexToRGBA(db.colours[2*(CHAT_CHANNEL_GUILD_1 + guild - 1)]) end,
-						setFunc = function(r, g, b) db.colours[2*(CHAT_CHANNEL_GUILD_1 + guild - 1)] = ConvertRGBToHex(r, g, b) end,
-						default = ConvertHexToRGBAPacked(defaults.colours[2*(CHAT_CHANNEL_GUILD_1 + guild - 1)]),
-						disabled = function() return db.useESOcolors or (guild~=1 and db.allGuildsSameColour) end,
+						getFunc = function() return ConvertHexToRGBA(db.colours[2*(CHAT_CHANNEL_GUILD_1 + guildIndex - 1)]) end,
+						setFunc = function(r, g, b) db.colours[2*(CHAT_CHANNEL_GUILD_1 + guildIndex - 1)] = ConvertRGBToHex(r, g, b) end,
+						default = ConvertHexToRGBAPacked(defaults.colours[2*(CHAT_CHANNEL_GUILD_1 + guildIndex - 1)]),
+						disabled = function() return db.useESOcolors or (guildIndex ~=1 and db.allGuildsSameColour) end,
 						width = "half",
 					},
 					{
 						type = "colorpicker",
 						name = GetString(PCHAT_CHAT),
 						tooltip = zo_strformat(PCHAT_SETCOLORSFORCHATTT, guildName),
-						getFunc = function() return ConvertHexToRGBA(db.colours[2*(CHAT_CHANNEL_GUILD_1 + guild - 1) + 1]) end,
-						setFunc = function(r, g, b) db.colours[2*(CHAT_CHANNEL_GUILD_1 + guild - 1) + 1] = ConvertRGBToHex(r, g, b) end,
-						default = ConvertHexToRGBAPacked(defaults.colours[2*(CHAT_CHANNEL_GUILD_1 + guild - 1) + 1]),
-						disabled = function() return db.useESOcolors or (guild~=1 and db.allGuildsSameColour) or db.oneColour end,
+						getFunc = function() return ConvertHexToRGBA(db.colours[2*(CHAT_CHANNEL_GUILD_1 + guildIndex - 1) + 1]) end,
+						setFunc = function(r, g, b) db.colours[2*(CHAT_CHANNEL_GUILD_1 + guildIndex - 1) + 1] = ConvertRGBToHex(r, g, b) end,
+						default = ConvertHexToRGBAPacked(defaults.colours[2*(CHAT_CHANNEL_GUILD_1 + guildIndex - 1) + 1]),
+						disabled = function() return db.useESOcolors or (guildIndex ~=1 and db.allGuildsSameColour) or db.oneColour end,
 						width = "half",
 					},
 					{
 						type = "colorpicker",
 						name = GetString(PCHAT_OFFICERSTT) .. " " .. GetString(PCHAT_MEMBERS),
 						tooltip = zo_strformat(PCHAT_SETCOLORSFOROFFICIERSTT, guildName),
-						getFunc = function() return ConvertHexToRGBA(db.colours[2*(CHAT_CHANNEL_OFFICER_1 + guild - 1)]) end,
-						setFunc = function(r, g, b) db.colours[2*(CHAT_CHANNEL_OFFICER_1 + guild - 1)] = ConvertRGBToHex(r, g, b) end,
-						default = ConvertHexToRGBAPacked(defaults.colours[2*(CHAT_CHANNEL_OFFICER_1 + guild - 1)]),
-						disabled = function() return db.useESOcolors or (guild~=1 and db.allGuildsSameColour) end,
+						getFunc = function() return ConvertHexToRGBA(db.colours[2*(CHAT_CHANNEL_OFFICER_1 + guildIndex - 1)]) end,
+						setFunc = function(r, g, b) db.colours[2*(CHAT_CHANNEL_OFFICER_1 + guildIndex - 1)] = ConvertRGBToHex(r, g, b) end,
+						default = ConvertHexToRGBAPacked(defaults.colours[2*(CHAT_CHANNEL_OFFICER_1 + guildIndex - 1)]),
+						disabled = function() return db.useESOcolors or (guildIndex ~=1 and db.allGuildsSameColour) end,
 						width = "half",
 					},
 					{
 						type = "colorpicker",
 						name = GetString(PCHAT_OFFICERSTT) .. " " .. GetString(PCHAT_CHAT),
 						tooltip = zo_strformat(PCHAT_SETCOLORSFOROFFICIERSCHATTT, guildName),
-						getFunc = function() return ConvertHexToRGBA(db.colours[2*(CHAT_CHANNEL_OFFICER_1 + guild - 1) + 1]) end,
-						setFunc = function(r, g, b) db.colours[2*(CHAT_CHANNEL_OFFICER_1 + guild - 1) + 1] = ConvertRGBToHex(r, g, b) end,
-						default = ConvertHexToRGBAPacked(defaults.colours[2*(CHAT_CHANNEL_OFFICER_1 + guild - 1) + 1]),
-						disabled = function() return db.useESOcolors or (guild~=1 and db.allGuildsSameColour) or db.oneColour end,
+						getFunc = function() return ConvertHexToRGBA(db.colours[2*(CHAT_CHANNEL_OFFICER_1 + guildIndex - 1) + 1]) end,
+						setFunc = function(r, g, b) db.colours[2*(CHAT_CHANNEL_OFFICER_1 + guildIndex - 1) + 1] = ConvertRGBToHex(r, g, b) end,
+						default = ConvertHexToRGBAPacked(defaults.colours[2*(CHAT_CHANNEL_OFFICER_1 + guildIndex - 1) + 1]),
+						disabled = function() return db.useESOcolors or (guildIndex ~=1 and db.allGuildsSameColour) or db.oneColour end,
 						width = "half",
 					},
 				},
@@ -2073,6 +2120,22 @@ function pChat.InitializeSettings()
 					width = "full",
 					default = defaults.restoreShowCurrentNameAndZone,
 				},
+
+				{ -- LAM Option Restore: @accounts for chat search --#33
+					type = "dropdown",
+					name = "Default Account for search",
+					tooltip = "Choose the default @account for the chat search UI",
+					choices = accountsOfServerList,
+					width = "full",
+					getFunc = function() return db.defaultAccountForSearch end,
+					setFunc = function(choice)
+						db.defaultAccountForSearch = choice
+					end,
+					default = defaults.defaultAccountForSearch,
+					scrollable = true,
+				},
+
+
 			},
 		}
 
@@ -2756,9 +2819,38 @@ function pChat.InitializeSettings()
 		getLastBackupSVReminderText()
 	end
 
+	local function buildAccountNamesListOfServer()
+		--#33 Get all @displayNames (accounts) of the current server where there exist LineStrings
+		--and add them to the list of accounts -> for the chat search
+		--[[
+		["NA Megaserver"] =
+		{
+			["@Baerkloppt"] =
+			{
+				["$AccountWide"] =
+				{
+					["LineStrings"] = { ...
+		]]
+		local worldName = GetWorldName()
+		local savedVarsServerBase = _G[ADDON_SV_NAME][worldName]
+		if savedVarsServerBase then
+			for accountName, accountData in pairs(savedVarsServerBase) do
+				if accountData and accountData["$AccountWide"] and accountData["$AccountWide"]["LineStrings"] and #accountData["$AccountWide"]["LineStrings"] > 0 then
+					if not pChatData.accountsOfServerLookup[accountName] then
+						pChatData.accountsOfServerLookup[accountName] = true
+					end
+				end
+			end
+		end
+	end
+
 
 	--Migrate old non-server dependent SavedVariables to new server dependent ones
 	migrateSavedVarsToServerDependent()
+
+	--#33 Get all @displayNames (accounts) of the current server where there exist LineStrings
+	--and add them to the list of accounts -> for the chat search
+	buildAccountNamesListOfServer()
 
 	pChat.db = db
 

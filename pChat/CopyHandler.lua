@@ -8,6 +8,7 @@ local ChatSys = CONSTANTS.CHAT_SYSTEM
 
 local tos = tostring
 local strfin = string.find
+local strfor = string.format
 local strsub = string.sub
 local strlow = string.lower
 local strlen = string.len
@@ -39,6 +40,22 @@ local getPortTypeFromName
 -------------------------------------------------------------
 -- Helper functions --
 -------------------------------------------------------------
+
+--Get the actual selected account of the chat search, from the dropdown, and read the relating SavedVariables --#33
+local function getDBByAccountName(accountName)
+    if accountName == nil and pChat.ChatCopyOptions ~= nil then
+        accountName = pChat.ChatCopyOptions.currentlySelectedAccountName
+    end
+    if accountName ~= nil then
+        local savedVarsServerBase = _G[CONSTANTS.ADDON_SV_NAME][GetWorldName()]
+        if savedVarsServerBase and savedVarsServerBase[accountName] and savedVarsServerBase[accountName]["$AccountWide"] and savedVarsServerBase[accountName]["$AccountWide"]["LineStrings"] then
+            return savedVarsServerBase[accountName]["$AccountWide"]
+        end
+    end
+    return pChat.db
+end
+
+
 -- Split text, courtesy of LibOrangUtils, modified to handle multibyte characters
 local function str_lensplit(text, maxChars)
 
@@ -136,7 +153,9 @@ pChat.IsDisplayName = IsDisplayName
 
 -- Get the @Account and charatcerName from the actual right clicked line
 local function GetAccountAndCharacterNameFromLine(numLine, chatChannel)
-    local db = pChat.db
+    --local db = pChat.db
+    local db = getDBByAccountName()
+
     checkDisplayName = checkDisplayName or pChat.checkDisplayName
 
     local characterLevel
@@ -506,7 +525,9 @@ end
 
 -- Copy message (only message)
 local function CopyMessage(numLine)
-    local db = pChat.db
+    --local db = pChat.db
+    local db = getDBByAccountName()
+
     if not numLine or not db.LineStrings or not db.LineStrings[numLine] then return end
     -- Args are passed as string trought LinkHandlerSystem
     CopyToTextEntry(db.LineStrings[numLine].rawMessage)
@@ -514,7 +535,8 @@ end
 
 --Copy line (including timestamp, from, channel, message, etc)
 local function CopyLine(numLine)
-    local db = pChat.db
+    --local db = pChat.db
+    local db = getDBByAccountName()
     if not numLine or not db.LineStrings or not db.LineStrings[numLine] then return end
     -- Args are passed as string trought LinkHandlerSystem
     CopyToTextEntry(db.LineStrings[numLine].rawLine)
@@ -524,7 +546,8 @@ end
 -- It will copy all text mark with the same chanCode
 -- Todo : Whispers by person
 local function CopyDiscussion(chanNumber, numLine)
-    local db = pChat.db
+    --local db = pChat.db
+    local db = getDBByAccountName()
     if not numLine or not chanNumber or not db.LineStrings or not db.LineStrings[numLine] then return end
 
     -- Args are passed as string trought LinkHandlerSystem
@@ -606,7 +629,9 @@ end
 local function CopyWholeChat(updateShownDialog)
 --d("[pChat]CopyWholeChat-updateShownDialog: " ..tostring(updateShownDialog))
     updateShownDialog = updateShownDialog or false
-    local db = pChat.db
+    --local db = pChat.db
+    local db = getDBByAccountName()
+
     chatCatgoriesEnabledTable = {}
     local filteredStringCopy = ""
     local pChatData = pChat.pChatData
@@ -797,6 +822,24 @@ local function updateSearchHistoryDelayed(searchType, searchValue)
     end)
 end
 
+--#33 preset the search UI's accountName or use the currently logged in @account
+local function updateCurrentlySelectedAccountName(newAccountName)
+    local chatCopyOptions = pChat.ChatCopyOptions
+    if newAccountName == nil then
+        --"None" as preset: Use last selected, or currently logged in account
+        if pChat.db.defaultAccountForSearch == GetString(SI_ALLIANCE0) then
+            chatCopyOptions.currentlySelectedAccountName = chatCopyOptions.lastSelectedAccountName
+            chatCopyOptions.currentlySelectedAccountName = chatCopyOptions.currentlySelectedAccountName or GetDisplayName()
+        else
+            chatCopyOptions.currentlySelectedAccountName = pChat.db.defaultAccountForSearch
+        end
+    else
+        --Passed in a new accountName (from dropdown)?
+        chatCopyOptions.currentlySelectedAccountName = newAccountName
+    end
+end
+
+
 -- ZO_SortFilterList:RefreshData()      =>  BuildMasterList()   =>  FilterScrollList()  =>  SortScrollList()    =>  CommitScrollList()
 -- ZO_SortFilterList:RefreshFilters()                           =>  FilterScrollList()  =>  SortScrollList()    =>  CommitScrollList()
 -- ZO_SortFilterList:RefreshSort()                                                      =>  SortScrollList()    =>  CommitScrollList()
@@ -809,7 +852,8 @@ function pChat_SearchUI_List:New(listParentControl, parentObject)
 end
 
 --Setup the scroll list
-function pChat_SearchUI_List:Setup( )
+function pChat_SearchUI_List:Setup()
+    local parentObject = self._parentObject
 	--Scroll UI
 	ZO_ScrollList_AddDataType(self.list, searchUIScrollListDataTypeDefault, searchUIScrollListDataTypeXMLVirtualTemplate, searchUIScrollListDataTypeXMLVirtualTemplateRowHeight, function(control, data)
         self:SetupItemRow(control, data)
@@ -841,6 +885,46 @@ function pChat_SearchUI_List:Setup( )
     self.headerTime =               self.headers:GetNamedChild("Time")
     self.headerFrom =               self.headers:GetNamedChild("From")
     self.headerMessage =            self.headers:GetNamedChild("Message")
+
+    --Populate the entries at the search UI account dropdown -> @accounts of current server --#33
+    local indexOfDefAccount = 0
+
+    parentObject.accountsOfServer = pChat.GetAccountsListOfServer()
+    local accountDropdownCtrl = parentObject.searchUIAccountDropdown
+    local accountsComboBox = ZO_ComboBox_ObjectFromContainer(accountDropdownCtrl)
+    parentObject.searchUIAccountComboBox = accountsComboBox
+
+    accountsComboBox:SetSortsItems(true)
+    accountsComboBox:ClearItems()
+    for _, accountName in ipairs(parentObject.accountsOfServer) do
+        if accountName ~= GetString(SI_ALLIANCE0) then
+            local newAccountEntry = accountsComboBox:CreateItemEntry(accountName, function(control, name, entry, selectionChanged)
+                --The selected account at the entry is not the same as the currently filtered one?
+                if entry.accountName ~= parentObject.currentlySelectedAccountName then
+                    updateCurrentlySelectedAccountName(entry.accountName)
+                    --parentObject.currentlySelectedAccountName = entry.accountName
+                    parentObject:RefreshSearchAccount()
+                end
+            end)
+            newAccountEntry.accountName = accountName
+            accountsComboBox:AddItem(newAccountEntry, ZO_COMBOBOX_SUPPRESS_UPDATE)
+        end
+    end
+    --Select the default entry
+    for idx, entryData in ipairs(accountsComboBox.m_sortedItems) do
+        if entryData and parentObject.currentlySelectedAccountName == entryData.accountName then
+            indexOfDefAccount = idx
+            break
+        end
+    end
+    if indexOfDefAccount ~= 0 then
+        accountsComboBox:SetSelected(indexOfDefAccount, ZO_COMBOBOX_SUPPRESS_UPDATE)
+    end
+    accountDropdownCtrl:SetHidden(false)
+    accountDropdownCtrl:SetMouseEnabled(true)
+
+    --pChat._accountDropdownCtrl = accountDropdownCtrl --for debugging
+
 
     --Build initial masterlist via self:BuildMasterList() --> Do not automatically here but only as the searchUI is shown!
     --self:RefreshData()
@@ -1364,6 +1448,12 @@ do
         self.isSearchUIShown = false
         self.openedSearchUICount = 0
 
+        --#33 Preset the open of the chat search UI with an account name from settings?
+        local displayName = GetDisplayName()
+        self.lastSelectedAccountName = displayName
+        updateCurrentlySelectedAccountName()
+
+
         local searchUIToggleButton = dialogControl:GetNamedChild("ToggleSearch")
         searchUIToggleButton:SetText(GetString(PCHAT_TOGGLE_SEARCH_UI_ON))
         self.searchUIToggleButton = searchUIToggleButton
@@ -1421,6 +1511,9 @@ do
         searchUI.counterControl = searchUI:GetNamedChild("Counter")
         self.searchUICounterControl = searchUI.counterControl
         self.searchUIListControl = searchUI:GetNamedChild("List")
+
+        --The accounts dropdown --#33
+        self.searchUIAccountDropdown = dialogControl:GetNamedChild("AccountsDropdown")
         searchUI.list = self.searchUIListControl
         self.searchUIList = pChat_SearchUI_List:New(searchUI, self) --pass in the parent control of "Headers" and "List" -> "SearchUI"
 
@@ -1428,6 +1521,28 @@ do
         --Do not refresh the data here now, but as the SearchUI shows!
         --self.searchUIList:RefreshData()
     end
+end
+
+function ChatCopyOptions:RefreshSearchAccount() --#33
+    local lastSelectedAccountName      = self.lastSelectedAccountName
+    local currentlySelectedAccountName = self.currentlySelectedAccountName --pChat.ChatCopyOptions.currentlySelectedAccountName
+    --d("[pChat]RefreshSearchUI]Current account: " ..tos(currentAccount) .. "; last: " ..tos(lastSelectedAccountName))
+
+    --Last and current @account differ?
+    if lastSelectedAccountName == currentlySelectedAccountName then return end
+
+    --Last and current selected account differ: Show chat message and update the filter texts and the filtered chat history
+    self.lastSelectedAccountName = currentlySelectedAccountName
+    d("[pChat]" .. strfor(GetString(PCHAT_SEARCHUI_ACCOUNT_SWITCHED), tos(currentlySelectedAccountName)))
+
+    self:UpdateGuildNames(currentlySelectedAccountName)
+    --Make the searchUI update properly too (if ShowSearchUI was not explitcly called yet but the searchUI is opened)
+    if not self.searchUI:IsHidden() then
+        self.openedSearchUICount = self.openedSearchUICount + 1
+    end
+
+    --Update the total search UI texts and filterButton texts etc.
+    self:ApplyFilters()
 end
 
 function ChatCopyOptions:SetSearchEditBoxValue(editBoxControl, searchTerm)
@@ -1564,18 +1679,48 @@ function ChatCopyOptions:StartSearch()
     return false
 end
 
-function ChatCopyOptions:UpdateGuildNames()
-    for i,label in ipairs(self.guildNameLabels) do
-        local guildID = GetGuildId(i)
-        local guildName = GetGuildName(guildID)
-        local alliance = GetGuildAlliance(guildID)
+function ChatCopyOptions:UpdateGuildNames(accountName)
+    --#33 another account of the server was selected: Get the guildNames from SavedVars (if available)
+    local createDefaultGuildNamesFromCurrentAccount = true
+    if accountName ~= nil then
+        local db = getDBByAccountName(accountName)
+        local guildNames = db.guildNames
+        if guildNames ~= nil and #guildNames > 0 then
+            createDefaultGuildNamesFromCurrentAccount = false
 
-        if(guildName ~= "") then
-            local r,g,b = GetAllianceColor(alliance):UnpackRGB()
-            label:SetText(guildName)
-            label:SetColor(r, g, b, 1)
-        else
-            label:SetText(zo_strformat(SI_EMPTY_GUILD_CHANNEL_NAME, i))
+            for i,label in ipairs(self.guildNameLabels) do
+                local guildData = guildNames[i]
+                if guildData ~= nil then
+                    local guildID = guildData.id
+                    local guildName = guildData.name
+                    local alliance = guildData.alliance
+                    if(guildName ~= "") then
+                        local r,g,b = GetAllianceColor(alliance):UnpackRGB()
+                        label:SetText(guildName)
+                        label:SetColor(r, g, b, 1)
+                    else
+                        label:SetText(zo_strformat(SI_EMPTY_GUILD_CHANNEL_NAME, i))
+                    end
+                else
+                    label:SetText(zo_strformat(SI_EMPTY_GUILD_CHANNEL_NAME, i))
+                end
+            end
+        end
+    end
+
+    if createDefaultGuildNamesFromCurrentAccount then
+        for i,label in ipairs(self.guildNameLabels) do
+            local guildID = GetGuildId(i)
+            local guildName = GetGuildName(guildID)
+            local alliance = GetGuildAlliance(guildID)
+
+            if(guildName ~= "") then
+                local r,g,b = GetAllianceColor(alliance):UnpackRGB()
+                label:SetText(guildName)
+                label:SetColor(r, g, b, 1)
+            else
+                label:SetText(zo_strformat(SI_EMPTY_GUILD_CHANNEL_NAME, i))
+            end
         end
     end
 end
@@ -1733,6 +1878,9 @@ function ChatCopyOptions:ShowSearchUI(searchTerm)
     self.searchUI:SetWidth(900)
     self.searchUI:SetHidden(false)
 
+    --#33 Update the guild name labels accordingly
+    self:UpdateGuildNames(self.currentlySelectedAccountName)
+
     --Prepare the ZO_SortFilterList's masterList table and add the relevant date, from and message information
     --> Will be done at function CopyWholeChat if param "updateShownDialog" is true -> table pChat_searchUIMasterList will be filled with relevant db.lineStrings
     if self.openedSearchUICount > 1 then
@@ -1827,6 +1975,9 @@ end
 function pChat_ChatCopyOptions_ShowSearchUI(searchTerm)       --#30
 --d("[pChat]pChat_ChatCopyOptions_ShowSearchUI")
     chatCopyDialogInitializedCheck()
+
+    updateCurrentlySelectedAccountName() --#33 get the search UI account preset, or use the current account
+
     local pChatChatCopyOptions = pChat.ChatCopyOptions
     --Copy the whole chat and open the copy dialog, then show the search UI
     CopyWholeChat(false) -- Calls pChat_ShowCopyDialog
@@ -1991,7 +2142,8 @@ function pChat_ShowCopyDialogNext(p_control)
 end
 
 function pChat.InitializeCopyHandler(control)
-    local db = pChat.db
+    --local db = pChat.db
+    local db = getDBByAccountName()
 
     --Initialize the chat copy options dialog
     -->Will be done via the XML's OnInitialized at TLC "pChatCopyOptionsDialog" as the dialog is shown

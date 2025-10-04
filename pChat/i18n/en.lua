@@ -547,6 +547,7 @@ local strings = {
 	PCHAT_SEARCHUI_MESSAGE_SEARCH_DEFAULT_TEXT = "Enter \'message\' to search here...",
 	PCHAT_SEARCHUI_FROM_SEARCH_DEFAULT_TEXT = "Enter \'from\' to search here...",
 	PCHAT_SEARCHUI_CLEAR_SEARCH_HISTORY = "Clear the search history",
+	PCHAT_SEARCHUI_ACCOUNT_SWITCHED = "Account of the search switched to %q",
 
 	-- Coorbin20200708
 	-- Chat Mentions settings strings

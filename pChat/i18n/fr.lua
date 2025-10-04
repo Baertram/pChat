@@ -440,7 +440,7 @@ SafeAddString(PCHAT_AUTOMSG_REMOVE_AUTO_MSG				, "Supprimer", 1)
 SafeAddString(PCHAT_CLEARBUFFER										, "Effacer le chat", 1)
 
 SafeAddString(PCHAT_RESTORESHOWNAMEANDZONE, "Après rest. history: Afficher le nom et la zone", 1)
-SafeAddString(PCHAT_RESTORESHOWNAMEANDZONE_TT, "Zeige den aktuell eingeloggten @Account - Charakter Name & Zone im Chat, nachdem die Chat Historie wiederhergestellt wurde.", 1)
+SafeAddString(PCHAT_RESTORESHOWNAMEANDZONE_TT, "Afficher le @compte actuellement connecté - nom du personnage et zone dans le chat une fois l'historique du chat restauré.", 1)
 
 SafeAddString(PCHAT_TOGGLE_SEARCH_UI_ON, "Activé recherche", 1)
 SafeAddString(PCHAT_TOGGLE_SEARCH_UI_OFF, "Désactivé recherche", 1)
@@ -451,6 +451,7 @@ SafeAddString(PCHAT_SEARCHUI_HEADER_MESSAGE, "Message", 1)
 SafeAddString(PCHAT_SEARCHUI_MESSAGE_SEARCH_DEFAULT_TEXT, "Entrez \'message\' pour recherche ici...", 1)
 SafeAddString(PCHAT_SEARCHUI_FROM_SEARCH_DEFAULT_TEXT, "Entrez \'de\' pour recherche ici...", 1)
 SafeAddString(PCHAT_SEARCHUI_CLEAR_SEARCH_HISTORY, "Effacer l'historique de recherche", 1)
+SafeAddString(PCHAT_SEARCHUI_ACCOUNT_SWITCHED, "Le @compte de recherche a été modifié en %q", 1)
 
 
 -- Coorbin20200708
@@ -483,4 +484,3 @@ SafeAddString(PCHAT_CHARCOUNT_ENABLE_CHECKBOX_NAME, "Afficher le nombre de carac
 SafeAddString(PCHAT_CHARCOUNT_ENABLE_CHECKBOX_TOOLTIP, "Affiche le nombre actuel de caractères saisis dans la zone de texte de chat sur la limite maximale de 350. Il apparaîtra en haut au centre de la fenêtre de chat.", 1)
 SafeAddString(PCHAT_CHARCOUNT_ZONE_POST_TRACKER_NAME, "Afficher le traqueur de publication de zone", 1)
 SafeAddString(PCHAT_CHARCOUNT_ZONE_POST_TRACKER_TOOLTIP, "Affiche l'horodatage de la dernière publication dans le chat de zone de la zone actuelle. L'heure se réinitialise lorsque vous changez de zone. Utile pour publier des annonces sur le chat de zone. Il apparaîtra en haut au centre de la fenêtre de chat.", 1)
-

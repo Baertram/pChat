@@ -120,6 +120,10 @@
 				<Label name="$(parent)FilterLabel" inherits="ZO_ChatOptionsSectionLabel" text="SI_CHAT_OPTIONS_FILTERS">
 					<Anchor point="TOPLEFT" relativePoint="TOPLEFT" relativeTo="$(parent)" offsetX="10" offsetY="100" />
 				</Label>
+				<Control name="$(parent)AccountsDropdown" inherits="ZO_ComboBox">
+					<Dimensions x="200" />
+                    <Anchor point="TOPLEFT" relativePoint="TOPLEFT" relativeTo="$(parent)" offsetX="10" offsetY="10"/>
+                </Control>
 				<Button name="$(parent)EnableAll" inherits="ZO_DefaultButton" text="SI_CHECK_BUTTON_ON">
 					<DimensionConstraints maxX="60" maxY="24" />
 					<Anchor point="BOTTOMLEFT" relativePoint="TOPLEFT" relativeTo="$(parent)FilterLabel" offsetX="20" offsetY="-20"/>

@@ -1,5 +1,5 @@
 -- Messages settings
-local strings = {
+local stringsES = {
 -- New May Need Translations
 	-- ************************************************
 	-- Chat tab selector Bindings
@@ -545,6 +545,7 @@ local strings = {
 	PCHAT_SEARCHUI_MESSAGE_SEARCH_DEFAULT_TEXT = "Introducir \'mensaje\' a buscar aquí...",
 	PCHAT_SEARCHUI_FROM_SEARCH_DEFAULT_TEXT = "Introducir \'de\' a buscar aquí...",
 	PCHAT_SEARCHUI_CLEAR_SEARCH_HISTORY = "Borrar el historial de búsqueda",
+	PCHAT_SEARCHUI_ACCOUNT_SWITCHED = "La cuenta de búsqueda cambió a %q",
 
 	-- Coorbin20200708
 	-- Chat Mentions settings strings
@@ -578,7 +579,6 @@ local strings = {
 	PCHAT_CHARCOUNT_ZONE_POST_TRACKER_TOOLTIP = "Muestra la fecha y hora de la última publicación en el chat de la zona actual. La hora se restablece al cambiar de zona. Útil para publicar anuncios en el chat de la zona. Aparecerá en la parte superior central de la ventana de chat."
 }
 
-for stringId, stringValue in pairs(strings) do
-   ZO_CreateStringId(stringId, stringValue)
-   SafeAddVersion(stringId, 1)
+for stringId, stringValue in pairs(stringsES) do
+   SafeAddString(_G[stringId], stringValue, 1)
 end

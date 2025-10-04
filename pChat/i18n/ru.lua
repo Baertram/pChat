@@ -536,10 +536,10 @@ SafeAddString(PCHAT_SEARCHUI_HEADER_MESSAGE						, "Текст", 1)
 SafeAddString(PCHAT_SEARCHUI_MESSAGE_SEARCH_DEFAULT_TEXT		, "Введите текст сообщения, чтобы искать его...", 1)
 SafeAddString(PCHAT_SEARCHUI_FROM_SEARCH_DEFAULT_TEXT			, "Введите отправителя, чтобы искать его...", 1)
 SafeAddString(PCHAT_SEARCHUI_CLEAR_SEARCH_HISTORY				, "Очистить журнал поиска", 1)
+SafeAddString(PCHAT_SEARCHUI_ACCOUNT_SWITCHED                   , "Поисковый аккаунт изменен на %q")
 
-
-	-- Coorbin20200708
-	-- Chat Mentions settings strings
+-- Coorbin20200708
+-- Chat Mentions settings strings
 SafeAddString(PCHAT_MENTIONSH									, "Упоминания", 1)
 SafeAddString(PCHAT_MENTIONS_TEXT_COLOR_CHECKBOX_NAME			, "Изменять цвет текста, когда вас упоминают?", 1)
 SafeAddString(PCHAT_MENTIONS_TEXT_COLOR_CHECKBOX_TOOLTIP		, "Изменяет цвет сообщения, если в нём есть ваше имя", 1)
