@@ -193,8 +193,8 @@ function pChat.InitializeSettings()
 		},
 
 		modifierKeyForNewChatTab = false,
-		defaultAccountForSearch = GetDisplayName(), --#33
-		guildNames = {}, --#33 The guildIndex and the name so the search UI can show the other account's guildNames properly
+		defaultAccountForSearch = GetString(SI_ALLIANCE0), --#33 Set "None" as default account (uses logged in/last used account)
+		guildNames = {}, --#33 The guildIndex and ID and the name so the search UI can show the other account's guildNames properly
 
 		-- Not LAM
 		chatConfSync = {},
@@ -2123,8 +2123,8 @@ function pChat.InitializeSettings()
 
 				{ -- LAM Option Restore: @accounts for chat search --#33
 					type = "dropdown",
-					name = "Default Account for search",
-					tooltip = "Choose the default @account for the chat search UI",
+					name = GetString(PCHAT_RESTORESCHOOSEACCOUNT),
+					tooltip = GetString(PCHAT_RESTORESCHOOSEACCOUNT_TT),
 					choices = accountsOfServerList,
 					width = "full",
 					getFunc = function() return db.defaultAccountForSearch end,

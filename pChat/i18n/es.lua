@@ -546,6 +546,8 @@ local stringsES = {
 	PCHAT_SEARCHUI_FROM_SEARCH_DEFAULT_TEXT = "Introducir \'de\' a buscar aquí...",
 	PCHAT_SEARCHUI_CLEAR_SEARCH_HISTORY = "Borrar el historial de búsqueda",
 	PCHAT_SEARCHUI_ACCOUNT_SWITCHED = "La cuenta de búsqueda cambió a %q",
+	PCHAT_RESTORESCHOOSEACCOUNT = "Cuenta predeterminada (Búsqueda de chat)",
+	PCHAT_RESTORESCHOOSEACCOUNT_TT = "Seleccione la cuenta predeterminada para el cuadro desplegable de la interfaz de usuario de búsqueda de chat.\nSi selecciona " .. GetString(SI_ALLIANCE0) .. ", se usará la cuenta con la sesión iniciada actualmente (al abrir la búsqueda de chat por primera vez) o la última seleccionada.",
 
 	-- Coorbin20200708
 	-- Chat Mentions settings strings

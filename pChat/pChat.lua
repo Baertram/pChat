@@ -87,7 +87,7 @@ ZO_ChatOptions_ToggleChannel    pChat.SaveChatConfig()      Save the currently l
 --=======================================================================================================================================
 
 --Working on:
---#33 Show chat history of other account in chat search
+
 
 --=======================================================================================================================================
 -- Changelog version: 10.0.6.9 (last version 10.0.6.8)
@@ -98,6 +98,7 @@ ZO_ChatOptions_ToggleChannel    pChat.SaveChatConfig()      Save the currently l
 --Changed:
 
 --Added:
+--#33 Show chat history of other account in chat search
 
 --Added on request:
 

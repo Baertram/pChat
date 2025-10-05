@@ -537,6 +537,8 @@ SafeAddString(PCHAT_SEARCHUI_MESSAGE_SEARCH_DEFAULT_TEXT		, "Введите те
 SafeAddString(PCHAT_SEARCHUI_FROM_SEARCH_DEFAULT_TEXT			, "Введите отправителя, чтобы искать его...", 1)
 SafeAddString(PCHAT_SEARCHUI_CLEAR_SEARCH_HISTORY				, "Очистить журнал поиска", 1)
 SafeAddString(PCHAT_SEARCHUI_ACCOUNT_SWITCHED                   , "Поисковый аккаунт изменен на %q")
+SafeAddString(PCHAT_RESTORESCHOOSEACCOUNT, "Учётная запись по умолчанию (поиск в чате)", 1)
+SafeAddString(PCHAT_RESTORESCHOOSEACCOUNT_TT, "Выберите учётную запись по умолчанию для раскрывающегося списка в интерфейсе поиска в чате.\nЕсли вы выберете " .. GetString(SI_ALLIANCE0) .. ", будет использоваться текущая учётная запись (при первом открытии поиска в чате) или последняя выбранная учётная запись.", 1)
 
 -- Coorbin20200708
 -- Chat Mentions settings strings

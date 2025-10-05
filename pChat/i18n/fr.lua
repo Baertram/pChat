@@ -452,7 +452,8 @@ SafeAddString(PCHAT_SEARCHUI_MESSAGE_SEARCH_DEFAULT_TEXT, "Entrez \'message\' po
 SafeAddString(PCHAT_SEARCHUI_FROM_SEARCH_DEFAULT_TEXT, "Entrez \'de\' pour recherche ici...", 1)
 SafeAddString(PCHAT_SEARCHUI_CLEAR_SEARCH_HISTORY, "Effacer l'historique de recherche", 1)
 SafeAddString(PCHAT_SEARCHUI_ACCOUNT_SWITCHED, "Le @compte de recherche a été modifié en %q", 1)
-
+SafeAddString(PCHAT_RESTORESCHOOSEACCOUNT, "Compte par défaut (recherche de chat)", 1)
+SafeAddString(PCHAT_RESTORESCHOOSEACCOUNT_TT, "Choisissez le compte par défaut pour la liste déroulante de recherche de chat.\nSi vous choisissez ".. GetString(SI_ALLIANCE0) .. ", le compte actuellement connecté (lors de la première ouverture de la recherche de chat) ou le dernier compte sélectionné sera utilisé.", 1)
 
 -- Coorbin20200708
 -- Chat Mentions settings strings
