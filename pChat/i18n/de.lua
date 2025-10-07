@@ -565,7 +565,7 @@ SafeAddString(PCHAT_SEARCHUI_FROM_SEARCH_DEFAULT_TEXT, "Gib den Suchtext des \'A
 SafeAddString(PCHAT_SEARCHUI_CLEAR_SEARCH_HISTORY, "Such Historie leeren", 1)
 SafeAddString(PCHAT_SEARCHUI_ACCOUNT_SWITCHED, "Account für die Suche wurde geändert zu %q", 1)
 SafeAddString(PCHAT_RESTORESCHOOSEACCOUNT, "Standard Account (Chat Suche)", 1)
-SafeAddString(PCHAT_RESTORESCHOOSEACCOUNT_TT, "Wähle den standard Account für die Chat Suche UI (dropdown).\nWenn du " .. GetString(SI_ALLIANCE0) .. " auswählst, wird der aktuelle Account (beim 1. Mal Öffnen der Chat Suche) verwendet, und ansonsten der zuletzt gewählte.", 1)
+SafeAddString(PCHAT_RESTORESCHOOSEACCOUNT_TT, "Wähle den standard Account für die Chat Suche UI (dropdown).\nWenn du " .. GetString(SI_ALLIANCE0) .. " auswählst, wird der aktuelle Account (beim 1. Mal Öffnen der Chat Suche) verwendet, und ansonsten der zuletzt gewählte.\nKontextmenüs von Chat Nachrichten verwenden immer nur den aktuellen Account!", 1)
 
 
 -- Coorbin20200708

@@ -549,7 +549,7 @@ local strings = {
 	PCHAT_SEARCHUI_CLEAR_SEARCH_HISTORY = "Clear the search history",
 	PCHAT_SEARCHUI_ACCOUNT_SWITCHED = "Account of the search switched to %q",
 	PCHAT_RESTORESCHOOSEACCOUNT = "Default account (Chat search)",
-	PCHAT_RESTORESCHOOSEACCOUNT_TT = "Choose the default account for the chat search UI dropdown box.\nIf you choose " .. GetString(SI_ALLIANCE0) .. " the currently logged-in (on first open of the chat search), or the last selected account will be used.",
+	PCHAT_RESTORESCHOOSEACCOUNT_TT = "Choose the default account for the chat search UI dropdown box.\nIf you choose " .. GetString(SI_ALLIANCE0) .. " the currently logged-in (on first open of the chat search), or the last selected account will be used.\nContextmenus from Chat messages will only use the currently logged-in account!",
 
 
 	-- Coorbin20200708
