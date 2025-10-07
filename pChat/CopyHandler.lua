@@ -43,13 +43,15 @@ local getPortTypeFromName
 
 --Get the actual selected account of the chat search, from the dropdown, and read the relating SavedVariables --#33
 local function getDBByAccountName(accountName)
-    if accountName == nil and pChat.ChatCopyOptions ~= nil then
-        accountName = pChat.ChatCopyOptions.currentlySelectedAccountName
-    end
-    if accountName ~= nil then
-        local savedVarsServerBase = _G[CONSTANTS.ADDON_SV_NAME][GetWorldName()]
-        if savedVarsServerBase and savedVarsServerBase[accountName] and savedVarsServerBase[accountName]["$AccountWide"] and savedVarsServerBase[accountName]["$AccountWide"]["LineStrings"] then
-            return savedVarsServerBase[accountName]["$AccountWide"]
+    if not pChat.pChatData.preventDefaultAccountAtChatCopyUI then
+        if accountName == nil and pChat.ChatCopyOptions ~= nil then
+            accountName = pChat.ChatCopyOptions.currentlySelectedAccountName
+        end
+        if accountName ~= nil then
+            local savedVarsServerBase = _G[CONSTANTS.ADDON_SV_NAME][GetWorldName()]
+            if savedVarsServerBase and savedVarsServerBase[accountName] and savedVarsServerBase[accountName]["$AccountWide"] and savedVarsServerBase[accountName]["$AccountWide"]["LineStrings"] then
+                return savedVarsServerBase[accountName]["$AccountWide"]
+            end
         end
     end
     return pChat.db
@@ -823,21 +825,59 @@ local function updateSearchHistoryDelayed(searchType, searchValue)
 end
 
 --#33 preset the search UI's accountName or use the currently logged in @account
-local function updateCurrentlySelectedAccountName(newAccountName)
-    local chatCopyOptions = pChat.ChatCopyOptions
-    if newAccountName == nil then
+local function updateCurrentlySelectedAccountName(newAccountName, clearLastSelected)
+    if newAccountName == nil and not pChat.pChatData.preventDefaultAccountAtChatCopyUI then
         --"None" as preset: Use last selected, or currently logged in account
         if pChat.db.defaultAccountForSearch == GetString(SI_ALLIANCE0) then
-            chatCopyOptions.currentlySelectedAccountName = chatCopyOptions.lastSelectedAccountName
-            chatCopyOptions.currentlySelectedAccountName = chatCopyOptions.currentlySelectedAccountName or GetDisplayName()
+            pChat.ChatCopyOptions.currentlySelectedAccountName = pChat.ChatCopyOptions.lastSelectedAccountName
+            if pChat.ChatCopyOptions.currentlySelectedAccountName == nil then
+                pChat.ChatCopyOptions.currentlySelectedAccountName = GetDisplayName()
+            end
         else
-            chatCopyOptions.currentlySelectedAccountName = pChat.db.defaultAccountForSearch
+            pChat.ChatCopyOptions.currentlySelectedAccountName = pChat.db.defaultAccountForSearch
         end
     else
-        --Passed in a new accountName (from dropdown)?
-        chatCopyOptions.currentlySelectedAccountName = newAccountName
+        --Passed in a new accountName (from selected dropdown entry)
+        pChat.ChatCopyOptions.currentlySelectedAccountName = newAccountName
+    end
+    if clearLastSelected == true then
+        pChat.ChatCopyOptions.lastSelectedAccountName = nil
+    end
+    pChat.pChatData.preventDefaultAccountAtChatCopyUI = nil
+end
+
+--#33 Select the default account from the accounts dropdown
+local function selectDefaultAccount(parentObject)
+    local accountDropdownCtrl = parentObject.searchUIAccountDropdown
+    local accountsComboBox = parentObject.searchUIAccountComboBox --or ZO_ComboBox_ObjectFromContainer(accountDropdownCtrl)
+    if accountDropdownCtrl == nil or accountsComboBox == nil then --might happen if ChatCopy dialog was not opened yet and pChat.ChatCopyOptions:Initialize(control) wasn't called yet from dialog's Setup function
+        pChat.ChatCopyOptions.hideAccountDropdown = nil
+        return
+    end
+
+    if pChat.ChatCopyOptions.hideAccountDropdown == true then
+        --d(">hiding acountsDropdown")
+        accountDropdownCtrl:SetHidden(true)
+        accountDropdownCtrl:SetMouseEnabled(false)
+    else
+        --d(">showing acountsDropdown")
+        accountDropdownCtrl:SetHidden(false)
+        accountDropdownCtrl:SetMouseEnabled(true)
+    end
+
+    local indexOfDefAccount = 0
+    --Select the default entry
+    for idx, entryData in ipairs(accountsComboBox.m_sortedItems) do
+        if entryData and parentObject.currentlySelectedAccountName == entryData.accountName then
+            indexOfDefAccount = idx
+            break
+        end
+    end
+    if indexOfDefAccount ~= 0 then
+        accountsComboBox:SetSelected(indexOfDefAccount, ZO_COMBOBOX_SUPPRESS_UPDATE)
     end
 end
+
 
 
 -- ZO_SortFilterList:RefreshData()      =>  BuildMasterList()   =>  FilterScrollList()  =>  SortScrollList()    =>  CommitScrollList()
@@ -886,9 +926,8 @@ function pChat_SearchUI_List:Setup()
     self.headerFrom =               self.headers:GetNamedChild("From")
     self.headerMessage =            self.headers:GetNamedChild("Message")
 
-    --Populate the entries at the search UI account dropdown -> @accounts of current server --#33
-    local indexOfDefAccount = 0
 
+    --Populate the entries at the search UI account dropdown -> @accounts of current server --#33
     parentObject.accountsOfServer = pChat.GetAccountsListOfServer()
     local accountDropdownCtrl = parentObject.searchUIAccountDropdown
     local accountsComboBox = ZO_ComboBox_ObjectFromContainer(accountDropdownCtrl)
@@ -899,10 +938,13 @@ function pChat_SearchUI_List:Setup()
     for _, accountName in ipairs(parentObject.accountsOfServer) do
         if accountName ~= GetString(SI_ALLIANCE0) then
             local newAccountEntry = accountsComboBox:CreateItemEntry(accountName, function(control, name, entry, selectionChanged)
+--d("entry.accountname: " ..tos(entry.accountName) .. ", parentSelectedAccount: " ..tos(parentObject.currentlySelectedAccountName))
+
                 --The selected account at the entry is not the same as the currently filtered one?
                 if entry.accountName ~= parentObject.currentlySelectedAccountName then
+                    pChat.pChatData.preventDefaultAccountAtChatCopyUI = nil
                     updateCurrentlySelectedAccountName(entry.accountName)
-                    --parentObject.currentlySelectedAccountName = entry.accountName
+
                     parentObject:RefreshSearchAccount()
                 end
             end)
@@ -910,21 +952,11 @@ function pChat_SearchUI_List:Setup()
             accountsComboBox:AddItem(newAccountEntry, ZO_COMBOBOX_SUPPRESS_UPDATE)
         end
     end
-    --Select the default entry
-    for idx, entryData in ipairs(accountsComboBox.m_sortedItems) do
-        if entryData and parentObject.currentlySelectedAccountName == entryData.accountName then
-            indexOfDefAccount = idx
-            break
-        end
-    end
-    if indexOfDefAccount ~= 0 then
-        accountsComboBox:SetSelected(indexOfDefAccount, ZO_COMBOBOX_SUPPRESS_UPDATE)
-    end
-    accountDropdownCtrl:SetHidden(false)
-    accountDropdownCtrl:SetMouseEnabled(true)
 
-    --pChat._accountDropdownCtrl = accountDropdownCtrl --for debugging
+    --accountDropdownCtrl:SetHidden(false)
+    --accountDropdownCtrl:SetMouseEnabled(true)
 
+    selectDefaultAccount(parentObject)
 
     --Build initial masterlist via self:BuildMasterList() --> Do not automatically here but only as the searchUI is shown!
     --self:RefreshData()
@@ -1117,6 +1149,7 @@ end
 local ChatCopyOptions = ZO_Object:Subclass()
 
 function ChatCopyOptions:New(...)
+d("[pChat]ChatCopyOptions:New")
     local options = ZO_Object.New(self)
     return options
 end
@@ -1232,6 +1265,7 @@ function ChatCopyOptions:UpdateEditAndButtons()
 end
 
 function ChatCopyOptions:Initialize(control)
+d("[pChat]ChatCopyOptions:Initialize - initialized: " ..tos(self.initialized))
     if not self.initialized then
         self.control = control
         control.owner = self
@@ -1444,13 +1478,13 @@ do
     end
 
     function ChatCopyOptions:InitializeSearchUI(dialogControl)
+d("ChatCopyOptions:InitializeSearchUI")
         local selfVar = self
         self.isSearchUIShown = false
         self.openedSearchUICount = 0
 
         --#33 Preset the open of the chat search UI with an account name from settings?
-        local displayName = GetDisplayName()
-        self.lastSelectedAccountName = displayName
+        --self.lastSelectedAccountName = nil
         updateCurrentlySelectedAccountName()
 
 
@@ -1526,7 +1560,7 @@ end
 function ChatCopyOptions:RefreshSearchAccount() --#33
     local lastSelectedAccountName      = self.lastSelectedAccountName
     local currentlySelectedAccountName = self.currentlySelectedAccountName --pChat.ChatCopyOptions.currentlySelectedAccountName
-    --d("[pChat]RefreshSearchUI]Current account: " ..tos(currentAccount) .. "; last: " ..tos(lastSelectedAccountName))
+d("[pChat]RefreshSearchUI]Current account: " ..tos(currentlySelectedAccountName) .. "; last: " ..tos(lastSelectedAccountName))
 
     --Last and current @account differ?
     if lastSelectedAccountName == currentlySelectedAccountName then return end
@@ -1880,6 +1914,7 @@ function ChatCopyOptions:ShowSearchUI(searchTerm)
 
     --#33 Update the guild name labels accordingly
     self:UpdateGuildNames(self.currentlySelectedAccountName)
+    selectDefaultAccount(self)
 
     --Prepare the ZO_SortFilterList's masterList table and add the relevant date, from and message information
     --> Will be done at function CopyWholeChat if param "updateShownDialog" is true -> table pChat_searchUIMasterList will be filled with relevant db.lineStrings
@@ -1931,7 +1966,7 @@ function ChatCopyOptions:Show()
 end
 
 function ChatCopyOptions:Hide()
---d("[pChat]ChatCopyOptions:Hide")
+d("[pChat]ChatCopyOptions:Hide")
     local dialogControl = self.control
     --dialogControl:SetMouseEnabled(true)
     dialogControl:SetMovable(false)
@@ -1942,6 +1977,8 @@ function ChatCopyOptions:Hide()
     self.chatChannel = nil
 
     self:HideSearchUI()
+
+    pChat.ChatCopyOptions.hideAccountDropdown = nil
 end
 
 --[[ XML Handlers ]]--
@@ -1949,15 +1986,19 @@ local loc_pChat_ChatCopyOptions_OnInitialized           --#30
 local function chatCopyDialogInitializedCheck()         --#30
 --d("[pChat]chatCopyDialogInitializedCheck")
     local pChatChatCopyOptions = pChat.ChatCopyOptions
-    if not pChatChatCopyOptions or (pChatChatCopyOptions ~= nil and not pChatChatCopyOptions.initialized) then
---d(">Initializing chat copy dialog")
+    if pChatChatCopyOptions == nil or (pChatChatCopyOptions ~= nil and not pChatChatCopyOptions.initialized) then
+--d(">Initializing pChat copy dialog")
         loc_pChat_ChatCopyOptions_OnInitialized(pChatCopyOptionsDialog)
     end
 end
 
 function pChat_ChatCopyOptions_OnInitialized(dialogControl)
-    SetupChatCopyOptionsDialog(dialogControl)
-	pChat.ChatCopyOptions = ChatCopyOptions:New(dialogControl)
+    local pChatChatCopyOptions = pChat.ChatCopyOptions
+    if pChatChatCopyOptions == nil or (pChatChatCopyOptions ~= nil and not pChatChatCopyOptions.initialized) then
+--d("[pChat]pChat_ChatCopyOptions_OnInitialized")
+        SetupChatCopyOptionsDialog(dialogControl)
+        pChat.ChatCopyOptions = ChatCopyOptions:New(dialogControl)
+    end
 end
 loc_pChat_ChatCopyOptions_OnInitialized = pChat_ChatCopyOptions_OnInitialized       --#30
 
@@ -1976,9 +2017,10 @@ function pChat_ChatCopyOptions_ShowSearchUI(searchTerm)       --#30
 --d("[pChat]pChat_ChatCopyOptions_ShowSearchUI")
     chatCopyDialogInitializedCheck()
 
-    updateCurrentlySelectedAccountName() --#33 get the search UI account preset, or use the current account
-
     local pChatChatCopyOptions = pChat.ChatCopyOptions
+
+    updateCurrentlySelectedAccountName(nil, true) --#33 get the search UI account preset, or use the current account
+
     --Copy the whole chat and open the copy dialog, then show the search UI
     CopyWholeChat(false) -- Calls pChat_ShowCopyDialog
     --Delay the call to the search UI show so the dialog populates first
@@ -2071,12 +2113,14 @@ end
 -- Create the controls and the dialog
 -- & transfer the message to the dialog (for the setup function)
 -- then show the dialog
-function pChat_ShowCopyDialog(messageText, chatChannel)
+function pChat_ShowCopyDialog(messageText, chatChannel, hideAccountDropdown)
     if not messageText or messageText == "" then return end
     local pChatChatCopyOptions = pChat.ChatCopyOptions
     if pChatChatCopyOptions ~= nil and pChatChatCopyOptions.Show then
         pChatChatCopyOptions.message = messageText
         pChatChatCopyOptions.chatChannel = chatChannel
+        hideAccountDropdown = hideAccountDropdown or false
+        pChatChatCopyOptions.hideAccountDropdown = hideAccountDropdown
         --Show the dialog now
         pChatChatCopyOptions:Show()
     end
@@ -2205,11 +2249,32 @@ function pChat.InitializeCopyHandler(control)
             end
 
 
+            --#33 Set the account to the currently logged in one first!
+            local function resetChatCopyAccountToCurrentlyLoggedIn(hideAccountDropdown)
+                pChat.pChatData.preventDefaultAccountAtChatCopyUI = true
+                chatCopyDialogInitializedCheck()
+                updateCurrentlySelectedAccountName(GetDisplayName(), true)
+                pChat.ChatCopyOptions.hideAccountDropdown = hideAccountDropdown
+                selectDefaultAccount(pChat.ChatCopyOptions)
+            end
+
             --Copy message text context menu entries
-            AddCustomMenuItem(GetString(PCHAT_COPYMESSAGECT), function() CopyMessage(numLine) end)
-            AddCustomMenuItem(GetString(PCHAT_COPYLINECT), function() CopyLine(numLine) end)
-            AddCustomMenuItem(GetString(PCHAT_COPYDISCUSSIONCT), function() CopyDiscussion(chanNumber, numLine) end)
-            AddCustomMenuItem(GetString(PCHAT_ALLCT), CopyWholeChat)
+            AddCustomMenuItem(GetString(PCHAT_COPYMESSAGECT), function()
+                resetChatCopyAccountToCurrentlyLoggedIn(true) --#33
+                CopyMessage(numLine)
+            end)
+            AddCustomMenuItem(GetString(PCHAT_COPYLINECT), function()
+                resetChatCopyAccountToCurrentlyLoggedIn(true) --#33
+                CopyLine(numLine)
+            end)
+            AddCustomMenuItem(GetString(PCHAT_COPYDISCUSSIONCT), function()
+                resetChatCopyAccountToCurrentlyLoggedIn(true) --#33
+                CopyDiscussion(chanNumber, numLine)
+            end)
+            AddCustomMenuItem(GetString(PCHAT_ALLCT), function()
+                resetChatCopyAccountToCurrentlyLoggedIn(false) --#33
+                CopyWholeChat()
+            end)
 
 
             --Ignored information context menu entry
