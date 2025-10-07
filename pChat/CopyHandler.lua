@@ -861,12 +861,11 @@ local function selectDefaultAccount(parentObject)
     end
 
     if parentObject.hideAccountDropdown == true then --Will be reset as dialog Hide function is called!
---d(">hiding acountsDropdown")
+        --d(">hiding acountsDropdown")
         accountDropdownCtrl:SetHidden(true)
         accountDropdownCtrl:SetMouseEnabled(false)
     else
---
-        d(">showing acountsDropdown")
+        --d(">showing acountsDropdown")
         accountDropdownCtrl:SetHidden(false)
         accountDropdownCtrl:SetMouseEnabled(true)
     end
@@ -1283,7 +1282,7 @@ function ChatCopyOptions:UpdateEditAndButtons()
 end
 
 function ChatCopyOptions:Initialize(control)
-d("[pChat]ChatCopyOptions:Initialize - initialized: " ..tos(self.initialized))
+--d("[pChat]ChatCopyOptions:Initialize - initialized: " ..tos(self.initialized))
     if not self.initialized then
         self.control = control
         control.owner = self
@@ -1578,7 +1577,7 @@ end
 function ChatCopyOptions:RefreshSearchAccount() --#33
     local lastSelectedAccountName      = self.lastSelectedAccountName
     local currentlySelectedAccountName = self.currentlySelectedAccountName --pChat.ChatCopyOptions.currentlySelectedAccountName
-d("[pChat]RefreshSearchUI]Current account: " ..tos(currentlySelectedAccountName) .. "; last: " ..tos(lastSelectedAccountName))
+--d("[pChat]RefreshSearchUI]Current account: " ..tos(currentlySelectedAccountName) .. "; last: " ..tos(lastSelectedAccountName))
 
     --Last and current @account differ?
     if lastSelectedAccountName == currentlySelectedAccountName then return end
@@ -1984,7 +1983,7 @@ function ChatCopyOptions:Show()
 end
 
 function ChatCopyOptions:Hide()
-d("[pChat]ChatCopyOptions:Hide")
+--d("[pChat]ChatCopyOptions:Hide")
     local dialogControl = self.control
     --dialogControl:SetMouseEnabled(true)
     dialogControl:SetMovable(false)
