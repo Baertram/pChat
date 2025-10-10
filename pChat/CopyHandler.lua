@@ -1166,7 +1166,7 @@ end
 local ChatCopyOptions = ZO_Object:Subclass()
 
 function ChatCopyOptions:New(...)
-d("[pChat]ChatCopyOptions:New")
+--d("[pChat]ChatCopyOptions:New")
     local options = ZO_Object.New(self)
     return options
 end
