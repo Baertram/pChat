@@ -195,6 +195,7 @@ function pChat.InitializeSettings()
 		modifierKeyForNewChatTab = false,
 		defaultAccountForSearch = GetString(SI_ALLIANCE0), --#33 Set "None" as default account (uses logged in/last used account)
 		guildNames = {}, --#33 The guildIndex and ID and the name so the search UI can show the other account's guildNames properly
+		chatScrolledUpWarning = false, --#34
 
 		-- Not LAM
 		chatConfSync = {},
@@ -903,6 +904,18 @@ function pChat.InitializeSettings()
 							default = defaults.fontChange,
 							warning = "ReloadUI",
 							scrollable = true,
+						},
+						{ -- Scrolled up warning
+							type = "checkbox",
+							name = GetString(PCHAT_CHATSCROLLEDUPWARNING),
+							tooltip = GetString(PCHAT_CHATSCROLLEDUPWARNING_TT),
+							getFunc = function() return db.chatScrolledUpWarning end,
+							setFunc = function(newValue)
+								db.chatScrolledUpWarning = newValue
+								if newValue == true then pChat.ChatScrolledUpWarning() end
+							end,
+							width = "full",
+							default = defaults.chatScrolledUpWarning,
 						},
 					},
 				},

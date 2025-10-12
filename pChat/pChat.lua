@@ -83,7 +83,7 @@ ZO_ChatOptions_ToggleChannel    pChat.SaveChatConfig()      Save the currently l
 --=======================================================================================================================================
 --Known problems/bugs:
 --Last updated: 2025-10-04
---Total number: 33
+--Total number: 34
 --=======================================================================================================================================
 
 --Working on:
@@ -101,6 +101,7 @@ ZO_ChatOptions_ToggleChannel    pChat.SaveChatConfig()      Save the currently l
 --#33 Show chat history of other account in chat search
 
 --Added on request:
+--#34 Animation at the scroll chat to bottom button, if you scrolled the chat up (so you can see the chat is scrolled more easily)
 
 
 --=======================================================================================================================================
@@ -345,6 +346,46 @@ local function UpdateGuildCorrespondanceTableSwitches()
     end
 end
 pChat.UpdateGuildCorrespondanceTableSwitches = UpdateGuildCorrespondanceTableSwitches
+
+--#34 Animation ping/pong at the scroll chat to bottom button
+local wasChatScrolledUpWarningHooked = false
+local chatScrollBottomButtonCtrl = ZO_ChatWindowScrollbarScrollEnd
+local normalScale = chatScrollBottomButtonCtrl:GetScale()
+local increasedScale = normalScale + 1
+local function pChat_ChatScrolledUpWarning()
+    if not wasChatScrolledUpWarningHooked and db.chatScrolledUpWarning == true then
+        local animation, timeline = CreateSimpleAnimation(ANIMATION_SCALE, chatScrollBottomButtonCtrl, 250)
+        animation:SetScaleValues(1, increasedScale)
+        animation:SetDuration(250)
+        timeline:SetPlaybackType(ANIMATION_PLAYBACK_PING_PONG, LOOP_INDEFINITELY)
+        local timeLineIsActive = false
+
+        ZO_PostHook(chatScrollBottomButtonCtrl, "SetState", function()
+            if not db.chatScrolledUpWarning then
+                if timeline ~= nil then timeline:Stop() end
+                chatScrollBottomButtonCtrl:SetScale(normalScale)
+                return
+            end
+            local currentState = chatScrollBottomButtonCtrl:GetState()
+            --d("[pChat]Chat scrollbar BOTTOM button state changed: " .. tostring(currentState))
+            if currentState == BSTATE_NORMAL then
+                if not timeLineIsActive then
+                    timeLineIsActive = true
+                    timeline:PlayFromStart()
+                end
+            else
+                if timeLineIsActive then
+                    timeLineIsActive = false
+                    timeline:Stop()
+                    chatScrollBottomButtonCtrl:SetScale(normalScale)
+                end
+            end
+        end)
+
+        wasChatScrolledUpWarningHooked = true
+    end
+end
+pChat.ChatScrolledUpWarning = pChat_ChatScrolledUpWarning
 
 
 -- Rewrite of core function
@@ -603,6 +644,11 @@ local function LoadHooks()
 
     --Teleport to "Chat message context menu handler"
     pChat.TeleportChanges()
+
+
+    --#34 Animation ping/pong at the scroll chat to bottom button
+    pChat.ChatScrolledUpWarning()
+
 end
 
 --Load the string IDs for keybindings e.g.

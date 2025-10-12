@@ -551,6 +551,8 @@ local strings = {
 	PCHAT_RESTORESCHOOSEACCOUNT = "Default account (Chat search)",
 	PCHAT_RESTORESCHOOSEACCOUNT_TT = "Choose the default account for the chat search UI dropdown box.\nIf you choose " .. GetString(SI_ALLIANCE0) .. " the currently logged-in (on first open of the chat search), or the last selected account will be used.\nContextmenus from Chat messages will only use the currently logged-in account!",
 
+	PCHAT_CHATSCROLLEDUPWARNING = "\'Chat scrolled up\' warning",
+	PCHAT_CHATSCROLLEDUPWARNING_TT = "Show a resize animation playing at the \'Scroll chat to bottom button\' so you can easily notice the chat is scrolled up.",
 
 	-- Coorbin20200708
 	-- Chat Mentions settings strings
