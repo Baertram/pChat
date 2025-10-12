@@ -363,6 +363,7 @@ local function pChat_ChatScrolledUpWarning()
         ZO_PostHook(chatScrollBottomButtonCtrl, "SetState", function()
             if not db.chatScrolledUpWarning then
                 if timeline ~= nil then timeline:Stop() end
+                timeLineIsActive = false
                 chatScrollBottomButtonCtrl:SetScale(normalScale)
                 return
             end
@@ -374,7 +375,7 @@ local function pChat_ChatScrolledUpWarning()
                     timeline:PlayFromStart()
                 end
             else
-                if timeLineIsActive then
+                if timeLineIsActive == true then
                     timeLineIsActive = false
                     timeline:Stop()
                     chatScrollBottomButtonCtrl:SetScale(normalScale)
