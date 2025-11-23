@@ -567,8 +567,8 @@ SafeAddString(PCHAT_SEARCHUI_ACCOUNT_SWITCHED, "Account für die Suche wurde ge�
 SafeAddString(PCHAT_RESTORESCHOOSEACCOUNT, "Standard Account (Chat Suche)", 1)
 SafeAddString(PCHAT_RESTORESCHOOSEACCOUNT_TT, "Wähle den standard Account für die Chat Suche UI (dropdown).\nWenn du " .. GetString(SI_ALLIANCE0) .. " auswählst, wird der aktuelle Account (beim 1. Mal Öffnen der Chat Suche) verwendet, und ansonsten der zuletzt gewählte.\nKontextmenüs von Chat Nachrichten verwenden immer nur den aktuellen Account!", 1)
 
-SafeAddString(PCHAT_CHATSCROLLEDUPWARNING, "\'Chat scrolled up\' warning", 1)
-SafeAddString(PCHAT_CHATSCROLLEDUPWARNING_TT, "Show a resize animation playing at the \'Scroll chat to bottom button\' so you can easily notice the chat is scrolled up.", 1)
+SafeAddString(PCHAT_CHATSCROLLEDUPWARNING, "\'Chat hochgescrollt\' Warnung", 1)
+SafeAddString(PCHAT_CHATSCROLLEDUPWARNING_TT, "Zeige eine Größen-Änderungs Animation am \'Chat ganz nach unten scrollen\' Knopf, wenn du den Chat hochgescrollt hast. Somit siehst du einfacher, wenn der Chat nicht ganz unten ist und du ggf. neue Nachrichten verpassts.", 1)
 
 -- Coorbin20200708
 -- Chat Mentions settings strings
