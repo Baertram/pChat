@@ -10,6 +10,8 @@ local ChatSys = CONSTANTS.CHAT_SYSTEM
 local constChatTabNoName = CONSTANTS.chatTabNoName
 local constChatConfigSyncLastChar = CONSTANTS.chatConfigSyncLastChar
 
+local LMP = LibMediaProvider
+
 local function refreshKeyboardChatVisibility()
     KEYBOARD_CHAT_SYSTEM:RefreshVisibility()
 end
@@ -17,7 +19,7 @@ end
 function pChat.InitializeChatConfig()
     local pChatData = pChat.pChatData
     pChat.pChatData.wasManuallyMinimized = pChat.pChatData.wasManuallyMinimized or false
-    local wasManuallyMinimized = pChat.pChatData.wasManuallyMinimized
+    --local wasManuallyMinimized = pChat.pChatData.wasManuallyMinimized
 
     local db = pChat.db
 
@@ -105,23 +107,27 @@ function pChat.InitializeChatConfig()
     pChat.ChangeChatWindowDarkness = ChangeChatWindowDarkness
 
     -- Change font of chat
-    local function ChangeChatFont(change)
+    local defaultFonts = {
+        ["ESO Standard Font"] = true,
+        ["Univers 57"] = true,
+    }
+    local function ChangeChatFont()
+        local fontName = db.fonts
+        if defaultFonts[fontName] then return end
 
-        local fontSize = GetChatFontSize()
-        
+        local fontPath
         -- Verify the font actually exists (Fetch returns default if not found)
-        if not LibMediaProvider:IsValid("font", db.fonts) then
-            -- Font not registered yet, will be applied when it's registered
-            return
+        if LMP:IsValid("font", fontName) then
+            -- Font is registered
+            fontPath = LMP:Fetch("font", fontName)
         end
-        
-        local fontPath = LibMediaProvider:Fetch("font", db.fonts)
-        
         if not fontPath then
             -- If font fetch failed, fall back to default
-            return
+            fontPath = LMP:GetDefault('font')
+            if not fontPath then return end
         end
 
+        local fontSize = GetChatFontSize()
         -- Entry Box
         ZoFontEditChat:SetFont(ZO_CreateFontString(fontPath, fontSize, FONT_STYLE_SHADOW))
 

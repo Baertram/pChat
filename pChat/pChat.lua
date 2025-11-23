@@ -82,7 +82,7 @@ ZO_ChatOptions_ToggleChannel    pChat.SaveChatConfig()      Save the currently l
 
 --=======================================================================================================================================
 --Known problems/bugs:
---Last updated: 2025-10-04
+--Last updated: 2025-11-23
 --Total number: 34
 --=======================================================================================================================================
 
@@ -90,18 +90,16 @@ ZO_ChatOptions_ToggleChannel    pChat.SaveChatConfig()      Save the currently l
 
 
 --=======================================================================================================================================
--- Changelog version: 10.0.6.9 (last version 10.0.6.8)
+-- Changelog version: 10.0.7.0 (last version 10.0.6.9)
 --=======================================================================================================================================
 --Fixed:
---
+--Fonts russian e.g. only rendering with [] with ESO default font
 
 --Changed:
 
 --Added:
---#33 Show chat history of other account in chat search
 
 --Added on request:
---#34 Animation at the scroll chat to bottom button, if you scrolled the chat up (so you can see the chat is scrolled more easily)
 
 
 --=======================================================================================================================================
