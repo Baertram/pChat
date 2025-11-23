@@ -112,6 +112,7 @@ function pChat.InitializeChatConfig()
         ["Univers 57"] = true,
     }
     local function ChangeChatFont()
+        LMP = LMP or LibMediaProvider
         local fontName = db.fonts
         if defaultFonts[fontName] then return end
 

@@ -7,6 +7,9 @@ local ChatSys = CONSTANTS.CHAT_SYSTEM
 local CM = CALLBACK_MANAGER
 local EM = EVENT_MANAGER
 
+local LAM2 = LibAddonMenu2
+local LMP = LibMediaProvider
+
 --AddOn settings constants
 --LibAddonMenu-2.0 panel info constants
 local ADDON_AUTHOR        	= "Ayantir, DesertDwellers, Baertram & sirinsidiator"
@@ -23,6 +26,9 @@ CONSTANTS.ADDON_SV_VERSION 	= ADDON_SV_VERSION
 local apiVersion = CONSTANTS.API_VERSION
 
 local constChatTabNoName = CONSTANTS.chatTabNoName
+
+local defaultPreviewFontText = "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua."
+
 
 --Initialize the SavedVariables and LAM settings menu
 function pChat.InitializeSettings()
@@ -350,6 +356,7 @@ function pChat.InitializeSettings()
 
 	-- Build LAM Option Table, used when AddonLoads or when a player join/leave a guild
 	local function BuildLAMPanel()
+
 		pChat.updateChatChannelNames()
 		updateGuildNamesToDB() --#33
 
@@ -362,10 +369,26 @@ function pChat.InitializeSettings()
 			end
 		end
 
+		local LAMfontPreviewCtrl
+		local fontSize = GetChatFontSize()
+		local function changeLAMFontPreview(fontName)
+			LAMfontPreviewCtrl = LAMfontPreviewCtrl or pChatLAMFontPreviewDescriptionCtrl
+			if not fontName or not LAMfontPreviewCtrl or not LAMfontPreviewCtrl.desc then return end
+
+			local fontPath
+			if LMP:IsValid("font", fontName) then
+				fontPath = LMP:Fetch("font", fontName)
+			end
+			if fontPath == nil then fontPath = LMP:GetDefault('font') end
+			LAMfontPreviewCtrl.desc:SetFont(ZO_CreateFontString(fontPath, fontSize, FONT_STYLE_SOFT_SHADOW_THIN))
+--pChat._LAMfontPreviewCtrl = LAMfontPreviewCtrl.desc
+		end
+
 		--LAM 2.0 callback function if the panel was created
 		local pChatLAMPanelCreated = function(panel)
-			if panel == pChat.LAMPanel then
+			if pChat.LAMPanel == panel then
 				UpdateSoundDescription("whisper")
+				changeLAMFontPreview(db.fonts)
 			end
 		end
 		CM:RegisterCallback("LAM-PanelControlsCreated", pChatLAMPanelCreated)
@@ -375,7 +398,7 @@ function pChat.InitializeSettings()
 		-- LAM Message Settings
 		local charId = GetCurrentCharacterId()
 
-		local fontsDefined = LibMediaProvider:List('font')
+		local fontsDefined = LMP:List('font')
 
 		--#33 Accounts of the current server
 		local function getAccountsListOfServer()
@@ -421,6 +444,7 @@ function pChat.InitializeSettings()
 
 		--Check if the chat tabs were updated -> Rebuild the settings tables
 		pChat.getTabNames()
+
 
 		-- Coorbin20211222
 		------------------------------------------------------------------------------------------------------------------------
@@ -889,22 +913,6 @@ function pChat.InitializeSettings()
 							width = "full",
 							default = defaults.chatMaximizedAfterMenus,
 						},
-						{ -- Fonts
-							type = "dropdown",
-							name = GetString(PCHAT_FONTCHANGE),
-							tooltip = GetString(PCHAT_FONTCHANGETT),
-							choices = fontsDefined,
-							width = "full",
-							getFunc = function() return db.fonts end,
-							setFunc = function(choice)
-								db.fonts = choice
-								pChat.ChangeChatFont(true)
-								ReloadUI()
-							end,
-							default = defaults.fontChange,
-							warning = "ReloadUI",
-							scrollable = true,
-						},
 						{ -- Scrolled up warning
 							type = "checkbox",
 							name = GetString(PCHAT_CHATSCROLLEDUPWARNING),
@@ -916,6 +924,30 @@ function pChat.InitializeSettings()
 							end,
 							width = "full",
 							default = defaults.chatScrolledUpWarning,
+						},
+						{ -- Fonts preview text
+							type = "description",
+							text = defaultPreviewFontText,
+							width = "full",
+							reference = "pChatLAMFontPreviewDescriptionCtrl"
+						},
+						{ -- Fonts
+							type = "dropdown",
+							name = GetString(PCHAT_FONTCHANGE),
+							tooltip = GetString(PCHAT_FONTCHANGETT),
+							choices = fontsDefined,
+							width = "full",
+							getFunc = function() return db.fonts end,
+							setFunc = function(choice)
+								db.fonts = choice
+								pChat.ChangeChatFont(true)
+								changeLAMFontPreview(choice)
+								--ReloadUI()
+							end,
+							requiresReload = true,
+							default = defaults.fontChange,
+							--warning = "ReloadUI",
+							scrollable = true,
 						},
 					},
 				},
@@ -2496,8 +2528,7 @@ function pChat.InitializeSettings()
 		}
 
 		--Create the LibAdonMenu2 settings panel now
-		LibAddonMenu2:RegisterOptionControls("pChatOptions", optionsData)
-
+		LAM2:RegisterOptionControls("pChatOptions", optionsData)
 	end
 	pChat.BuildLAMPanel = BuildLAMPanel
 
@@ -2518,11 +2549,10 @@ function pChat.InitializeSettings()
 			registerForDefaults = true,
 		}
 
-		pChat.LAMPanel = LibAddonMenu2:RegisterAddonPanel("pChatOptions", panelData)
+		pChat.LAMPanel = LAM2:RegisterAddonPanel("pChatOptions", panelData)
 
 		-- Build OptionTable. In a separate func in order to rebuild it in case of Guild Reorg.
 		BuildLAMPanel()
-
 	end
 
 	-- Revert category settings
