@@ -2,7 +2,8 @@ local CONSTANTS = pChat.CONSTANTS
 local ADDON_NAME = CONSTANTS.ADDON_NAME
 
 local EM = EVENT_MANAGER
-local WM = WINDOW_MANAGER
+--local WM = WINDOW_MANAGER
+local CM = CALLBACK_MANAGER
 
 local ChatSys = CONSTANTS.CHAT_SYSTEM
 
@@ -107,19 +108,25 @@ function pChat.InitializeChatConfig()
     local function ChangeChatFont(change)
 
         local fontSize = GetChatFontSize()
-        if db.fonts == "ESO Standard Font" or db.fonts == "Univers 57" then
+        
+        -- Verify the font actually exists (Fetch returns default if not found)
+        if not LibMediaProvider:IsValid("font", db.fonts) then
+            -- Font not registered yet, will be applied when it's registered
             return
-        else
-
-            local fontPath = LibMediaProvider:Fetch("font", db.fonts)
-
-            -- Entry Box
-            ZoFontEditChat:SetFont(fontPath .. "|".. fontSize .. "|shadow")
-
-            -- Chat window
-            ZoFontChat:SetFont(fontPath .. "|" .. fontSize .. "|soft-shadow-thin")
-
         end
+        
+        local fontPath = LibMediaProvider:Fetch("font", db.fonts)
+        
+        if not fontPath then
+            -- If font fetch failed, fall back to default
+            return
+        end
+
+        -- Entry Box
+        ZoFontEditChat:SetFont(ZO_CreateFontString(fontPath, fontSize, FONT_STYLE_SHADOW))
+
+        -- Chat window
+        ZoFontChat:SetFont(ZO_CreateFontString(fontPath, fontSize, FONT_STYLE_SOFT_SHADOW_THIN))
 
     end
     pChat.ChangeChatFont = ChangeChatFont
@@ -725,6 +732,13 @@ function pChat.InitializeChatConfig()
     -- Right click on a tab name
     ZO_PreHook("ZO_ChatSystem_ShowOptions", function(control) return ChatSystemShowOptions() end)
     ZO_PreHook("ZO_ChatWindow_OpenContextMenu", function(control) return ChatSystemShowOptions(control.index) end)
+
+    -- Listen for font registration events to apply fonts registered by other addons
+    CM:RegisterCallback("LibMediaProvider_Registered", function(mediatype, key)
+        if mediatype == "font" and key == db.fonts then
+            ChangeChatFont()
+        end
+    end)
 
     -- Will change font if needed
     ChangeChatFont()
