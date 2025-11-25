@@ -1309,6 +1309,7 @@ function ChatCopyOptions:Initialize(control)
         self:InitializeFilterButtons(control)
         self:InitializeGuildFilters(control)
         self.filteredChannels = {}
+        self.openedSearchUICount = 0
 
         self:InitializeSearchUI(control)
 
@@ -1915,8 +1916,17 @@ function ChatCopyOptions:ChangeFiltersState(doEnable, filterType)
 end
 
 function ChatCopyOptions:ShowSearchUI(searchTerm)
+    -- Ensure initialization if not already done
+    if not self.initialized and self.control then
+        self:Initialize(self.control)
+    end
+
+    if not self.searchUIToggleButton or not self.searchUI or not self.control then
+        return
+    end
+
     self.isSearchUIShown = true
-    self.openedSearchUICount = self.openedSearchUICount + 1
+    self.openedSearchUICount = (self.openedSearchUICount or 0) + 1
 
     self.searchUIToggleButton:SetText(GetString(PCHAT_TOGGLE_SEARCH_UI_OFF))
     --d("[pChat]ChatCopyOptions-SearchUI - SHOWN")
