@@ -1309,7 +1309,7 @@ function ChatCopyOptions:Initialize(control)
         self:InitializeFilterButtons(control)
         self:InitializeGuildFilters(control)
         self.filteredChannels = {}
-        self.openedSearchUICount = 0
+        self.openedSearchUICount = 0 --#36
 
         self:InitializeSearchUI(control)
 
@@ -1496,7 +1496,7 @@ do
     end
 
     function ChatCopyOptions:InitializeSearchUI(dialogControl)
-d("ChatCopyOptions:InitializeSearchUI")
+--d("ChatCopyOptions:InitializeSearchUI")
         local selfVar = self
         self.isSearchUIShown = false
         self.openedSearchUICount = 0
@@ -1590,6 +1590,7 @@ function ChatCopyOptions:RefreshSearchAccount() --#33
     self:UpdateGuildNames(currentlySelectedAccountName)
     --Make the searchUI update properly too (if ShowSearchUI was not explitcly called yet but the searchUI is opened)
     if not self.searchUI:IsHidden() then
+        self.openedSearchUICount = self.openedSearchUICount or 0 --#36
         self.openedSearchUICount = self.openedSearchUICount + 1
     end
 
@@ -1921,12 +1922,13 @@ function ChatCopyOptions:ShowSearchUI(searchTerm)
         self:Initialize(self.control)
     end
 
-    if not self.searchUIToggleButton or not self.searchUI or not self.control then
+    if not self.control or not self.searchUI or not self.searchUIToggleButton then --#36
         return
     end
 
     self.isSearchUIShown = true
-    self.openedSearchUICount = (self.openedSearchUICount or 0) + 1
+    self.openedSearchUICount = self.openedSearchUICount or 0 --#36
+    self.openedSearchUICount = self.openedSearchUICount + 1
 
     self.searchUIToggleButton:SetText(GetString(PCHAT_TOGGLE_SEARCH_UI_OFF))
     --d("[pChat]ChatCopyOptions-SearchUI - SHOWN")
@@ -1961,10 +1963,11 @@ end
 
 function ChatCopyOptions:HideSearchUI()
     self:ClearSearchUIInternalData()
-
     self.isSearchUIShown = false
+
+    if not self.initialized then return end
     self.searchUIToggleButton:SetText(GetString(PCHAT_TOGGLE_SEARCH_UI_ON))
---d("[pChat]ChatCopyOptions-SearchUI - HIDDEN")
+    --d("[pChat]ChatCopyOptions-SearchUI - HIDDEN")
 
     self.control:ClearAnchors()
     self.control:SetAnchor(CENTER, GuiRoot, CENTER, 0, 0)

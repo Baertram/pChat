@@ -164,8 +164,10 @@ end
 
 function cm.cm_containsWholeWord(input, word)
 	local rxWord = "^%p*" .. word .. "%p*$"
+--d("rxWord: " .. tos(rxWord))
 	local words = cm.cm_dumbSplit(input)
 	for k,v in ipairs(words) do
+--d(">word: " .. tos(v))
 		if strmat(v, rxWord) ~= nil then
 			return true
 		end
@@ -393,10 +395,12 @@ function cm.cm_format(chanCode, text, fromDisplayName, isCS, appendColor)
 			local containsSpecialStringNotToColorize = cm.cm_containsSpecialNonColorizableString(origtext)
 			if not containsSpecialStringNotToColorize then
 				for k,v in pairs(cm.cm_regexes) do
-					-- For debugging regexes: d("v = " .. v)
+					--- For debugging
+--d(">regexes - v = " .. v)
 					if cm.cm_startsWith(v, "!") then
 						v = strsub(v,2)
 						if cm.cm_containsWholeWord(text, v) then
+--d(">>contains whole word - TRUE")
 							text, matched = checkColorCorrectCaseAndPlaySound(k, v, text, origtext, appendColor, alreadyHasColor, origColor, containsSpecialStringNotToColorize)
 							if matched == true then return text end
 							--[[

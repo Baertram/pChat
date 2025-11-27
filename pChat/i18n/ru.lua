@@ -557,7 +557,7 @@ SafeAddString(PCHAT_MENTIONS_SELFSEND_TOOLTIP					, "Отслеживает в �
 SafeAddString(PCHAT_MENTIONS_DING_NAME							, "Звуковое оповещение", 1)
 SafeAddString(PCHAT_MENTIONS_DING_TOOLTIP						, "Воспроизводит звуковой сигнал, когда упоминается ваше имя.", 1)
 
-SafeAddString(PCHAT_MENTIONS_DING_SOUND_NAME					, "Выберите звук", 1)
+SafeAddString(PCHAT_MENTIONS_DING_SOUND_NAME					, "звук: ", 1)
 SafeAddString(PCHAT_MENTIONS_DING_SOUND_NAME_TOOLTIP			, "Выберите звук, который должен воспроизводиться", 1)
 
 SafeAddString(PCHAT_MENTIONS_APPLYNAME_NAME						, "Применять к своим персонажам", 1)

@@ -82,18 +82,20 @@ ZO_ChatOptions_ToggleChannel    pChat.SaveChatConfig()      Save the currently l
 
 --=======================================================================================================================================
 --Known problems/bugs:
---Last updated: 2025-11-23
---Total number: 34
+--Last updated: 2025-11-27
+--Total number: 36
 --=======================================================================================================================================
 
 --Working on:
 
+--=======================================================================================================================================
+-- Changelog version: 10.0.7.1 (last version 10.0.7.0)
+--=======================================================================================================================================
 
---=======================================================================================================================================
--- Changelog version: 10.0.7.0 (last version 10.0.6.9)
---=======================================================================================================================================
 --Fixed:
---Fonts russian e.g. only rendering with [] with ESO default font
+--#36 Errors at /pchats chat search slash command
+--Fixed some translation errors
+--Added more description to the Chat mentions' settings, and changed some texts to be more clear where they belong to (in case you do not read the tooltips at the controls, which always is the best solution ;-))
 
 --Changed:
 
