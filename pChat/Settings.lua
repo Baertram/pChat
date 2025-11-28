@@ -2424,8 +2424,7 @@ function pChat.InitializeSettings()
 					getFunc = cm_getMentionDingSoundNameOption,
 					setFunc = cm_setMentionDingSoundNameOption,
 					tooltip = GetString(PCHAT_MENTIONS_DING_SOUND_NAME_TOOLTIP),
-					default = false,
-					width = "full",
+					default = defaults.dingSoundName,
 					saveSoundIndex = false,
 					showSoundName = true,
 					playSound = true,
@@ -2433,6 +2432,8 @@ function pChat.InitializeSettings()
 					noAutomaticSoundPreview = false,
 					readOnly = true,
 					autoselect = false,
+					width = "full",
+					--inputLocation = "right",
 					disabled = function() return not cm_getMentionDingOption() end,
 				},
 				{
