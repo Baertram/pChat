@@ -59,7 +59,7 @@ local ChatSys = CONSTANTS.CHAT_SYSTEM
         return true
     end
     ]]
-    if KEYBINDINGS_MANAGER ~= nil then --260121 API101049 #38 renamed to with S
+    if KEYBINDINGS_MANAGER ~= nil and KEYBINDINGS_MANAGER.SetChordingAlwaysEnabled then --260121 API101049 #38 renamed to with S
         KEYBINDINGS_MANAGER:SetChordingAlwaysEnabled(true)
     else
         KEYBINDING_MANAGER:SetChordingAlwaysEnabled(true) --Older API101048 etc.
