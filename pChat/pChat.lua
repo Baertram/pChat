@@ -87,14 +87,15 @@ ZO_ChatOptions_ToggleChannel    pChat.SaveChatConfig()      Save the currently l
 --=======================================================================================================================================
 
 --Working on:
---#37 ATTENTION ALL BEARS!! The Guild |H1:guild:857264|hG BEAR|h needs your help! Enlist now to make Tamriel more BEAR-able!
--->Chat mentions must not replace the words in the guild annoucement strings with the (!) icon!
 
 --=======================================================================================================================================
--- Changelog version: 10.0.7.3 (last version 10.0.7.2)
+-- Changelog version: 10.0.7.2 (last version 10.0.7.1)
 --=======================================================================================================================================
 
 --Fixed:
+--#37 ATTENTION ALL BEARS!! The Guild |H1:guild:857264|hG BEAR|h needs your help! Enlist now to make Tamriel more BEAR-able!
+-->Chat mentions must not replace the words in the guild annoucement strings with the (!) icon!
+--#38 Keybindings chording with CTRL,SHIFT,ALT key enabled again on PTS (nil error fix)
 
 --Changed:
 

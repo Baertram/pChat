@@ -59,7 +59,7 @@ local ChatSys = CONSTANTS.CHAT_SYSTEM
         return true
     end
     ]]
-    if KEYBINDINGS_MANAGER ~= nil then --260121 API101049 renamed to with S, according to ZOs_DanBatson there was a typo in the addon compatibility aliases
+    if KEYBINDINGS_MANAGER ~= nil then --260121 API101049 #38 renamed to with S
         KEYBINDINGS_MANAGER:SetChordingAlwaysEnabled(true)
     else
         KEYBINDING_MANAGER:SetChordingAlwaysEnabled(true) --Older API101048 etc.
