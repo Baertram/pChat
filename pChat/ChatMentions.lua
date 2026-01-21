@@ -35,6 +35,14 @@ cm.excludedChatChannels = {
 }
 local excludedChatChannels = cm.excludedChatChannels
 
+--If these string parts are found in the texts (itemlinks e.g.) the colorizing of the
+--own name etc. won't happen
+cm.cm_nonColorizableStringIdentifiers = {
+	[1] = ":housing:", --owned houses itemlink for chat posts, from collections
+	[2] = ":guild:", --guild advertisements --#37
+}
+local cm_nonColorizableStringIdentifiers = cm.cm_nonColorizableStringIdentifiers
+
 --String patterns
 local colorAlreadyAddedPattern = "|c[%d%a][%d%a][%d%a][%d%a][%d%a][%d%a]"
 
@@ -44,13 +52,6 @@ local exclamationMarkTexture = "pChat/dds/excl3.dds"
 local cm_lplayerAt = strlow(GetUnitDisplayName("player"))
 local cm_charNameSplitted --= cm.cm_split(GetUnitName("player"))
 
-
-
---If these string parts are found in the texts (itemlinks e.g.) the colorizing of the
---own name etc. won't happen
-cm.cm_nonColorizableStringIdentifiers = {
-	[1] = ":housing:", --owned houses itemlink for chat posts, from collections
-}
 
 --[[
 function pChat.getAllLetters(charClass)
@@ -74,8 +75,8 @@ function cm.cm_initChatMentionsEngine()
 end
 
 function cm.cm_containsSpecialNonColorizableString(textVar)
-	for k, v in ipairs(cm.cm_nonColorizableStringIdentifiers) do
-		if string.find(textVar, v, 1, true) ~= nil then
+	for k, v in ipairs(cm_nonColorizableStringIdentifiers) do
+		if strfind(textVar, v, 1, true) ~= nil then
 --d("[pChat]CM containsSpecialNonColorizableString: " .. tos(textVar) .. " - contains: " .. tos(v) )
 			return true
 		end
@@ -368,7 +369,7 @@ end
 -- The main formatting routine that gets called inside FormatMessage.
 function cm.cm_format(chanCode, text, fromDisplayName, isCS, appendColor)
 	--#13 Exclude some chat channels from mentions, like system etc.
-	if chanCode == nil or cm.excludedChatChannels[chanCode] then return text end
+	if chanCode == nil or excludedChatChannels[chanCode] then return text end
 
     local lfrom = strlow(fromDisplayName)
 

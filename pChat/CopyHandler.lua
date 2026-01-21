@@ -28,6 +28,10 @@ local mapPChatChannelToChatChannel = pChat.mapPChatChannelToChatChannel
 local chatChannelLangToLangStr = CONSTANTS.chatChannelLangToLangStr
 local chatChannel2Name = CONSTANTS.chatChannel2Name
 
+local characterFindPattern =    CONSTANTS.characterFindPattern  --"%|H%d%:character%:.*%|h.*%|h%:"
+local accountFindPattern =      CONSTANTS.accountFindPattern    --"%|H%d%:display%:%@.*%|h%@.*%|h%:"
+local accountFindPattern2 =     CONSTANTS.accountFindPattern2   --"%|H%d%:display%:%@.*%|h.*%@.*%|h%:"
+
 --Search UI
 local pChat_searchUIMasterList = {}
 
@@ -38,6 +42,37 @@ local checkDisplayName
 local getPortTypeFromName
 
 local chatCopyDialogInitializedCheck              --#30
+
+local formatGuildStr = "formatguild"
+local chatChannelToFormatNameVar = {
+    --Group
+    [CHAT_CHANNEL_PARTY] = "groupNames",
+    --Guilds
+    [CHAT_CHANNEL_GUILD_1] = formatGuildStr, --[guildId]
+    [CHAT_CHANNEL_GUILD_2] = formatGuildStr, --[guildId]
+    [CHAT_CHANNEL_GUILD_3] = formatGuildStr, --[guildId]
+    [CHAT_CHANNEL_GUILD_4] = formatGuildStr, --[guildId]
+    [CHAT_CHANNEL_GUILD_5] = formatGuildStr, --[guildId]
+    [CHAT_CHANNEL_OFFICER_1] = formatGuildStr, --[guildId]
+    [CHAT_CHANNEL_OFFICER_2] = formatGuildStr, --[guildId]
+    [CHAT_CHANNEL_OFFICER_3] = formatGuildStr, --[guildId]
+    [CHAT_CHANNEL_OFFICER_4] = formatGuildStr, --[guildId]
+    [CHAT_CHANNEL_OFFICER_5] = formatGuildStr, --[guildId]
+    --All others
+    --"geoChannelsFormat"
+}
+local chatChannelGuildToGuildIndex = {
+    [CHAT_CHANNEL_GUILD_1] = 1,
+    [CHAT_CHANNEL_GUILD_2] = 2,
+    [CHAT_CHANNEL_GUILD_3] = 3,
+    [CHAT_CHANNEL_GUILD_4] = 4,
+    [CHAT_CHANNEL_GUILD_5] = 5,
+    [CHAT_CHANNEL_OFFICER_1] = 1,
+    [CHAT_CHANNEL_OFFICER_2] = 2,
+    [CHAT_CHANNEL_OFFICER_3] = 3,
+    [CHAT_CHANNEL_OFFICER_4] = 4,
+    [CHAT_CHANNEL_OFFICER_5] = 5,
+}
 
 
 -------------------------------------------------------------
@@ -195,7 +230,7 @@ local function GetAccountAndCharacterNameFromLine(numLine, chatChannel)
     --e.g. could be |H0:display:@Baerkloppt|h, or "|c8F8F8F[20:46:09] |r|cb99e5a|H0:character:Bubamara O^Mx|h or "|c8F8F8F[20:46:30] |r|cb99e5a|H0:character:grey'ar^Fx|hGrey'ar|h: |r|cbeae82|H1:guild:732024|hCadwell's Gefolge|h etc.
     local rawValue = lineData.rawValue
     if rawValue ~= nil then
-        local characterPosStart, characterPosEnd = strfin(rawValue, "%|H%d%:character%:.*%|h.*%|h%:")
+        local characterPosStart, characterPosEnd = strfin(rawValue, characterFindPattern)
 --d(">CHAR characterPosStart: " .. tostring(characterPosStart) .. ", characterPosEnd: " ..tostring(characterPosEnd) ..", rawValue: " ..tostring(rawValue))
         if characterPosStart ~= nil and characterPosEnd ~= nil then
             local startPos = characterPosStart + 12 -- after the :character:
@@ -208,7 +243,7 @@ local function GetAccountAndCharacterNameFromLine(numLine, chatChannel)
        end
 
         if accountAndMaybeCharName == nil then
-            local accountPosStart, accountPosEnd = strfin(rawValue, "%|H%d%:display%:%@.*%|h%@.*%|h%:")
+            local accountPosStart, accountPosEnd = strfin(rawValue, accountFindPattern)
 --d(">ACCOUNT accountPosStart: " .. tostring(accountPosStart) .. ", accountPosEnd: " ..tostring(accountPosEnd) ..", rawValue: " ..tostring(rawValue))
             if accountPosStart ~= nil and accountPosEnd ~= nil then
                 local startPos = strfin(rawValue, "%|h%@", accountPosStart + 12) -- after the :display:
@@ -218,7 +253,7 @@ local function GetAccountAndCharacterNameFromLine(numLine, chatChannel)
             else
                 --Charactername@AccountName
                 --"|H0:display:@Baertram|hZaubärbuch@Baertram|h: |r|cc3f0c2test6|r"
-                accountPosStart, accountPosEnd = strfin(rawValue, "%|H%d%:display%:%@.*%|h.*%@.*%|h%:")
+                accountPosStart, accountPosEnd = strfin(rawValue, accountFindPattern2)
 --d(">ACCOUNT accountPosStart2: " .. tostring(accountPosStart) .. ", accountPosEnd2: " ..tostring(accountPosEnd) ..", rawValue: " ..tostring(rawValue))
                 if accountPosStart ~= nil and accountPosEnd ~= nil then
                     local startPos = strfin(rawValue, "%|h.*%@.*%|h%:", accountPosStart + 12) -- after the :display:
@@ -238,39 +273,10 @@ local function GetAccountAndCharacterNameFromLine(numLine, chatChannel)
                 db.groupNames
                 db.geoChannelsFormat
             ]]
-            local chatChannelToFormatNameVar = {
-                --Group
-                [CHAT_CHANNEL_PARTY] = "groupNames",
-                --Guilds
-                [CHAT_CHANNEL_GUILD_1] = "formatguild", --[guildId]
-                [CHAT_CHANNEL_GUILD_2] = "formatguild", --[guildId]
-                [CHAT_CHANNEL_GUILD_3] = "formatguild", --[guildId]
-                [CHAT_CHANNEL_GUILD_4] = "formatguild", --[guildId]
-                [CHAT_CHANNEL_GUILD_5] = "formatguild", --[guildId]
-                [CHAT_CHANNEL_OFFICER_1] = "formatguild", --[guildId]
-                [CHAT_CHANNEL_OFFICER_2] = "formatguild", --[guildId]
-                [CHAT_CHANNEL_OFFICER_3] = "formatguild", --[guildId]
-                [CHAT_CHANNEL_OFFICER_4] = "formatguild", --[guildId]
-                [CHAT_CHANNEL_OFFICER_5] = "formatguild", --[guildId]
-                --All others
-                --"geoChannelsFormat"
-            }
-            local chatChannelGuildToGuildIndex = {
-                [CHAT_CHANNEL_GUILD_1] = 1,
-                [CHAT_CHANNEL_GUILD_2] = 2,
-                [CHAT_CHANNEL_GUILD_3] = 3,
-                [CHAT_CHANNEL_GUILD_4] = 4,
-                [CHAT_CHANNEL_GUILD_5] = 5,
-                [CHAT_CHANNEL_OFFICER_1] = 1,
-                [CHAT_CHANNEL_OFFICER_2] = 2,
-                [CHAT_CHANNEL_OFFICER_3] = 3,
-                [CHAT_CHANNEL_OFFICER_4] = 4,
-                [CHAT_CHANNEL_OFFICER_5] = 5,
-            }
 
             local dbFormatNameVar = chatChannelToFormatNameVar[chatChannel]
             dbFormatNameVar = dbFormatNameVar or "geoChannelsFormat"
-            local isGuildChatChannel = dbFormatNameVar == "formatguild"
+            local isGuildChatChannel = dbFormatNameVar == formatGuildStr
             local currentSettingOfFormatNameVar
             if not isGuildChatChannel then
                 currentSettingOfFormatNameVar = db[dbFormatNameVar]

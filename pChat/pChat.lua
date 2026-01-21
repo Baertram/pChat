@@ -82,20 +82,19 @@ ZO_ChatOptions_ToggleChannel    pChat.SaveChatConfig()      Save the currently l
 
 --=======================================================================================================================================
 --Known problems/bugs:
---Last updated: 2025-11-27
---Total number: 36
+--Last updated: 2026-01-21
+--Total number: 37
 --=======================================================================================================================================
 
 --Working on:
+--#37 ATTENTION ALL BEARS!! The Guild |H1:guild:857264|hG BEAR|h needs your help! Enlist now to make Tamriel more BEAR-able!
+-->Chat mentions must not replace the words in the guild annoucement strings with the (!) icon!
 
 --=======================================================================================================================================
--- Changelog version: 10.0.7.1 (last version 10.0.7.0)
+-- Changelog version: 10.0.7.3 (last version 10.0.7.2)
 --=======================================================================================================================================
 
 --Fixed:
---#36 Errors at /pchats chat search slash command
---Fixed some translation errors
---Added more description to the Chat mentions' settings, and changed some texts to be more clear where they belong to (in case you do not read the tooltips at the controls, which always is the best solution ;-))
 
 --Changed:
 
@@ -119,7 +118,6 @@ local addonNamePrefix = "[" .. ADDON_NAME .. "] "
 
 local EM = EVENT_MANAGER
 
---local strlen = string.len
 local strfind = string.find
 local strsub = string.sub
 

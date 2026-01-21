@@ -7,7 +7,7 @@ pChat = pChat or {}
     --AddOn information
     local CONSTANTS = {
         ADDON_NAME          = "pChat",
-        ADDON_VERSION       = "10.0.7.1",
+        ADDON_VERSION       = "10.0.7.3",
 
         API_VERSION         = GetAPIVersion(),
 
@@ -80,6 +80,12 @@ pChat = pChat or {}
     --For the chat search UI -> Search history SavedVariables key
     CONSTANTS.SEARCH_TYPE_MESSAGE = 1
     CONSTANTS.SEARCH_TYPE_FROM = 2
+
+    --String find patterns
+    CONSTANTS.characterFindPattern = "%|H%d%:character%:.*%|h.*%|h%:"
+    CONSTANTS.accountFindPattern = "%|H%d%:display%:%@.*%|h%@.*%|h%:"
+    CONSTANTS.accountFindPattern2 = "%|H%d%:display%:%@.*%|h.*%@.*%|h%:"
+    CONSTANTS.guildAdvertisementPattern = "%|H%d%:guild%:%d+%|h.*%|h"  --|H1:guild:857264|hGuild name here|h
 
 
 

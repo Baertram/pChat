@@ -55,12 +55,15 @@ local ChatSys = CONSTANTS.CHAT_SYSTEM
     --[GLOBAL functions of ESOUI keybinds]--
     -- Needed to bind Shift+Tab in SetSwitchToNextBinding, called in EVENT_PLAYER_ACTIVATED -> pChat.SetupChatTabs
     --[[
-    function KEYBINDING_MANAGER:IsChordingAlwaysEnabled()
+    function KEYBINDINGS_MANAGER:IsChordingAlwaysEnabled()
         return true
     end
     ]]
-    KEYBINDING_MANAGER:SetChordingAlwaysEnabled(true)
-
+    if KEYBINDINGS_MANAGER ~= nil then --260121 API101049 renamed to with S, according to ZOs_DanBatson there was a typo in the addon compatibility aliases
+        KEYBINDINGS_MANAGER:SetChordingAlwaysEnabled(true)
+    else
+        KEYBINDING_MANAGER:SetChordingAlwaysEnabled(true) --Older API101048 etc.
+    end
 
     ---------------------------------
     -- Whisper --
