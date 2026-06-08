@@ -10,7 +10,7 @@ local pChat_CreateTimestamp = pChat.CreateTimestamp
 local pChat_getCurrentMillisecondsFormatted = pChat.getCurrentMillisecondsFormatted
 
 local currentlyLoggedInAccountName = GetDisplayName()
-
+local currentlyLoggedInCharName = zo_strformat(SI_UNIT_NAME, GetUnitName("player"))
 
 function pChat.InitializeChatHistory()
     local pChatData = pChat.pChatData
@@ -380,7 +380,8 @@ function pChat.InitializeChatHistory()
                 end
             end
             if zoneOutputStr ~= nil then
-                CHAT_SYSTEM:AddMessage(string.format(GetString(PCHAT_RESTOREHISTORY_SHOWACTUALZONENAME), GetDisplayName()  .. " - " .. zo_strformat(SI_UNIT_NAME, GetUnitName("player")), zoneOutputStr))
+                --CHAT_SYSTEM:AddMessage(string.format(GetString(PCHAT_RESTOREHISTORY_SHOWACTUALZONENAME), GetDisplayName()  .. " - " .. zo_strformat(SI_UNIT_NAME, GetUnitName("player")), zoneOutputStr))
+                CHAT_ROUTER:AddSystemMessage(string.format(GetString(PCHAT_RESTOREHISTORY_SHOWACTUALZONENAME), currentlyLoggedInAccountName  .. " - " .. currentlyLoggedInCharName, zoneOutputStr))
             end
         end
     end
