@@ -1,3 +1,5 @@
+local pChat = pChat
+
 local CONSTANTS = pChat.CONSTANTS
 local ADDON_NAME = CONSTANTS.ADDON_NAME
 local ADDON_VERSION			= CONSTANTS.ADDON_VERSION
@@ -874,6 +876,7 @@ function pChat.InitializeSettings()
 							width = "full",
 							default = function()
 								KEYBOARD_CHAT_SYSTEM:ResetMinAlphaToDefault()
+								return 100 --#38
 							end,
 						},
 						{-- Minimize at launch

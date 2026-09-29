@@ -82,18 +82,18 @@ ZO_ChatOptions_ToggleChannel    pChat.SaveChatConfig()      Save the currently l
 
 --=======================================================================================================================================
 --Known problems/bugs:
---Last updated: 2026-06-08
---Total number: 37
+--Last updated: 2026-09-29
+--Total number: 38
 --=======================================================================================================================================
 
 --Working on:
 
 --=======================================================================================================================================
--- Changelog version: 10.0.7.4 (last version 10.0.7.3)
+-- Changelog version: 10.0.7.5 (last version 10.0.7.4)
 --=======================================================================================================================================
 
 --Fixed:
---CHAT_SYSTEM usage removed
+--#38 Resetting settings in LAM -> nil error
 
 --Changed:
 
@@ -106,6 +106,7 @@ ZO_ChatOptions_ToggleChannel    pChat.SaveChatConfig()      Save the currently l
 
 --  pChat object
 pChat = pChat or {}
+local pChat = pChat
 local pChatData = pChat.pChatData
 
 --======================================================================================================================

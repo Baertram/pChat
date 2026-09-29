@@ -1,3 +1,5 @@
+local pChat = pChat
+
 local CONSTANTS = pChat.CONSTANTS
 --local ADDON_NAME = CONSTANTS.ADDON_NAME
 
@@ -328,7 +330,7 @@ function pChat.InitializeChatTabs()
     }
     local SKIP_CHANNELS =
     {
-        [CHAT_CATEGORY_SYSTEM] = nil, --do not skip anymore! Show in the chat tab settings
+        [CHAT_CATEGORY_SYSTEM] = nil, --Do not skip the system channel anymore in the chat tab option checkboxes -> Show in the chat tab settings
         [CHAT_CATEGORY_GUILD_1] = true,
         [CHAT_CATEGORY_GUILD_2] = true,
         [CHAT_CATEGORY_GUILD_3] = true,

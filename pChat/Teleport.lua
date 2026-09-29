@@ -1,3 +1,5 @@
+local pChat = pChat
+
 local CONSTANTS = pChat.CONSTANTS
 local ADDON_NAME = CONSTANTS.ADDON_NAME
 

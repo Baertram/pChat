@@ -1,3 +1,5 @@
+local pChat = pChat
+
 local CONSTANTS = pChat.CONSTANTS
 local apiVersion = CONSTANTS.API_VERSION
 
