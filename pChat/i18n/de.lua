@@ -199,6 +199,10 @@ SafeAddString(PCHAT_CHATMAXIMIZEDAFTERMENUSTT					, "Zeigt das Chat Fenster, nac
 
 SafeAddString(PCHAT_FONTCHANGE										, "Schriftart", 1)
 SafeAddString(PCHAT_FONTCHANGETT										, "Wählen Sie die Schriftart für den Chat aus.\nStandard: 'ESO Standard Font'", 1)
+SafeAddString(PCHAT_FONTSTYLECHANGE, "Chat Font Stil", 1)
+SafeAddString(PCHAT_FONTSTYLECHANGETT, "Der Stil des Chat Fonts", 1)
+
+
 
 -- Whisper settings
 

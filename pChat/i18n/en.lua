@@ -178,6 +178,8 @@ local strings = {
 
 	PCHAT_FONTCHANGE = "Chat Font",
 	PCHAT_FONTCHANGETT = "Set the Chat font",
+	PCHAT_FONTSTYLECHANGE = "Chat Font Style",
+	PCHAT_FONTSTYLECHANGETT = "The style of the Chat font",
 
 	PCHAT_TABWARNING = "New message warning",
 	PCHAT_TABWARNINGTT = "Set the warning color for tab name",

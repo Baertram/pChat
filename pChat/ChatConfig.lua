@@ -131,12 +131,16 @@ function pChat.InitializeChatConfig()
         end
 
         local fontSize = GetChatFontSize()
+
+        --("MyAddon/Font/path.slug|18|soft-shadow-thin")  #39
+        local fontDecoration = db.fontStyle  --#39
+        fontDecoration = fontDecoration or FONT_STYLE_SOFT_SHADOW_THIN --#39
+
         -- Entry Box
         ZoFontEditChat:SetFont(ZO_CreateFontString(fontPath, fontSize, FONT_STYLE_SHADOW))
 
         -- Chat window
-        ZoFontChat:SetFont(ZO_CreateFontString(fontPath, fontSize, FONT_STYLE_SOFT_SHADOW_THIN))
-
+        ZoFontChat:SetFont(ZO_CreateFontString(fontPath, fontSize, fontDecoration)) --#39 default was FONT_STYLE_SOFT_SHADOW_THIN
     end
     pChat.ChangeChatFont = ChangeChatFont
 

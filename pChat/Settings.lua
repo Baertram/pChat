@@ -116,6 +116,7 @@ function pChat.InitializeSettings()
 		-- guildRecruitProtect = false,
 		spamGracePeriod = 5,
 		fonts = "ESO Standard Font",
+		fontStyle = FONT_STYLE_SOFT_SHADOW_THIN, --#39
 		colours =
 		{
 			[2*CHAT_CHANNEL_SAY] = "|cFFFFFF", -- say Left
@@ -373,7 +374,7 @@ function pChat.InitializeSettings()
 
 		local LAMfontPreviewCtrl
 		local fontSize = GetChatFontSize()
-		local function changeLAMFontPreview(fontName)
+		local function changeLAMFontPreview(fontName, fontStyle) --#39
 			LAMfontPreviewCtrl = LAMfontPreviewCtrl or pChatLAMFontPreviewDescriptionCtrl
 			if not fontName or not LAMfontPreviewCtrl or not LAMfontPreviewCtrl.desc then return end
 
@@ -382,7 +383,7 @@ function pChat.InitializeSettings()
 				fontPath = LMP:Fetch("font", fontName)
 			end
 			if fontPath == nil then fontPath = LMP:GetDefault('font') end
-			LAMfontPreviewCtrl.desc:SetFont(ZO_CreateFontString(fontPath, fontSize, FONT_STYLE_SOFT_SHADOW_THIN))
+			LAMfontPreviewCtrl.desc:SetFont(ZO_CreateFontString(fontPath, fontSize, fontStyle)) --#39
 --pChat._LAMfontPreviewCtrl = LAMfontPreviewCtrl.desc
 		end
 
@@ -876,7 +877,8 @@ function pChat.InitializeSettings()
 							width = "full",
 							default = function()
 								KEYBOARD_CHAT_SYSTEM:ResetMinAlphaToDefault()
-								return 100 --#38
+								local _, _, _, bgMinAlpha = GetChatContainerColors(1) 	--#38
+								return zo_round(bgMinAlpha * 100) 						--#38
 							end,
 						},
 						{-- Minimize at launch
@@ -944,7 +946,7 @@ function pChat.InitializeSettings()
 							setFunc = function(choice)
 								db.fonts = choice
 								pChat.ChangeChatFont(true)
-								changeLAMFontPreview(choice)
+								changeLAMFontPreview(choice, db.fontStyle)
 								--ReloadUI()
 							end,
 							requiresReload = true,
@@ -952,6 +954,42 @@ function pChat.InitializeSettings()
 							--warning = "ReloadUI",
 							scrollable = true,
 						},
+						--Font decoration / style #39
+						{
+							type = "dropdown",
+							name = GetString(PCHAT_FONTSTYLECHANGE),
+							tooltip = GetString(PCHAT_FONTSTYLECHANGETT),
+							choices = {
+								"FONT_STYLE_NORMAL",
+								"FONT_STYLE_OUTLINE",
+								"FONT_STYLE_OUTLINE_SHADOW",
+								"FONT_STYLE_OUTLINE_SHADOW_THICK",
+								"FONT_STYLE_OUTLINE_THICK",
+								"FONT_STYLE_SHADOW",
+								"FONT_STYLE_SOFT_SHADOW_THICK",
+								"FONT_STYLE_SOFT_SHADOW_THIN",
+							},
+							choicesValues = {
+								FONT_STYLE_NORMAL,
+								FONT_STYLE_OUTLINE,
+								FONT_STYLE_OUTLINE_SHADOW,
+								FONT_STYLE_OUTLINE_SHADOW_THICK,
+								FONT_STYLE_OUTLINE_THICK,
+								FONT_STYLE_SHADOW,
+								FONT_STYLE_SOFT_SHADOW_THICK,
+								FONT_STYLE_SOFT_SHADOW_THIN,
+							},
+							width = "full",
+							getFunc = function() return db.fontStyle end,
+							setFunc = function(choice)
+								db.fontStyle = choice
+								pChat.ChangeChatFont(true)
+								changeLAMFontPreview(db.fonts, choice)
+							end,
+							requiresReload = true,
+							default = defaults.fontStyle,
+							scrollable = true,
+						}
 					},
 				},
 			},
